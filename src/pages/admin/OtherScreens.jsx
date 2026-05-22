@@ -1,0 +1,201 @@
+import { useState } from 'react';
+import { useApp } from '../../state/AppContext';
+import AppShell from '../../components/layout/AppShell';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+
+/* ─── Admin Confirming ─── */
+const confRows = [
+  ['CONF-04821','TotalEnerGE','Const. Silva','12,500,000','12,250,000','green','Aprobada','12/05/26'],
+  ['CONF-04820','TotalEnerGE','Tech Bata SL','8,200,000','8,036,000','yellow','Pendiente','11/05/26'],
+  ['CONF-04819','Infraconst.','LogiGE S.A.','23,100,000','22,638,000','green','Aprobada','10/05/26'],
+  ['CONF-04818','TotalEnerGE','AgriEco PYME','5,700,000','5,586,000','blue','En revisión','09/05/26'],
+];
+
+export function AdminConf() {
+  const { go } = useApp();
+  return (
+    <AppShell active="adminConf" role="admin" title="Confirming" sub="Todas las operaciones">
+      <div className="fade-in">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[['✅','24','Operaciones activas','text-text-1'],['💰','XAF 847M','Desembolsado total','text-green-text'],['⏳','5','Pendientes aprobación','text-orange'],['📅','XAF 124M','Vence este mes','text-yellow-text']].map(([ico,v,l,c]) => (
+            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
+              <div className="text-[22px] mb-2">{ico}</div>
+              <div className={`text-[20px] font-extrabold ${c} mb-1`}>{v}</div>
+              <div className="text-[12px] text-text-4">{l}</div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-[14px] border border-border overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex justify-between items-center">
+            <span className="text-[14px] font-bold">Operaciones de Confirming</span>
+            <Button variant="ghost" size="sm">📥 Exportar CSV</Button>
+          </div>
+          <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead><tr>{['ID','Contratante','Proveedor','Monto XAF','Anticipo XAF','Estado','Fecha',''].map(h=>(
+              <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>
+            ))}</tr></thead>
+            <tbody>
+              {confRows.map(([id,cont,prov,amt,anti,cls,st,dt]) => (
+                <tr key={id} onClick={() => go('adminPrestamoDetalle')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
+                  <td className="px-4 py-3 font-mono text-[11px] text-text-4">{id}</td>
+                  <td className="px-4 py-3 text-[12px] text-text-3">{cont}</td>
+                  <td className="px-4 py-3 font-semibold text-[13px]">{prov}</td>
+                  <td className="px-4 py-3 font-bold text-[13px]">{amt}</td>
+                  <td className="px-4 py-3 font-semibold text-green-text text-[13px]">{anti}</td>
+                  <td className="px-4 py-3"><Badge variant={cls}>{st}</Badge></td>
+                  <td className="px-4 py-3 text-[12px] text-text-4">{dt}</td>
+                  <td className="px-4 py-3"><Button variant="ghost" size="sm">Ver →</Button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+/* ─── Admin Risk ─── */
+const riskData = [
+  { nombre:'Const. Silva Ltd.',  sector:'Construcción', score:88, nivel:'Verde',   cls:'green',  deuda:'120M', pagos:'Al día' },
+  { nombre:'Pinturas Bata SL',   sector:'Industria',    score:72, nivel:'Verde',   cls:'green',  deuda:'45M',  pagos:'Al día' },
+  { nombre:'LogiRapid GE',       sector:'Transporte',   score:58, nivel:'Amarillo',cls:'yellow', deuda:'80M',  pagos:'1 retraso' },
+  { nombre:'AgriEco PYME',       sector:'Agricultura',  score:41, nivel:'Amarillo',cls:'yellow', deuda:'30M',  pagos:'2 retrasos' },
+  { nombre:'ServLog GE',         sector:'Logística',    score:25, nivel:'Rojo',    cls:'red',    deuda:'15M',  pagos:'Impagado' },
+];
+
+export function AdminRisk() {
+  return (
+    <AppShell active="adminRisk" role="admin" title="Gestión de Riesgos" sub="Monitor de cartera">
+      <div className="fade-in">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {[['🟢','3','Bajo riesgo (Verde)','text-green-text'],['🟡','2','Riesgo medio (Amarillo)','text-yellow-text'],['🔴','1','Alto riesgo (Rojo)','text-red-text']].map(([ico,v,l,c]) => (
+            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
+              <div className="text-[24px] mb-2">{ico}</div>
+              <div className={`text-[22px] font-extrabold ${c} mb-1`}>{v}</div>
+              <div className="text-[12px] text-text-4">{l}</div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-[14px] border border-border overflow-hidden">
+          <div className="px-5 py-4 border-b border-border">
+            <span className="text-[14px] font-bold">Semáforo de Riesgos — Empresas PYME</span>
+          </div>
+          <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead><tr>{['Empresa','Sector','Score','Nivel','Deuda XAF','Estado pagos'].map(h=>(
+              <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>
+            ))}</tr></thead>
+            <tbody>
+              {riskData.map(r => (
+                <tr key={r.nombre} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8]">
+                  <td className="px-4 py-3 font-semibold text-[13px]">{r.nombre}</td>
+                  <td className="px-4 py-3 text-[12px] text-text-3">{r.sector}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-2 bg-page-bg rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{width:`${r.score}%`,background:r.cls==='green'?'#00C853':r.cls==='yellow'?'#FFB300':'#E53935'}}/>
+                      </div>
+                      <span className="text-[12px] font-bold">{r.score}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3"><Badge variant={r.cls}>{r.nivel}</Badge></td>
+                  <td className="px-4 py-3 font-bold text-[13px]">XAF {r.deuda}</td>
+                  <td className="px-4 py-3 text-[12px]">{r.pagos}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+/* ─── Admin Analytics ─── */
+export function AdminAnalytics() {
+  return (
+    <AppShell active="adminAnalytics" role="admin" title="Analytics" sub="Métricas y tendencias">
+      <div className="fade-in">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[['📈','XAF 2.4B','Volumen acumulado','text-text-1'],['💼','47','Préstamos activos','text-orange'],['⏱','98.2%','Tasa reembolso','text-green-text'],['🚀','+23%','Crecimiento mensual','text-blue-text']].map(([ico,v,l,c]) => (
+            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
+              <div className="text-[24px] mb-2">{ico}</div>
+              <div className={`text-[20px] font-extrabold ${c} mb-1`}>{v}</div>
+              <div className="text-[12px] text-text-4">{l}</div>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="text-[14px] font-bold mb-4">Distribución por Sector</div>
+            {[['Construcción',42,'#E8521A'],['Transporte',28,'#00C853'],['Industria',18,'#FFB300'],['Otros',12,'#2196F3']].map(([s,p,c]) => (
+              <div key={s} className="flex items-center gap-3 mb-3">
+                <div className="w-3 h-3 rounded-full shrink-0" style={{background:c}}/>
+                <div className="text-[12px] text-text-2 flex-1">{s}</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 bg-page-bg rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{width:`${p}%`,background:c}}/>
+                  </div>
+                  <span className="text-[12px] font-bold w-8 text-right">{p}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="text-[14px] font-bold mb-4">Desembolsos por Mes (XAF M)</div>
+            <div className="flex items-end gap-2 h-32">
+              {[['Ene',120],['Feb',145],['Mar',180],['Abr',160],['May',210]].map(([mes,val]) => (
+                <div key={mes} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="text-[10px] font-bold text-orange">{val}M</div>
+                  <div className="w-full bg-orange rounded-t-[4px]" style={{height:`${(val/210)*100}%`}}/>
+                  <div className="text-[10px] text-text-4">{mes}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+/* ─── Admin Settings ─── */
+export function AdminSettings() {
+  return (
+    <AppShell active="adminSettings" role="admin" title="Configuración" sub="Parámetros del sistema">
+      <div className="fade-in max-w-[600px]">
+        <div className="bg-white rounded-[14px] border border-border p-6 mb-4">
+          <div className="text-[14px] font-bold mb-4">Parámetros de Préstamos</div>
+          <FormGroup label="Tasa de interés anual (%)">
+            <Input type="number" defaultValue="12" />
+          </FormGroup>
+          <FormGroup label="Máximo plazo (meses)">
+            <Input type="number" defaultValue="24" />
+          </FormGroup>
+          <FormGroup label="Máximo monto por empresa (XAF)">
+            <Input type="text" defaultValue="200,000,000" />
+          </FormGroup>
+          <FormGroup label="Porcentaje mínimo contratante verificado">
+            <Select><option>100% — Siempre requerido</option><option>80%</option></Select>
+          </FormGroup>
+        </div>
+        <div className="bg-white rounded-[14px] border border-border p-6 mb-4">
+          <div className="text-[14px] font-bold mb-4">Confirming</div>
+          <FormGroup label="Porcentaje anticipo estándar (%)">
+            <Input type="number" defaultValue="98" />
+          </FormGroup>
+          <FormGroup label="Días máximos plazo factura">
+            <Input type="number" defaultValue="90" />
+          </FormGroup>
+        </div>
+        <Button variant="primary">Guardar configuración</Button>
+      </div>
+    </AppShell>
+  );
+}

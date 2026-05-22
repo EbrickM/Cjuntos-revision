@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-orange: #E8521A;
+  --color-orange-dark: #C43D0E;
+  --color-orange-tint: #FFF0EB;
+  --color-orange-border: #FFD5C0;
+  --color-page-bg: #F8F9FB;
+  --color-border: #F0F2F5;
+  --color-input-border: #E5E7EB;
+  --color-text-1: #1A1A2E;
+  --color-text-2: #374151;
+  --color-text-3: #6B7280;
+  --color-text-4: #9CA3AF;
+  --color-text-5: #C4C4C4;
+  --color-green: #00C853;
+  --color-green-bg: #ECFDF5;
+  --color-green-text: #059669;
+  --color-green-border: #BBF7D0;
+  --color-yellow: #FFB300;
+  --color-yellow-bg: #FFFBEB;
+  --color-yellow-text: #D97706;
+  --color-red: #E53935;
+  --color-red-bg: #FEF2F2;
+  --color-red-text: #DC2626;
+  --color-blue-bg: #EFF6FF;
+  --color-blue-text: #3B82F6;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
+/* Estilos base dentro de @layer para no pisar utilidades de Tailwind (mb-*, p-*, gap, mx-auto, etc.) */
+@layer base {
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #F8F9FB;
+    color: #1A1A2E;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button, input, select, textarea {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes load {
+  0%   { width: 10%; }
+  50%  { width: 80%; }
+  100% { width: 10%; }
+}
