@@ -1,8 +1,10 @@
+import bmoriLogo from '../../assets/bmori_logo.png';
+
 export default function Logo({ size = 16 }) {
   return (
     <span className="inline-flex items-center gap-0">
       <img
-        src="/B-Mori.png"
+        src={bmoriLogo}
         style={{ height: Math.round(size * 1.8) }}
         className="block"
         onError={(e) => {

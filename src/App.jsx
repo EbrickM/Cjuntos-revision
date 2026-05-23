@@ -17,7 +17,6 @@ import { AdminConf, AdminRisk, AdminAnalytics, AdminSettings } from './pages/adm
 // Empresa Pequeña
 import EpHome from './pages/empresa-pequena/Home';
 import EpMisPrestamos from './pages/empresa-pequena/MisPrestamos';
-import EpSolicitarPrestamo from './pages/empresa-pequena/SolicitarPrestamo';
 import EpPrestamoDetalle from './pages/empresa-pequena/PrestamoDetalle';
 import EpLiberacionFondos from './pages/empresa-pequena/LiberacionFondos';
 import EpMisProveedores from './pages/empresa-pequena/MisProveedores';
@@ -61,7 +60,6 @@ function Router() {
     // Empresa Pequeña
     epHome:           <EpHome />,
     epPrestamos:      <EpMisPrestamos />,
-    epSolicitar:      <EpSolicitarPrestamo />,
     epPrestamoDetalle:<EpPrestamoDetalle />,
     epLiberacion:     <EpLiberacionFondos />,
     epProveedores:    <EpMisProveedores />,

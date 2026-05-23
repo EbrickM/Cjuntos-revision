@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DollarSign, Mail, Building2, Plus, Search, CheckCircle2, Edit, User } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Stepper from '../../components/ui/Stepper';
@@ -92,7 +93,10 @@ export default function SolicitarPrestamo() {
               </div>
               <div className="bg-green-bg border border-green-border rounded-[12px] p-3.5 mt-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[13px] text-green-text font-semibold">💰 Importe estimado del préstamo</span>
+                  <span className="text-[13px] text-green-text font-semibold flex items-center gap-1.5">
+                    <DollarSign size={16} className="text-green-text" />
+                    Importe estimado del préstamo
+                  </span>
                   <span className="text-[16px] font-extrabold text-green-text">XAF {calculoAnticipo.toLocaleString('es')}</span>
                 </div>
                 <div className="text-[11px] text-text-4 mt-1">Sujeto a aprobación Bonafide · Tasa preferencial PYME</div>
@@ -149,8 +153,9 @@ export default function SolicitarPrestamo() {
                 </FormGroup>
               </div>
               <div className="bg-blue-bg border border-blue-text/20 rounded-[12px] p-3.5 mt-2">
-                <div className="text-[11px] text-text-3 leading-[1.5]">
-                  📧 Se enviará una notificación a <strong>{data.emailContratante}</strong> para que verifique estos datos. Bonafide no autorizará el préstamo hasta recibir esa confirmación.
+                <div className="text-[11px] text-text-3 leading-[1.5] flex items-start gap-1.5">
+                  <Mail size={14} className="text-text-3 flex-shrink-0 mt-0.5" />
+                  <span>Se enviará una notificación a <strong>{data.emailContratante}</strong> para que verifique estos datos. Bonafide no autorizará el préstamo hasta recibir esa confirmación.</span>
                 </div>
               </div>
             </div>
@@ -176,7 +181,7 @@ export default function SolicitarPrestamo() {
                     <div className="text-[13px] font-bold text-orange">XAF {p.montoAsignado}</div>
                     <div className="text-[11px] text-text-4">Asignado</div>
                   </div>
-                  <Button variant="ghost" size="sm">✏ Editar</Button>
+                  <Button variant="ghost" size="sm"><Edit size={16} /> Editar</Button>
                   <Button variant="danger" size="sm" onClick={() => setData({...data, proveedores: data.proveedores.filter((_,j)=>j!==i)})}>✕</Button>
                 </div>
               ))}
@@ -212,19 +217,29 @@ export default function SolicitarPrestamo() {
             <div className="text-[13px] text-text-3 mb-2">Planifica cómo distribuirás el préstamo. Podrás ajustar esto después.</div>
             <div className="bg-green-bg border border-green-border rounded-[12px] p-3 mb-6">
               <div className="flex justify-between items-center">
-                <span className="text-[13px] text-green-text font-semibold">💰 Monto total del préstamo</span>
+                <span className="text-[13px] text-green-text font-semibold flex items-center gap-1.5">
+                  <DollarSign size={16} className="text-green-text" />
+                  Monto total del préstamo
+                </span>
                 <span className="text-[16px] font-extrabold text-green-text">XAF 120,000,000</span>
               </div>
             </div>
             <div className="bg-white rounded-[14px] border border-border p-7">
               <div className="flex flex-col gap-5">
                 {[
-                  { ico: '🏦', lbl: 'Reserva', key: 'reserva', color: 'text-blue-text', desc: 'Fondo de contingencia y emergencias' },
-                  { ico: '👷', lbl: 'Nómina', key: 'nomina', color: 'text-orange', desc: 'Pago de personal y salarios' },
-                  { ico: '🏗', lbl: 'Proveedores', key: 'proveedoresTotal', color: 'text-green-text', desc: 'Pagos a tus proveedores registrados' },
-                ].map(({ ico, lbl, key, color, desc }) => (
+                  { icon: 'BANK', lbl: 'Reserva', key: 'reserva', color: 'text-blue-text', desc: 'Fondo de contingencia y emergencias' },
+                  { icon: 'WORKER', lbl: 'Nómina', key: 'nomina', color: 'text-orange', desc: 'Pago de personal y salarios' },
+                  { icon: 'BUILD', lbl: 'Proveedores', key: 'proveedoresTotal', color: 'text-green-text', desc: 'Pagos a tus proveedores registrados' },
+                ].map(({ icon, lbl, key, color, desc }) => {
+                  let IconComp = Building2;
+                  switch(icon) {
+                    case 'BANK': IconComp = Building2; break;
+                    case 'WORKER': IconComp = User; break;
+                    case 'BUILD': IconComp = Building2; break;
+                  }
+                  return (
                   <div key={key} className="flex items-center gap-4 p-4 bg-page-bg rounded-[12px]">
-                    <span className="text-[24px] w-8">{ico}</span>
+                    <IconComp size={24} className="text-text-2" />
                     <div className="flex-1">
                       <div className="text-[13px] font-bold text-text-1">{lbl}</div>
                       <div className="text-[11px] text-text-4">{desc}</div>
@@ -239,7 +254,8 @@ export default function SolicitarPrestamo() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-4 p-4 bg-orange-tint border border-orange-border rounded-[12px]">
                 <div className="flex justify-between items-center mb-1">
@@ -276,13 +292,22 @@ export default function SolicitarPrestamo() {
               <div>
                 <div className="bg-white rounded-[14px] border border-border p-5 mb-4">
                   <div className="text-[13px] font-bold mb-3">¿Qué pasa ahora?</div>
-                  {[['📧','Notificación al contratante','< 1 hora'],['✅','Contratante verifica datos','1–2 días'],['🔍','Bonafide revisa y autoriza','< 72 horas'],['💰','Préstamo disponible en tu cuenta','Tras aprobación']].map(([ico,lbl,t]) => (
+                  {[['EMAIL','Notificación al contratante','< 1 hora'],['CHECK','Contratante verifica datos','1–2 días'],['SEARCH','Bonafide revisa y autoriza','< 72 horas'],['MONEY','Préstamo disponible en tu cuenta','Tras aprobación']].map(([type,lbl,t]) => {
+                    let IconComp = Mail;
+                    switch(type) {
+                      case 'EMAIL': IconComp = Mail; break;
+                      case 'CHECK': IconComp = CheckCircle2; break;
+                      case 'SEARCH': IconComp = Search; break;
+                      case 'MONEY': IconComp = DollarSign; break;
+                    }
+                    return (
                     <div key={lbl} className="flex items-center gap-2.5 py-2 border-b border-border last:border-0">
-                      <span className="text-[18px]">{ico}</span>
+                      <IconComp size={18} className="text-orange" />
                       <span className="text-[12px] flex-1">{lbl}</span>
                       <span className="text-[11px] font-semibold text-orange">{t}</span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <label className="flex items-start gap-2.5 cursor-pointer text-[13px] text-text-2 p-4 bg-orange-tint border border-orange-border rounded-[12px]">
                   <input type="checkbox" defaultChecked className="w-4 h-4 mt-0.5 accent-orange shrink-0" />

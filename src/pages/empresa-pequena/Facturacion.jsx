@@ -6,6 +6,8 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import UploadZone from '../../components/ui/UploadZone';
+import { EmojiIcon } from '../../components/ui/IconHelper';
+import { renderEmojiText } from '../../components/ui/IconHelperUtils';
 
 const facturas = [
   { id: 'FAC-2026-0892', contratante: 'TotalEnerGE', monto: '12,500,000', estado: 'Pagada', estadoCls: 'green', fecha: '01/05/2026', concepto: 'Fase 1 obra CTR-2026-001' },
@@ -26,7 +28,7 @@ export default function EpFacturacion() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[['🧾','3','Facturas emitidas','text-text-1'],['💰','XAF 12.5M','Cobrado este mes','text-green-text'],['⏳','XAF 28M','Pendiente de cobro','text-orange']].map(([ico,v,l,c]) => (
             <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
-              <div className="text-[28px] mb-2">{ico}</div>
+              <div className="text-[28px] mb-2"><EmojiIcon emoji={ico} size={28} className="inline-block" /></div>
               <div className={`text-[22px] font-extrabold ${c} mb-1`}>{v}</div>
               <div className="text-[12px] text-text-4">{l}</div>
             </div>
@@ -59,7 +61,7 @@ export default function EpFacturacion() {
                   <td className="px-4 py-3 text-[12px] text-text-4">{f.fecha}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-1.5">
-                      <Button variant="ghost" size="sm">📄 Ver</Button>
+                      <Button variant="ghost" size="sm"><EmojiIcon emoji="📄" size={16} className="mr-2" />Ver</Button>
                       {f.estado === 'Borrador' && <Button variant="primary" size="sm">Enviar</Button>}
                     </div>
                   </td>
@@ -81,7 +83,7 @@ export default function EpFacturacion() {
               <Button variant="ghost" onClick={() => setShowModal(false)}>Cancelar</Button>
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => setShowModal(false)}>Guardar borrador</Button>
-                <Button variant="primary" onClick={() => setShowModal(false)}>Enviar al contratante →</Button>
+                <Button variant="primary" onClick={() => setShowModal(false)}>Enviar al contratante <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
               </div>
             </>
           }
@@ -120,7 +122,7 @@ export default function EpFacturacion() {
           </div>
           <div className="bg-blue-bg border border-blue-text/20 rounded-[12px] p-3 mt-2">
             <div className="text-[11px] text-text-3 leading-[1.5]">
-              📧 Se enviará notificación a TotalEnerGE para que revise y pague esta factura a través de la plataforma.
+              {renderEmojiText('📧 Se enviará notificación a TotalEnerGE para que revise y pague esta factura a través de la plataforma.')}
             </div>
           </div>
         </Modal>

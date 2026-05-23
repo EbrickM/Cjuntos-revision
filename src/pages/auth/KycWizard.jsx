@@ -1,10 +1,9 @@
 import { useState } from 'react';
+import { EmojiIcon } from '../../components/ui/IconHelper';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
-import UploadZone from '../../components/ui/UploadZone';
-import Logo from '../../components/layout/Logo';
 
 const STEPS = ['Empresa', 'Documentos', 'Verificación', 'Listo'];
 
@@ -12,7 +11,7 @@ function WizardHeader({ step, onBack }) {
   const { go } = useApp();
   return (
     <div className="h-[60px] bg-white border-b border-border flex items-center px-8 gap-3">
-      <Button variant="ghost" size="sm" onClick={() => onBack ? onBack() : go('roleSelect')}>← Volver</Button>
+      <Button variant="ghost" size="sm" onClick={() => onBack ? onBack() : go('roleSelect')}><EmojiIcon emoji="←" size={14} className="mr-1" />Volver</Button>
       <span className="text-[15px] font-bold text-text-1 flex-1 text-center">Registro B-Morï</span>
       <span className="text-[12px] text-text-4">{step} de 4</span>
     </div>
@@ -51,12 +50,15 @@ export function KycStep1() {
             </FormGroup>
           </div>
           <div className="bg-page-bg border border-border rounded-[12px] p-3.5 mt-2">
-            <div className="text-[11px] text-text-3">🔒 Tus datos están protegidos bajo normativa COBAC/AML</div>
+            <div className="text-[11px] text-text-3 flex items-center gap-1.5">
+              <EmojiIcon emoji="🔒" size={12} className="text-text-3" />
+              <span>Tus datos están protegidos bajo normativa COBAC/AML</span>
+            </div>
           </div>
         </div>
         <div className="flex justify-end mt-5">
           <Button variant="primary" className="h-[52px] min-w-[180px] text-[15px]" onClick={() => go('kyc2')}>
-            Siguiente →
+            Siguiente <EmojiIcon emoji="→" size={16} className="ml-2" />
           </Button>
         </div>
       </div>
@@ -75,10 +77,17 @@ export function KycStep2() {
         <div className="text-[20px] font-bold text-text-1 mb-1.5">Sube tus documentos</div>
         <div className="text-[13px] text-text-3 mb-7">Necesitamos verificar tu identidad</div>
         <div className="bg-white rounded-[14px] border border-border p-6 flex flex-col gap-3">
-          {[['📄','Cédula o Pasaporte','PDF, JPG · máx 5MB',false],['📋','Registro Comercial / RUC','PDF · máx 5MB',false],['🏦','Estado de cuenta bancario','Últimos 3 meses · PDF',true]].map(([ico,name,hint,done]) => (
+          {[['FILE','Cédula o Pasaporte','PDF, JPG · máx 5MB',false],['CLIPBOARD','Registro Comercial / RUC','PDF · máx 5MB',false],['BANK','Estado de cuenta bancario','Últimos 3 meses · PDF',true]].map(([ico,name,hint,done]) => (
             <div key={name} className={`flex items-center gap-3.5 p-3.5 border rounded-[12px] ${done ? 'border-green-border bg-green-bg' : 'border-border bg-white'}`}>
-              <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center text-[20px] ${done ? 'bg-green-bg' : 'bg-page-bg'}`}>
-                {done ? '✅' : ico}
+              <div className={`w-[42px] h-[42px] rounded-[10px] flex items-center justify-center ${done ? 'bg-green-bg' : 'bg-page-bg'}`}>
+                {done ? <EmojiIcon emoji="✔️" size={20} className="text-green-text" /> : (() => {
+                  switch(ico) {
+                    case 'FILE': return <EmojiIcon emoji="📄" size={20} className="text-text-2" />;
+                    case 'CLIPBOARD': return <EmojiIcon emoji="📋" size={20} className="text-text-2" />;
+                    case 'BANK': return <EmojiIcon emoji="🏦" size={20} className="text-text-2" />;
+                    default: return ico;
+                  }
+                })()}
               </div>
               <div className="flex-1">
                 <div className="text-[13px] font-semibold text-text-1">{name}</div>
@@ -90,13 +99,16 @@ export function KycStep2() {
             </div>
           ))}
           <div className="bg-yellow-bg border border-yellow/40 rounded-[12px] p-3.5 mt-1">
-            <div className="text-[12px] font-bold text-yellow-text mb-1">💡 Consejos</div>
+            <div className="text-[12px] font-bold text-yellow-text mb-1 flex items-center gap-1.5">
+              <EmojiIcon emoji="💡" size={14} className="text-yellow" />
+              <span>Consejos</span>
+            </div>
             <div className="text-[11px] text-text-3 leading-[1.5]">• Asegúrate que los documentos sean legibles<br />• Formato válido: PDF, JPG, PNG<br />• Vigencia mínima: 3 meses</div>
           </div>
         </div>
         <div className="flex justify-between mt-5 gap-3">
-          <Button variant="ghost" onClick={() => go('kyc1')}>← Anterior</Button>
-          <Button variant="primary" className="h-[52px] min-w-[180px] text-[15px]" onClick={() => go('kyc3')}>Siguiente →</Button>
+          <Button variant="ghost" onClick={() => go('kyc1')}><EmojiIcon emoji="←" size={16} className="mr-2" />Anterior</Button>
+          <Button variant="primary" className="h-[52px] min-w-[180px] text-[15px]" onClick={() => go('kyc3')}>Siguiente <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
         </div>
       </div>
     </div>
@@ -121,12 +133,12 @@ export function KycStep3() {
           >
             {captured ? (
               <>
-                <div className="text-[48px] mb-3">✅</div>
+                <div className="mb-3"><EmojiIcon emoji="✔️" size={48} className="text-green-text mx-auto" /></div>
                 <div className="text-[14px] font-semibold text-green-text">Foto capturada correctamente</div>
               </>
             ) : (
               <>
-                <div className="text-[48px] mb-3">📷</div>
+                <div className="mb-3"><EmojiIcon emoji="📷" size={48} className="text-text-3 mx-auto" /></div>
                 <div className="text-[14px] font-semibold text-text-1 mb-1.5">Tomar selfie con cédula</div>
                 <div className="text-[12px] text-text-4">Haz clic para simular captura</div>
               </>
@@ -138,8 +150,8 @@ export function KycStep3() {
           </label>
         </div>
         <div className="flex justify-between mt-5 gap-3">
-          <Button variant="ghost" onClick={() => go('kyc2')}>← Anterior</Button>
-          <Button variant="primary" className="h-[52px] min-w-[200px] text-[15px]" onClick={() => go('kyc4')}>Enviar solicitud KYC →</Button>
+          <Button variant="ghost" onClick={() => go('kyc2')}><EmojiIcon emoji="←" size={16} className="mr-2" />Anterior</Button>
+          <Button variant="primary" className="h-[52px] min-w-[200px] text-[15px]" onClick={() => go('kyc4')}>Enviar solicitud KYC <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
         </div>
       </div>
     </div>
@@ -153,8 +165,8 @@ export function KycStep4() {
       <div className="max-w-[480px] w-full px-6">
         <Stepper steps={STEPS} current={3} />
         <div className="flex flex-col items-center text-center py-10 px-7">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-[36px] mb-5 shadow-[0_8px_24px_rgba(232,82,26,.3)]">
-            ✅
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center mb-5 shadow-[0_8px_24px_rgba(232,82,26,.3)]">
+            <EmojiIcon emoji="✔️" size={44} className="text-white" />
           </div>
           <div className="text-[22px] font-bold text-text-1 mb-2.5">¡Registro enviado!</div>
           <div className="text-[14px] text-text-3 leading-[1.7] max-w-[340px] mb-6">
@@ -169,7 +181,7 @@ export function KycStep4() {
             ))}
           </div>
           <Button variant="primary" full className="h-[52px] text-[15px]" onClick={() => go('epHome')}>
-            Ir a mi cuenta →
+            Ir a mi cuenta <EmojiIcon emoji="→" size={16} className="ml-2" />
           </Button>
         </div>
       </div>

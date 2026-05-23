@@ -1,51 +1,55 @@
+import {
+  Home, Briefcase, Eye, CheckCircle2, Building2, AlertTriangle,
+  TrendingUp, Settings, ClipboardList, Users, Receipt, Wallet,
+  Folder, Bell, User, LogOut, ShieldCheck, BarChart3,
+} from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Logo from './Logo';
 
 const NAV = {
   admin: [
-    { id: 'adminDash',       ico: '🏠', lbl: 'Dashboard' },
-    { id: 'adminPrestamos',  ico: '💼', lbl: 'Solicitudes Préstamo', badge: '3' },
-    { id: 'adminKYC',        ico: '👁', lbl: 'KYC Empresas', badge: '3' },
-    { id: 'adminConf',       ico: '✅', lbl: 'Confirming', badge: '5' },
-    { id: 'adminEmpresas',   ico: '🏢', lbl: 'Empresas Contratantes' },
-    { id: 'adminRisk',       ico: '🚦', lbl: 'Riesgos', badge: '2' },
-    { id: 'adminAnalytics',  ico: '📈', lbl: 'Analytics' },
-    { id: 'adminSettings',   ico: '⚙️', lbl: 'Configuración' },
+    { id: 'adminDash',      Icon: Home,          lbl: 'Dashboard' },
+    { id: 'adminPrestamos', Icon: Briefcase,      lbl: 'Solicitudes Préstamo', badge: '3' },
+    { id: 'adminKYC',       Icon: Eye,            lbl: 'KYC Empresas',         badge: '3' },
+    { id: 'adminConf',      Icon: CheckCircle2,   lbl: 'Confirming',           badge: '5' },
+    { id: 'adminEmpresas',  Icon: Building2,      lbl: 'Empresas Contratantes' },
+    { id: 'adminRisk',      Icon: AlertTriangle,  lbl: 'Riesgos',              badge: '2' },
+    { id: 'adminAnalytics', Icon: TrendingUp,     lbl: 'Analytics' },
+    { id: 'adminSettings',  Icon: Settings,       lbl: 'Configuración' },
   ],
   'empresa-pequena': [
-    { id: 'epHome',          ico: '🏠', lbl: 'Inicio' },
-    { id: 'epPrestamos',     ico: '💼', lbl: 'Mis Préstamos' },
-    { id: 'epSolicitar',     ico: '📋', lbl: 'Solicitar Préstamo' },
-    { id: 'epProveedores',   ico: '👥', lbl: 'Mis Proveedores' },
-    { id: 'epFacturacion',   ico: '🧾', lbl: 'Facturación', badge: '2' },
-    { id: 'epBilletera',     ico: '💳', lbl: 'Mi Billetera' },
-    { id: 'epDocs',          ico: '📁', lbl: 'Documentos' },
-    { id: 'epNotif',         ico: '🔔', lbl: 'Notificaciones', badge: '2' },
-    { id: 'epPerfil',        ico: '👤', lbl: 'Mi Perfil' },
+    { id: 'epHome',        Icon: Home,          lbl: 'Inicio' },
+    { id: 'epPrestamos',   Icon: Briefcase,     lbl: 'Mis Préstamos' },
+    { id: 'epProveedores', Icon: Users,         lbl: 'Mis Proveedores' },
+    { id: 'epFacturacion', Icon: Receipt,       lbl: 'Facturación',      badge: '2' },
+    { id: 'epBilletera',   Icon: Wallet,        lbl: 'Mi Billetera' },
+    { id: 'epDocs',        Icon: Folder,        lbl: 'Documentos' },
+    { id: 'epNotif',       Icon: Bell,          lbl: 'Notificaciones',   badge: '2' },
+    { id: 'epPerfil',      Icon: User,          lbl: 'Mi Perfil' },
   ],
   contratante: [
-    { id: 'empDash',         ico: '🏠', lbl: 'Inicio' },
-    { id: 'empConf',         ico: '📋', lbl: 'Confirming', badge: '5' },
-    { id: 'empFactEP',       ico: '🧾', lbl: 'Facturas PYME', badge: '3' },
-    { id: 'empVerifContr',   ico: '✅', lbl: 'Verificar Contratos', badge: '2' },
-    { id: 'empProv',         ico: '👥', lbl: 'Proveedores' },
-    { id: 'empRisk',         ico: '🚦', lbl: 'Riesgos', badge: '2' },
-    { id: 'empESG',          ico: '📊', lbl: 'Reportes ESG' },
-    { id: 'empNotif',        ico: '🔔', lbl: 'Notificaciones' },
-    { id: 'empSettings',     ico: '⚙️', lbl: 'Configuración' },
+    { id: 'empDash',       Icon: Home,          lbl: 'Inicio' },
+    { id: 'empConf',       Icon: ClipboardList, lbl: 'Confirming',           badge: '5' },
+    { id: 'empFactEP',     Icon: Receipt,       lbl: 'Facturas PYME',        badge: '3' },
+    { id: 'empVerifContr', Icon: ShieldCheck,   lbl: 'Verificar Contratos',  badge: '2' },
+    { id: 'empProv',       Icon: Users,         lbl: 'Proveedores' },
+    { id: 'empRisk',       Icon: AlertTriangle, lbl: 'Riesgos',              badge: '2' },
+    { id: 'empESG',        Icon: BarChart3,     lbl: 'Reportes ESG' },
+    { id: 'empNotif',      Icon: Bell,          lbl: 'Notificaciones' },
+    { id: 'empSettings',   Icon: Settings,      lbl: 'Configuración' },
   ],
 };
 
 const USERS = {
-  admin:           { initials: 'AM', name: 'Ana Martínez',     role: 'Ops. Bonafide',        pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
-  'empresa-pequena': { initials: 'CE', name: 'Construcciones Silva', role: 'Empresa Pequeña · 🟢', pill: { lbl: 'PYME', cls: 'bg-green-bg text-green-text border-green-border' } },
-  contratante:     { initials: 'TE', name: 'TotalEnerGE',      role: 'Empresa Contratante',  pill: null },
+  admin:             { initials: 'AM', name: 'Ana Martínez',       role: 'Ops. Bonafide',      pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
+  'empresa-pequena': { initials: 'CE', name: 'Construcciones Silva', role: 'Empresa Pequeña',   pill: { lbl: 'PYME',  cls: 'bg-green-bg text-green-text border-green-border' } },
+  contratante:       { initials: 'TE', name: 'TotalEnerGE',        role: 'Empresa Contratante', pill: null },
 };
 
 const SECTIONS = {
-  admin:           ['Principal', 'Operaciones'],
+  admin:             ['Principal', 'Operaciones'],
   'empresa-pequena': ['Principal', 'Gestión'],
-  contratante:     ['Principal', 'Análisis'],
+  contratante:       ['Principal', 'Análisis'],
 };
 
 export default function Sidebar({ active, role }) {
@@ -53,7 +57,6 @@ export default function Sidebar({ active, role }) {
   const items = NAV[role] || [];
   const user  = USERS[role] || USERS.contratante;
   const [s1, s2] = SECTIONS[role] || ['Principal', 'Gestión'];
-
   const split = role === 'admin' ? 3 : role === 'empresa-pequena' ? 4 : 3;
 
   const NavItem = ({ item }) => (
@@ -66,19 +69,13 @@ export default function Sidebar({ active, role }) {
           : 'text-text-3 hover:bg-orange-tint hover:text-orange'
         }`}
     >
-      <span className="text-[16px] w-5 text-center">{item.ico}</span>
+      <item.Icon className="w-4 h-4 shrink-0" />
       {item.lbl}
-      {item.badge && (
-        <span className="ml-auto bg-orange text-white text-[10px] font-bold px-[7px] py-0.5 rounded-full">
-          {item.badge}
-        </span>
-      )}
     </div>
   );
 
   return (
     <div style={{ width: 240, minWidth: 240, flexShrink: 0, height: '100vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRight: '1px solid #F0F2F5' }}>
-      {/* Logo */}
       <div className="px-5 py-[18px] flex items-center gap-2 border-b border-border">
         <Logo size={16} />
         {user.pill && (
@@ -88,19 +85,16 @@ export default function Sidebar({ active, role }) {
         )}
       </div>
 
-      {/* Nav section 1 */}
       <div className="px-3 pt-4 pb-1">
         <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] px-2 mb-1.5">{s1}</div>
         {items.slice(0, split).map(i => <NavItem key={i.id} item={i} />)}
       </div>
 
-      {/* Nav section 2 */}
       <div className="px-3 pt-3 pb-1">
         <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] px-2 mb-1.5">{s2}</div>
         {items.slice(split).map(i => <NavItem key={i.id} item={i} />)}
       </div>
 
-      {/* User */}
       <div className="mt-auto px-3 py-4 border-t border-border">
         <div className="flex items-center gap-2.5 p-2.5 rounded-[10px] cursor-pointer hover:bg-page-bg">
           <div className="w-9 h-9 rounded-[10px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[13px] shrink-0">
@@ -116,7 +110,8 @@ export default function Sidebar({ active, role }) {
           onClick={() => go('login')}
           className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer text-red-text text-[13px] font-medium mt-1 hover:bg-red-bg"
         >
-          <span className="text-[16px] w-5 text-center">🚪</span>Cerrar sesión
+          <LogOut className="w-4 h-4 shrink-0" />
+          Cerrar sesión
         </div>
       </div>
     </div>

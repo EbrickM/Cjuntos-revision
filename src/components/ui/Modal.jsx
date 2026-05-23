@@ -1,3 +1,5 @@
+import { X } from 'lucide-react';
+
 export default function Modal({ title, onClose, children, footer, wide = false }) {
   return (
     <div
@@ -14,8 +16,10 @@ export default function Modal({ title, onClose, children, footer, wide = false }
             <span className="text-[17px] font-bold text-text-1">{title}</span>
             <button
               onClick={onClose}
-              className="w-8 h-8 bg-page-bg border-none rounded-lg cursor-pointer text-[16px] flex items-center justify-center text-text-3"
-            >✕</button>
+              className="w-8 h-8 bg-page-bg border-none rounded-lg cursor-pointer flex items-center justify-center text-text-3 hover:bg-border transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
         <div className="px-7 py-6">{children}</div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Briefcase, CheckCircle2, FileText, Building2, ClipboardList, Lock, Download, Edit } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -18,11 +19,11 @@ const pagosContratante = [
 ];
 
 const timelineItems = [
-  { icon: '✓', title: 'Solicitud enviada',       timestamp: '15/05/2026 · 10:00', sub: 'Documentos recibidos',          done: true },
-  { icon: '✓', title: 'Contratante verificó',    timestamp: '16/05/2026 · 14:30', sub: 'TotalEnerGE confirmó los datos', done: true },
-  { icon: '✓', title: 'Bonafide autorizó',        timestamp: '17/05/2026 · 09:15', sub: 'Préstamo aprobado por Bonafide', done: true },
-  { icon: '💰', title: 'Fondos disponibles',      timestamp: '17/05/2026 · 16:00', sub: 'Crédito activado en tu cuenta',  done: true },
-  { icon: '⏳', title: 'Cobro al contratante',   timestamp: 'Ciclo mensual',       sub: 'TotalEnerGE paga a Bonafide',   done: false },
+  { icon: 'CHECK', title: 'Solicitud enviada',       timestamp: '15/05/2026 · 10:00', sub: 'Documentos recibidos',          done: true },
+  { icon: 'CHECK', title: 'Contratante verificó',    timestamp: '16/05/2026 · 14:30', sub: 'TotalEnerGE confirmó los datos', done: true },
+  { icon: 'CHECK', title: 'Bonafide autorizó',        timestamp: '17/05/2026 · 09:15', sub: 'Préstamo aprobado por Bonafide', done: true },
+  { icon: 'MONEY', title: 'Fondos disponibles',      timestamp: '17/05/2026 · 16:00', sub: 'Crédito activado en tu cuenta',  done: true },
+  { icon: 'WAIT', title: 'Cobro al contratante',   timestamp: 'Ciclo mensual',       sub: 'TotalEnerGE paga a Bonafide',   done: false },
 ];
 
 export default function EpPrestamoDetalle() {
@@ -44,7 +45,9 @@ export default function EpPrestamoDetalle() {
       extra={
         <div className="flex gap-2">
           <Badge variant="green">Aprobado</Badge>
-          <Button variant="secondary" size="sm" onClick={() => go('epLiberacion')}>🔓 Liberar fondos</Button>
+          <Button variant="secondary" size="sm" onClick={() => go('epLiberacion')}>
+            <Lock size={16} className="mr-1.5" style={{transform: 'scaleX(-1)'}} /> Liberar fondos
+          </Button>
         </div>
       }
     >
@@ -57,12 +60,17 @@ export default function EpPrestamoDetalle() {
         {/* Header card */}
         <div className="bg-white rounded-[14px] border border-border p-6 mb-5">
           <div className="flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-[14px] bg-orange-tint flex items-center justify-center text-[24px]">💼</div>
+            <div className="w-14 h-14 rounded-[14px] bg-orange-tint flex items-center justify-center">
+              <Briefcase size={28} className="text-orange" />
+            </div>
             <div className="flex-1">
               <div className="text-[18px] font-bold text-text-1">Préstamo PRE-2026-001</div>
               <div className="text-[13px] text-text-4">TotalEnerGE · Contrato CTR-2026-001 · Aprobado 17/05/2026</div>
             </div>
-            <Badge variant="green">✅ Aprobado</Badge>
+            <Badge variant="green">
+              <CheckCircle2 size={14} className="mr-1" />
+              Aprobado
+            </Badge>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-page-bg rounded-[12px] p-4">
             {[['XAF 120,000,000','Monto total','text-text-1'],['XAF 85,000,000','Disponible','text-orange'],['XAF 35,000,000','Utilizado','text-blue-text'],['12 meses','Plazo','text-text-1']].map(([v,l,c]) => (
@@ -97,31 +105,39 @@ export default function EpPrestamoDetalle() {
                 <div className="text-[13px] font-bold mb-3">Verificación</div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 text-[13px]">
-                    <span className="text-green-text">✅</span>
+                    <CheckCircle2 size={16} className="text-green-text" />
                     <span className="text-text-3">Contratante verificó los datos</span>
                   </div>
                   <div className="flex items-center gap-2 text-[13px]">
-                    <span className="text-green-text">✅</span>
+                    <CheckCircle2 size={16} className="text-green-text" />
                     <span className="text-text-3">Bonafide autorizó el préstamo</span>
                   </div>
                   <div className="flex items-center gap-2 text-[13px]">
-                    <span className="text-green-text">✅</span>
+                    <CheckCircle2 size={16} className="text-green-text" />
                     <span className="text-text-3">Domiciliación bancaria adjunta</span>
                   </div>
                 </div>
               </div>
               <div className="bg-white rounded-[14px] border border-border p-5">
                 <div className="text-[13px] font-bold mb-3">Documentos del préstamo</div>
-                {[['📄','Contrato firmado','contrato_ctr2026001.pdf'],['🏦','Domiciliación bancaria','domiciliacion_totalenerge.pdf'],['📋','Resolución Bonafide','auth_pre2026001.pdf']].map(([ico,name,file]) => (
+                {[['FILE','Contrato firmado','contrato_ctr2026001.pdf'],['BANK','Domiciliación bancaria','domiciliacion_totalenerge.pdf'],['CLIPBOARD','Resolución Bonafide','auth_pre2026001.pdf']].map(([type,name,file]) => {
+                  let IconComp = FileText;
+                  switch(type) {
+                    case 'FILE': IconComp = FileText; break;
+                    case 'BANK': IconComp = Building2; break;
+                    case 'CLIPBOARD': IconComp = ClipboardList; break;
+                  }
+                  return (
                   <div key={name} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                    <span className="text-[20px]">{ico}</span>
+                    <IconComp size={20} className="text-text-2" />
                     <div className="flex-1">
                       <div className="text-[12px] font-semibold">{name}</div>
                       <div className="text-[11px] text-text-4">{file}</div>
                     </div>
-                    <Button variant="ghost" size="sm">📥</Button>
+                    <Button variant="ghost" size="sm"><Download size={16} /></Button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -131,8 +147,18 @@ export default function EpPrestamoDetalle() {
         {tab === 'contratante' && (
           <div className="max-w-[600px]">
             <div className={`rounded-[12px] p-3 mb-5 ${aprobado ? 'bg-orange-tint border border-orange-border' : 'bg-green-bg border border-green-border'}`}>
-              <div className={`text-[12px] font-bold mb-0.5 ${aprobado ? 'text-orange' : 'text-green-text'}`}>
-                {aprobado ? '🔒 Datos no editables — Préstamo aprobado' : '✏ Puedes editar estos datos'}
+              <div className={`text-[12px] font-bold mb-0.5 flex items-center gap-1.5 ${aprobado ? 'text-orange' : 'text-green-text'}`}>
+                {aprobado ? (
+                  <>
+                    <Lock size={14} />
+                    <span>Datos no editables — Préstamo aprobado</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit size={14} />
+                    <span>Puedes editar estos datos</span>
+                  </>
+                )}
               </div>
               <div className="text-[11px] text-text-3">
                 {aprobado ? 'Una vez el préstamo fue aprobado, los datos del contratante quedan bloqueados.' : 'El contratante aún no ha verificado los datos.'}
