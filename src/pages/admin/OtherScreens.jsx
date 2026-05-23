@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -14,7 +13,6 @@ const confRows = [
 ];
 
 export function AdminConf() {
-  const { go } = useApp();
   return (
     <AppShell active="adminConf" role="admin" title="Confirming" sub="Todas las operaciones">
       <div className="fade-in">
@@ -39,7 +37,7 @@ export function AdminConf() {
             ))}</tr></thead>
             <tbody>
               {confRows.map(([id,cont,prov,amt,anti,cls,st,dt]) => (
-                <tr key={id} onClick={() => go('adminPrestamoDetalle')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
+                <tr key={id} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8]">
                   <td className="px-4 py-3 font-mono text-[11px] text-text-4">{id}</td>
                   <td className="px-4 py-3 text-[12px] text-text-3">{cont}</td>
                   <td className="px-4 py-3 font-semibold text-[13px]">{prov}</td>
@@ -170,21 +168,6 @@ export function AdminSettings() {
   return (
     <AppShell active="adminSettings" role="admin" title="Configuración" sub="Parámetros del sistema">
       <div className="fade-in max-w-[600px]">
-        <div className="bg-white rounded-[14px] border border-border p-6 mb-4">
-          <div className="text-[14px] font-bold mb-4">Parámetros de Préstamos</div>
-          <FormGroup label="Tasa de interés anual (%)">
-            <Input type="number" defaultValue="12" />
-          </FormGroup>
-          <FormGroup label="Máximo plazo (meses)">
-            <Input type="number" defaultValue="24" />
-          </FormGroup>
-          <FormGroup label="Máximo monto por empresa (XAF)">
-            <Input type="text" defaultValue="200,000,000" />
-          </FormGroup>
-          <FormGroup label="Porcentaje mínimo contratante verificado">
-            <Select><option>100% — Siempre requerido</option><option>80%</option></Select>
-          </FormGroup>
-        </div>
         <div className="bg-white rounded-[14px] border border-border p-6 mb-4">
           <div className="text-[14px] font-bold mb-4">Confirming</div>
           <FormGroup label="Porcentaje anticipo estándar (%)">

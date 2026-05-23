@@ -1,5 +1,5 @@
 import {
-  Home, Briefcase, Eye, CheckCircle2, Building2, AlertTriangle,
+  Home, Eye, CheckCircle2, Building2, AlertTriangle,
   TrendingUp, Settings, ClipboardList, Users, Receipt, Wallet,
   Folder, Bell, User, LogOut, ShieldCheck, BarChart3,
 } from 'lucide-react';
@@ -9,7 +9,6 @@ import Logo from './Logo';
 const NAV = {
   admin: [
     { id: 'adminDash',      Icon: Home,          lbl: 'Dashboard' },
-    { id: 'adminPrestamos', Icon: Briefcase,      lbl: 'Solicitudes Préstamo', badge: '3' },
     { id: 'adminKYC',       Icon: Eye,            lbl: 'KYC Empresas',         badge: '3' },
     { id: 'adminConf',      Icon: CheckCircle2,   lbl: 'Confirming',           badge: '5' },
     { id: 'adminEmpresas',  Icon: Building2,      lbl: 'Empresas Contratantes' },
@@ -19,7 +18,6 @@ const NAV = {
   ],
   'empresa-pequena': [
     { id: 'epHome',        Icon: Home,          lbl: 'Inicio' },
-    { id: 'epPrestamos',   Icon: Briefcase,     lbl: 'Mis Préstamos' },
     { id: 'epProveedores', Icon: Users,         lbl: 'Mis Proveedores' },
     { id: 'epFacturacion', Icon: Receipt,       lbl: 'Facturación',      badge: '2' },
     { id: 'epBilletera',   Icon: Wallet,        lbl: 'Mi Billetera' },
@@ -57,7 +55,7 @@ export default function Sidebar({ active, role }) {
   const items = NAV[role] || [];
   const user  = USERS[role] || USERS.contratante;
   const [s1, s2] = SECTIONS[role] || ['Principal', 'Gestión'];
-  const split = role === 'admin' ? 3 : role === 'empresa-pequena' ? 4 : 3;
+  const split = role === 'admin' ? 2 : role === 'empresa-pequena' ? 3 : 3;
 
   const NavItem = ({ item }) => (
     <div

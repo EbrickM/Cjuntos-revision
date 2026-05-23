@@ -8,17 +8,12 @@ import { KycStep1, KycStep2, KycStep3, KycStep4 } from './pages/auth/KycWizard';
 
 // Admin
 import AdminDash from './pages/admin/Dashboard';
-import AdminSolicitudesPrestamo from './pages/admin/SolicitudesPrestamo';
-import AdminPrestamoDetalle from './pages/admin/PrestamoDetalle';
 import AdminKYC from './pages/admin/KYC';
 import AdminEmpresas from './pages/admin/Empresas';
 import { AdminConf, AdminRisk, AdminAnalytics, AdminSettings } from './pages/admin/OtherScreens';
 
 // Empresa Pequeña
 import EpHome from './pages/empresa-pequena/Home';
-import EpMisPrestamos from './pages/empresa-pequena/MisPrestamos';
-import EpPrestamoDetalle from './pages/empresa-pequena/PrestamoDetalle';
-import EpLiberacionFondos from './pages/empresa-pequena/LiberacionFondos';
 import EpMisProveedores from './pages/empresa-pequena/MisProveedores';
 import EpFacturacion from './pages/empresa-pequena/Facturacion';
 import EpBilletera from './pages/empresa-pequena/Billetera';
@@ -48,8 +43,6 @@ function Router() {
 
     // Admin
     adminDash:            <AdminDash />,
-    adminPrestamos:       <AdminSolicitudesPrestamo />,
-    adminPrestamoDetalle: <AdminPrestamoDetalle />,
     adminKYC:             <AdminKYC />,
     adminConf:            <AdminConf />,
     adminEmpresas:        <AdminEmpresas />,
@@ -59,9 +52,6 @@ function Router() {
 
     // Empresa Pequeña
     epHome:           <EpHome />,
-    epPrestamos:      <EpMisPrestamos />,
-    epPrestamoDetalle:<EpPrestamoDetalle />,
-    epLiberacion:     <EpLiberacionFondos />,
     epProveedores:    <EpMisProveedores />,
     epFacturacion:    <EpFacturacion />,
     epBilletera:      <EpBilletera />,

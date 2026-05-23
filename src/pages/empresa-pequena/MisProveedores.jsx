@@ -71,10 +71,6 @@ export default function EpProveedores() {
                 <div className="flex gap-2 text-[12px] text-text-4 mb-3">
                   <span>📧 {p.email}</span>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" full>Ver liberaciones</Button>
-                  <Button variant="secondary" size="sm" full onClick={() => go('epLiberacion')}>💸 Pagar</Button>
-                </div>
               </div>
             );
           })}
@@ -108,12 +104,6 @@ export default function EpProveedores() {
             </FormGroup>
             <FormGroup label="Teléfono">
               <Input type="text" placeholder="+240 222 XXX XXX" />
-            </FormGroup>
-            <FormGroup label="Préstamo asociado" className="col-span-2">
-              <Select>
-                <option>PRE-2026-001 · TotalEnerGE</option>
-                <option>PRE-2026-003 · ConstrGE Corp.</option>
-              </Select>
             </FormGroup>
             <FormGroup label="Monto asignado (XAF)" className="col-span-2">
               <Input type="text" placeholder="10,000,000" />
