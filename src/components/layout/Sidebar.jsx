@@ -1,7 +1,7 @@
 import {
   Home, Eye, CheckCircle2, Building2, AlertTriangle,
   TrendingUp, Settings, ClipboardList, Users, Receipt, Wallet,
-  Folder, Bell, User, LogOut, ShieldCheck, BarChart3,
+  Folder, Bell, User, LogOut, ShieldCheck, BarChart3, CreditCard,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Logo from './Logo';
@@ -17,12 +17,13 @@ const NAV = {
     { id: 'adminSettings',  Icon: Settings,       lbl: 'Configuración' },
   ],
   'empresa-pequena': [
-    { id: 'epHome',        Icon: Home,    lbl: 'Inicio' },
-    { id: 'epProveedores', Icon: Users,   lbl: 'Mis Proveedores' },
-    { id: 'epFacturacion', Icon: Receipt, lbl: 'Facturación',  badge: '2' },
-    { id: 'epBilletera',   Icon: Wallet,  lbl: 'Mi Billetera' },
-    { id: 'epDocs',        Icon: Folder,  lbl: 'Documentos' },
-    { id: 'epPerfil',      Icon: User,    lbl: 'Mi Perfil' },
+    { id: 'epHome',        Icon: Home,       lbl: 'Inicio' },
+    { id: 'epCreditos',    Icon: CreditCard, lbl: 'Mis créditos' },
+    { id: 'epProveedores', Icon: Users,      lbl: 'Mis Proveedores' },
+    { id: 'epFacturacion', Icon: Receipt,    lbl: 'Facturación',  badge: '2' },
+    { id: 'epBilletera',   Icon: Wallet,     lbl: 'Mi Billetera' },
+    { id: 'epDocs',        Icon: Folder,     lbl: 'Documentos' },
+    { id: 'epPerfil',      Icon: User,       lbl: 'Mi Perfil' },
   ],
   contratante: [
     { id: 'empDash',       Icon: Home,          lbl: 'Inicio' },
