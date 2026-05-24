@@ -18,7 +18,6 @@ import EpMisProveedores from './pages/empresa-pequena/MisProveedores';
 import EpFacturacion from './pages/empresa-pequena/Facturacion';
 import EpBilletera from './pages/empresa-pequena/Billetera';
 import EpPerfil from './pages/empresa-pequena/Perfil';
-import EpNotificaciones from './pages/empresa-pequena/Notificaciones';
 import EpDocumentos from './pages/empresa-pequena/Documentos';
 
 // Contratante
@@ -56,7 +55,6 @@ function Router() {
     epFacturacion:    <EpFacturacion />,
     epBilletera:      <EpBilletera />,
     epPerfil:         <EpPerfil />,
-    epNotif:          <EpNotificaciones />,
     epDocs:           <EpDocumentos />,
 
     // Contratante
