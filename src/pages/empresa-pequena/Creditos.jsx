@@ -320,29 +320,48 @@ export default function EpCreditos() {
               <div className="text-[14px] font-bold mb-4">Contratos</div>
               <div className="space-y-3">
                 {contracts.map(contract => {
-                  const badge = contractBadge(contract.paso);
+                  const badge   = contractBadge(contract.paso);
+                  const pctVal  = parseFloat(pct(contract.asignado, contract.monto));
+                  const ctName  = contract.contratante?.razonSocial || '';
                   return (
                     <div
                       key={contract.id}
                       onClick={() => { setDetailId(contract.id); setActiveTab('contratante'); }}
-                      className="rounded-[14px] border border-border p-4 cursor-pointer hover:bg-page-bg hover:border-orange transition group"
+                      className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-pointer"
+                      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
                     >
-                      <div className="flex justify-between items-start gap-2 mb-2">
-                        <div>
-                          <div className="text-[13px] font-semibold text-text-1">{contract.id}</div>
-                          {contract.estado && <div className="text-[12px] text-text-4 mt-0.5">{contract.estado}</div>}
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={badge.variant}>{badge.label}</Badge>
-                          <span className="text-text-5 text-[18px] leading-none group-hover:text-orange transition">›</span>
-                        </div>
+                      <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="w-5 h-5 text-orange" />
                       </div>
-                      <div className="text-[16px] font-extrabold text-text-1 mb-1">{formatXaf(contract.monto)}</div>
-                      <div className="flex gap-4 text-[12px] text-text-4">
-                        {contract.paso === 4
-                          ? <><span>Disponible: {formatXaf(contract.disponible)}</span><span>Asignado: {formatXaf(contract.asignado)}</span></>
-                          : <span>Crédito total: {formatXaf(contract.monto)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <span className="text-[13px] font-bold text-text-1">{contract.id}</span>
+                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                        </div>
+                        {ctName
+                          ? <div className="text-[12px] text-text-4 truncate">{ctName}</div>
+                          : contract.estado
+                            ? <div className="text-[12px] text-text-4 truncate">{contract.estado}</div>
+                            : null
                         }
+                        {contract.paso === 4 && (
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
+                              <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
+                            </div>
+                            <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}% asignado</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="shrink-0 flex items-start gap-2">
+                        <div className="text-right">
+                          <div className="text-[15px] font-extrabold text-text-1">{formatXaf(contract.monto)}</div>
+                          {contract.paso === 4 && (
+                            <div className="text-[11px] text-text-5 mt-0.5">Disp: {formatXaf(contract.disponible)}</div>
+                          )}
+                        </div>
+                        <div className="text-text-4 text-[18px] leading-none pt-0.5">›</div>
                       </div>
                     </div>
                   );
