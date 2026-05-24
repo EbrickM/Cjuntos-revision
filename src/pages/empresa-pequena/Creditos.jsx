@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ArrowLeft, Upload, FileText, Trash2, CheckCircle2, Pencil,
-  Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen,
+  Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -28,8 +28,9 @@ const CONCEPTO_ICONS = {
   'Otro':                 FolderOpen,
 };
 
-const DISTRIB_EMPTY    = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
+const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
+const INVOICE_MODAL_EMPTY = { open: false, editId: null, type: 'contratante', monto: '', concepto: '', proveedorId: '' };
 
 const initialProviders = [
   { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true },
@@ -124,8 +125,8 @@ const initialContracts = [
 ];
 
 const initialInvoices = [
-  { id: 'FAC-2026-1025', tipo: 'proveedor',   contrato: 'CTR-2026-002', proveedor: 'TransGE S.L.', monto: 4500000,  estado: 'Enviada' },
-  { id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002', monto: 18000000, estado: 'Pagada' },
+  { id: 'FAC-2026-1025', tipo: 'proveedor',   contrato: 'CTR-2026-002', proveedorId: 'p2', proveedor: 'TransGE S.L.', monto: 4500000,  estado: 'Enviada',  concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026' },
+  { id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002', monto: 18000000, estado: 'Pagada', concepto: 'Avance de obra fase 1 – Cimentación y estructura', fecha: '10/05/2026' },
 ];
 
 const TABS = [
@@ -148,15 +149,11 @@ export default function EpCreditos() {
   const [providers, setProviders]                 = useState(initialProviders);
   const [detailId, setDetailId]                   = useState(null);
   const [activeTab, setActiveTab]                 = useState('contratante');
+  const [invoices, setInvoices]                   = useState(initialInvoices);
   const [showProviderModal, setShowProviderModal] = useState(false);
-  const [showInvoiceModal, setShowInvoiceModal]   = useState(false);
   const [distribModal, setDistribModal]           = useState(DISTRIB_EMPTY);
-  const [invoiceType, setInvoiceType]             = useState('contratante');
-  const [invoiceForm, setInvoiceForm] = useState({
-    contratante: '', factura: 'FAC-2026-1001', fecha: '24 / 05 / 2026',
-    monto: '', concepto: '', contrato: '', proveedor: '',
-  });
-  const [providerForm, setProviderForm] = useState(PROVIDER_FORM_EMPTY);
+  const [invoiceModal, setInvoiceModal]           = useState(INVOICE_MODAL_EMPTY);
+  const [providerForm, setProviderForm]           = useState(PROVIDER_FORM_EMPTY);
   const [toast, setToast] = useState({ visible: false, message: '' });
 
   const showToast = (message) => {
@@ -251,15 +248,51 @@ export default function EpCreditos() {
     showToast(`${providerForm.razonSocial} ha sido añadido al directorio de proveedores. Ya puedes asignarlo en una distribución.`);
   };
 
-  const handleOpenInvoice = (type) => {
-    setInvoiceType(type);
-    setInvoiceForm(prev => ({
-      ...prev, contrato: detailContract.id,
-      contratante: detailContract.contratante.razonSocial,
-      proveedor:   detailContract.distribucion.find(d => d.providerName)?.providerName || '',
-    }));
-    setShowInvoiceModal(true);
+  // ── Facturas handlers ──
+
+  const nextInvoiceId = () => {
+    const max = invoices.reduce((m, inv) => Math.max(m, parseInt(inv.id.replace('FAC-2026-', '')) || 0), 1031);
+    return `FAC-2026-${max + 1}`;
   };
+
+  const getProviderMaxMonto = (proveedorId) =>
+    detailContract?.distribucion.filter(d => d.providerId === proveedorId).reduce((s, d) => s + d.monto, 0) ?? 0;
+
+  const handleOpenNewInvoice = (type) => {
+    const firstProviderId = detailContract?.distribucion.find(d => d.providerId)?.providerId || '';
+    setInvoiceModal({ open: true, editId: null, type, monto: '', concepto: '', proveedorId: firstProviderId });
+  };
+
+  const handleOpenEditInvoice = (inv) =>
+    setInvoiceModal({ open: true, editId: inv.id, type: inv.tipo, monto: inv.monto.toString(), concepto: inv.concepto || '', proveedorId: inv.proveedorId || '' });
+
+  const handleSaveInvoice = () => {
+    const monto = Number(invoiceModal.monto.replace?.(/[^0-9]/g, '') ?? invoiceModal.monto) || 0;
+    if (monto <= 0 || !invoiceModal.concepto.trim()) return;
+    if (invoiceModal.editId) {
+      const prov = providers.find(p => p.id === invoiceModal.proveedorId);
+      setInvoices(prev => prev.map(inv => inv.id === invoiceModal.editId
+        ? { ...inv, monto, concepto: invoiceModal.concepto, proveedorId: invoiceModal.proveedorId || null, proveedor: prov?.razonSocial || inv.proveedor }
+        : inv));
+    } else {
+      const prov = providers.find(p => p.id === invoiceModal.proveedorId);
+      const today = new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      setInvoices(prev => [...prev, {
+        id: nextInvoiceId(),
+        tipo: invoiceModal.type,
+        contrato: detailContract.id,
+        monto,
+        estado: 'Pendiente',
+        concepto: invoiceModal.concepto,
+        fecha: today,
+        ...(invoiceModal.type === 'proveedor' ? { proveedorId: invoiceModal.proveedorId, proveedor: prov?.razonSocial || '' } : {}),
+      }]);
+    }
+    setInvoiceModal(INVOICE_MODAL_EMPTY);
+  };
+
+  const handleDeleteInvoice = (invId) =>
+    setInvoices(prev => prev.filter(inv => inv.id !== invId));
 
   return (
     <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito">
@@ -600,37 +633,108 @@ export default function EpCreditos() {
             )}
 
             {/* ── TAB: Facturas ── */}
-            {activeTab === 'facturas' && (
-              <div className="space-y-4">
-                <div className="bg-white rounded-[14px] border border-border p-5">
-                  <div className="text-[14px] font-bold mb-4">Acciones</div>
-                  <div className="flex flex-wrap gap-3">
-                    <Button variant="primary"   onClick={() => handleOpenInvoice('contratante')}>Nueva Factura al Contratante</Button>
-                    <Button variant="secondary" onClick={() => handleOpenInvoice('proveedor')}>Generar Pago al Proveedor</Button>
+            {activeTab === 'facturas' && (() => {
+              const contractInvoices     = invoices.filter(inv => inv.contrato === detailContract.id);
+              const contratanteInvoices  = contractInvoices.filter(inv => inv.tipo === 'contratante');
+              const proveedorInvoices    = contractInvoices.filter(inv => inv.tipo === 'proveedor');
+
+              const InvoiceCard = ({ inv }) => (
+                <div
+                  className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                >
+                  <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                    {inv.tipo === 'contratante'
+                      ? <Building2 className="w-5 h-5 text-orange" />
+                      : <Truck className="w-5 h-5 text-orange" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                      <Badge variant={inv.estado === 'Pagada' ? 'green' : inv.estado === 'Enviada' ? 'blue' : 'yellow'}>{inv.estado}</Badge>
+                    </div>
+                    <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
+                    {inv.tipo === 'proveedor' && inv.proveedor && (
+                      <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedor}</div>
+                    )}
+                    <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+                  </div>
+                  <div className="shrink-0 flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                    </div>
+                    <div className="flex flex-col gap-1 border-l border-border pl-3">
+                      <button onClick={() => handleOpenEditInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-white rounded-[14px] border border-border p-5">
-                  <div className="text-[14px] font-bold mb-3">Facturas del contrato</div>
-                  <div className="space-y-3">
-                    {initialInvoices.filter(inv => inv.contrato === detailContract.id).map(inv => (
-                      <div key={inv.id} className="rounded-[14px] border border-border p-4 bg-page-bg">
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <div className="text-[13px] font-semibold text-text-1">{inv.id}</div>
-                            <div className="text-[11px] text-text-4">{inv.tipo === 'contratante' ? 'Al contratante' : `A ${inv.proveedor}`}</div>
-                          </div>
-                          <Badge variant={inv.estado === 'Pagada' ? 'green' : inv.estado === 'Enviada' ? 'blue' : 'yellow'}>{inv.estado}</Badge>
-                        </div>
-                        <div className="text-[12px] text-text-4">Monto: {formatXaf(inv.monto)}</div>
+              );
+
+              return (
+                <div className="space-y-5">
+                  {/* Resumen */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { value: contractInvoices.length,    label: 'Total de facturas',          cls: 'text-text-1'     },
+                      { value: contratanteInvoices.length, label: 'Facturas del contratante',   cls: 'text-blue-text'  },
+                      { value: proveedorInvoices.length,   label: 'Facturas de proveedores',    cls: 'text-orange'     },
+                    ].map(({ value, label, cls }) => (
+                      <div key={label} className="bg-white rounded-[14px] border border-border p-4">
+                        <div className={`text-[32px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
+                        <div className="text-[12px] text-text-4">{label}</div>
                       </div>
                     ))}
-                    {initialInvoices.filter(inv => inv.contrato === detailContract.id).length === 0 && (
-                      <div className="text-[12px] text-text-4">No hay facturas para este contrato.</div>
+                  </div>
+
+                  {/* Lista agrupada */}
+                  <div className="bg-white rounded-[14px] border border-border p-5">
+                    <div className="flex justify-between items-start gap-4 mb-4">
+                      <div>
+                        <div className="text-[14px] font-bold">Facturas</div>
+                        <div className="text-[12px] text-text-4">Historial de facturas asociadas a este contrato.</div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="primary" onClick={() => handleOpenNewInvoice('contratante')}>
+                          Nueva Factura al Contratante
+                        </Button>
+                        <Button variant="primary" onClick={() => handleOpenNewInvoice('proveedor')}>
+                          Factura a Proveedor
+                        </Button>
+                      </div>
+                    </div>
+
+                    {contractInvoices.length === 0 && (
+                      <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas para este contrato.</div>
+                    )}
+
+                    {contratanteInvoices.length > 0 && (
+                      <div className="mb-4">
+                        <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] mb-2.5">Al contratante</div>
+                        <div className="space-y-3">
+                          {contratanteInvoices.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}
+                        </div>
+                      </div>
+                    )}
+
+                    {proveedorInvoices.length > 0 && (
+                      <div>
+                        <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] mb-2.5">A proveedores</div>
+                        <div className="space-y-3">
+                          {proveedorInvoices.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         ) : null}
       </div>
@@ -734,50 +838,91 @@ export default function EpCreditos() {
         </Modal>
       )}
 
-      {/* ── Modal: Nueva factura ── */}
-      {showInvoiceModal && (
-        <Modal
-          title={invoiceType === 'contratante' ? 'Nueva factura al contratante' : 'Nueva factura al proveedor'}
-          onClose={() => setShowInvoiceModal(false)}
-          footer={<><Button variant="ghost" onClick={() => setShowInvoiceModal(false)}>Cancelar</Button><Button variant="primary" onClick={() => setShowInvoiceModal(false)}>Crear factura</Button></>}
-          wide
-        >
-          <div className="grid grid-cols-1 gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Contrato" required>
-                <Select value={invoiceForm.contrato} onChange={e => setInvoiceForm({ ...invoiceForm, contrato: e.target.value })}>
-                  {contracts.map(c => <option key={c.id} value={c.id}>{c.id}</option>)}
-                </Select>
-              </FormGroup>
-              <FormGroup label="Nº de factura" required>
-                <Input value={invoiceForm.factura} onChange={e => setInvoiceForm({ ...invoiceForm, factura: e.target.value })} />
+      {/* ── Modal: Nueva / Editar factura ── */}
+      {invoiceModal.open && (() => {
+        const isEdit       = !!invoiceModal.editId;
+        const isProv       = invoiceModal.type === 'proveedor';
+        const selProvider  = providers.find(p => p.id === invoiceModal.proveedorId);
+        const maxMonto     = isProv && invoiceModal.proveedorId ? getProviderMaxMonto(invoiceModal.proveedorId) : null;
+        const autoId       = isEdit ? invoiceModal.editId : nextInvoiceId();
+        return (
+          <Modal
+            title={isEdit
+              ? `Editar factura ${invoiceModal.editId}`
+              : (isProv ? 'Nueva factura a proveedor' : 'Nueva factura al contratante')}
+            onClose={() => setInvoiceModal(INVOICE_MODAL_EMPTY)}
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setInvoiceModal(INVOICE_MODAL_EMPTY)}>Cancelar</Button>
+                <Button variant="primary" onClick={handleSaveInvoice}>
+                  {isEdit ? 'Guardar cambios' : 'Crear factura'}
+                </Button>
+              </>
+            }
+            wide
+          >
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormGroup label="Nº de factura">
+                  <Input value={autoId} disabled />
+                </FormGroup>
+                <FormGroup label="Contrato">
+                  <Input value={detailContract?.id || ''} disabled />
+                </FormGroup>
+              </div>
+
+              {isProv ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormGroup label="Proveedor" required>
+                    <Select
+                      value={invoiceModal.proveedorId}
+                      onChange={e => setInvoiceModal({ ...invoiceModal, proveedorId: e.target.value, monto: '' })}
+                    >
+                      <option value="">Seleccionar proveedor…</option>
+                      {detailContract?.distribucion.filter(d => d.providerId).map(item => (
+                        <option key={item.id} value={item.providerId}>{item.providerName} · {item.providerSector}</option>
+                      ))}
+                    </Select>
+                  </FormGroup>
+                  <FormGroup label="Monto (XAF)" required>
+                    <Input
+                      type="text" inputMode="numeric" placeholder="Ej: 4,500,000"
+                      value={invoiceModal.monto}
+                      onChange={e => setInvoiceModal({ ...invoiceModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+                    />
+                    {maxMonto !== null && (
+                      <div className={`text-[11px] mt-1 ${Number(invoiceModal.monto) > maxMonto ? 'text-red-text font-semibold' : 'text-text-4'}`}>
+                        Máximo asignable: {formatXaf(maxMonto)}
+                        {Number(invoiceModal.monto) > maxMonto && ' — supera el monto otorgado'}
+                      </div>
+                    )}
+                    {invoiceModal.monto && Number(invoiceModal.monto) <= (maxMonto ?? Infinity) && (
+                      <div className="text-[11px] text-text-4 mt-1">{formatXaf(invoiceModal.monto)}</div>
+                    )}
+                  </FormGroup>
+                </div>
+              ) : (
+                <FormGroup label="Monto (XAF)" required>
+                  <Input
+                    type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
+                    value={invoiceModal.monto}
+                    onChange={e => setInvoiceModal({ ...invoiceModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+                  />
+                  {invoiceModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invoiceModal.monto)}</div>}
+                </FormGroup>
+              )}
+
+              <FormGroup label="Concepto" required>
+                <Textarea
+                  value={invoiceModal.concepto}
+                  onChange={e => setInvoiceModal({ ...invoiceModal, concepto: e.target.value })}
+                  placeholder="Descripción del servicio o trabajo facturado…"
+                />
               </FormGroup>
             </div>
-            {invoiceType === 'proveedor' && detailContract && (
-              <FormGroup label="Proveedor" required>
-                <Select value={invoiceForm.proveedor} onChange={e => setInvoiceForm({ ...invoiceForm, proveedor: e.target.value })}>
-                  <option value="">Seleccionar proveedor…</option>
-                  {detailContract.distribucion.filter(d => d.providerName).map(item => (
-                    <option key={item.id} value={item.providerName}>{item.providerName}</option>
-                  ))}
-                </Select>
-              </FormGroup>
-            )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Fecha de emisión" required><Input value={invoiceForm.fecha} onChange={e => setInvoiceForm({ ...invoiceForm, fecha: e.target.value })} /></FormGroup>
-              <FormGroup label="Monto (XAF)" required><Input value={invoiceForm.monto} onChange={e => setInvoiceForm({ ...invoiceForm, monto: e.target.value })} /></FormGroup>
-            </div>
-            <FormGroup label="Concepto" required>
-              <Textarea value={invoiceForm.concepto} onChange={e => setInvoiceForm({ ...invoiceForm, concepto: e.target.value })} />
-            </FormGroup>
-            <div className="rounded-[14px] bg-blue-bg border border-blue-text/20 p-4 text-[12px] text-text-4">
-              {invoiceType === 'contratante'
-                ? 'La factura se generará para ser enviada al contratante vía email y pagada a Bonafide.'
-                : 'La factura quedará registrada como pago a proveedor dentro del crédito seleccionado.'}
-            </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        );
+      })()}
 
       {/* ── Toast ── */}
       <div className={`fixed bottom-6 right-6 z-50 w-[340px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
