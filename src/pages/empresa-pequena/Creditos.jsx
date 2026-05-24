@@ -659,11 +659,11 @@ export default function EpCreditos() {
                     {inv.tipo === 'proveedor' && inv.proveedor && (
                       <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedor}</div>
                     )}
-                    <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
                   </div>
                   <div className="shrink-0 flex items-center gap-3">
                     <div className="text-right">
                       <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                      <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
                     </div>
                     <div className="flex flex-col gap-1 border-l border-border pl-3">
                       <button onClick={() => handleOpenEditInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">

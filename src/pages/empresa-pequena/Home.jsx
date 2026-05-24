@@ -1,5 +1,5 @@
 import {
-  Wallet, Users, Receipt,
+  Wallet, Users, Receipt, CreditCard,
   FileText,
   DollarSign, Hammer, HardHat,
 } from 'lucide-react';
@@ -7,14 +7,15 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 
 const kpis = [
-  { Icon: Wallet,  bg: 'bg-green-bg',    val: '85,000,000', valCls: 'text-text-1',    lbl: 'Crédito Disponible (XAF)', sub: 'Saldo ejecutable este mes',    trend: '↑ +12%',   trendCls: 'bg-green-bg text-green-text',   to: 'epBilletera' },
-  { Icon: Users,   bg: 'bg-blue-bg',     val: '4',          valCls: 'text-blue-text', lbl: 'Mis Proveedores',          sub: '3 activos · 1 pendiente pago', trend: '↑ Activo', trendCls: 'bg-green-bg text-green-text',   to: 'epProveedores' },
-  { Icon: Receipt, bg: 'bg-orange-tint', val: '3',          valCls: 'text-orange',    lbl: 'Facturas Pendientes',      sub: 'Al contratante · XAF 28.5M',   trend: '2 nuevas', trendCls: 'bg-yellow-bg text-yellow-text', to: 'epFacturacion' },
+  { Icon: Wallet,     bg: 'bg-green-bg',    val: '85,000,000', valCls: 'text-text-1',    lbl: 'Crédito Disponible (XAF)', sub: 'Saldo ejecutable este mes',    trend: '↑ +12%',   trendCls: 'bg-green-bg text-green-text',   to: 'epBilletera' },
+  { Icon: CreditCard, bg: 'bg-blue-bg',     val: '2',          valCls: 'text-blue-text', lbl: 'Contratos de crédito',      sub: 'Aprobados por Bonafide',    trend: '1 pendiente', trendCls: 'bg-green-bg text-green-text',   to: 'epCreditos' },
+  { Icon: Receipt,    bg: 'bg-orange-tint', val: '3',          valCls: 'text-orange',    lbl: 'Facturas Pendientes',      sub: 'Al contratante · XAF 28.5M',   trend: '2 nuevas', trendCls: 'bg-yellow-bg text-yellow-text', to: 'epFacturacion' },
 ];
 
 const acciones = [
-  { Icon: FileText, lbl: 'Nueva Factura', id: 'epFacturacion' },
-  { Icon: Users,    lbl: 'Proveedores',   id: 'epProveedores' },
+  { Icon: FileText,   lbl: 'Nueva Factura', id: 'epFacturacion' },
+  { Icon: CreditCard, lbl: 'Mis Créditos',  id: 'epCreditos' },
+  { Icon: Users,      lbl: 'Proveedores',   id: 'epProveedores' },
 ];
 
 const txns = [

@@ -17,6 +17,7 @@ import EpHome from './pages/empresa-pequena/Home';
 import EpMisProveedores from './pages/empresa-pequena/MisProveedores';
 import EpFacturacion from './pages/empresa-pequena/Facturacion';
 import EpBilletera from './pages/empresa-pequena/Billetera';
+import EpCreditos from './pages/empresa-pequena/Creditos';
 import EpPerfil from './pages/empresa-pequena/Perfil';
 import EpDocumentos from './pages/empresa-pequena/Documentos';
 
@@ -53,6 +54,7 @@ function Router() {
     epHome:           <EpHome />,
     epProveedores:    <EpMisProveedores />,
     epFacturacion:    <EpFacturacion />,
+    epCreditos:       <EpCreditos />,
     epBilletera:      <EpBilletera />,
     epPerfil:         <EpPerfil />,
     epDocs:           <EpDocumentos />,

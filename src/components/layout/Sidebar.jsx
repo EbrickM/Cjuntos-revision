@@ -20,9 +20,7 @@ const NAV = {
     { id: 'epHome',        Icon: Home,       lbl: 'Inicio' },
     { id: 'epCreditos',    Icon: CreditCard, lbl: 'Mis créditos' },
     { id: 'epProveedores', Icon: Users,      lbl: 'Mis Proveedores' },
-    { id: 'epFacturacion', Icon: Receipt,    lbl: 'Facturación',  badge: '2' },
-    { id: 'epBilletera',   Icon: Wallet,     lbl: 'Mi Billetera' },
-    { id: 'epDocs',        Icon: Folder,     lbl: 'Documentos' },
+    { id: 'epFacturacion', Icon: Receipt,    lbl: 'Mis Facturas',  badge: '2' },
     { id: 'epPerfil',      Icon: User,       lbl: 'Mi Perfil' },
   ],
   contratante: [
