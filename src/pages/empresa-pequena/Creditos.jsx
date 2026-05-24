@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Upload, FileText, Trash2, CheckCircle2 } from 'lucide-react';
+import {
+  ArrowLeft, Upload, FileText, Trash2, CheckCircle2, Pencil,
+  Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen,
+} from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -8,14 +11,30 @@ import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 
 const formatXaf = (value) => `XAF ${new Intl.NumberFormat('en-US').format(Number(value) || 0)}`;
+const pct       = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
 
-const SECTORES   = ['Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología', 'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio'];
-const TIPOS_DOC  = ['Pasaporte', 'Cédula', 'Licencia de conducir', 'Carnet operativo'];
+const SECTORES  = ['Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología', 'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio', 'Otro'];
+const TIPOS_DOC = ['Pasaporte', 'Cédula', 'Licencia de conducir', 'Carnet operativo'];
+const CONCEPTOS = ['Nómina', 'Compra de Materiales', 'Pago a Proveedor', 'Servicios', 'Gastos Operativos', 'Inversión en Equipos', 'Otro'];
+
+const CONCEPTO_ICONS = {
+  'Nómina':               Users,
+  'Compra de Materiales': Package,
+  'Pago a Proveedor':     Truck,
+  'Servicios':            Wrench,
+  'Gastos Operativos':    Receipt,
+  'Inversión en Equipos': Cpu,
+  'Otros':                FolderOpen,
+  'Otro':                 FolderOpen,
+};
+
+const DISTRIB_EMPTY    = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
+const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
 
 const initialProviders = [
-  { id: 'p1', nombre: 'Cemex GE',      ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true },
-  { id: 'p2', nombre: 'TransGE S.L.',  ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true },
-  { id: 'p3', nombre: 'ServTec GE',    ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true },
+  { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true },
+  { id: 'p2', razonSocial: 'TransGE S.L.',  nombreComercial: 'TransGE',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true },
+  { id: 'p3', razonSocial: 'ServTec GE',    nombreComercial: 'ServTec GE', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true },
 ];
 
 const initialContracts = [
@@ -83,7 +102,7 @@ const initialContracts = [
       confirmado: true, lock: true,
     },
     distribucion: [
-      { id: 'p2', nombre: 'TransGE S.L.', monto: 9000000 },
+      { id: 'dist-001', concepto: 'Pago a Proveedor', monto: 9000000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
     ],
   },
   {
@@ -131,15 +150,13 @@ export default function EpCreditos() {
   const [activeTab, setActiveTab]                 = useState('contratante');
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal]   = useState(false);
+  const [distribModal, setDistribModal]           = useState(DISTRIB_EMPTY);
   const [invoiceType, setInvoiceType]             = useState('contratante');
   const [invoiceForm, setInvoiceForm] = useState({
     contratante: '', factura: 'FAC-2026-1001', fecha: '24 / 05 / 2026',
     monto: '', concepto: '', contrato: '', proveedor: '',
   });
-  const [providerForm, setProviderForm] = useState({
-    providerId: initialProviders[0].id, amount: '', nuevoNombre: '', nuevoRuc: '',
-    nuevoEmail: '', nuevoTelefono: '', nuevoSector: 'Materiales', nuevoProveedor: false,
-  });
+  const [providerForm, setProviderForm] = useState(PROVIDER_FORM_EMPTY);
   const [toast, setToast] = useState({ visible: false, message: '' });
 
   const showToast = (message) => {
@@ -159,6 +176,11 @@ export default function EpCreditos() {
     setContracts(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
   const updateContractor = (field, value) =>
     updateContract(detailId, { contratante: { ...detailContract.contratante, [field]: value } });
+
+  const syncDistrib = (id, nextDist) => {
+    const nextAsignado = nextDist.reduce((s, d) => s + d.monto, 0);
+    updateContract(id, { distribucion: nextDist, asignado: nextAsignado, disponible: contracts.find(c => c.id === id).monto - nextAsignado });
+  };
 
   const handleDocumentChange = (e) => {
     const file = e.target.files?.[0];
@@ -182,34 +204,51 @@ export default function EpCreditos() {
       contratante: { ...detailContract.contratante, confirmado: true, lock: true },
     });
 
-  const handleAssignProvider = () => {
-    const amount = Number(providerForm.amount.replace(/[^0-9]/g, '')) || 0;
-    if (amount <= 0) return;
-    let providerId   = providerForm.providerId;
-    let providerName = providers.find(p => p.id === providerId)?.nombre;
-    const newProviders = [...providers];
-    if (providerForm.nuevoProveedor && providerForm.nuevoNombre.trim()) {
-      const newId = `p${Math.max(...providers.map(p => Number(p.id.replace('p', ''))), 0) + 1}`;
-      const next  = { id: newId, nombre: providerForm.nuevoNombre, ruc: providerForm.nuevoRuc, sector: providerForm.nuevoSector, email: providerForm.nuevoEmail, telefono: providerForm.nuevoTelefono, activo: true };
-      newProviders.push(next);
-      providerId = newId; providerName = next.nombre;
-      setProviders(newProviders);
-    }
-    const prevDist = detailContract.distribucion.filter(i => i.id !== providerId);
-    updateContract(detailId, {
-      distribucion: [...prevDist, { id: providerId, nombre: providerName ?? 'Proveedor nuevo', monto: amount }],
-      asignado:   prevDist.reduce((s, i) => s + i.monto, 0) + amount,
-      disponible: detailContract.monto - prevDist.reduce((s, i) => s + i.monto, 0) - amount,
-    });
-    setShowProviderModal(false);
-    setProviderForm({ providerId: initialProviders[0].id, amount: '', nuevoNombre: '', nuevoRuc: '', nuevoEmail: '', nuevoTelefono: '', nuevoSector: 'Materiales', nuevoProveedor: false });
+  // ── Distribución handlers ──
+
+  const handleSaveDistrib = () => {
+    const amount = Number(distribModal.monto.replace?.(/[^0-9]/g, '') ?? distribModal.monto) || 0;
+    if (amount <= 0 || !distribModal.concepto) return;
+    const provider = distribModal.asignarProveedor && distribModal.providerId
+      ? providers.find(p => p.id === distribModal.providerId)
+      : null;
+    const item = {
+      id: distribModal.editId || `dist-${Date.now()}`,
+      concepto: distribModal.concepto,
+      monto: amount,
+      providerId:     provider?.id     || null,
+      providerName:   provider?.razonSocial || null,
+      providerSector: provider?.sector || null,
+    };
+    const nextDist = distribModal.editId
+      ? detailContract.distribucion.map(d => d.id === distribModal.editId ? item : d)
+      : [...detailContract.distribucion, item];
+    syncDistrib(detailId, nextDist);
+    setDistribModal(DISTRIB_EMPTY);
   };
 
-  const handleAssignmentEdit = (assignmentId, amountText) => {
-    const amount   = Number(amountText.replace(/[^0-9]/g, '')) || 0;
-    const nextDist = detailContract.distribucion.map(i => i.id === assignmentId ? { ...i, monto: amount } : i);
-    const nextAsignado = nextDist.reduce((s, i) => s + i.monto, 0);
-    updateContract(detailId, { distribucion: nextDist, asignado: nextAsignado, disponible: detailContract.monto - nextAsignado });
+  const handleDeleteDistrib = (distId) =>
+    syncDistrib(detailId, detailContract.distribucion.filter(d => d.id !== distId));
+
+  const handleOpenEditDistrib = (item) =>
+    setDistribModal({
+      open: true, editId: item.id,
+      concepto: item.concepto,
+      monto: item.monto.toString(),
+      asignarProveedor: !!item.providerId,
+      providerId: item.providerId || providers[0]?.id || '',
+    });
+
+  // ── Añadir proveedor handler ──
+
+  const handleAddProvider = () => {
+    if (!providerForm.razonSocial.trim()) return;
+    const newId = `p${Math.max(...providers.map(p => Number(p.id.replace('p', ''))), 0) + 1}`;
+    const next  = { id: newId, razonSocial: providerForm.razonSocial, nombreComercial: providerForm.nombreComercial, ruc: providerForm.ruc, sector: providerForm.sector, email: providerForm.correo, telefono: providerForm.telefono, activo: true };
+    setProviders(prev => [...prev, next]);
+    setShowProviderModal(false);
+    setProviderForm(PROVIDER_FORM_EMPTY);
+    showToast(`${providerForm.razonSocial} ha sido añadido al directorio de proveedores. Ya puedes asignarlo en una distribución.`);
   };
 
   const handleOpenInvoice = (type) => {
@@ -217,7 +256,7 @@ export default function EpCreditos() {
     setInvoiceForm(prev => ({
       ...prev, contrato: detailContract.id,
       contratante: detailContract.contratante.razonSocial,
-      proveedor:   detailContract.distribucion[0]?.nombre || '',
+      proveedor:   detailContract.distribucion.find(d => d.providerName)?.providerName || '',
     }));
     setShowInvoiceModal(true);
   };
@@ -330,8 +369,6 @@ export default function EpCreditos() {
             {/* ── TAB: Datos del Contratante ── */}
             {activeTab === 'contratante' && (
               <div className="space-y-5">
-
-                {/* Sección 1: Identidad — 2 filas de 3 */}
                 <div className="bg-white rounded-[14px] border border-border p-5">
                   <div className="flex justify-between items-start gap-4 mb-5">
                     <div>
@@ -369,19 +406,16 @@ export default function EpCreditos() {
                   </div>
                 </div>
 
-                {/* Sección 2: Datos del Contrato */}
                 <div className="bg-white rounded-[14px] border border-border p-5">
                   <div className="mb-5">
                     <div className="text-[14px] font-bold">Datos del Contrato</div>
                     <div className="text-[12px] text-text-4">Descripción del objeto contractual y condiciones económicas.</div>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
-
                     <FormGroup label="Objeto del Trabajo" required>
                       <Textarea value={detailContract.contratante.objetoTrabajo} onChange={e => updateContractor('objetoTrabajo', e.target.value)} disabled={detailContract.contratante.lock} />
                     </FormGroup>
 
-                    {/* Documento del Contrato — upload/preview toggle */}
                     <FormGroup label="Documento del Contrato">
                       {detailContract.contratante.documentoContrato ? (
                         <div className="mt-1 rounded-[12px] border border-border overflow-hidden">
@@ -395,12 +429,8 @@ export default function EpCreditos() {
                               <span className="text-[11px] text-text-4 truncate">{detailContract.contratante.documentoContrato.name}</span>
                             </div>
                             {!detailContract.contratante.lock && (
-                              <button
-                                onClick={() => updateContractor('documentoContrato', null)}
-                                className="flex items-center gap-1 text-[11px] text-red-text hover:opacity-75 transition ml-3 shrink-0"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Eliminar
+                              <button onClick={() => updateContractor('documentoContrato', null)} className="flex items-center gap-1 text-[11px] text-red-text hover:opacity-75 transition ml-3 shrink-0">
+                                <Trash2 className="w-3.5 h-3.5" />Eliminar
                               </button>
                             )}
                           </div>
@@ -417,18 +447,10 @@ export default function EpCreditos() {
                       )}
                     </FormGroup>
 
-                    {/* Monto + Fechas + Plazo en una sola fila */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                       <FormGroup label="Monto Global (XAF)" required>
-                        <Input
-                          type="text" inputMode="numeric" placeholder="Ej: 58000000"
-                          value={detailContract.contratante.montoGlobal}
-                          onChange={e => updateContractor('montoGlobal', e.target.value.replace(/[^0-9]/g, ''))}
-                          disabled={detailContract.contratante.lock}
-                        />
-                        {detailContract.contratante.montoGlobal && (
-                          <div className="text-[11px] text-text-4 mt-1">{formatXaf(detailContract.contratante.montoGlobal)}</div>
-                        )}
+                        <Input type="text" inputMode="numeric" placeholder="Ej: 58000000" value={detailContract.contratante.montoGlobal} onChange={e => updateContractor('montoGlobal', e.target.value.replace(/[^0-9]/g, ''))} disabled={detailContract.contratante.lock} />
+                        {detailContract.contratante.montoGlobal && <div className="text-[11px] text-text-4 mt-1">{formatXaf(detailContract.contratante.montoGlobal)}</div>}
                       </FormGroup>
                       <FormGroup label="Fecha de Inicio" required>
                         <Input type="date" value={detailContract.contratante.fechaInicio} onChange={e => updateContractor('fechaInicio', e.target.value)} disabled={detailContract.contratante.lock} />
@@ -441,10 +463,8 @@ export default function EpCreditos() {
                       </FormGroup>
                     </div>
 
-                    {/* Representante Legal */}
                     <div className="pt-1">
                       <div className="text-[13px] font-bold text-text-1 mb-3 pb-2 border-b border-border">Representante Legal</div>
-                      {/* Fila 1: Nombre, Tipo doc, Número */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormGroup label="Nombre y Apellido" required>
                           <Input value={detailContract.contratante.repNombre} onChange={e => updateContractor('repNombre', e.target.value)} disabled={detailContract.contratante.lock} />
@@ -459,7 +479,6 @@ export default function EpCreditos() {
                           <Input value={detailContract.contratante.repIdentificacion} onChange={e => updateContractor('repIdentificacion', e.target.value)} disabled={detailContract.contratante.lock} />
                         </FormGroup>
                       </div>
-                      {/* Fila 2: Cargo, Teléfono, Correo */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <FormGroup label="Cargo" required>
                           <Input value={detailContract.contratante.repCargo} onChange={e => updateContractor('repCargo', e.target.value)} disabled={detailContract.contratante.lock} />
@@ -475,7 +494,6 @@ export default function EpCreditos() {
                   </div>
                 </div>
 
-                {/* Acciones */}
                 {!detailContract.contratante.lock && (
                   <div className="flex justify-end flex-wrap gap-3">
                     <Button variant="primary" onClick={handleSubmitContractor}>
@@ -486,34 +504,96 @@ export default function EpCreditos() {
               </div>
             )}
 
-            {/* ── TAB: Distribución ── */}
+            {/* ── TAB: Distribución del crédito ── */}
             {activeTab === 'distribucion' && (
-              <div className="bg-white rounded-[14px] border border-border p-5">
-                <div className="flex justify-between items-start gap-4 mb-4">
-                  <div>
-                    <div className="text-[14px] font-bold">Distribución del crédito</div>
-                    <div className="text-[12px] text-text-4">Asigna proveedores y ajusta montos para proyectos y pagos.</div>
-                  </div>
-                  <Button variant="secondary" onClick={() => setShowProviderModal(true)}>Añadir proveedor</Button>
-                </div>
-                <div className="space-y-4">
-                  {detailContract.distribucion.map(item => (
-                    <div key={item.id} className="bg-page-bg rounded-[14px] p-4 border border-border grid grid-cols-1 md:grid-cols-[1fr_160px] gap-4 items-center">
-                      <div>
-                        <div className="text-[13px] font-semibold text-text-1">{item.nombre}</div>
-                        <div className="text-[11px] text-text-4">{providers.find(p => p.id === item.id)?.ruc || 'RUC no disponible'}</div>
-                      </div>
-                      <FormGroup label="Monto asignado (XAF)">
-                        <Input value={item.monto.toString()} onChange={e => handleAssignmentEdit(item.id, e.target.value)} />
-                      </FormGroup>
+              <div className="space-y-5">
+
+                {/* Resumen */}
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Monto del crédito', value: formatXaf(detailContract.monto),     cls: 'text-text-1'     },
+                    { label: 'Asignado',           value: formatXaf(detailContract.asignado),  cls: 'text-orange'     },
+                    { label: 'Disponible',         value: formatXaf(detailContract.disponible),cls: 'text-green-text' },
+                    { label: '% Asignado',         value: `${pct(detailContract.asignado, detailContract.monto)}%`, cls: 'text-blue-text' },
+                  ].map(({ label, value, cls }) => (
+                    <div key={label} className="bg-white rounded-[14px] border border-border p-4">
+                      <div className={`text-[20px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
+                      <div className="text-[12px] text-text-4">{label}</div>
                     </div>
                   ))}
-                  {detailContract.distribucion.length === 0 && (
-                    <div className="text-[12px] text-text-4 py-6 text-center">No hay proveedores asignados aún.</div>
-                  )}
-                  <div className="rounded-[14px] border border-dashed border-border p-4 text-[12px] text-text-4">
-                    <div className="flex justify-between gap-3 mb-2"><span>Total asignado</span><strong>{formatXaf(detailContract.asignado)}</strong></div>
-                    <div className="flex justify-between gap-3"><span>Saldo disponible</span><strong>{formatXaf(detailContract.disponible)}</strong></div>
+                </div>
+
+                {/* Lista de distribuciones */}
+                <div className="bg-white rounded-[14px] border border-border p-5">
+                  <div className="flex justify-between items-start gap-4 mb-4">
+                    <div>
+                      <div className="text-[14px] font-bold">Distribuciones</div>
+                      <div className="text-[12px] text-text-4">Asignaciones del crédito por concepto y proveedor.</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="primary" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
+                        Nueva Distribución
+                      </Button>
+                      <Button variant="ghost" onClick={() => setShowProviderModal(true)}>
+                        Añadir proveedor
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {detailContract.distribucion.map(item => {
+                      const ConceptIcon = CONCEPTO_ICONS[item.concepto] ?? FolderOpen;
+                      const pctVal = parseFloat(pct(item.monto, detailContract.monto));
+                      return (
+                        <div
+                          key={item.id}
+                          className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
+                          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                        >
+                          {/* Icono */}
+                          <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                            <ConceptIcon className="w-5 h-5 text-orange" />
+                          </div>
+
+                          {/* Info + barra */}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
+                            {item.providerName
+                              ? <div className="text-[12px] text-text-4 mt-0.5 truncate">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
+                              : <div className="text-[12px] text-text-5 mt-0.5">Sin proveedor asociado</div>
+                            }
+                            <div className="mt-2.5 flex items-center gap-2">
+                              <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
+                                <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
+                              </div>
+                              <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}%</span>
+                            </div>
+                          </div>
+
+                          {/* Monto + acciones */}
+                          <div className="shrink-0 flex items-center gap-3">
+                            <div className="text-right">
+                              <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
+                              <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-tint text-orange border border-orange/20">
+                                {pctVal}% del crédito
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-1 border-l border-border pl-3">
+                              <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {detailContract.distribucion.length === 0 && (
+                      <div className="text-[12px] text-text-4 py-6 text-center">No hay distribuciones registradas aún.</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -555,44 +635,101 @@ export default function EpCreditos() {
         ) : null}
       </div>
 
-      {/* ── Modal: Añadir proveedor ── */}
-      {showProviderModal && (
+      {/* ── Modal: Nueva / Editar Distribución ── */}
+      {distribModal.open && (
         <Modal
-          title="Añadir proveedor al crédito"
-          onClose={() => setShowProviderModal(false)}
-          footer={<><Button variant="ghost" onClick={() => setShowProviderModal(false)}>Cancelar</Button><Button variant="primary" onClick={handleAssignProvider}>Asignar proveedor</Button></>}
+          title={distribModal.editId ? 'Editar distribución' : 'Nueva distribución'}
+          onClose={() => setDistribModal(DISTRIB_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost"   onClick={() => setDistribModal(DISTRIB_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleSaveDistrib}>
+                {distribModal.editId ? 'Guardar cambios' : 'Añadir distribución'}
+              </Button>
+            </>
+          }
           wide
         >
           <div className="grid grid-cols-1 gap-4">
-            <FormGroup label="Proveedor existente">
-              <Select value={providerForm.providerId} onChange={e => setProviderForm({ ...providerForm, providerId: e.target.value })} disabled={providerForm.nuevoProveedor}>
-                {providers.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+            <FormGroup label="Concepto" required>
+              <Select value={distribModal.concepto} onChange={e => setDistribModal({ ...distribModal, concepto: e.target.value })}>
+                <option value="">Seleccionar concepto…</option>
+                {CONCEPTOS.map(c => <option key={c}>{c}</option>)}
               </Select>
             </FormGroup>
             <FormGroup label="Monto asignado (XAF)" required>
-              <Input type="text" placeholder="10,000,000" value={providerForm.amount} onChange={e => setProviderForm({ ...providerForm, amount: e.target.value })} />
+              <Input
+                type="text" inputMode="numeric" placeholder="Ej: 5,000,000"
+                value={distribModal.monto}
+                onChange={e => setDistribModal({ ...distribModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+              />
+              {distribModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(distribModal.monto)}</div>}
             </FormGroup>
             <div className="flex items-center gap-3">
-              <input id="nuevo-proveedor" type="checkbox" checked={providerForm.nuevoProveedor} onChange={() => setProviderForm({ ...providerForm, nuevoProveedor: !providerForm.nuevoProveedor })} />
-              <label htmlFor="nuevo-proveedor" className="text-[13px] text-text-3">Crear nuevo proveedor</label>
+              <input
+                id="asignar-proveedor-distrib"
+                type="checkbox"
+                checked={distribModal.asignarProveedor}
+                onChange={() => setDistribModal({
+                  ...distribModal,
+                  asignarProveedor: !distribModal.asignarProveedor,
+                  providerId: !distribModal.asignarProveedor ? (providers[0]?.id || '') : '',
+                })}
+              />
+              <label htmlFor="asignar-proveedor-distrib" className="text-[13px] text-text-3">Asignar a un proveedor</label>
             </div>
-            {providerForm.nuevoProveedor && (
-              <>
-                <FormGroup label="Nombre del proveedor" required>
-                  <Input value={providerForm.nuevoNombre} onChange={e => setProviderForm({ ...providerForm, nuevoNombre: e.target.value })} />
-                </FormGroup>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormGroup label="RUC / NIF" required><Input value={providerForm.nuevoRuc} onChange={e => setProviderForm({ ...providerForm, nuevoRuc: e.target.value })} /></FormGroup>
-                  <FormGroup label="Email" required><Input type="email" value={providerForm.nuevoEmail} onChange={e => setProviderForm({ ...providerForm, nuevoEmail: e.target.value })} /></FormGroup>
-                  <FormGroup label="Teléfono"><Input value={providerForm.nuevoTelefono} onChange={e => setProviderForm({ ...providerForm, nuevoTelefono: e.target.value })} /></FormGroup>
-                </div>
-                <FormGroup label="Sector">
-                  <Select value={providerForm.nuevoSector} onChange={e => setProviderForm({ ...providerForm, nuevoSector: e.target.value })}>
-                    <option>Materiales</option><option>Transporte</option><option>Servicios</option><option>Tecnología</option><option>Alimentación</option>
-                  </Select>
-                </FormGroup>
-              </>
+            {distribModal.asignarProveedor && (
+              <FormGroup label="Proveedor" required>
+                <Select value={distribModal.providerId} onChange={e => setDistribModal({ ...distribModal, providerId: e.target.value })}>
+                  <option value="">Seleccionar proveedor…</option>
+                  {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
+                </Select>
+              </FormGroup>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal: Añadir proveedor ── */}
+      {showProviderModal && (
+        <Modal
+          title="Añadir proveedor"
+          onClose={() => { setShowProviderModal(false); setProviderForm(PROVIDER_FORM_EMPTY); }}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => { setShowProviderModal(false); setProviderForm(PROVIDER_FORM_EMPTY); }}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAddProvider}>Guardar proveedor</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento.</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormGroup label="Razón Social" required>
+                <Input value={providerForm.razonSocial} onChange={e => setProviderForm({ ...providerForm, razonSocial: e.target.value })} placeholder="Nombre legal exacto" />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input value={providerForm.nombreComercial} onChange={e => setProviderForm({ ...providerForm, nombreComercial: e.target.value })} placeholder="Nombre comercial o marca" />
+              </FormGroup>
+              <FormGroup label="RUC / NIF" required>
+                <Input value={providerForm.ruc} onChange={e => setProviderForm({ ...providerForm, ruc: e.target.value })} placeholder="Ej: GE-2024-00123" />
+              </FormGroup>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormGroup label="Sector Productivo" required>
+                <Select value={providerForm.sector} onChange={e => setProviderForm({ ...providerForm, sector: e.target.value })}>
+                  <option value="">Seleccionar…</option>
+                  {SECTORES.map(s => <option key={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono">
+                <Input value={providerForm.telefono} onChange={e => setProviderForm({ ...providerForm, telefono: e.target.value })} placeholder="+240 222 000 000" />
+              </FormGroup>
+              <FormGroup label="Correo" required>
+                <Input type="email" value={providerForm.correo} onChange={e => setProviderForm({ ...providerForm, correo: e.target.value })} placeholder="correo@empresa.gq" />
+              </FormGroup>
+            </div>
           </div>
         </Modal>
       )}
@@ -619,7 +756,10 @@ export default function EpCreditos() {
             {invoiceType === 'proveedor' && detailContract && (
               <FormGroup label="Proveedor" required>
                 <Select value={invoiceForm.proveedor} onChange={e => setInvoiceForm({ ...invoiceForm, proveedor: e.target.value })}>
-                  {detailContract.distribucion.map(item => <option key={item.id} value={item.nombre}>{item.nombre}</option>)}
+                  <option value="">Seleccionar proveedor…</option>
+                  {detailContract.distribucion.filter(d => d.providerName).map(item => (
+                    <option key={item.id} value={item.providerName}>{item.providerName}</option>
+                  ))}
                 </Select>
               </FormGroup>
             )}
