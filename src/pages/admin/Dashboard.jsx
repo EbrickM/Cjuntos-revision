@@ -90,7 +90,7 @@ export default function AdminDash() {
           <div className="bg-white rounded-[14px] border border-border p-5">
             <div className="flex justify-between items-center mb-4">
               <div className="text-[14px] font-bold">Contratos</div>
-              <button onClick={() => go('adminContratos')} className="text-[12px] text-orange font-semibold hover:opacity-75 transition">
+              <button onClick={() => go('adminConf')} className="text-[12px] text-orange font-semibold hover:opacity-75 transition">
                 Ver todos →
               </button>
             </div>
@@ -99,7 +99,7 @@ export default function AdminDash() {
                 const badge  = contractBadge(c.paso);
                 const pctVal = parseFloat(pct(c.asignado, c.monto));
                 return (
-                  <HoverCard key={c.id} onClick={() => go('adminContratos')}>
+                  <HoverCard key={c.id} onClick={() => go('adminConf')}>
                     <div className="w-10 h-10 rounded-[12px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
                       <FileText className="w-4 h-4 text-orange" />
                     </div>
