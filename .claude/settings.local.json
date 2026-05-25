@@ -5,7 +5,9 @@
       "Bash(npx vite *)",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Recurse -Path \"D:\\\\LiderShore\\\\B-Mori\\\\bmori_front\\\\src\\\\pages\" -Directory)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

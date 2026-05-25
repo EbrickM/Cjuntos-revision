@@ -20,27 +20,7 @@ export default function RoleSelect() {
         <h2 className="text-[28px] font-bold text-text-1 mb-2">¿Cómo quieres acceder a B-Morï?</h2>
         <p className="text-[15px] text-text-3 mb-12">Selecciona tu perfil para continuar</p>
 
-        <div className="grid grid-cols-2 gap-6 max-w-[860px] mx-auto">
-          {/* Empresa Contratante */}
-          <div
-            onClick={() => go('empDash')}
-            className="bg-white border-2 border-[#E5E7EB] rounded-2xl p-7 cursor-pointer transition-all text-left shadow-sm hover:border-orange hover:shadow-[0_8px_32px_rgba(232,82,26,.12)]"
-          >
-            <div className="w-14 h-14 rounded-[14px] bg-orange-tint flex items-center justify-center text-[28px] mb-4">🏢</div>
-            <div className="text-[18px] font-bold text-text-1 mb-1.5">Empresa Contratante</div>
-            <div className="text-[13px] text-text-4 mb-4">Corporaciones y organismos</div>
-            <hr className="border-border mb-4" />
-            <ul className="list-none flex flex-col gap-1.5 mb-5">
-              {['Aprueba facturas y solicitudes confirming', 'Dashboard de riesgos de proveedores', 'Verifica contratos de empresas PYME', 'Reportes ESG de tu cadena'].map(f => (
-                <li key={f} className="text-[13px] text-text-3 before:content-['✓_'] before:text-green before:font-bold">{f}</li>
-              ))}
-            </ul>
-            <Button variant="primary" full className="h-11" onClick={(e) => { e.stopPropagation(); go('empDash'); }}>
-              Acceder como Empresa →
-            </Button>
-            <div className="text-center text-[11px] text-text-5 mt-2">Acceso por invitación de Bonafide</div>
-          </div>
-
+        <div className="max-w-[440px] mx-auto">
           {/* Empresa Pequeña */}
           <div
             onClick={() => go('epHome')}
@@ -51,11 +31,11 @@ export default function RoleSelect() {
             <div className="text-[13px] text-text-4 mb-4">Pequeñas y medianas empresas</div>
             <hr className="border-border mb-4" />
             <ul className="list-none flex flex-col gap-1.5 mb-5">
-              {['Solicita préstamos contra tu contrato', 'Gestiona tus proveedores y pagos', 'Distribuye tu crédito (nómina, reserva, proveedores)', 'Libera fondos para pagar a tus proveedores'].map(f => (
+              {['Gestiona tus contratos de crédito', 'Gestiona tus proveedores y pagos', 'Distribuye tu crédito (nómina, reserva, proveedores)', 'Libera fondos para pagar a tus proveedores'].map(f => (
                 <li key={f} className="text-[13px] text-text-3 before:content-['✓_'] before:text-green before:font-bold">{f}</li>
               ))}
             </ul>
-            <Button variant="secondary" full className="h-11" onClick={(e) => { e.stopPropagation(); go('epHome'); }}>
+            <Button variant="primary" full className="h-11" onClick={(e) => { e.stopPropagation(); go('epHome'); }}>
               Acceder como Empresa Pequeña →
             </Button>
             <div className="text-center text-[11px] text-text-5 mt-2">Registro gratuito · KYC en 3–5 días</div>

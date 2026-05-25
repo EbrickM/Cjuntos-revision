@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Zap, CheckCircle2, Clock, Leaf,
-  Building2, Briefcase, ShieldCheck,
+  Briefcase, ShieldCheck,
   ArrowLeft, Mail, Lock, Eye, EyeOff,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -14,7 +14,6 @@ const features = [
 ];
 
 const roles = [
-  { id: 'empDash',   label: 'Empresa Contratante',   Icon: Building2,   desc: 'Corporaciones y organismos' },
   { id: 'epHome',    label: 'Empresa Pequeña (PYME)', Icon: Briefcase,   desc: 'Pequeñas y medianas empresas' },
   { id: 'adminDash', label: 'Administrador Bonafide', Icon: ShieldCheck, desc: 'Equipo interno Bonafide Microbank' },
 ];
