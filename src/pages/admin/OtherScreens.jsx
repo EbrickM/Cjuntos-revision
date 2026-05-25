@@ -68,7 +68,7 @@ const riskData = [
 
 export function AdminRisk() {
   return (
-    <AppShell active="adminRisk" role="admin" title="Gestión de Riesgos" sub="Monitor de cartera">
+    <AppShell active="adminRisk" role="admin" title="Facturas" sub="Monitor de cartera">
       <div className="fade-in">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[['🟢','3','Bajo riesgo (Verde)','text-green-text'],['🟡','2','Riesgo medio (Amarillo)','text-yellow-text'],['🔴','1','Alto riesgo (Rojo)','text-red-text']].map(([ico,v,l,c]) => (

@@ -9,6 +9,13 @@ const EP_USER = {
   pill: { lbl: 'PYME', cls: 'bg-green-bg text-green-text border-green-border' },
 };
 
+const ADMIN_USER = {
+  initials: 'AM',
+  name: 'Ana Martínez',
+  role: 'Ops. Bonafide',
+  pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' },
+};
+
 const notifs = [
   { id:1, ico:'🔔', titulo:'TotalEnerGE ha verificado tu contrato', cuerpo:'El contratante TotalEnerGE confirmó los datos del contrato CTR-2026-001.', dt:'Hoy, 14:30', leida:false, tipo:'info' },
   { id:2, ico:'💳', titulo:'Pago recibido de TotalEnerGE', cuerpo:'Has recibido XAF 10,000,000 de TotalEnerGE correspondiente al anticipo del contrato CTR-2026-001.', dt:'Ayer, 11:20', leida:false, tipo:'info' },
@@ -36,7 +43,10 @@ export default function Topbar({ title, sub = '', role }) {
   const [leidas, setLeidas] = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
 
   const pendientes = notifs.filter(n => !leidas.has(n.id)).length;
-  const isEP = role === 'empresa-pequena';
+  const isEP    = role === 'empresa-pequena';
+  const isAdmin = role === 'admin';
+  const useNewBar = isEP || isAdmin;
+  const currentUser = isAdmin ? ADMIN_USER : EP_USER;
 
   return (
     <>
@@ -47,19 +57,19 @@ export default function Topbar({ title, sub = '', role }) {
         </div>
         <div className="flex-1" />
 
-        {isEP ? (
+        {useNewBar ? (
           <>
             {/* Identificación usuario */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[8px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[12px] shrink-0">
-                {EP_USER.initials}
+                {currentUser.initials}
               </div>
               <div className="hidden sm:block">
-                <div className="text-[13px] font-semibold text-text-1 leading-tight">{EP_USER.name}</div>
-                <div className="text-[11px] text-text-4 leading-tight">{EP_USER.role}</div>
+                <div className="text-[13px] font-semibold text-text-1 leading-tight">{currentUser.name}</div>
+                <div className="text-[11px] text-text-4 leading-tight">{currentUser.role}</div>
               </div>
-              <span className={`text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${EP_USER.pill.cls}`}>
-                {EP_USER.pill.lbl}
+              <span className={`text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${currentUser.pill.cls}`}>
+                {currentUser.pill.lbl}
               </span>
             </div>
 

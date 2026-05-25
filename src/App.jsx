@@ -10,7 +10,8 @@ import { KycStep1, KycStep2, KycStep3, KycStep4 } from './pages/auth/KycWizard';
 import AdminDash from './pages/admin/Dashboard';
 import AdminKYC from './pages/admin/KYC';
 import AdminEmpresas from './pages/admin/Empresas';
-import { AdminConf, AdminRisk, AdminAnalytics, AdminSettings } from './pages/admin/OtherScreens';
+import AdminContratos from './pages/admin/Contratos';
+import { AdminRisk, AdminAnalytics, AdminSettings } from './pages/admin/OtherScreens';
 
 // Empresa Pequeña
 import EpHome from './pages/empresa-pequena/Home';
@@ -44,7 +45,7 @@ function Router() {
     // Admin
     adminDash:            <AdminDash />,
     adminKYC:             <AdminKYC />,
-    adminConf:            <AdminConf />,
+    adminConf:            <AdminContratos />,
     adminEmpresas:        <AdminEmpresas />,
     adminRisk:            <AdminRisk />,
     adminAnalytics:       <AdminAnalytics />,

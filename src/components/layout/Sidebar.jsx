@@ -8,13 +8,10 @@ import Logo from './Logo';
 
 const NAV = {
   admin: [
-    { id: 'adminDash',      Icon: Home,          lbl: 'Dashboard' },
-    { id: 'adminKYC',       Icon: Eye,            lbl: 'KYC Empresas',         badge: '3' },
-    { id: 'adminConf',      Icon: CheckCircle2,   lbl: 'Confirming',           badge: '5' },
-    { id: 'adminEmpresas',  Icon: Building2,      lbl: 'Empresas Contratantes' },
-    { id: 'adminRisk',      Icon: AlertTriangle,  lbl: 'Riesgos',              badge: '2' },
-    { id: 'adminAnalytics', Icon: TrendingUp,     lbl: 'Analytics' },
-    { id: 'adminSettings',  Icon: Settings,       lbl: 'Configuración' },
+    { id: 'adminDash',     Icon: Home,          lbl: 'Inicio' },
+    { id: 'adminConf',     Icon: ClipboardList, lbl: 'Contratos' },
+    { id: 'adminEmpresas', Icon: Building2,     lbl: 'Empresas Contratantes' },
+    { id: 'adminRisk',     Icon: Receipt,       lbl: 'Facturas' },
   ],
   'empresa-pequena': [
     { id: 'epHome',        Icon: Home,       lbl: 'Inicio' },
@@ -37,12 +34,10 @@ const NAV = {
 };
 
 const USERS = {
-  admin:       { initials: 'AM', name: 'Ana Martínez',  role: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
-  contratante: { initials: 'TE', name: 'TotalEnerGE',   role: 'Empresa Contratante', pill: null },
+  contratante: { initials: 'TE', name: 'TotalEnerGE', role: 'Empresa Contratante', pill: null },
 };
 
 const SECTIONS = {
-  admin:       { split: 2, s1: 'Principal', s2: 'Operaciones' },
   contratante: { split: 3, s1: 'Principal', s2: 'Análisis' },
 };
 

@@ -10,14 +10,13 @@ const kpis = [
 export default function AdminDash() {
   const { go } = useApp();
   return (
-    <AppShell active="adminDash" role="admin" title="Dashboard" sub="Vista general Bonafide">
+    <AppShell active="adminDash" role="admin" title="Inicio" sub="Vista general Bonafide">
       <div className="fade-in">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <div className="text-[20px] font-bold text-text-1">Buenos días, Ana 👋</div>
+            <div className="text-[20px] font-bold text-text-1">Bienvenida, Ana 👋</div>
             <div className="text-[13px] text-text-4">Panel de operaciones Bonafide Microbank</div>
           </div>
-          <div className="bg-orange-tint text-orange text-[12px] font-semibold px-3.5 py-1.5 rounded-[8px] border border-orange-border">📅 Lunes, 18 Mayo 2026</div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
