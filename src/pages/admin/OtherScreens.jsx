@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { Building2, Truck } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+
+const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 
 /* ─── Admin Confirming ─── */
 const confRows = [
@@ -57,59 +60,104 @@ export function AdminConf() {
   );
 }
 
-/* ─── Admin Risk ─── */
-const riskData = [
-  { nombre:'Const. Silva Ltd.',  sector:'Construcción', score:88, nivel:'Verde',   cls:'green',  deuda:'120M', pagos:'Al día' },
-  { nombre:'Pinturas Bata SL',   sector:'Industria',    score:72, nivel:'Verde',   cls:'green',  deuda:'45M',  pagos:'Al día' },
-  { nombre:'LogiRapid GE',       sector:'Transporte',   score:58, nivel:'Amarillo',cls:'yellow', deuda:'80M',  pagos:'1 retraso' },
-  { nombre:'AgriEco PYME',       sector:'Agricultura',  score:41, nivel:'Amarillo',cls:'yellow', deuda:'30M',  pagos:'2 retrasos' },
-  { nombre:'ServLog GE',         sector:'Logística',    score:25, nivel:'Rojo',    cls:'red',    deuda:'15M',  pagos:'Impagado' },
+/* ─── Admin Facturas ─── */
+const contratos = {
+  'CTR-2026-002': 'Evans Construction & Engineering S.A.',
+  'CTR-2026-005': 'Autoridad Portuaria de Bata S.A.',
+  'CTR-2026-009': 'TotalEnerGE SA',
+  'CTR-2026-011': 'MinGE Sociedad Est.',
+};
+
+const allInvoices = [
+  { id:'FAC-2026-1031', tipo:'contratante', contrato:'CTR-2026-002', pyme:'Const. Silva Ltd.',  monto:18000000, estado:'Pagada',   concepto:'Avance de obra fase 1 – Cimentación y estructura',           fecha:'10/05/2026' },
+  { id:'FAC-2026-1044', tipo:'contratante', contrato:'CTR-2026-009', pyme:'TechBata PYME S.L.', monto:9500000,  estado:'Pagada',   concepto:'Suministro e instalación de equipos eléctricos – Fase 2',   fecha:'14/05/2026' },
+  { id:'FAC-2026-1036', tipo:'contratante', contrato:'CTR-2026-005', pyme:'LogiGE S.A.',         monto:6500000,  estado:'Enviada',  concepto:'Mantenimiento preventivo instalaciones portuarias – Abr 2026', fecha:'02/05/2026' },
+  { id:'FAC-2026-1048', tipo:'contratante', contrato:'CTR-2026-011', pyme:'AgriEco PYME',         monto:4200000,  estado:'Pendiente',concepto:'Consultoría técnica explotación minera – Q2 2026',            fecha:'20/05/2026' },
+  { id:'FAC-2026-1025', tipo:'proveedor',   contrato:'CTR-2026-002', pyme:'Const. Silva Ltd.',  monto:4500000,  estado:'Pagada',   concepto:'Transporte de materiales al sitio de obra',                  fecha:'01/05/2026', proveedor:'TransGE S.L.' },
+  { id:'FAC-2026-1039', tipo:'proveedor',   contrato:'CTR-2026-009', pyme:'TechBata PYME S.L.', monto:3100000,  estado:'Pagada',   concepto:'Suministro de componentes electrónicos – Lote 3',            fecha:'13/05/2026', proveedor:'ServTec GE' },
+  { id:'FAC-2026-1052', tipo:'proveedor',   contrato:'CTR-2026-005', pyme:'LogiGE S.A.',         monto:1800000,  estado:'Enviada',  concepto:'Alquiler de maquinaria portuaria – Mayo 2026',               fecha:'21/05/2026', proveedor:'Cemex GE' },
 ];
 
+const InvoiceCard = ({ inv }) => (
+  <div
+    className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
+    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
+    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+  >
+    <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
+      {inv.tipo === 'contratante' ? <Building2 className="w-5 h-5 text-orange" /> : <Truck className="w-5 h-5 text-orange" />}
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+        <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+        <Badge variant={inv.estado === 'Pagada' ? 'green' : inv.estado === 'Enviada' ? 'blue' : 'yellow'}>{inv.estado}</Badge>
+      </div>
+      <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
+      <div className="text-[11px] text-text-5 mb-1.5">
+        {inv.tipo === 'proveedor' && inv.proveedor
+          ? <span>Proveedor: <span className="font-medium text-text-4">{inv.proveedor}</span> · </span>
+          : null
+        }
+        PYME: <span className="font-medium text-text-4">{inv.pyme}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[10px] font-semibold text-orange bg-orange-tint px-2 py-0.5 rounded-full border border-orange/20">{inv.contrato}</span>
+        <span className="text-[11px] text-text-5 truncate">· {contratos[inv.contrato]}</span>
+      </div>
+    </div>
+    <div className="shrink-0 text-right">
+      <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+      <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+    </div>
+  </div>
+);
+
 export function AdminRisk() {
+  const ctFacturas   = allInvoices.filter(inv => inv.tipo === 'contratante');
+  const provFacturas = allInvoices.filter(inv => inv.tipo === 'proveedor');
+  const totalPagadoCt  = ctFacturas.filter(inv => inv.estado === 'Pagada').reduce((s, inv) => s + inv.monto, 0);
+  const totalLiberado  = provFacturas.filter(inv => inv.estado === 'Pagada').reduce((s, inv) => s + inv.monto, 0);
+
   return (
-    <AppShell active="adminRisk" role="admin" title="Facturas" sub="Monitor de cartera">
-      <div className="fade-in">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          {[['🟢','3','Bajo riesgo (Verde)','text-green-text'],['🟡','2','Riesgo medio (Amarillo)','text-yellow-text'],['🔴','1','Alto riesgo (Rojo)','text-red-text']].map(([ico,v,l,c]) => (
-            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
-              <div className="text-[24px] mb-2">{ico}</div>
-              <div className={`text-[22px] font-extrabold ${c} mb-1`}>{v}</div>
-              <div className="text-[12px] text-text-4">{l}</div>
+    <AppShell active="adminRisk" role="admin" title="Facturas" sub="Todas las facturas de la plataforma">
+      <div className="fade-in space-y-5">
+
+        {/* Resumen */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { value: ctFacturas.length,       label: 'Facturas al contratante',          cls: 'text-blue-text' },
+            { value: formatXaf(totalPagadoCt), label: 'Pagado por contratantes (cobrado)',cls: 'text-green-text', small: true },
+            { value: formatXaf(totalLiberado), label: 'Fondos liberados a proveedores',  cls: 'text-orange',     small: true },
+          ].map(({ value, label, cls, small }) => (
+            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
+              <div className={`font-extrabold leading-none mb-1 ${cls} ${small ? 'text-[18px] mt-1' : 'text-[32px]'}`}>{value}</div>
+              <div className="text-[12px] text-text-4">{label}</div>
             </div>
           ))}
         </div>
-        <div className="bg-white rounded-[14px] border border-border overflow-hidden">
-          <div className="px-5 py-4 border-b border-border">
-            <span className="text-[14px] font-bold">Semáforo de Riesgos — Empresas PYME</span>
+
+        {/* Pagadas por el contratante */}
+        <div className="bg-white rounded-[14px] border border-border p-5">
+          <div className="mb-4">
+            <div className="text-[14px] font-bold">Pagadas por el contratante</div>
+            <div className="text-[12px] text-text-4">Ingresos cobrados por la plataforma — dinero que entra al banco.</div>
           </div>
-          <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead><tr>{['Empresa','Sector','Score','Nivel','Deuda XAF','Estado pagos'].map(h=>(
-              <th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>
-            ))}</tr></thead>
-            <tbody>
-              {riskData.map(r => (
-                <tr key={r.nombre} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8]">
-                  <td className="px-4 py-3 font-semibold text-[13px]">{r.nombre}</td>
-                  <td className="px-4 py-3 text-[12px] text-text-3">{r.sector}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 h-2 bg-page-bg rounded-full overflow-hidden">
-                        <div className="h-full rounded-full" style={{width:`${r.score}%`,background:r.cls==='green'?'#00C853':r.cls==='yellow'?'#FFB300':'#E53935'}}/>
-                      </div>
-                      <span className="text-[12px] font-bold">{r.score}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3"><Badge variant={r.cls}>{r.nivel}</Badge></td>
-                  <td className="px-4 py-3 font-bold text-[13px]">XAF {r.deuda}</td>
-                  <td className="px-4 py-3 text-[12px]">{r.pagos}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="space-y-3">
+            {ctFacturas.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}
           </div>
         </div>
+
+        {/* Fondos liberados a proveedores */}
+        <div className="bg-white rounded-[14px] border border-border p-5">
+          <div className="mb-4">
+            <div className="text-[14px] font-bold">Fondos liberados a proveedores</div>
+            <div className="text-[12px] text-text-4">Pagos realizados a proveedores desde el crédito de cada PYME.</div>
+          </div>
+          <div className="space-y-3">
+            {provFacturas.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}
+          </div>
+        </div>
+
       </div>
     </AppShell>
   );
