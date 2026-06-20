@@ -17,7 +17,7 @@ export default function RoleSelect() {
         <div className="inline-flex items-center gap-1.5 bg-orange-tint text-orange text-[12px] font-semibold px-4 py-1.5 rounded-full border border-orange-border mb-4">
           Elige cómo acceder
         </div>
-        <h2 className="text-[28px] font-bold text-text-1 mb-2">¿Cómo quieres acceder a B-Morï?</h2>
+        <h2 className="text-[28px] font-bold text-text-1 mb-2">¿Cómo quieres acceder a Creciendo Juntos?</h2>
         <p className="text-[15px] text-text-3 mb-12">Selecciona tu perfil para continuar</p>
 
         <div className="max-w-[440px] mx-auto">
