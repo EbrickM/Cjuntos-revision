@@ -7,10 +7,7 @@ on:
 
 jobs:
   deploy-dev:
-    runs-on: self-hosted-27
-
-    container:
-        image: node:lts-bookworm
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
