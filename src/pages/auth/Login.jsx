@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Zap, FileCheck, Clock, Leaf, Shield, Lock, ArrowRight, CreditCard, BarChart3, Users, History } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';
+import AdminLoginModal from '../../components/common/AdminLoginModal';
 
 const DEMO_EMAIL = 'operaciones@totalenerge.com';
 const DEMO_PHONE = '+240 555 123 456';
@@ -38,7 +39,8 @@ const platformFeatures = [
 
 export default function Login() {
   const { go } = useApp();
-  const [showOTP, setShowOTP] = useState(false);
+  const [showOTP,   setShowOTP]   = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const handleVerified = () => {
     setShowOTP(false);
@@ -180,11 +182,14 @@ export default function Login() {
                 Solicitar Contrato
               </button>
 
-              {/* Soporte */}
+              {/* Acceso administrador */}
               <p className="text-center text-xs text-text-4 mt-5">
-                ¿Necesitas ayuda?{' '}
-                <button className="text-orange font-medium hover:underline cursor-pointer">
-                  Contacta con soporte
+                ¿Eres del equipo Bonafide?{' '}
+                <button
+                  onClick={() => setShowAdmin(true)}
+                  className="text-orange font-medium hover:underline cursor-pointer"
+                >
+                  Acceso como administrador
                 </button>
               </p>
             </div>
@@ -201,6 +206,13 @@ export default function Login() {
         onVerify={handleVerified}
         email={DEMO_EMAIL}
         phone={DEMO_PHONE}
+      />
+
+      {/* ─── MODAL ADMINISTRADOR ───────────────────────────────────────────── */}
+      <AdminLoginModal
+        isOpen={showAdmin}
+        onClose={() => setShowAdmin(false)}
+        onVerify={() => { setShowAdmin(false); go('adminDash'); }}
       />
     </div>
   );
