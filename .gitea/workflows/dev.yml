@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout
-        run: git clone ${{ gitea.server_url }}/${{ gitea.repository }} .
+        uses: actions/checkout@v4
 
       - name: Build Docker image
         run: |
