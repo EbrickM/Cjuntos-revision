@@ -1,10 +1,9 @@
 import {
-  Home, Eye, CheckCircle2, Building2, AlertTriangle,
-  TrendingUp, Settings, ClipboardList, Users, Receipt, Wallet,
-  Folder, Bell, User, LogOut, ShieldCheck, BarChart3, CreditCard,
+  Home, Building2, AlertTriangle,
+  Settings, ClipboardList, Users, Receipt,
+  Bell, User, LogOut, ShieldCheck, BarChart3, CreditCard,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
-import Logo from './Logo';
 
 const NAV = {
   admin: [
@@ -63,17 +62,7 @@ export default function Sidebar({ active, role }) {
   );
 
   return (
-    <div style={{ width: 240, minWidth: 240, flexShrink: 0, height: '100vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
-
-      {/* Logo */}
-      <div className="px-5 py-[18px] flex items-center gap-2 border-b border-border">
-        <Logo size={16} />
-        {user?.pill && (
-          <span className={`ml-1 text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${user.pill.cls}`}>
-            {user.pill.lbl}
-          </span>
-        )}
-      </div>
+    <div style={{ width: 220, minWidth: 220, flexShrink: 0, height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
 
       {/* Nav items */}
       {role === 'empresa-pequena' ? (

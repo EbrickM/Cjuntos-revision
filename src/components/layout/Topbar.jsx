@@ -1,25 +1,33 @@
 import { useState } from 'react';
-import { Search, Bell, LogOut, X } from 'lucide-react';
+import { Bell, LogOut, X } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
+import Logo from './Logo';
 
-const EP_USER = {
-  initials: 'CE',
-  name: 'Construcciones Silva',
-  role: 'Empresa Pequeña',
-  pill: { lbl: 'PYME', cls: 'bg-green-bg text-green-text border-green-border' },
-};
-
-const ADMIN_USER = {
-  initials: 'AM',
-  name: 'Ana Martínez',
-  role: 'Ops. Bonafide',
-  pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' },
+const USERS = {
+  'empresa-pequena': {
+    initials: 'CE',
+    name: 'Construcciones Silva',
+    role: 'Empresa PYME',
+    pill: { lbl: 'PYME', cls: 'bg-green-bg text-green-text border-green-border' },
+  },
+  admin: {
+    initials: 'AM',
+    name: 'Ana Martínez',
+    role: 'Ops. Bonafide',
+    pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' },
+  },
+  contratante: {
+    initials: 'TE',
+    name: 'TotalEnerGE',
+    role: 'Empresa Contratante',
+    pill: null,
+  },
 };
 
 const notifs = [
-  { id:1, ico:'🔔', titulo:'TotalEnerGE ha verificado tu contrato', cuerpo:'El contratante TotalEnerGE confirmó los datos del contrato CTR-2026-001.', dt:'Hoy, 14:30', leida:false, tipo:'info' },
-  { id:2, ico:'💳', titulo:'Pago recibido de TotalEnerGE', cuerpo:'Has recibido XAF 10,000,000 de TotalEnerGE correspondiente al anticipo del contrato CTR-2026-001.', dt:'Ayer, 11:20', leida:false, tipo:'info' },
-  { id:3, ico:'📋', titulo:'Nueva factura pendiente de pago', cuerpo:'La factura FAC-2026-0971 de XAF 10,000,000 emitida a TotalEnerGE está pendiente de pago.', dt:'18/05/26', leida:true, tipo:'warning' },
+  { id: 1, ico: '🔔', titulo: 'TotalEnerGE ha verificado tu contrato',   cuerpo: 'El contratante TotalEnerGE confirmó los datos del contrato CTR-2026-001.',                             dt: 'Hoy, 14:30',  leida: false, tipo: 'info' },
+  { id: 2, ico: '💳', titulo: 'Pago recibido de TotalEnerGE',             cuerpo: 'Has recibido XAF 10,000,000 de TotalEnerGE correspondiente al anticipo del contrato CTR-2026-001.', dt: 'Ayer, 11:20', leida: false, tipo: 'info' },
+  { id: 3, ico: '📋', titulo: 'Nueva factura pendiente de pago',          cuerpo: 'La factura FAC-2026-0971 de XAF 10,000,000 emitida a TotalEnerGE está pendiente de pago.',          dt: '18/05/26',    leida: true,  tipo: 'warning' },
 ];
 
 const tipoCls = {
@@ -28,81 +36,75 @@ const tipoCls = {
   success: 'bg-green-bg border-green-border',
 };
 
-const IconBtn = ({ onClick, children, hoverCls = 'hover:bg-orange-tint hover:border-orange-border' }) => (
-  <div
-    onClick={onClick}
-    className={`w-9 h-9 bg-page-bg border border-border rounded-[10px] flex items-center justify-center cursor-pointer transition-colors ${hoverCls}`}
-  >
-    {children}
-  </div>
-);
-
-export default function Topbar({ title, sub = '', role }) {
+export default function Topbar({ role }) {
   const { go } = useApp();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [leidas, setLeidas] = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
+  const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
 
+  const user      = USERS[role] ?? USERS['empresa-pequena'];
   const pendientes = notifs.filter(n => !leidas.has(n.id)).length;
-  const isEP    = role === 'empresa-pequena';
-  const isAdmin = role === 'admin';
-  const useNewBar = isEP || isAdmin;
-  const currentUser = isAdmin ? ADMIN_USER : EP_USER;
 
   return (
     <>
-      <div style={{ height: 64, flexShrink: 0, background: 'white', boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)', display: 'flex', alignItems: 'center', padding: '0 28px', gap: 16, position: 'relative', zIndex: 10 }}>
-        <div>
-          <span className="text-[18px] font-bold text-text-1">{title}</span>
-          {sub && <span className="text-[13px] text-text-4 ml-1">/ {sub}</span>}
+      {/* ── Barra principal ─────────────────────────────────────────────────── */}
+      <div
+        style={{
+          height: 64,
+          flexShrink: 0,
+          background: 'white',
+          boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 32px',
+          gap: 16,
+          position: 'relative',
+          zIndex: 10,
+        }}
+      >
+        {/* Logo — igual que bonafide-identity */}
+        <Logo size={16} />
+
+        <div style={{ flex: 1 }} />
+
+        {/* Usuario */}
+        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C62828] to-[#F57C00] flex items-center justify-center text-white font-bold text-[12px] shrink-0">
+            {user.initials}
+          </div>
+          <div className="hidden sm:block text-left">
+            <p className="text-sm font-medium text-text-1 leading-tight">{user.name}</p>
+            <p className="text-xs text-text-4 leading-tight">{user.role}</p>
+          </div>
+          {user.pill && (
+            <span className={`text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${user.pill.cls}`}>
+              {user.pill.lbl}
+            </span>
+          )}
         </div>
-        <div className="flex-1" />
 
-        {useNewBar ? (
-          <>
-            {/* Identificación usuario */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[12px] shrink-0">
-                {currentUser.initials}
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-[13px] font-semibold text-text-1 leading-tight">{currentUser.name}</div>
-                <div className="text-[11px] text-text-4 leading-tight">{currentUser.role}</div>
-              </div>
-              <span className={`text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${currentUser.pill.cls}`}>
-                {currentUser.pill.lbl}
-              </span>
-            </div>
+        {/* Notificaciones */}
+        <div className="relative">
+          <button
+            onClick={() => setNotifOpen(true)}
+            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-text-3"
+          >
+            <Bell className="w-5 h-5" />
+            {pendientes > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gradient-to-r from-[#C62828] to-[#F57C00] rounded-full" />
+            )}
+          </button>
+        </div>
 
-            {/* Notificaciones */}
-            <div className="relative">
-              <IconBtn onClick={() => setNotifOpen(true)}>
-                <Bell className="w-4 h-4 text-text-3" />
-                {pendientes > 0 && (
-                  <div className="absolute top-1.5 right-1.5 w-[7px] h-[7px] bg-orange rounded-full border-2 border-white" />
-                )}
-              </IconBtn>
-            </div>
-
-            {/* Cerrar sesión */}
-            <IconBtn onClick={() => go('login')} hoverCls="hover:bg-red-bg hover:border-red-text/30">
-              <LogOut className="w-4 h-4 text-text-3" />
-            </IconBtn>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 bg-page-bg border border-border rounded-[10px] px-3.5 py-2 text-[13px] text-text-4 cursor-pointer w-[220px]">
-              <Search className="w-4 h-4 shrink-0" />
-              Buscar...
-            </div>
-            <IconBtn>
-              <Bell className="w-4 h-4 text-text-3" />
-              <div className="absolute top-1.5 right-1.5 w-[7px] h-[7px] bg-orange rounded-full border-2 border-white" />
-            </IconBtn>
-          </>
-        )}
+        {/* Cerrar sesión */}
+        <button
+          onClick={() => go('login')}
+          className="p-2 rounded-lg hover:bg-red-bg transition-colors cursor-pointer text-text-3 hover:text-red-text"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
       </div>
 
-      {/* Panel de notificaciones (slide desde la derecha) */}
+      {/* ── Panel de notificaciones ─────────────────────────────────────────── */}
       {notifOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
@@ -124,12 +126,12 @@ export default function Topbar({ title, sub = '', role }) {
                     Marcar todas
                   </button>
                 )}
-                <div
+                <button
                   onClick={() => setNotifOpen(false)}
                   className="w-8 h-8 bg-page-bg border border-border rounded-[8px] flex items-center justify-center cursor-pointer hover:bg-red-bg transition-colors"
                 >
                   <X className="w-4 h-4 text-text-3" />
-                </div>
+                </button>
               </div>
             </div>
 
@@ -140,8 +142,7 @@ export default function Topbar({ title, sub = '', role }) {
                   <div
                     key={n.id}
                     onClick={() => setLeidas(prev => new Set([...prev, n.id]))}
-                    className={`rounded-[12px] border p-3.5 cursor-pointer transition-all
-                      ${leida ? 'bg-white border-border opacity-60' : tipoCls[n.tipo]}`}
+                    className={`rounded-[12px] border p-3.5 cursor-pointer transition-all ${leida ? 'bg-white border-border opacity-60' : tipoCls[n.tipo]}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`w-8 h-8 rounded-[8px] flex items-center justify-center text-[16px] shrink-0 ${leida ? 'bg-page-bg' : 'bg-white'}`}>
