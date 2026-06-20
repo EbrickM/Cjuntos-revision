@@ -6,10 +6,10 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+RUN npm install
 
 COPY . .
-RUN pnpm build
+RUN npm run build
 
 
 # Serve stage
