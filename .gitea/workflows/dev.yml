@@ -9,11 +9,12 @@ jobs:
   deploy-dev:
     runs-on: self-hosted-27
 
+    container:
+        image: node:lts-bookworm
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        container:
-            image: node:lts-bookworm
 
       - name: Build Docker image
         run: |
