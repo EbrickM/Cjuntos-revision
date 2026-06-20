@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+            node-version: 20
 
       - name: Build Docker image
         run: |
