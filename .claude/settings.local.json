@@ -8,7 +8,10 @@
       "Bash(npx tsc *)",
       "Bash(Get-ChildItem -Recurse -Path \"D:\\\\LiderShore\\\\B-Mori\\\\bmori_front\\\\src\\\\pages\" -Directory)",
       "Bash(Select-Object FullName)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(cd /d D:\\\\LiderShore\\\\B-Mori\\\\bmori_front)",
+      "Bash(find src *)",
+      "Bash(npm run *)"
     ]
   }
 }

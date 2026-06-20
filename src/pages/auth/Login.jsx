@@ -39,9 +39,9 @@ export default function Login() {
           {/* Logo */}
           <div className="mb-1.5 flex justify-center ">
             <img
-              src="/B-Mori.png"
-              alt="B-Morï"
-              style={{ height: 36 }}
+              src="/bonafide-logo.png"
+              alt="Creciendo Juntos"
+              className="h-28 w-auto object-contain"
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextElementSibling.style.display = 'inline';
@@ -169,8 +169,8 @@ export default function Login() {
         {/* Logo centrado 
         <div className="flex flex-col items-center mb-8">
           <img
-            src="/B-Mori.png"
-            alt="B-Morï"
+            src="/bonafide-logo.png"
+            alt="Creciendo Juntos"
             style={{ height: 38, filter: 'brightness(0) invert(1)' }}
             onError={(e) => { e.target.style.display = 'none'; }}
           />
