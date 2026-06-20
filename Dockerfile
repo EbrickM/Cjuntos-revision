@@ -3,12 +3,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Copiar dependencias primero (mejor cache)
+COPY package.json package-lock.json* ./
 
-COPY package.json pnpm-lock.yaml ./
-RUN npm install
+# Instalar dependencias con npm
+RUN npm ci || npm install
 
+# Copiar código fuente
 COPY . .
+
+# Build
 RUN npm run build
 
 
@@ -18,8 +22,5 @@ FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
-
-
-
 
 
