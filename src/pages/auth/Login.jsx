@@ -18,8 +18,8 @@ const roles = [
   { id: 'adminDash', label: 'Administrador Bonafide', Icon: ShieldCheck, desc: 'Equipo interno Bonafide Microbank' },
 ];
 
-const ORANGE = '#E8521A';
-const NAVY   = '#1D3557';
+const ORANGE = '#C62828';
+const NAVY   = '#1a1a1a';
 
 /* Easing S-curve suave: arranca despacio, acelera al centro, frena al final */
 const SLIDE_TRANSITION = 'transform 0.72s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -69,7 +69,7 @@ export default function Login() {
                 type="email"
                 defaultValue="operaciones@totalenerge.com"
                 placeholder="tu@empresa.com"
-                className="h-12 border border-input-border rounded-[10px] pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none w-full transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(232,82,26,0.08)]"
+                className="h-12 border-0 rounded-lg pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none w-full transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)]"
               />
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function Login() {
               <input
                 type={showPass ? 'text' : 'password'}
                 defaultValue="password"
-                className="h-12 border border-input-border rounded-[10px] pl-11 pr-11 text-[14px] text-text-1 bg-[#FAFAFA] outline-none w-full transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(232,82,26,0.08)]"
+                className="h-12 border-0 rounded-lg pl-11 pr-11 text-[14px] text-text-1 bg-[#FAFAFA] outline-none w-full transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)]"
               />
               <button
                 type="button"
@@ -102,10 +102,10 @@ export default function Login() {
 
           <button
             onClick={() => setShowRoles(true)}
-            className="w-full h-[52px] text-white font-bold text-[15px] rounded-[10px] cursor-pointer transition-all duration-200"
-            style={{ backgroundColor: ORANGE, boxShadow: '0 4px 16px rgba(232,82,26,0.32)' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#C43D0E'; }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = ORANGE; }}
+            className="w-full h-[52px] text-white font-medium text-[15px] rounded-lg cursor-pointer transition-all duration-200"
+            style={{ background: 'linear-gradient(135deg, #C62828 0%, #F57C00 100%)', boxShadow: '0 4px 16px rgba(198,40,40,0.28)' }}
+            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 20px rgba(198,40,40,0.42)'; }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(198,40,40,0.28)'; }}
           >
             Iniciar Sesión →
           </button>
@@ -160,7 +160,7 @@ export default function Login() {
       <div
         className="absolute inset-y-0 left-0 w-1/2 z-10 overflow-hidden flex flex-col items-center justify-center px-10 py-12"
         style={{
-          background: 'linear-gradient(150deg, #F0622A 0%, #E8521A 45%, #C8390A 100%)',
+          background: 'linear-gradient(135deg, #C62828 0%, #F57C00 100%)',
           transform: showRoles ? 'translateX(0%)' : 'translateX(100%)',
           transition: SLIDE_TRANSITION,
           willChange: 'transform',

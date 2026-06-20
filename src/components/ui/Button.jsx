@@ -1,15 +1,15 @@
 const variants = {
-  primary:   'bg-orange text-white hover:bg-orange-dark border border-transparent',
-  secondary: 'bg-white text-orange border border-orange hover:bg-orange-tint',
-  ghost:     'bg-white text-text-3 border border-input-border hover:bg-page-bg',
+  primary:   'bg-gradient-to-r from-orange to-orange-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(198,40,40,0.2)]',
+  secondary: 'bg-white text-orange border-2 border-orange hover:bg-orange hover:text-white',
+  ghost:     'bg-transparent text-orange border border-transparent hover:bg-orange/10',
   danger:    'bg-red-bg text-red-text border border-red/30',
   success:   'bg-green-bg text-green-text border border-green-border',
 };
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-[12px]',
-  md: 'px-5 py-2.5 text-[13px]',
-  lg: 'px-6 py-3 text-[15px]',
+  sm: 'px-3 py-1.5 text-xs',
+  md: 'px-5 py-2.5 text-sm',
+  lg: 'px-6 py-3 text-base',
 };
 
 export default function Button({
@@ -27,7 +27,7 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-[7px] font-semibold rounded-[10px] cursor-pointer
+      className={`inline-flex items-center gap-[7px] font-medium rounded-lg cursor-pointer
         transition-all duration-200 select-none
         ${variants[variant]} ${sizes[size]}
         ${full ? 'w-full justify-center' : ''}

@@ -11,7 +11,7 @@ export default function Stepper({ steps, current }) {
           <div key={i} className="flex items-center flex-1 last:flex-none">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 z-10
               ${done   ? 'bg-orange text-white' : ''}
-              ${active ? 'bg-orange text-white shadow-[0_0_0_4px_#FFF0EB]' : ''}
+              ${active ? 'bg-orange text-white shadow-[0_0_0_4px_#fff3e0]' : ''}
               ${future ? 'bg-page-bg text-text-4 border-2 border-input-border' : ''}`}>
               {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
             </div>

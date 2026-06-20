@@ -50,20 +50,20 @@ export default function Sidebar({ active, role }) {
   const NavItem = ({ item }) => (
     <div
       onClick={() => go(item.id)}
-      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer text-[13px] font-medium
+      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-[13px] font-medium
         transition-all duration-150 mb-0.5
         ${active === item.id
-          ? 'bg-orange-tint text-orange font-semibold'
-          : 'text-text-3 hover:bg-orange-tint hover:text-orange'
+          ? 'bg-gradient-to-r from-orange to-orange-dark text-white'
+          : 'text-text-2 hover:bg-[#f5f5f5] hover:text-text-1'
         }`}
     >
-      <item.Icon className="w-4 h-4 shrink-0" />
+      <item.Icon className="w-5 h-5 shrink-0" />
       {item.lbl}
     </div>
   );
 
   return (
-    <div style={{ width: 240, minWidth: 240, flexShrink: 0, height: '100vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRight: '1px solid #F0F2F5' }}>
+    <div style={{ width: 240, minWidth: 240, flexShrink: 0, height: '100vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRight: '1px solid rgba(0,0,0,0.08)' }}>
 
       {/* Logo */}
       <div className="px-5 py-[18px] flex items-center gap-2 border-b border-border">

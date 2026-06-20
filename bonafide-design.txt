@@ -1,0 +1,85 @@
+Aplica el sistema de diseño "Bonafide" a esta aplicación para que sea visualmente
+consistente con el resto del ecosistema de apps de la empresa. No cambies la
+lógica ni la estructura de componentes, solo adapta los estilos.
+
+## Colores de marca (CSS custom properties en :root)
+
+--background: #ffffff
+--foreground: #1a1a1a
+--card: #ffffff
+--card-foreground: #1a1a1a
+--primary: #C62828        /* rojo Bonafide */
+--primary-foreground: #ffffff
+--secondary: #F57C00      /* naranja Bonafide */
+--secondary-foreground: #ffffff
+--muted: #f5f5f5
+--muted-foreground: #6b6b6b
+--accent: #fff3e0         /* naranja muy claro, para fondos activos */
+--accent-foreground: #1a1a1a
+--destructive: #d32f2f
+--destructive-foreground: #ffffff
+--border: rgba(0, 0, 0, 0.08)
+--ring: #C62828
+--radius: 0.75rem
+
+/* Variables de marca directas */
+--bonafide-red: #C62828
+--bonafide-orange: #F57C00
+--bonafide-gradient: linear-gradient(135deg, #C62828 0%, #F57C00 100%)
+
+## Tipografía
+
+- Tamaño base: 16px
+- Headings (h1–h4), labels y botones: font-weight 500
+- Inputs y texto normal: font-weight 400
+- Line-height general: 1.5
+
+## Reglas visuales por componente
+
+**Botones**
+- Variante primaria: fondo degradado de #C62828 a #F57C00, texto blanco,
+  hover con sombra rgba(198,40,40,0.2)
+- Variante outline: borde 2px #C62828, texto #C62828, hover invierte a
+  fondo #C62828 texto blanco
+- Variante ghost: texto #C62828, hover fondo #C62828/10
+- border-radius: rounded-lg (0.5rem)
+- Transición suave: transition-all duration-200
+
+**Cards / Tarjetas**
+- Fondo blanco, border border-border (rgba(0,0,0,0.08)), shadow-sm
+- border-radius: rounded-xl (0.75rem)
+- Hover opcional: shadow-md con transición suave
+
+**Sidebar / Navegación lateral**
+- Fondo blanco, borde derecho sutil (border-r border-border)
+- Ítem activo: fondo degradado #C62828 → #F57C00, texto blanco
+- Ítem inactivo: texto foreground, hover bg-muted (#f5f5f5)
+- Íconos: Lucide React, tamaño w-5 h-5
+
+**Navbar / Barra superior**
+- Fondo blanco, sticky top-0, altura h-16
+- Sombra especial de marca (NO usar box-shadow genérico):
+  box-shadow: 0 4px 12px -2px rgba(198,40,40,0.2),
+              0 8px 16px -4px rgba(245,124,0,0.15)
+
+**Inputs**
+- Fondo: #fafafa
+- Borde sutil, sin borde visible en estado normal (input: transparent)
+- border-radius: rounded-lg
+
+**Gradientes de acento** (avatar logos, indicadores activos, badges de estado)
+- Usar siempre: from-[#C62828] to-[#F57C00] (dirección br o r)
+
+## Paleta de charts (si aplica)
+chart-1: #C62828
+chart-2: #F57C00
+chart-3: #FF9800
+chart-4: #FFB74D
+chart-5: #E57373
+
+## Principios generales
+- La app es SOLO modo claro (no implementar dark mode)
+- Interfaz limpia, espaciada, sin decoraciones excesivas
+- Bordes siempre sutiles (nunca bordes oscuros o gruesos en layout)
+- El degradado rojo→naranja es el elemento de identidad visual principal;
+  usarlo en CTAs primarios, ítems activos y logos/avatares

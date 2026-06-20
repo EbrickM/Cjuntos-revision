@@ -165,7 +165,7 @@ export function KycStep4() {
       <div className="max-w-[480px] w-full px-6">
         <Stepper steps={STEPS} current={3} />
         <div className="flex flex-col items-center text-center py-10 px-7">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center mb-5 shadow-[0_8px_24px_rgba(232,82,26,.3)]">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center mb-5 shadow-[0_8px_24px_rgba(198,40,40,0.3)]">
             <EmojiIcon emoji="✔️" size={44} className="text-white" />
           </div>
           <div className="text-[22px] font-bold text-text-1 mb-2.5">¡Registro enviado!</div>

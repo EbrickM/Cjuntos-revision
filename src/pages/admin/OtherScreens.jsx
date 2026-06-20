@@ -180,7 +180,7 @@ export function AdminAnalytics() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white rounded-[14px] border border-border p-5">
             <div className="text-[14px] font-bold mb-4">Distribución por Sector</div>
-            {[['Construcción',42,'#E8521A'],['Transporte',28,'#00C853'],['Industria',18,'#FFB300'],['Otros',12,'#2196F3']].map(([s,p,c]) => (
+            {[['Construcción',42,'#C62828'],['Transporte',28,'#00C853'],['Industria',18,'#FFB300'],['Otros',12,'#2196F3']].map(([s,p,c]) => (
               <div key={s} className="flex items-center gap-3 mb-3">
                 <div className="w-3 h-3 rounded-full shrink-0" style={{background:c}}/>
                 <div className="text-[12px] text-text-2 flex-1">{s}</div>

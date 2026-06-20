@@ -2,7 +2,7 @@ export default function Card({ children, className = '', onClick }) {
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-[14px] border border-border ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`bg-white rounded-xl border border-border shadow-sm transition-shadow duration-200 ${onClick ? 'cursor-pointer hover:shadow-md' : ''} ${className}`}
     >
       {children}
     </div>

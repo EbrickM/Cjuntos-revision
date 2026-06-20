@@ -24,7 +24,7 @@ export default function RoleSelect() {
           {/* Empresa Pequeña */}
           <div
             onClick={() => go('epHome')}
-            className="bg-white border-2 border-[#E5E7EB] rounded-2xl p-7 cursor-pointer transition-all text-left shadow-sm hover:border-orange hover:shadow-[0_8px_32px_rgba(232,82,26,.12)]"
+            className="bg-white border-2 border-[#E5E7EB] rounded-2xl p-7 cursor-pointer transition-all text-left shadow-sm hover:border-orange hover:shadow-[0_8px_32px_rgba(198,40,40,0.12)]"
           >
             <div className="w-14 h-14 rounded-[14px] bg-green-bg flex items-center justify-center text-[28px] mb-4">🏪</div>
             <div className="text-[18px] font-bold text-text-1 mb-1.5">Empresa Pequeña (PYME)</div>

@@ -50,7 +50,7 @@ export default function Topbar({ title, sub = '', role }) {
 
   return (
     <>
-      <div style={{ height: 64, flexShrink: 0, background: 'white', borderBottom: '1px solid #F0F2F5', display: 'flex', alignItems: 'center', padding: '0 28px', gap: 16 }}>
+      <div style={{ height: 64, flexShrink: 0, background: 'white', boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)', display: 'flex', alignItems: 'center', padding: '0 28px', gap: 16, position: 'relative', zIndex: 10 }}>
         <div>
           <span className="text-[18px] font-bold text-text-1">{title}</span>
           {sub && <span className="text-[13px] text-text-4 ml-1">/ {sub}</span>}
@@ -108,7 +108,7 @@ export default function Topbar({ title, sub = '', role }) {
           <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
           <div
             className="fixed top-0 right-0 h-full w-[360px] bg-white z-50 flex flex-col"
-            style={{ borderLeft: '1px solid #F0F2F5', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)' }}
+            style={{ borderLeft: '1px solid rgba(0,0,0,0.08)', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)' }}
           >
             <div className="px-5 py-4 border-b border-border flex items-center justify-between" style={{ height: 64, flexShrink: 0 }}>
               <div>

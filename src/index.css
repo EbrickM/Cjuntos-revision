@@ -2,31 +2,71 @@
 
 @import "tailwindcss";
 
+/* ── Variables de marca Bonafide (ecosistema) ───────────────────────────── */
+:root {
+  --background:             #ffffff;
+  --foreground:             #1a1a1a;
+  --card:                   #ffffff;
+  --card-foreground:        #1a1a1a;
+  --primary:                #C62828;
+  --primary-foreground:     #ffffff;
+  --secondary:              #F57C00;
+  --secondary-foreground:   #ffffff;
+  --muted:                  #f5f5f5;
+  --muted-foreground:       #6b6b6b;
+  --accent:                 #fff3e0;
+  --accent-foreground:      #1a1a1a;
+  --destructive:            #d32f2f;
+  --destructive-foreground: #ffffff;
+  --border:                 rgba(0, 0, 0, 0.08);
+  --ring:                   #C62828;
+  --radius:                 0.75rem;
+
+  --bonafide-red:      #C62828;
+  --bonafide-orange:   #F57C00;
+  --bonafide-gradient: linear-gradient(135deg, #C62828 0%, #F57C00 100%);
+}
+
 @theme {
-  --color-orange: #E8521A;
-  --color-orange-dark: #C43D0E;
-  --color-orange-tint: #FFF0EB;
-  --color-orange-border: #FFD5C0;
-  --color-page-bg: #F8F9FB;
-  --color-border: #F0F2F5;
-  --color-input-border: #E5E7EB;
-  --color-text-1: #1A1A2E;
+  /* ── Paleta Bonafide ─────────────────────────── */
+  --color-orange:        #C62828;            /* rojo Bonafide (primary)   */
+  --color-orange-dark:   #F57C00;            /* naranja Bonafide (secondary) */
+  --color-orange-tint:   #fff3e0;            /* accent claro              */
+  --color-orange-border: rgba(198,40,40,0.2);/* borde sutil acento        */
+
+  /* ── Superficies ─────────────────────────────── */
+  --color-page-bg:       #f5f5f5;            /* fondo de área de contenido */
+  --color-border:        rgba(0,0,0,0.08);   /* bordes sutiles             */
+  --color-input-border:  rgba(0,0,0,0.12);   /* bordes de inputs           */
+
+  /* ── Texto ───────────────────────────────────── */
+  --color-text-1: #1a1a1a;
   --color-text-2: #374151;
-  --color-text-3: #6B7280;
+  --color-text-3: #6b6b6b;
   --color-text-4: #9CA3AF;
   --color-text-5: #C4C4C4;
-  --color-green: #00C853;
-  --color-green-bg: #ECFDF5;
-  --color-green-text: #059669;
+
+  /* ── Semánticos ──────────────────────────────── */
+  --color-green:        #00C853;
+  --color-green-bg:     #ECFDF5;
+  --color-green-text:   #059669;
   --color-green-border: #BBF7D0;
-  --color-yellow: #FFB300;
-  --color-yellow-bg: #FFFBEB;
-  --color-yellow-text: #D97706;
-  --color-red: #E53935;
-  --color-red-bg: #FEF2F2;
-  --color-red-text: #DC2626;
-  --color-blue-bg: #EFF6FF;
-  --color-blue-text: #3B82F6;
+  --color-yellow:       #FFB300;
+  --color-yellow-bg:    #FFFBEB;
+  --color-yellow-text:  #D97706;
+  --color-red:          #d32f2f;
+  --color-red-bg:       #FEF2F2;
+  --color-red-text:     #DC2626;
+  --color-blue-bg:      #EFF6FF;
+  --color-blue-text:    #3B82F6;
+
+  /* ── Charts ──────────────────────────────────── */
+  --color-chart-1: #C62828;
+  --color-chart-2: #F57C00;
+  --color-chart-3: #FF9800;
+  --color-chart-4: #FFB74D;
+  --color-chart-5: #E57373;
+
   --font-poppins: 'Poppins', sans-serif;
 }
 
@@ -34,9 +74,10 @@
 @layer base {
   body {
     font-family: 'Poppins', sans-serif;
-    background: #F8F9FB;
-    color: #1A1A2E;
-    font-size: 14px;
+    background: #ffffff;
+    color: #1a1a1a;
+    font-size: 16px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
 

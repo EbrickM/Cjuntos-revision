@@ -11,7 +11,7 @@ export default function Splash() {
   }, [go]);
 
   return (
-    <div className="h-screen bg-orange flex flex-col items-center justify-center fade-in">
+    <div className="h-screen flex flex-col items-center justify-center fade-in" style={{ background: 'linear-gradient(135deg, #C62828 0%, #F57C00 100%)' }}>
       <img src={whiteLogo} alt="B-Morï" className="w-48" />
       <div className="mt-10 w-[200px] h-1 bg-white/30 rounded-full overflow-hidden">
         <div

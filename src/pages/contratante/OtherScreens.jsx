@@ -91,7 +91,7 @@ export function EmpProv() {
                 <span className="text-[11px] font-semibold text-text-4">Score {score}/100</span>
               </div>
               <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{width:`${score}%`, background: parseInt(score)<50?'#E53935':parseInt(score)<70?'#FFB300':'#E8521A'}} />
+                <div className="h-full rounded-full" style={{width:`${score}%`, background: parseInt(score)<50?'#E53935':parseInt(score)<70?'#FFB300':'#C62828'}} />
               </div>
               <Button variant="ghost" size="sm" full className="mt-3">Ver perfil →</Button>
             </div>
