@@ -5,99 +5,102 @@ on:
     branches:
       - develop
 
+env:
+  APP: b-mori-front
+  CONTAINER: b-mori-front-dev
+
 jobs:
   deploy:
     runs-on: ubuntu-22.04
-    timeout-minutes: 30
+    timeout-minutes: 20
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
+      # =========================
+      # BUILD
+      # =========================
       - name: Build image
         run: |
           set -e
 
           SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
 
           docker build \
-            -t b-mori:dev-$SHORT_SHA \
+            -t $APP:dev-$SHORT_SHA \
             .
 
-      - name: Validate image healthcheck
+      # =========================
+      # IMAGE HEALTHCHECK (DOCKER BUILT-IN)
+      # =========================
+      - name: Validate image health
         run: |
           set -e
 
-          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-          IMAGE="b-mori:dev-$SHORT_SHA"
+          IMAGE=$APP:dev-$SHORT_SHA
 
-          docker rm -f b-mori-test 2>/dev/null || true
+          echo "🔎 Testing image: $IMAGE"
+
+          docker rm -f health-test 2>/dev/null || true
 
           docker run -d \
-            --name b-mori-test \
-            -p 8082:80 \
+            --name health-test \
             $IMAGE
 
-          echo "⏳ Waiting for healthcheck..."
+          # event-driven (sin polling manual)
+          timeout 60s docker events \
+            --filter "container=health-test" \
+            --filter "event=health_status" \
+            --format "{{.Status}}" |
+          while read STATUS; do
 
-          for i in $(seq 1 30); do
+            echo "Event -> $STATUS"
 
-            STATUS=$(docker inspect \
-              --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}starting{{end}}' \
-              b-mori-test)
-
-            echo "Attempt $i/30 -> $STATUS"
-
-            if [ "$STATUS" = "healthy" ]; then
-              echo "✅ Healthcheck passed"
-              docker rm -f b-mori-test
+            if [ "$STATUS" = "health_status:healthy" ]; then
+              echo "✅ Image OK"
+              docker rm -f health-test
               exit 0
             fi
 
-            if [ "$STATUS" = "unhealthy" ]; then
-              echo "❌ Healthcheck failed"
-              docker logs b-mori-test || true
-              docker rm -f b-mori-test
+            if [ "$STATUS" = "health_status:unhealthy" ]; then
+              echo "❌ Image FAILED"
+
+              docker logs health-test || true
+
               exit 1
             fi
 
-            sleep 5
           done
 
-          echo "❌ Healthcheck timeout"
-          docker logs b-mori-test || true
-          docker rm -f b-mori-test
+          echo "❌ Timeout waiting for health event"
+          docker logs health-test || true
           exit 1
 
+      # =========================
+      # PROMOTE
+      # =========================
       - name: Promote image
         run: |
           set -e
 
-          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-
-          if docker image inspect b-mori:latest >/dev/null 2>&1; then
-            docker tag b-mori:latest b-mori:rollback-latest || true
+          if docker image inspect $APP:latest >/dev/null 2>&1; then
+            docker tag $APP:latest $APP:rollback || true
           fi
 
-          docker tag b-mori:dev-$SHORT_SHA b-mori:latest
+          docker tag $APP:dev-$SHORT_SHA $APP:latest
 
-          echo "✅ Image promoted to latest"
-
+      # =========================
+      # DEPLOY
+      # =========================
       - name: Deploy container
         run: |
           set -e
 
-          CONTAINER="b-mori-dev"
+          OLD_IMAGE=$(docker inspect $CONTAINER --format='{{.Config.Image}}' 2>/dev/null || true)
 
-          if docker ps -a --format "{{.Names}}" | grep -q "^${CONTAINER}$"; then
-
-            OLD_IMAGE=$(docker inspect \
-              --format='{{.Config.Image}}' \
-              $CONTAINER || true)
-
-            if [ -n "$OLD_IMAGE" ]; then
-              docker tag "$OLD_IMAGE" b-mori:rollback-current || true
-            fi
+          if [ -n "$OLD_IMAGE" ]; then
+            docker tag $OLD_IMAGE $APP:rollback-current || true
           fi
 
           docker rm -f $CONTAINER 2>/dev/null || true
@@ -105,72 +108,90 @@ jobs:
           docker run -d \
             --name $CONTAINER \
             --restart unless-stopped \
-            -p 8081:80 \
-            b-mori:latest
+            $APP:latest
 
-          echo "⏳ Waiting for production healthcheck..."
+      # =========================
+      # RUNTIME HEALTHCHECK (EVENT-DRIVEN)
+      # =========================
+      - name: Runtime healthcheck
+        run: |
+          set -e
 
-          HEALTH_OK=false
+          echo "⏳ Waiting for runtime health events..."
 
-          for i in $(seq 1 30); do
-
-            STATUS=$(docker inspect \
-              --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}starting{{end}}' \
-              $CONTAINER)
-
-            echo "Attempt $i/30 -> $STATUS"
-
-            if [ "$STATUS" = "healthy" ]; then
-              HEALTH_OK=true
-              break
-            fi
-
-            if [ "$STATUS" = "unhealthy" ]; then
-              break
-            fi
-
-            sleep 5
-          done
-
-          if [ "$HEALTH_OK" = true ]; then
-            echo "✅ Deploy successful"
-            exit 0
+          # asegurar que existe
+          if ! docker ps -q -f name=$CONTAINER | grep -q .; then
+            echo "❌ Container not running"
+            exit 1
           fi
 
-          echo "❌ Deploy failed"
+          timeout 60s docker events \
+            --filter "container=$CONTAINER" \
+            --filter "event=health_status" \
+            --format "{{.Status}}" |
+          while read STATUS; do
 
-          docker logs $CONTAINER || true
+            echo "Event -> $STATUS"
+
+            if [ "$STATUS" = "health_status:healthy" ]; then
+              echo "✅ Deploy OK"
+              exit 0
+            fi
+
+            if [ "$STATUS" = "health_status:unhealthy" ]; then
+              echo "❌ Deploy FAILED"
+
+              docker logs $CONTAINER || true
+
+              break
+            fi
+
+          done
+
+          echo "🔄 ROLLBACK"
 
           docker rm -f $CONTAINER || true
 
-          if docker image inspect b-mori:rollback-latest >/dev/null 2>&1; then
-
-            echo "🔄 Rolling back..."
-
-            docker run -d \
-              --name $CONTAINER \
-              --restart unless-stopped \
-              -p 8081:80 \
-              b-mori:rollback-latest
-
-            echo "✅ Rollback completed"
-          else
-            echo "⚠️ No rollback image available"
-          fi
+          docker run -d \
+            --name $CONTAINER \
+            --restart unless-stopped \
+            $APP:rollback
 
           exit 1
 
-      - name: Cleanup old images
+      # =========================
+      # DEBUG ARTIFACTS
+      # =========================
+      - name: Collect debug info
+        if: failure()
+        run: |
+          mkdir -p debug
+
+          docker logs $CONTAINER > debug/logs.txt 2>&1 || true
+          docker inspect $CONTAINER > debug/inspect.json 2>&1 || true
+          docker images > debug/images.txt
+          docker ps -a > debug/ps.txt
+          docker events --since 10m > debug/events.txt || true
+
+      - name: Upload debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-b-mori
+          path: debug/
+
+      # =========================
+      # CLEANUP
+      # =========================
+      - name: Cleanup images
         if: always()
         run: |
-          echo "🧹 Cleaning old development images"
-
-          docker images b-mori \
+          docker images $APP \
             --format "{{.Repository}}:{{.Tag}}" \
-            | grep "^b-mori:dev-" \
+            | grep "^$APP:dev-" || true \
             | sort -r \
             | tail -n +4 \
             | xargs -r docker rmi -f
 
           docker image prune -f
-
+          
