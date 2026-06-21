@@ -110,6 +110,7 @@ jobs:
           docker run -d \
             --name $CONTAINER \
             --restart unless-stopped \
+            -p 8081:80 \
             $APP:latest
 
       # =========================
