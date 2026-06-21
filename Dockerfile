@@ -18,8 +18,6 @@ RUN npm run build
 # ---- Runtime ----
 FROM nginx:stable-alpine-slim
 
-RUN apk add --no-cache wget
-
 # nginx config (DEBE escuchar en 8080)
 COPY nginx.conf /etc/nginx/nginx.conf
 
@@ -35,7 +33,6 @@ USER nginx
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
+HEALTHCHECK CMD (echo > /dev/tcp/localhost/8080) >/dev/null 2>&1 || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
