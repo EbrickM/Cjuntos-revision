@@ -25,14 +25,14 @@ jobs:
           set -e
 
           SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-          echo "SHORT_SHA=$SHORT_SHA" >> $GITHUB_ENV
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
 
           docker build \
             -t $APP:dev-$SHORT_SHA \
             .
 
       # =========================
-      # IMAGE HEALTHCHECK (DOCKER BUILT-IN)
+      # IMAGE HEALTHCHECK
       # =========================
       - name: Validate image health
         run: |
@@ -48,41 +48,42 @@ jobs:
             --name health-test \
             $IMAGE
 
-          # event-driven (sin polling manual)
-          timeout 60s docker events \
-            --filter "container=health-test" \
-            --filter "event=health_status" \
-            --format "{{.Status}}" |
-          while read STATUS; do
+          for i in $(seq 1 30); do
 
-            echo "Event -> $STATUS"
+            STATUS=$(docker inspect \
+              --format='{{.State.Health.Status}}' \
+              health-test 2>/dev/null || echo "no-health")
 
-            if [ "$STATUS" = "health_status:healthy" ]; then
+            echo "Attempt $i -> $STATUS"
+
+            if [ "$STATUS" = "healthy" ]; then
               echo "✅ Image OK"
               docker rm -f health-test
               exit 0
             fi
 
-            if [ "$STATUS" = "health_status:unhealthy" ]; then
+            if [ "$STATUS" = "unhealthy" ]; then
               echo "❌ Image FAILED"
-
               docker logs health-test || true
-
+              docker inspect health-test || true
               exit 1
             fi
 
+            sleep 2
           done
 
-          echo "❌ Timeout waiting for health event"
+          echo "❌ Timeout waiting for health"
           docker logs health-test || true
           exit 1
 
       # =========================
-      # PROMOTE
+      # PROMOTE (SHA SAFE)
       # =========================
       - name: Promote image
         run: |
           set -e
+
+          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
 
           if docker image inspect $APP:latest >/dev/null 2>&1; then
             docker tag $APP:latest $APP:rollback || true
@@ -97,7 +98,8 @@ jobs:
         run: |
           set -e
 
-          OLD_IMAGE=$(docker inspect $CONTAINER --format='{{.Config.Image}}' 2>/dev/null || true)
+          OLD_IMAGE=$(docker inspect $CONTAINER \
+            --format='{{.Config.Image}}' 2>/dev/null || true)
 
           if [ -n "$OLD_IMAGE" ]; then
             docker tag $OLD_IMAGE $APP:rollback-current || true
@@ -111,41 +113,34 @@ jobs:
             $APP:latest
 
       # =========================
-      # RUNTIME HEALTHCHECK (EVENT-DRIVEN)
+      # RUNTIME HEALTHCHECK
       # =========================
       - name: Runtime healthcheck
         run: |
           set -e
 
-          echo "⏳ Waiting for runtime health events..."
+          echo "⏳ Waiting for runtime health..."
 
-          # asegurar que existe
-          if ! docker ps -q -f name=$CONTAINER | grep -q .; then
-            echo "❌ Container not running"
-            exit 1
-          fi
+          for i in $(seq 1 30); do
 
-          timeout 60s docker events \
-            --filter "container=$CONTAINER" \
-            --filter "event=health_status" \
-            --format "{{.Status}}" |
-          while read STATUS; do
+            STATUS=$(docker inspect \
+              --format='{{.State.Health.Status}}' \
+              $CONTAINER 2>/dev/null || echo "no-health")
 
-            echo "Event -> $STATUS"
+            echo "Attempt $i -> $STATUS"
 
-            if [ "$STATUS" = "health_status:healthy" ]; then
+            if [ "$STATUS" = "healthy" ]; then
               echo "✅ Deploy OK"
               exit 0
             fi
 
-            if [ "$STATUS" = "health_status:unhealthy" ]; then
+            if [ "$STATUS" = "unhealthy" ]; then
               echo "❌ Deploy FAILED"
-
               docker logs $CONTAINER || true
-
               break
             fi
 
+            sleep 2
           done
 
           echo "🔄 ROLLBACK"
@@ -155,7 +150,7 @@ jobs:
           docker run -d \
             --name $CONTAINER \
             --restart unless-stopped \
-            $APP:rollback
+            $APP:rollback || $APP:rollback-current
 
           exit 1
 
@@ -167,10 +162,9 @@ jobs:
         run: |
           docker images $APP \
             --format "{{.Repository}}:{{.Tag}}" \
-            | grep "^$APP:dev-" || true \
+            | grep "^$APP:dev-" \
             | sort -r \
             | tail -n +4 \
             | xargs -r docker rmi -f
 
           docker image prune -f
-          
