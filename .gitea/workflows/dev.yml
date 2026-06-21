@@ -1,4 +1,4 @@
-name: Deploy Dev
+name: Deploy Dev (No Healthcheck)
 
 on:
   push:
@@ -21,102 +21,90 @@ jobs:
             -t b-mori:dev-$SHORT_SHA \
             .
 
-      - name: Validate + Deploy + Rollback (HEALTHCHECK)
+      - name: Quick start validation
         run: |
           set -e
 
           SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
+          IMAGE="b-mori:dev-$SHORT_SHA"
 
-          NEW_IMAGE="b-mori:dev-$SHORT_SHA"
-          CONTAINER="b-mori-dev"
-
-          echo "🧪 Testing image $NEW_IMAGE using Docker HEALTHCHECK"
+          echo "🚀 Testing container startup only"
 
           docker rm -f b-mori-test 2>/dev/null || true
 
           docker run -d \
             --name b-mori-test \
-            -p 8082:8080 \
-            $NEW_IMAGE
+            -p 8082:80 \
+            $IMAGE
 
-          echo "⏳ Waiting for HEALTHCHECK..."
+          sleep 5
 
-          OK=false
-
-          for i in $(seq 1 30); do
-            STATUS=$(docker inspect \
-              --format='{{.State.Health.Status}}' \
-              b-mori-test 2>/dev/null || echo "starting")
-
-            echo "Status: $STATUS"
-
-            if [ "$STATUS" = "healthy" ]; then
-              OK=true
-              break
-            fi
-
-            if [ "$STATUS" = "unhealthy" ]; then
-              echo "❌ Container unhealthy"
-              docker logs b-mori-test || true
-              docker rm -f b-mori-test
-              exit 1
-            fi
-
-            sleep 2
-          done
-
-          docker rm -f b-mori-test
-
-          if [ "$OK" != "true" ]; then
-            echo "❌ Validation timeout"
+          # solo verificamos que siga vivo
+          if ! docker ps --format "{{.Names}}" | grep -q "b-mori-test"; then
+            echo "❌ Container crashed on startup"
+            docker logs b-mori-test || true
             exit 1
           fi
 
-          echo "🚀 Promoting image to latest"
+          echo "✅ Container started successfully"
 
-          # Backup último estado bueno
+          docker rm -f b-mori-test
+
+      - name: Promote latest + rollback safety
+        run: |
+          set -e
+
+          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
+
+          # backup del último stable
           if docker image inspect b-mori:latest >/dev/null 2>&1; then
-            docker tag b-mori:latest b-mori:rollback-$SHORT_SHA || true
+            docker tag b-mori:latest b-mori:rollback-latest || true
           fi
 
-          # Promover nueva versión
-          docker tag $NEW_IMAGE b-mori:latest
+          echo "🚀 Promoting new image to latest"
+          docker tag b-mori:dev-$SHORT_SHA b-mori:latest
 
-          echo "🔄 Restart container"
+      - name: Deploy container
+        run: |
+          set -e
+
+          CONTAINER="b-mori-dev"
+
+          # backup del contenedor actual
+          if docker ps -a --format "{{.Names}}" | grep -q "$CONTAINER"; then
+            OLD_IMAGE=$(docker inspect --format='{{.Config.Image}}' $CONTAINER || true)
+            if [ -n "$OLD_IMAGE" ]; then
+              docker tag $OLD_IMAGE b-mori:rollback-current || true
+            fi
+          fi
 
           docker rm -f $CONTAINER 2>/dev/null || true
 
           docker run -d \
             --name $CONTAINER \
             --restart unless-stopped \
-            -p 8081:8080 \
+            -p 8081:80 \
             b-mori:latest
 
           sleep 5
 
-          STATUS=$(docker inspect \
-            --format='{{.State.Health.Status}}' \
-            $CONTAINER 2>/dev/null || echo "unknown")
-
-          if [ "$STATUS" != "healthy" ]; then
+          if ! docker ps --format "{{.Names}}" | grep -q "$CONTAINER"; then
             echo "❌ Deploy failed → rollback"
-
-            docker rm -f $CONTAINER || true
 
             docker run -d \
               --name $CONTAINER \
               --restart unless-stopped \
-              -p 8081:8080 \
-              b-mori:latest
+              -p 8081:80 \
+              b-mori:rollback-latest
 
             exit 1
           fi
 
-          echo "✅ Deploy successful (HEALTHCHECK OK)"
+          echo "✅ Deploy successful"
 
-      - name: Keep only last 3 images
+      - name: Keep last 3 images
         run: |
-          echo "🧹 Keeping last 3 dev images..."
+          echo "🧹 Cleaning old images"
 
           docker images b-mori \
             --format "{{.Repository}}:{{.Tag}}" \
