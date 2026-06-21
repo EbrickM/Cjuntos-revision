@@ -160,27 +160,6 @@ jobs:
           exit 1
 
       # =========================
-      # DEBUG ARTIFACTS
-      # =========================
-      - name: Collect debug info
-        if: failure()
-        run: |
-          mkdir -p debug
-
-          docker logs $CONTAINER > debug/logs.txt 2>&1 || true
-          docker inspect $CONTAINER > debug/inspect.json 2>&1 || true
-          docker images > debug/images.txt
-          docker ps -a > debug/ps.txt
-          docker events --since 10m > debug/events.txt || true
-
-      - name: Upload debug artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-b-mori
-          path: debug/
-
-      # =========================
       # CLEANUP
       # =========================
       - name: Cleanup images
