@@ -217,8 +217,8 @@ export default function EpHome() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-              <Leaf className="w-3.5 h-3.5" />
-              Semáforo Verde
+              <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
+              Verde
             </span>
             <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
               <Leaf className="w-3.5 h-3.5" />
