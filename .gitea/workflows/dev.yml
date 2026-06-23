@@ -17,6 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ========================
+      # CHECK Verdacio
+      # ========================
+
+      - name: Determine npm registry
+        id: registry_check
+        run: |
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 2>/dev/null; then
+            echo "✅ Using Verdaccio: $REGISTRY"
+            echo "registry_url=$REGISTRY" >> $GITEA_ENV
+          else
+            echo "ℹ️ Using default npm registry"
+            echo "registry_url=https://registry.npmjs.org/" >> $GITEA_ENV
+          fi      
+
       # =========================
       # BUILD
       # =========================
@@ -28,7 +44,7 @@ jobs:
           echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
 
           docker build \
-            --build-arg NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmjs.org/}" \
+            --build-arg NPM_REGISTRY=$registry_url \
             -t $APP:dev-$SHORT_SHA \
             .
 
