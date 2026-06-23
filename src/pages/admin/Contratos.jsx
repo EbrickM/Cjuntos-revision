@@ -517,7 +517,7 @@ export default function AdminContratos() {
 
               return (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                       { value: facts.length,     label: 'Total de facturas',        cls: 'text-text-1'    },
                       { value: ctFacts.length,   label: 'Facturas del contratante', cls: 'text-blue-text' },

@@ -49,7 +49,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <div className="flex-1 max-w-[1400px] mx-auto px-8 py-8 w-full flex items-center">
+      <div className="flex-1 max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-8 w-full flex items-center">
         <div className="w-full grid lg:grid-cols-[1.3fr_1fr] gap-12 items-center">
 
           {/* ─── COLUMNA IZQUIERDA ─────────────────────────────────────────── */}
@@ -63,7 +63,7 @@ export default function Login() {
                 className="h-28 w-auto object-contain mb-4"
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
-              <h1 className="text-5xl font-bold text-text-1 whitespace-nowrap">
+              <h1 className="text-3xl sm:text-5xl font-bold text-text-1">
                 Creciendo Juntos
               </h1>
             </div>
@@ -118,7 +118,7 @@ export default function Login() {
 
           {/* ─── COLUMNA DERECHA: CARD DE ACCESO ──────────────────────────── */}
           <div className='h-full'>
-            <div className="bg-white h-full flex flex-col  justify-center rounded-2xl border border-gray-200 shadow-lg p-8">
+            <div className="bg-white h-full flex flex-col justify-center rounded-2xl border border-gray-200 shadow-lg p-5 sm:p-8">
 
               {/* Header centrado */}
               <div className="mb-6 text-center">

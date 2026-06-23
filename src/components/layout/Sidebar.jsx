@@ -1,7 +1,7 @@
 import {
   Home, Building2, AlertTriangle,
   Settings, ClipboardList, Users, Receipt,
-  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard,
+  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard, X,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 
@@ -41,7 +41,7 @@ const SECTIONS = {
   contratante: { split: 3, s1: 'Principal', s2: 'Análisis' },
 };
 
-export default function Sidebar({ active, role }) {
+export default function Sidebar({ active, role, onClose }) {
   const { go } = useApp();
   const items    = NAV[role] || [];
   const user     = USERS[role] ?? null;
@@ -49,7 +49,7 @@ export default function Sidebar({ active, role }) {
 
   const NavItem = ({ item }) => (
     <div
-      onClick={() => go(item.id)}
+      onClick={() => { go(item.id); onClose?.(); }}
       className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer text-[13px] font-medium
         transition-all duration-150 mb-0.5
         ${active === item.id
@@ -64,6 +64,18 @@ export default function Sidebar({ active, role }) {
 
   return (
     <div style={{ width: 220, minWidth: 220, flexShrink: 0, height: '100%', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'white', borderRadius: 16, boxShadow: '0 4px 24px rgba(0,0,0,0.08)', border: '1px solid rgba(0,0,0,0.06)' }}>
+
+      {/* Botón cerrar — solo en móvil */}
+      {onClose && (
+        <div className="flex justify-end px-3 pt-3 md:hidden">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-page-bg transition-colors text-text-4"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Nav items */}
       {role === 'empresa-pequena' ? (

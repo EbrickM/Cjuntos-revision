@@ -10,7 +10,7 @@ const STEPS = ['Empresa', 'Documentos', 'Verificación', 'Listo'];
 function WizardHeader({ step, onBack }) {
   const { go } = useApp();
   return (
-    <div className="h-[60px] bg-white border-b border-border flex items-center px-8 gap-3">
+    <div className="h-[60px] bg-white border-b border-border flex items-center px-4 sm:px-8 gap-3">
       <Button variant="ghost" size="sm" onClick={() => onBack ? onBack() : go('roleSelect')}><EmojiIcon emoji="←" size={14} className="mr-1" />Volver</Button>
       <span className="text-[15px] font-bold text-text-1 flex-1 text-center">Registro B-Morï</span>
       <span className="text-[12px] text-text-4">{step} de 4</span>
@@ -29,8 +29,8 @@ export function KycStep1() {
         <div className="text-[20px] font-bold text-text-1 mb-1.5">Datos de tu empresa</div>
         <div className="text-[13px] text-text-3 mb-7">Cuéntanos sobre tu negocio</div>
         <div className="bg-white rounded-[14px] border border-border p-7">
-          <div className="grid grid-cols-2 gap-4">
-            <FormGroup label="Nombre legal de la empresa" required className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormGroup label="Nombre legal de la empresa" required className="sm:col-span-2">
               <Input type="text" placeholder="Ej: Construcciones Silva Ltda." />
             </FormGroup>
             <FormGroup label="RUC / NIF" required>
@@ -45,7 +45,7 @@ export function KycStep1() {
             <FormGroup label="Teléfono" required>
               <Input type="text" placeholder="+240 222 XXX XXX" />
             </FormGroup>
-            <FormGroup label="Email corporativo" required className="col-span-2">
+            <FormGroup label="Email corporativo" required className="sm:col-span-2">
               <Input type="email" placeholder="contacto@empresa.com" />
             </FormGroup>
           </div>

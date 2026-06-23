@@ -74,7 +74,7 @@ export default function EpMisProveedores() {
       <div className="fade-in space-y-5">
 
         {/* Resumen */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { value: providers.length, label: 'Proveedores registrados',           cls: 'text-text-1'     },
             { value: asociados,        label: 'Asociados a contratos',              cls: 'text-orange'     },

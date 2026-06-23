@@ -39,7 +39,7 @@ export default function RoleSelect() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
       {/* Navbar */}
-      <div className="h-[60px] bg-white border-b border-border shadow-sm flex items-center px-10">
+      <div className="h-[60px] bg-white border-b border-border shadow-sm flex items-center px-4 sm:px-10">
         <Logo size={18} />
         <div className="flex-1" />
         <button
@@ -51,15 +51,15 @@ export default function RoleSelect() {
       </div>
 
       {/* Contenido */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-60px)] p-8">
+      <div className="flex items-center justify-center min-h-[calc(100vh-60px)] p-4 sm:p-8">
         <div className="max-w-[900px] w-full">
 
           {/* Encabezado */}
           <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold text-text-1 mb-3">
+            <h1 className="text-2xl sm:text-4xl font-bold text-text-1 mb-3">
               ¿Cuál es tu rol en la plataforma?
             </h1>
-            <p className="text-lg text-text-3">
+            <p className="text-sm sm:text-lg text-text-3">
               Selecciona el perfil con el que quieres continuar
             </p>
           </div>
@@ -70,7 +70,7 @@ export default function RoleSelect() {
               <div
                 key={id}
                 onClick={() => go(id)}
-                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-orange transition-all duration-200 cursor-pointer p-8 flex flex-col items-center"
+                className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-orange transition-all duration-200 cursor-pointer p-5 sm:p-8 flex flex-col items-center"
               >
         
 

@@ -699,7 +699,7 @@ export default function EpCreditos() {
               return (
                 <div className="space-y-5">
                   {/* Resumen */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                       { value: contractInvoices.length,    label: 'Total de facturas',          cls: 'text-text-1'     },
                       { value: contratanteInvoices.length, label: 'Facturas del contratante',   cls: 'text-blue-text'  },

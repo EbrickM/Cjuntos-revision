@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, LogOut, X } from 'lucide-react';
+import { Bell, LogOut, X, Menu } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Logo from './Logo';
 
@@ -36,38 +36,35 @@ const tipoCls = {
   success: 'bg-green-bg border-green-border',
 };
 
-export default function Topbar({ role }) {
+export default function Topbar({ role, onMenuClick }) {
   const { go } = useApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
 
-  const user      = USERS[role] ?? USERS['empresa-pequena'];
+  const user       = USERS[role] ?? USERS['empresa-pequena'];
   const pendientes = notifs.filter(n => !leidas.has(n.id)).length;
 
   return (
     <>
       {/* ── Barra principal ─────────────────────────────────────────────────── */}
       <div
-        style={{
-          height: 64,
-          flexShrink: 0,
-          background: 'white',
-          boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 32px',
-          gap: 16,
-          position: 'relative',
-          zIndex: 10,
-        }}
+        className="h-16 shrink-0 bg-white flex items-center gap-3 sm:gap-4 relative z-10 px-4 sm:px-8"
+        style={{ boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)' }}
       >
-        {/* Logo — igual que bonafide-identity */}
+        {/* Hamburger — solo en móvil */}
+        <button
+          onClick={onMenuClick}
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors text-text-3 shrink-0"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <Logo size={16} />
 
-        <div style={{ flex: 1 }} />
+        <div className="flex-1" />
 
         {/* Usuario */}
-        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+        <div className="flex items-center gap-2 sm:gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C62828] to-[#F57C00] flex items-center justify-center text-white font-bold text-[12px] shrink-0">
             {user.initials}
           </div>
@@ -76,7 +73,7 @@ export default function Topbar({ role }) {
             <p className="text-xs text-text-4 leading-tight">{user.role}</p>
           </div>
           {user.pill && (
-            <span className={`text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${user.pill.cls}`}>
+            <span className={`hidden sm:inline text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${user.pill.cls}`}>
               {user.pill.lbl}
             </span>
           )}
@@ -109,10 +106,10 @@ export default function Topbar({ role }) {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
           <div
-            className="fixed top-0 right-0 h-full w-[360px] bg-white z-50 flex flex-col"
+            className="fixed top-0 right-0 h-full w-full sm:w-[360px] bg-white z-50 flex flex-col"
             style={{ borderLeft: '1px solid rgba(0,0,0,0.08)', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)' }}
           >
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between" style={{ height: 64, flexShrink: 0 }}>
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0" style={{ height: 64 }}>
               <div>
                 <div className="text-[15px] font-bold text-text-1">Notificaciones</div>
                 {pendientes > 0 && <div className="text-[11px] text-text-4">{pendientes} sin leer</div>}

@@ -28,7 +28,7 @@ export default function EmpConf() {
     >
       <div className="fade-in">
         <div className="bg-white rounded-[14px] border border-border p-4 mb-4 flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 bg-page-bg border border-border rounded-[10px] px-3.5 py-2 text-[13px] text-text-4 w-[300px] cursor-pointer">🔍 Buscar por proveedor, nº factura...</div>
+          <div className="flex items-center gap-2 bg-page-bg border border-border rounded-[10px] px-3.5 py-2 text-[13px] text-text-4 w-full sm:w-[300px] cursor-pointer">🔍 Buscar por proveedor, nº factura...</div>
           <Select className="h-10 w-auto px-3 py-0 text-[13px]"><option>Todos los estados</option><option>Aprobadas</option><option>Pendientes</option></Select>
           <div className="flex-1"/>
           <Button variant="ghost" size="sm">📥 Exportar CSV</Button>
@@ -66,7 +66,7 @@ export default function EmpConf() {
       {/* Modal nueva solicitud */}
       {showModal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.4)',zIndex:50,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={e=>e.target===e.currentTarget&&setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-[680px] max-h-[90vh] overflow-y-auto shadow-xl" onClick={e=>e.stopPropagation()}>
+          <div className="bg-white rounded-2xl w-full max-w-[680px] mx-4 max-h-[90vh] overflow-y-auto shadow-xl" onClick={e=>e.stopPropagation()}>
             <div className="px-7 pt-6 pb-5 border-b border-border flex items-center justify-between">
               <span className="text-[17px] font-bold">Nueva Solicitud Confirming</span>
               <button onClick={() => setShowModal(false)} className="w-8 h-8 bg-page-bg border-none rounded-lg cursor-pointer text-[16px]">✕</button>
