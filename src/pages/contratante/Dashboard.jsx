@@ -259,10 +259,10 @@ export default function EmpDash() {
         </div>
 
         {/* Tab nav */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit">
+        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex flex-col items-center gap-1 px-3 sm:px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
+              className={`flex-1 sm:flex-none flex flex-col items-center gap-1 px-3 sm:px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
               <t.Icon className="w-3.5 h-3.5" />
