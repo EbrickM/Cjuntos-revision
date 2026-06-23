@@ -28,6 +28,7 @@ jobs:
           echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
 
           docker build \
+            --build-arg NPM_REGISTRY="${NPM_REGISTRY:-https://registry.npmjs.org/}" \
             -t $APP:dev-$SHORT_SHA \
             .
 

@@ -1,6 +1,10 @@
 # ---- Builder ----
 FROM node:24-alpine3.24 AS builder
 
+# 1. Declarar el ARG con un valor por defecto (fallback)
+ARG NPM_REGISTRY=https://registry.npmjs.org/
+ENV NPM_CONFIG_REGISTRY=${NPM_REGISTRY}
+
 WORKDIR /app
 
 # dependencias primero (mejor cache en docker build normal)
