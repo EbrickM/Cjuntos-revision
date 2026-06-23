@@ -21,6 +21,7 @@ import EpBilletera from './pages/empresa-pequena/Billetera';
 import EpCreditos from './pages/empresa-pequena/Creditos';
 import EpPerfil from './pages/empresa-pequena/Perfil';
 import EpDocumentos from './pages/empresa-pequena/Documentos';
+import EpProyectosAmbientales from './pages/empresa-pequena/ProyectosAmbientales';
 
 // Contratante
 import EmpDash from './pages/contratante/Dashboard';
@@ -59,6 +60,7 @@ function Router() {
     epBilletera:      <EpBilletera />,
     epPerfil:         <EpPerfil />,
     epDocs:           <EpDocumentos />,
+    epESG:            <EpProyectosAmbientales />,
 
     // Contratante
     empDash:       <EmpDash />,

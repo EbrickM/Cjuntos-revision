@@ -1,7 +1,7 @@
 import {
   Home, Building2, AlertTriangle,
   Settings, ClipboardList, Users, Receipt,
-  Bell, User, LogOut, ShieldCheck, BarChart3, CreditCard,
+  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 
@@ -17,6 +17,7 @@ const NAV = {
     { id: 'epCreditos',    Icon: CreditCard, lbl: 'Mis créditos' },
     { id: 'epProveedores', Icon: Users,      lbl: 'Mis Proveedores' },
     { id: 'epFacturacion', Icon: Receipt,    lbl: 'Mis Facturas',  badge: '2' },
+    { id: 'epESG',         Icon: Leaf,       lbl: 'Huella Verde' },
     { id: 'epPerfil',      Icon: User,       lbl: 'Mi Perfil' },
   ],
   contratante: [
@@ -26,7 +27,7 @@ const NAV = {
     { id: 'empVerifContr', Icon: ShieldCheck,   lbl: 'Verificar Contratos',  badge: '2' },
     { id: 'empProv',       Icon: Users,         lbl: 'Proveedores' },
     { id: 'empRisk',       Icon: AlertTriangle, lbl: 'Riesgos',              badge: '2' },
-    { id: 'empESG',        Icon: BarChart3,     lbl: 'Reportes ESG' },
+    { id: 'empESG',        Icon: Leaf,          lbl: 'Huella Verde' },
     { id: 'empNotif',      Icon: Bell,          lbl: 'Notificaciones' },
     { id: 'empSettings',   Icon: Settings,      lbl: 'Configuración' },
   ],

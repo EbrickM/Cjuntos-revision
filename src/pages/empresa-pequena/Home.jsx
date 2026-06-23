@@ -190,15 +190,6 @@ const proyectos = [
 const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
-const CERT_LABELS = [
-  { icon: '🌿', label: 'Verde',            desc: 'Proyectos ambientales registrados en Bonafide',    bg: 'bg-green-bg',    text: 'text-green-text',  border: 'border-green-border'   },
-  { icon: '⭐', label: 'Verde Bonafide',    desc: 'Certificación completa verificada por Bonafide',   bg: 'bg-green-bg',    text: 'text-green-text',  border: 'border-green-border'   },
-  { icon: '💨', label: 'Verde CO₂',         desc: 'Captura activa de carbono certificada',            bg: 'bg-blue-bg',     text: 'text-blue-text',   border: 'border-blue-text/20'   },
-  { icon: '♻️', label: 'Verde Neutro',      desc: 'Balance de carbono neutro certificado',            bg: 'bg-green-bg',    text: 'text-green-text',  border: 'border-green-border'   },
-  { icon: '🏆', label: 'Verde ESG',         desc: 'Cumplimiento Ambiental + Social + Gobernanza',     bg: 'bg-orange-tint', text: 'text-orange',      border: 'border-orange-border'  },
-  { icon: '🌱', label: 'Eco en Proceso',    desc: 'Proceso de certificación ambiental en curso',      bg: 'bg-yellow-bg',   text: 'text-yellow-text', border: 'border-yellow-text/20' },
-  { icon: '○',  label: 'Sin certificación', desc: 'Sin proyectos medioambientales registrados',       bg: 'bg-page-bg',     text: 'text-text-3',      border: 'border-border'         },
-];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function EpHome() {
@@ -408,28 +399,6 @@ export default function EpHome() {
                 <div className="flex-1 min-h-[180px]">
                   <VBarChart id="pyme-env" data={catBarData} h={170} />
                 </div>
-              </div>
-            </div>
-
-            {/* Certification Taxonomy */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="mb-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Leaf className="w-4 h-4 text-green-text" />
-                  <div className="text-[14px] font-bold text-text-1">Certificaciones Ambientales B-Morï</div>
-                </div>
-                <div className="text-[11px] text-text-4">Sistema de etiquetas para proyectos medioambientales registrados en la plataforma</div>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {CERT_LABELS.map(c => (
-                  <div key={c.label} className={`flex flex-col gap-1.5 p-3 rounded-[10px] border ${c.bg} ${c.border}`}>
-                    <div className={`inline-flex items-center gap-1.5 text-[12px] font-bold ${c.text}`}>
-                      <span>{c.icon}</span>
-                      <span>{c.label}</span>
-                    </div>
-                    <div className="text-[10px] text-text-3 leading-snug">{c.desc}</div>
-                  </div>
-                ))}
               </div>
             </div>
 
