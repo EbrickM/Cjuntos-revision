@@ -135,8 +135,8 @@ function HBarChart({ data, fmtVal = v => `${v}M` }) {
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'fondos',         label: 'Dashboard de Fondos y PYMEs', Icon: Wallet },
-  { id: 'medioambiental', label: 'Dashboard Medioambiental',    Icon: Leaf   },
+  { id: 'fondos',         line1: 'Dashboard de', line2: 'Fondos y PYMEs', Icon: Wallet },
+  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: Leaf   },
 ];
 
 // ── Fondos tab data ───────────────────────────────────────────────────────────
@@ -245,9 +245,12 @@ export default function EmpDash() {
       <div className="fade-in space-y-5">
 
         {/* Header */}
-        <div className="flex justify-between items-center flex-wrap gap-3">
-          <div>
-            <div className="text-[20px] font-bold text-text-1">Buenos días, TotalEnerGE 👋</div>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
+          <div className="min-w-0">
+            <div className="text-[13px] text-text-4 leading-tight sm:hidden">Buenos días,</div>
+            <div className="text-[20px] font-bold text-text-1 truncate">
+              <span className="hidden sm:inline">Buenos días, </span>TotalEnerGE 👋
+            </div>
             <div className="text-[13px] text-text-4">Gestión de fondo y cadena de suministro · Junio 2026</div>
           </div>
           <Button variant="primary" size="sm" onClick={() => go('empConf')}>
@@ -259,11 +262,14 @@ export default function EmpDash() {
         <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[8px] text-[13px] font-semibold transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 px-3 sm:px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
               <t.Icon className="w-3.5 h-3.5" />
-              {t.label}
+              <span className="leading-[1.25]">
+                <span className="block">{t.line1}</span>
+                <span className="block">{t.line2}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -431,7 +437,31 @@ export default function EmpDash() {
                     Ver análisis →
                   </button>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Móvil: cards */}
+                <div className="sm:hidden space-y-2">
+                  {pymeTable.map(p => (
+                    <div key={p.nombre} onClick={() => go('empRisk')}
+                      className="rounded-[12px] border border-border p-3 cursor-pointer hover:bg-page-bg/60 transition-colors">
+                      <div className="text-[12px] font-semibold text-text-1 mb-2">{p.nombre}</div>
+                      <div className="grid grid-cols-3 gap-1 text-center">
+                        <div>
+                          <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Asignado</div>
+                          <div className="text-[10px] font-medium text-text-2">{fmt(p.asignado)}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Utilizado</div>
+                          <div className="text-[10px] font-bold text-orange">{fmt(p.utilizado)}</div>
+                        </div>
+                        <div>
+                          <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Disponible</div>
+                          <div className="text-[10px] font-bold text-green-text">{fmt(p.disponible)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: tabla */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full min-w-[340px]">
                     <thead>
                       <tr className="border-b border-border">
@@ -527,7 +557,25 @@ export default function EmpDash() {
                   <span className="text-[11px] font-bold text-green-text">8 registrados</span>
                 </div>
               </div>
-              <table className="w-full">
+              {/* Móvil: cards */}
+              <div className="sm:hidden space-y-2">
+                {proyectos.map((p, i) => (
+                  <div key={i} onClick={() => go('empESG')}
+                    className="rounded-[12px] border border-border p-3 cursor-pointer hover:bg-page-bg/60 transition-colors">
+                    <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
+                      <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-text-4">Financiamiento</span>
+                      <span className="font-bold text-text-1">{p.fin}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop: tabla */}
+              <table className="hidden sm:table w-full">
                 <thead>
                   <tr className="border-b border-border">
                     {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h, i) => (

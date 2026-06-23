@@ -115,8 +115,8 @@ function VBarChart({ id, data, h = 170 }) {
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'financiacion',   label: 'Dashboard de Financiación',  Icon: TrendingUp },
-  { id: 'medioambiental', label: 'Dashboard Medioambiental',   Icon: Leaf },
+  { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp },
+  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: Leaf },
 ];
 
 // ── Financiación tab data ─────────────────────────────────────────────────────
@@ -201,12 +201,15 @@ export default function EpHome() {
       <div className="fade-in space-y-5">
 
         {/* Header */}
-        <div className="flex justify-between items-center flex-wrap gap-3">
-          <div>
-            <div className="text-[20px] font-bold text-text-1">Bienvenido, Construcciones Silva</div>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-3">
+          <div className="min-w-0">
+            <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
+            <div className="text-[20px] font-bold text-text-1 truncate">
+              <span className="hidden sm:inline">Bienvenido, </span>Construcciones Silva
+            </div>
             <div className="text-[13px] text-text-4">GE-2021-00234 · Empresa Pequeña · Junio 2026</div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap justify-center sm:justify-end">
             <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
               <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
               Verde
@@ -222,11 +225,14 @@ export default function EpHome() {
         <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-[8px] text-[13px] font-semibold transition-all cursor-pointer ${
+              className={`flex flex-col items-center gap-1 px-3 sm:px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
               <t.Icon className="w-3.5 h-3.5" />
-              {t.label}
+              <span className="leading-[1.25]">
+                <span className="block">{t.line1}</span>
+                <span className="block">{t.line2}</span>
+              </span>
             </button>
           ))}
         </div>
@@ -318,7 +324,28 @@ export default function EpHome() {
                     Ver todas →
                   </button>
                 </div>
-                <table className="w-full">
+                {/* Móvil: cards */}
+                <div className="sm:hidden space-y-2">
+                  {operaciones.map(op => (
+                    <div key={op.id} onClick={() => go('epFacturacion')}
+                      className="rounded-[12px] border border-border p-3 cursor-pointer hover:bg-page-bg/60 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-mono text-[11px] font-bold text-text-1">{op.id}</span>
+                        <Badge variant={op.estado === 'Activa' || op.estado === 'Pagada' ? 'green' : op.estado === 'Enviada' ? 'blue' : 'yellow'}>{op.estado}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-[12px] mb-1">
+                        <span className="text-text-4">Monto</span>
+                        <span className="font-extrabold text-text-1">{fmt(op.monto)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-text-4">Vencimiento</span>
+                        <span className="text-text-4">{op.venc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Desktop: tabla */}
+                <table className="hidden sm:table w-full">
                   <thead>
                     <tr className="border-b border-border">
                       {['Operación', 'Estado', 'Monto', 'Vencimiento'].map((h, i) => (
@@ -414,7 +441,24 @@ export default function EpHome() {
                   <span className="text-[11px] font-bold text-green-text">8 registrados</span>
                 </div>
               </div>
-              <table className="w-full">
+              {/* Móvil: cards */}
+              <div className="sm:hidden space-y-2">
+                {proyectos.map((p, i) => (
+                  <div key={i} className="rounded-[12px] border border-border p-3">
+                    <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
+                      <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-text-4">Financiamiento</span>
+                      <span className="font-bold text-text-1">{p.fin}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop: tabla */}
+              <table className="hidden sm:table w-full">
                 <thead>
                   <tr className="border-b border-border">
                     {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h, i) => (

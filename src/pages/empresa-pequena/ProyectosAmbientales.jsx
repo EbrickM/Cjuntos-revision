@@ -70,7 +70,7 @@ const NEXT_REQS = {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const kpis = [
-  { value: '8',        label: 'Proyectos registrados', cls: 'text-green-text',  trend: '+2',     tUp: true  },
+  { value: '8',        label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text',  trend: '+2',     tUp: true  },
   { value: '5',        label: 'Proyectos activos',     cls: 'text-blue-text',   trend: 'estable', tUp: null  },
   { value: '3',        label: 'Proyectos financiados', cls: 'text-orange',      trend: '+1',     tUp: true  },
   { value: '12,450 t', label: 'Captura CO₂ potencial', cls: 'text-green-text', trend: '+8%',    tUp: true  },
@@ -100,9 +100,12 @@ export default function EpProyectosAmbientales() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {kpis.map(({ value, label, cls, trend, tUp }) => (
+          {kpis.map(({ value, label, mobileLabel, cls, trend, tUp }) => (
             <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
-              <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
+              <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">
+                <span className="sm:hidden">{mobileLabel ?? label}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </div>
               <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
               <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 tUp === true ? 'bg-green-bg text-green-text' : 'bg-orange-tint text-orange'
@@ -243,7 +246,25 @@ export default function EpProyectosAmbientales() {
               <span className="text-[11px] font-bold text-green-text">8 registrados</span>
             </div>
           </div>
-          <div className="overflow-x-auto">
+          {/* Móvil: cards */}
+          <div className="sm:hidden space-y-2">
+            {proyectos.map((p, i) => (
+              <div key={i} className="rounded-[12px] border border-border p-3">
+                <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
+                  <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border">{p.cert}</span>
+                </div>
+                <div className="flex items-center justify-between text-[12px]">
+                  <span className="text-text-4">Financiamiento</span>
+                  <span className="font-bold text-text-1">{p.fin}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop: tabla */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-border">

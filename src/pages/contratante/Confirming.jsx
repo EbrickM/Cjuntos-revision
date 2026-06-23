@@ -34,24 +34,45 @@ export default function EmpConf() {
           <Button variant="ghost" size="sm">📥 Exportar CSV</Button>
         </div>
         <div className="bg-white rounded-[14px] border border-border overflow-hidden">
-          <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead><tr>{['ID','Proveedor','Factura','Monto XAF','Anticipo XAF','Estado','Fecha',''].map(h=><th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
-            <tbody>
-              {rows.map(([id,name,fac,amt,anti,cls,st,dt]) => (
-                <tr key={id} onClick={() => go('empConfDet')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
-                  <td className="px-4 py-3 font-mono text-[11px] text-text-4">{id}</td>
-                  <td className="px-4 py-3 font-semibold text-[13px]">{name}</td>
-                  <td className="px-4 py-3 font-mono text-[11px] text-text-4">{fac}</td>
-                  <td className="px-4 py-3 font-bold text-[13px]">{amt}</td>
-                  <td className="px-4 py-3 font-semibold text-green-text text-[13px]">{anti}</td>
-                  <td className="px-4 py-3"><Badge variant={cls}>{st}</Badge></td>
-                  <td className="px-4 py-3 text-[12px] text-text-4">{dt}</td>
-                  <td className="px-4 py-3"><Button variant="ghost" size="sm" onClick={(e) => {e.stopPropagation();go('empConfDet');}}>Ver →</Button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* Móvil: cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {rows.map(([id,name,fac,amt,anti,cls,st,dt]) => (
+              <div key={id} onClick={() => go('empConfDet')} className="p-4 cursor-pointer hover:bg-[#FFFAF8] transition-colors">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="font-mono text-[10px] text-text-4">{id}</div>
+                    <div className="text-[14px] font-semibold text-text-1">{name}</div>
+                  </div>
+                  <Badge variant={cls}>{st}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
+                  <div className="flex justify-between"><span className="text-text-4">Factura</span><span className="font-mono text-text-3">{fac}</span></div>
+                  <div className="flex justify-between"><span className="text-text-4">Fecha</span><span className="text-text-4">{dt}</span></div>
+                  <div className="flex justify-between"><span className="text-text-4">Monto</span><span className="font-bold text-text-1">{amt}</span></div>
+                  <div className="flex justify-between"><span className="text-text-4">Anticipo</span><span className="font-bold text-green-text">{anti}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Desktop: tabla */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead><tr>{['ID','Proveedor','Factura','Monto XAF','Anticipo XAF','Estado','Fecha',''].map(h=><th key={h} className="text-left px-4 py-2.5 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
+              <tbody>
+                {rows.map(([id,name,fac,amt,anti,cls,st,dt]) => (
+                  <tr key={id} onClick={() => go('empConfDet')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
+                    <td className="px-4 py-3 font-mono text-[11px] text-text-4">{id}</td>
+                    <td className="px-4 py-3 font-semibold text-[13px]">{name}</td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-text-4">{fac}</td>
+                    <td className="px-4 py-3 font-bold text-[13px]">{amt}</td>
+                    <td className="px-4 py-3 font-semibold text-green-text text-[13px]">{anti}</td>
+                    <td className="px-4 py-3"><Badge variant={cls}>{st}</Badge></td>
+                    <td className="px-4 py-3 text-[12px] text-text-4">{dt}</td>
+                    <td className="px-4 py-3"><Button variant="ghost" size="sm" onClick={(e) => {e.stopPropagation();go('empConfDet');}}>Ver →</Button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
           <div className="px-5 py-4 flex justify-between items-center border-t border-border">
             <span className="text-[13px] text-text-4">Mostrando 1–6 de 24</span>
