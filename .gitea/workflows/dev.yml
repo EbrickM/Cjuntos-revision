@@ -1,3 +1,26 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'eslint.config.js'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'nginx.conf'
+      - '.gitea/workflows/**'    
+
+env:
+  APP: b-mori-front
+  CONTAINER: b-mori-front-dev
+
 jobs:
   deploy:
     runs-on: ubuntu-22.04
