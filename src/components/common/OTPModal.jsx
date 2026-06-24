@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Mail, Smartphone, ArrowRight, Info } from 'lucide-react';
+import { X, Mail, Smartphone, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
 export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
@@ -170,15 +170,6 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
                   className="h-12 w-full border-2 border-input-border rounded-lg pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)]"
                 />
               </div>
-            </div>
-
-            {/* Referencia: con qué debe coincidir */}
-            <div className="flex items-start gap-2.5 bg-orange-tint border border-orange-border rounded-lg px-3.5 py-3 mb-6">
-              <Info className="w-4 h-4 text-orange shrink-0 mt-0.5" />
-              <p className="text-xs text-text-2 leading-relaxed">
-                Debe coincidir con el contacto registrado en la plataforma:{' '}
-                <span className="font-semibold text-text-1">{maskContact(systemHint, method)}</span>
-              </p>
             </div>
 
             <Button
