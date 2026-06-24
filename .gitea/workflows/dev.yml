@@ -1,26 +1,3 @@
-name: Deploy Dev
-
-on:
-  push:
-    branches:
-      - develop
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'index.html'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.js'
-      - 'eslint.config.js'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - 'nginx.conf'
-      - '.gitea/workflows/**'    
-
-env:
-  APP: b-mori-front
-  CONTAINER: b-mori-front-dev
-
 jobs:
   deploy:
     runs-on: ubuntu-22.04
@@ -29,164 +6,46 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # ========================
-      # CHECK Verdacio
-      # ========================
-
       - name: Determine npm registry
-        id: registry_check
         run: |
           REGISTRY="${{ vars.NPM_REGISTRY }}"
           if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 2>/dev/null; then
-            echo "✅ Using Verdaccio: $REGISTRY"
+            echo "Using Verdaccio: $REGISTRY"
             echo "registry_url=$REGISTRY" >> $GITEA_ENV
           else
-            echo "ℹ️ Using default npm registry"
+            echo "Using default npm registry"
             echo "registry_url=https://registry.npmjs.org/" >> $GITEA_ENV
-          fi      
+          fi
 
-      # =========================
-      # BUILD
-      # =========================
       - name: Build image
         run: |
           set -e
-
           SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
           echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
-
           docker build \
             --build-arg NPM_REGISTRY=$registry_url \
             -t $APP:dev-$SHORT_SHA \
             .
 
-      # =========================
-      # IMAGE HEALTHCHECK
-      # =========================
-      - name: Validate image health
-        run: |
-          set -e
-
-          IMAGE=$APP:dev-$SHORT_SHA
-
-          echo "🔎 Testing image: $IMAGE"
-
-          docker rm -f health-test 2>/dev/null || true
-
-          docker run -d \
-            --name health-test \
-            $IMAGE
-
-          for i in $(seq 1 30); do
-
-            STATUS=$(docker inspect \
-              --format='{{.State.Health.Status}}' \
-              health-test 2>/dev/null || echo "no-health")
-
-            echo "Attempt $i -> $STATUS"
-
-            if [ "$STATUS" = "healthy" ]; then
-              echo "✅ Image OK"
-              docker rm -f health-test
-              exit 0
-            fi
-
-            if [ "$STATUS" = "unhealthy" ]; then
-              echo "❌ Image FAILED"
-              docker logs health-test || true
-              docker inspect health-test || true
-              exit 1
-            fi
-
-            sleep 2
-          done
-
-          echo "❌ Timeout waiting for health"
-          docker logs health-test || true
-          exit 1
-
-      # =========================
-      # PROMOTE (SHA SAFE)
-      # =========================
       - name: Promote image
         run: |
           set -e
-
           SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-
           if docker image inspect $APP:latest >/dev/null 2>&1; then
             docker tag $APP:latest $APP:rollback || true
           fi
-
           docker tag $APP:dev-$SHORT_SHA $APP:latest
 
-      # =========================
-      # DEPLOY
-      # =========================
       - name: Deploy container
         run: |
           set -e
-
-          OLD_IMAGE=$(docker inspect $CONTAINER \
-            --format='{{.Config.Image}}' 2>/dev/null || true)
-
-          if [ -n "$OLD_IMAGE" ]; then
-            docker tag $OLD_IMAGE $APP:rollback-current || true
-          fi
-
           docker rm -f $CONTAINER 2>/dev/null || true
-
           docker run -d \
             --name $CONTAINER \
             --restart unless-stopped \
             -p 8081:80 \
             $APP:latest
 
-      # =========================
-      # RUNTIME HEALTHCHECK
-      # =========================
-      - name: Runtime healthcheck
-        run: |
-          set -e
-
-          echo "⏳ Waiting for runtime health..."
-
-          for i in $(seq 1 30); do
-
-            STATUS=$(docker inspect \
-              --format='{{.State.Health.Status}}' \
-              $CONTAINER 2>/dev/null || echo "no-health")
-
-            echo "Attempt $i -> $STATUS"
-
-            if [ "$STATUS" = "healthy" ]; then
-              echo "✅ Deploy OK"
-              exit 0
-            fi
-
-            if [ "$STATUS" = "unhealthy" ]; then
-              echo "❌ Deploy FAILED"
-              docker logs $CONTAINER || true
-              break
-            fi
-
-            sleep 2
-          done
-
-          echo "🔄 ROLLBACK"
-
-          docker rm -f $CONTAINER || true
-
-          docker run -d \
-            --name $CONTAINER \
-            --restart unless-stopped \
-            $APP:rollback || $APP:rollback-current
-
-          exit 1
-
-      # =========================
-      # CLEANUP
-      # =========================
       - name: Cleanup images
         if: always()
         run: |
@@ -196,5 +55,4 @@ jobs:
             | sort -r \
             | tail -n +4 \
             | xargs -r docker rmi -f
-
           docker image prune -f
