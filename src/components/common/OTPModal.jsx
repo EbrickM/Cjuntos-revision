@@ -84,7 +84,14 @@ export default function OTPModal({ isOpen, onClose, onVerify, email }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-8 relative">
+      <div
+        className="w-full max-w-md rounded-2xl p-[2px]"
+        style={{
+          background: 'linear-gradient(135deg, var(--bonafide-red) 0%, var(--bonafide-orange) 100%)',
+          boxShadow: '0 8px 32px rgba(224,32,28,0.18), 0 2px 8px rgba(239,122,44,0.12)',
+        }}
+      >
+      <div className="bg-white rounded-2xl p-8 relative">
 
         <button
           onClick={onClose}
@@ -200,6 +207,7 @@ export default function OTPModal({ isOpen, onClose, onVerify, email }) {
           </>
         )}
 
+      </div>
       </div>
     </div>
   );
