@@ -28,19 +28,23 @@ export default function Login() {
     <div className="min-h-screen bg-white flex items-center justify-center py-6 px-4">
 
       <div
-        className="w-full max-w-md bg-white rounded-2xl border border-gray-200 p-6"
-        style={{ boxShadow: '0 8px 32px rgba(224,32,28,0.15), 0 2px 8px rgba(239,122,44,0.10)' }}
+        className="w-full max-w-md rounded-2xl p-[2px]"
+        style={{
+          background: 'linear-gradient(135deg, var(--bonafide-red) 0%, var(--bonafide-orange) 100%)',
+          boxShadow: '0 8px 32px rgba(224,32,28,0.18), 0 2px 8px rgba(239,122,44,0.12)',
+        }}
       >
+      <div className="bg-white rounded-2xl p-6">
 
         {/* Logo + título */}
         <div className="flex flex-col items-center text-center mb-4">
           <img
             src="/bonafide-logo.png"
             alt="Bonafide"
-            className="h-14 w-auto object-contain mb-2"
+            className="h-20 w-auto object-contain mb-2"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h1 className="text-2xl font-bold text-text-1">Creciendo Juntos</h1>
+          <h1 className="text-3xl font-bold text-text-1">Creciendo Juntos</h1>
         </div>
 
         {/* Dentro de la plataforma */}
@@ -139,6 +143,7 @@ export default function Login() {
             Acceso como administrador
           </button>
         </p>
+      </div>
       </div>
 
       <OTPModal
