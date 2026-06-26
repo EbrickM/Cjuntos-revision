@@ -12,12 +12,12 @@ export default function Splash() {
   }, [go]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-5">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center">
 
       <img
         src={logoCircle}
         alt=""
-        className="w-60 h-60 object-contain"
+        className="w-40 h-40 sm:w-60 sm:h-60 object-contain"
         style={{ animation: 'spin 1.2s linear infinite' }}
       />
 
