@@ -77,7 +77,7 @@ export default function Login() {
               <Shield className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px]">Plataforma regulada</p>
+              <p className="font-medium text-text-1 text-[11px] text-nowrap">Plataforma regulada</p>
               <p className="text-[10px] text-text-3">Normativa de Guinea Ecuatorial</p>
             </div>
           </div>
@@ -86,8 +86,8 @@ export default function Login() {
               <Lock className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px]">Datos protegidos</p>
-              <p className="text-[10px] text-text-3">Cifrado de extremo<br/> a extremo</p>
+              <p className="font-medium text-text-1 text-[11px] text-nowrap">Datos protegidos</p>
+              <p className="text-[10px] text-text-3 text-nowrap">Cifrado de extremo<br/> a extremo</p>
             </div>
           </div>
         </div>
