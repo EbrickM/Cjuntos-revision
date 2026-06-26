@@ -1,28 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Mail, Smartphone, ArrowRight } from 'lucide-react';
+import { X, Mail, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
-export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
-  const [step,    setStep]    = useState('contact'); // 'contact' | 'code'
-  const [method,  setMethod]  = useState('email');
-  const [contact, setContact] = useState('');
-  const [otp,     setOtp]     = useState(['', '', '', '', '', '']);
-  const [timer,   setTimer]   = useState(60);
+export default function OTPModal({ isOpen, onClose, onVerify, email }) {
+  const [step,      setStep]      = useState('contact');
+  const [contact,   setContact]   = useState('');
+  const [otp,       setOtp]       = useState(['', '', '', '', '', '']);
+  const [timer,     setTimer]     = useState(60);
   const [canResend, setCanResend] = useState(false);
   const inputRefs = useRef([]);
 
-  /* Reiniciar estado cada vez que se abre */
   useEffect(() => {
     if (!isOpen) return;
     setStep('contact');
-    setMethod('email');
     setContact('');
     setOtp(['', '', '', '', '', '']);
     setTimer(60);
     setCanResend(false);
   }, [isOpen]);
 
-  /* Countdown de reenvío, arranca al pasar al paso de código */
   useEffect(() => {
     if (step !== 'code') return;
     setTimer(60);
@@ -40,29 +36,19 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
 
   if (!isOpen) return null;
 
-  /* ── Helpers ── */
-  const maskContact = (value, type) => {
+  const maskEmail = (value) => {
     if (!value) return '···';
-    if (type === 'email') {
-      const [name, domain] = value.split('@');
-      if (!domain) return `${value.slice(0, 2)}···`;
-      return `${name.slice(0, 2)}···@${domain}`;
-    }
-    return value.slice(0, 4) + '···' + value.slice(-3);
+    const [name, domain] = value.split('@');
+    if (!domain) return `${value.slice(0, 2)}···`;
+    return `${name.slice(0, 2)}···@${domain}`;
   };
 
-  const systemHint = method === 'email' ? email : phone;
-  const placeholder = method === 'email' ? 'correo@tuempresa.com' : '+240 000 000 000';
-  const inputType   = method === 'email' ? 'email' : 'tel';
-
-  /* ── Paso 1: enviar código ── */
   const handleSend = () => {
     if (!contact.trim()) return;
     setStep('code');
     setTimeout(() => inputRefs.current[0]?.focus(), 100);
   };
 
-  /* ── Paso 2: inputs OTP ── */
   const handleChange = (index, value) => {
     if (value.length > 1 || !/^\d*$/.test(value)) return;
     const next = [...otp];
@@ -96,12 +82,10 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
     setCanResend(false);
   };
 
-  /* ── Render ── */
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-8 relative">
 
-        {/* Botón cerrar */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer"
@@ -109,65 +93,35 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
           <X className="w-5 h-5 text-text-3" />
         </button>
 
-        {/* ══════════════════════════════════════
-            PASO 1 — Seleccionar canal + contacto
-            ══════════════════════════════════════ */}
+        {/* ── PASO 1: introducir email ── */}
         {step === 'contact' && (
           <>
-            {/* Icono */}
             <div className="flex justify-center mb-5">
               <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange to-orange-dark flex items-center justify-center">
-                {method === 'email'
-                  ? <Mail className="w-8 h-8 text-white" />
-                  : <Smartphone className="w-8 h-8 text-white" />
-                }
+                <Mail className="w-8 h-8 text-white" />
               </div>
             </div>
 
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-text-1 mb-1">Verificación de identidad</h2>
               <p className="text-sm text-text-3">
-                Selecciona cómo quieres recibir tu código de acceso
+                Introduce tu correo para recibir el código de acceso
               </p>
             </div>
 
-            {/* Selector de canal */}
-            <div className="flex gap-2 bg-page-bg p-1 rounded-lg mb-5">
-              <button
-                onClick={() => { setMethod('email'); setContact(''); }}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                  method === 'email' ? 'bg-white text-text-1 shadow-sm' : 'text-text-3 hover:text-text-1'
-                }`}
-              >
-                <Mail className="w-4 h-4" /> Correo
-              </button>
-              <button
-                onClick={() => { setMethod('phone'); setContact(''); }}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                  method === 'phone' ? 'bg-white text-text-1 shadow-sm' : 'text-text-3 hover:text-text-1'
-                }`}
-              >
-                <Smartphone className="w-4 h-4" /> Teléfono
-              </button>
-            </div>
-
-            {/* Input de contacto */}
-            <div className="mb-3">
+            <div className="mb-6">
               <label className="text-[12px] font-semibold text-text-2 block mb-1.5">
-                {method === 'email' ? 'Tu correo corporativo' : 'Tu número de teléfono'}
+                Correo
               </label>
               <div className="relative">
-                {method === 'email'
-                  ? <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-4" />
-                  : <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-4" />
-                }
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-4" />
                 <input
-                  type={inputType}
+                  type="email"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder={placeholder}
-                  className="h-12 w-full border-2 border-input-border rounded-lg pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)]"
+                  placeholder="correo@ejemplo.com"
+                  className="h-12 w-full border-2 border-input-border rounded-lg pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none transition-all focus:border-orange focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,32,28,0.12)]"
                 />
               </div>
             </div>
@@ -183,18 +137,12 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
           </>
         )}
 
-        {/* ══════════════════════════════════════
-            PASO 2 — Ingresar código OTP
-            ══════════════════════════════════════ */}
+        {/* ── PASO 2: introducir código OTP ── */}
         {step === 'code' && (
           <>
-            {/* Icono */}
             <div className="flex justify-center mb-5">
               <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange to-orange-dark flex items-center justify-center">
-                {method === 'email'
-                  ? <Mail className="w-8 h-8 text-white" />
-                  : <Smartphone className="w-8 h-8 text-white" />
-                }
+                <Mail className="w-8 h-8 text-white" />
               </div>
             </div>
 
@@ -202,11 +150,10 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
               <h2 className="text-2xl font-bold text-text-1 mb-1">Código enviado</h2>
               <p className="text-sm text-text-3">
                 Ingresa el código de 6 dígitos enviado a{' '}
-                <span className="font-semibold text-text-1">{maskContact(contact, method)}</span>
+                <span className="font-semibold text-text-1">{maskEmail(contact)}</span>
               </p>
             </div>
 
-            {/* Inputs OTP */}
             <div className="flex gap-2 mb-6 justify-center">
               {otp.map((digit, index) => (
                 <input
@@ -238,7 +185,7 @@ export default function OTPModal({ isOpen, onClose, onVerify, email, phone }) {
                 onClick={() => setStep('contact')}
                 className="text-sm text-text-3 hover:text-orange transition-colors cursor-pointer font-medium"
               >
-                ← Cambiar método
+                ← Volver
               </button>
               <button
                 onClick={handleResend}
