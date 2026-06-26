@@ -5,8 +5,6 @@ import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';
 import AdminLoginModal from '../../components/common/AdminLoginModal';
 
-const DEMO_EMAIL = 'operaciones@totalenerge.com';
-const DEMO_PHONE = '+240 555 123 456';
 
 const platformFeatures = [
   { Icon: CreditCard, label: 'Gestiona tus créditos' },
@@ -151,8 +149,6 @@ export default function Login() {
         isOpen={showOTP}
         onClose={() => setShowOTP(false)}
         onVerify={handleVerified}
-        email={DEMO_EMAIL}
-        phone={DEMO_PHONE}
       />
 
       <AdminLoginModal

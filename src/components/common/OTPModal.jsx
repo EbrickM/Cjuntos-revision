@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { X, Mail, ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
-export default function OTPModal({ isOpen, onClose, onVerify, email }) {
+export default function OTPModal({ isOpen, onClose, onVerify }) {
   const [step,      setStep]      = useState('contact');
   const [contact,   setContact]   = useState('');
   const [otp,       setOtp]       = useState(['', '', '', '', '', '']);
