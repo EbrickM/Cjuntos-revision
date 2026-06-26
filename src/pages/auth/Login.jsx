@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logo from '../../assets/logo.png';
 import { CreditCard, BarChart3, Users, History, ArrowRight, Shield, Lock } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';
@@ -39,7 +40,7 @@ export default function Login() {
         {/* Logo + título */}
         <div className="flex flex-col items-center text-center mb-4">
           <img
-            src="/bonafide-logo.png"
+            src={logo}
             alt="Bonafide"
             className="h-20 w-auto object-contain mb-2"
             onError={(e) => { e.target.style.display = 'none'; }}

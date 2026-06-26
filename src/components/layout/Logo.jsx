@@ -1,4 +1,4 @@
-import bonafideLogo from '../../assets/bonafide-logo.png';
+import bonafideLogo from '../../assets/logo.png';
 
 export default function Logo({ size = 16 }) {
   return (
