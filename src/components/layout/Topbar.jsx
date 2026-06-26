@@ -48,7 +48,7 @@ export default function Topbar({ role, onMenuClick }) {
     <>
       {/* ── Barra principal ─────────────────────────────────────────────────── */}
       <div
-        className="h-16 shrink-0 bg-white flex items-center gap-3 sm:gap-4 relative z-10 px-4 sm:px-8"
+        className="h-16 shrink-0 bg-white flex items-center gap-3 sm:gap-4 relative z-10 px-4 sm:px-4"
         style={{ boxShadow: '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)' }}
       >
         {/* Hamburger — solo en móvil */}
@@ -59,7 +59,7 @@ export default function Topbar({ role, onMenuClick }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <Logo size={16} />
+        <span className="hidden sm:block"><Logo /></span>
 
         <div className="flex-1" />
 
