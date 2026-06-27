@@ -201,30 +201,18 @@ export default function EpHome() {
       <div className="fade-in space-y-5">
 
         {/* Header + Tab nav */}
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
-          {/* Título */}
-          <div className="min-w-0">
-            <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
-            <div className="text-[20px] font-bold text-text-1 truncate">
-              <span className="hidden sm:inline">Bienvenido, </span>Construcciones Silva
+          {/* Título + badges (desktop: misma línea) */}
+          <div className="flex items-center gap-3 min-w-0 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
+              <div className="text-[20px] font-bold text-text-1 truncate">
+                <span className="hidden sm:inline">Bienvenido, </span>Construcciones Silva
+              </div>
             </div>
-          </div>
-
-          {/* Tabs + Badges desktop — columna alineada a la derecha */}
-          <div className="hidden sm:flex flex-col items-end gap-2">
-            <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
-              {TABS.map(t => (
-                <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
-                  }`}>
-                  <t.Icon className="w-3.5 h-3.5" />
-                  {t.line1} {t.line2}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
+            {/* Badges — solo desktop */}
+            <div className="hidden sm:flex gap-2">
               <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
                 <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
                 Verde
@@ -234,6 +222,19 @@ export default function EpHome() {
                 Verde Bonafide
               </span>
             </div>
+          </div>
+
+          {/* Tabs desktop */}
+          <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                }`}>
+                <t.Icon className="w-3.5 h-3.5" />
+                {t.line1} {t.line2}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -253,19 +254,6 @@ export default function EpHome() {
           ))}
         </div>
 
-        {/* Etiquetas Verde — solo móvil, solo tab medioambiental */}
-        {tab === 'medioambiental' && (
-          <div className="flex sm:hidden gap-2 justify-center">
-            <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-              <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
-              Verde
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-              <Leaf className="w-3.5 h-3.5" />
-              Verde Bonafide
-            </span>
-          </div>
-        )}
 
         {/* ── FINANCIACIÓN TAB ─────────────────────────────────────────────── */}
         {tab === 'financiacion' && (
@@ -514,6 +502,18 @@ export default function EpHome() {
             </div>
           </div>
         )}
+
+        {/* Badges móvil — al final del dashboard */}
+        <div className="flex sm:hidden gap-2 justify-center pt-2">
+          <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
+            <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
+            Verde
+          </span>
+          <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
+            <Leaf className="w-3.5 h-3.5" />
+            Verde Bonafide
+          </span>
+        </div>
 
       </div>
     </AppShell>
