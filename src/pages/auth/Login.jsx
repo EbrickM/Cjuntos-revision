@@ -118,7 +118,7 @@ export default function Login() {
 
         {/* CTA secundario: Solicitar Contrato */}
         <button
-          onClick={() => go('roleSelect')}
+          onClick={() => go('solicitarContrato')}
           className="w-full h-11 font-semibold text-sm rounded-xl cursor-pointer transition-all duration-200 border-2 flex items-center justify-center gap-2"
           style={{ borderColor: 'var(--bonafide-red)', color: 'var(--bonafide-red)' }}
           onMouseEnter={e => {

@@ -4,6 +4,7 @@ import { useApp, AppProvider } from './state/AppContext';
 import Splash from './pages/auth/Splash';
 import Login from './pages/auth/Login';
 import RoleSelect from './pages/auth/RoleSelect';
+import SolicitarContrato from './pages/auth/SolicitarContrato';
 import { KycStep1, KycStep2, KycStep3, KycStep4 } from './pages/auth/KycWizard';
 
 // Admin
@@ -37,7 +38,8 @@ function Router() {
     // Auth
     splash:      <Splash />,
     login:       <Login />,
-    roleSelect:  <RoleSelect />,
+    roleSelect:        <RoleSelect />,
+    solicitarContrato: <SolicitarContrato />,
     kyc1:        <KycStep1 />,
     kyc2:        <KycStep2 />,
     kyc3:        <KycStep3 />,
