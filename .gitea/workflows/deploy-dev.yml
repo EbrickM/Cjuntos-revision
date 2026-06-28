@@ -110,10 +110,8 @@ jobs:
       - name: Cleanup images (local)
         if: always()
         run: |
-          IMAGE="${{ vars.APP }}-${{ vars.SERVICE }}"
-          # Elimina TODAS las imágenes locales excepto latest y rollback
-          docker images $IMAGE --format "{{.Repository}}:{{.Tag}}" \
-            | grep "^$IMAGE:" \
-            | grep -v -E "^$IMAGE:latest$|^$IMAGE:rollback$" \
-            | xargs -r docker rmi -f
-          docker image prune -f
+            docker images $IMAGE --format "{{.Repository}}:{{.Tag}}" \
+              | grep "^$IMAGE:" \
+              | grep -v -E "^$IMAGE:latest$|^$IMAGE:rollback$" || true \
+              | xargs -r docker rmi -f
+            docker image prune -f
