@@ -48,8 +48,8 @@ jobs:
         with:
           # Lista de imágenes a las que se aplicarán los tags
           images: |
-            ${{ vars.DOCKER_REGISTRY }}/$ENV/${{ vars.APP }}/${{ vars.SERVICE }}
-            ${{ vars.APP }}-${{ vars.SERVICE }}   # <-- nombre corto para despliegue local
+            ${{ vars.DOCKER_REGISTRY }}/${{ env.ENV }}/${{ vars.APP }}/${{ vars.SERVICE }}
+            ${{ vars.APP }}-${{ vars.SERVICE }}
           # Definir los tags que se generarán
           tags: |
             type=sha,prefix=dev-,suffix=
