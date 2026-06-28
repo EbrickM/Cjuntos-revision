@@ -19,14 +19,17 @@ on:
 
 env:
   ENV: dev
+
 jobs:
   deploy:
     runs-on: ubuntu-22.04
     timeout-minutes: 20
 
     steps:
+      # 1. Checkout del código
       - uses: actions/checkout@v4
 
+      # 2. Determinar el registro NPM
       - name: Determine npm registry
         run: |
           REGISTRY="${{ vars.NPM_REGISTRY }}"
@@ -38,39 +41,52 @@ jobs:
             echo "registry_url=https://registry.npmjs.org/" >> $GITEA_ENV
           fi
 
-      - name: Build image
-        run: |
-          set -e
-          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-          echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
-          docker build \
-            --build-arg NPM_REGISTRY=$registry_url \
-            -t ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
-            -t ${{ vars.APP }}-${{ vars.SERVICE }}:latest \
-            .
+      # 3. Generar metadatos OCI y tags para la imagen
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@6
+        with:
+          # Lista de imágenes a las que se aplicarán los tags
+          images: |
+            ${{ vars.DOCKER_REGISTRY }}/$ENV/${{ vars.APP }}/${{ vars.SERVICE }}
+            ${{ vars.APP }}-${{ vars.SERVICE }}   # <-- nombre corto para despliegue local
+          # Definir los tags que se generarán
+          tags: |
+            type=sha,prefix=dev-,suffix=
+            type=raw,value=latest
+          # Labels estándar OCI (se añadirán automáticamente)
+          labels: |
+            org.opencontainers.image.title=${{ vars.APP }}-${{ vars.SERVICE }}
+            org.opencontainers.image.vendor=${{ vars.VENDOR || 'Mi Empresa' }}
+            org.opencontainers.image.authors=${{ vars.MAINTAINER || 'devops@empresa.com' }}
+            org.opencontainers.image.description=${{ vars.DESCRIPTION || 'Aplicación desarrollada con Gitea Actions' }}
 
+      # 4. Login en el registro Zot
       - name: Login to Docker registry
         run: |
           echo "${{ secrets.CI_BOT_PASSWORD }}" | \
             docker login ${{ vars.DOCKER_REGISTRY }} \
               -u ${{ vars.CI_BOT_USER }} \
               --password-stdin
-          
-      - name: Push image to registry
-        run: |
-          set -e
-          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
-          REPO_PATH="$ENV/${{ vars.APP }}/${{ vars.SERVICE }}"
-          # Etiquetar con la ruta completa
-          docker tag ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
-            ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:dev-$SHORT_SHA
-          docker tag ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
-            ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:latest
-          # Subir ambas etiquetas
-          docker push ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:dev-$SHORT_SHA
-          docker push ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:latest
 
-      # -------------------- Despliegue local (opcional) --------------------
+      # 5. Construir y subir la imagen
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          # Carga la imagen en el daemon local para poder usarla en despliegues
+          load: true
+          # Sube al registro (solo subirá los tags que tengan el registro en el nombre)
+          push: true
+          # Tags generados por metadata-action (incluye tanto el nombre completo como el corto)
+          tags: ${{ steps.meta.outputs.tags }}
+          # Labels generados por metadata-action
+          labels: ${{ steps.meta.outputs.labels }}
+          # Argumentos de build (NPM_REGISTRY)
+          build-args: |
+            NPM_REGISTRY=${{ env.registry_url }}
+
+      # 6. Promover imagen local (rollback)
       - name: Promote image (local)
         run: |
           set -e
@@ -78,8 +94,8 @@ jobs:
           if docker image inspect $IMAGE:latest >/dev/null 2>&1; then
             docker tag $IMAGE:latest $IMAGE:rollback || true
           fi
-          # $IMAGE:latest ya existe desde el build
 
+      # 7. Desplegar contenedor localmente
       - name: Deploy container (local)
         run: |
           set -e
@@ -91,11 +107,12 @@ jobs:
             -p 8081:80 \
             ${{ vars.APP }}-${{ vars.SERVICE }}:latest
 
+      # 8. Limpiar imágenes locales sobrantes
       - name: Cleanup images (local)
         if: always()
         run: |
           IMAGE="${{ vars.APP }}-${{ vars.SERVICE }}"
-          # Eliminar TODAS las imágenes locales excepto latest y rollback
+          # Elimina TODAS las imágenes locales excepto latest y rollback
           docker images $IMAGE --format "{{.Repository}}:{{.Tag}}" \
             | grep "^$IMAGE:" \
             | grep -v -E "^$IMAGE:latest$|^$IMAGE:rollback$" \
