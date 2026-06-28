@@ -1,0 +1,103 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'eslint.config.js'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'nginx.conf'
+      - '.gitea/workflows/**'
+
+env:
+  ENV: dev
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine npm registry
+        run: |
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 2>/dev/null; then
+            echo "Using Verdaccio: $REGISTRY"
+            echo "registry_url=$REGISTRY" >> $GITEA_ENV
+          else
+            echo "Using default npm registry"
+            echo "registry_url=https://registry.npmjs.org/" >> $GITEA_ENV
+          fi
+
+      - name: Build image
+        run: |
+          set -e
+          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
+          echo "SHORT_SHA=$SHORT_SHA" >> $GITEA_ENV
+          docker build \
+            --build-arg NPM_REGISTRY=$registry_url \
+            -t ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
+            -t ${{ vars.APP }}-${{ vars.SERVICE }}:latest \
+            .
+
+      - name: Login to Docker registry
+        run: |
+          echo "${{ secrets.CI_BOT_PASSWORD }}" | \
+            docker login ${{ vars.DOCKER_REGISTRY }} \
+              -u ${{ vars.CI_BOT_USER }} \
+              --password-stdin
+          
+      - name: Push image to registry
+        run: |
+          set -e
+          SHORT_SHA=$(echo "${{ gitea.sha }}" | cut -c1-8)
+          REPO_PATH="$ENV/${{ vars.APP }}/${{ vars.SERVICE }}"
+          # Etiquetar con la ruta completa
+          docker tag ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
+            ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:dev-$SHORT_SHA
+          docker tag ${{ vars.APP }}-${{ vars.SERVICE }}:dev-$SHORT_SHA \
+            ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:latest
+          # Subir ambas etiquetas
+          docker push ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:dev-$SHORT_SHA
+          docker push ${{ vars.DOCKER_REGISTRY }}/$REPO_PATH:latest
+
+      # -------------------- Despliegue local (opcional) --------------------
+      - name: Promote image (local)
+        run: |
+          set -e
+          IMAGE="${{ vars.APP }}-${{ vars.SERVICE }}"
+          if docker image inspect $IMAGE:latest >/dev/null 2>&1; then
+            docker tag $IMAGE:latest $IMAGE:rollback || true
+          fi
+          # $IMAGE:latest ya existe desde el build
+
+      - name: Deploy container (local)
+        run: |
+          set -e
+          CONTAINER_NAME="${{ vars.APP }}-${{ vars.SERVICE }}-$ENV"
+          docker rm -f $CONTAINER_NAME 2>/dev/null || true
+          docker run -d \
+            --name $CONTAINER_NAME \
+            --restart unless-stopped \
+            -p 8081:80 \
+            ${{ vars.APP }}-${{ vars.SERVICE }}:latest
+
+      - name: Cleanup images (local)
+        if: always()
+        run: |
+          IMAGE="${{ vars.APP }}-${{ vars.SERVICE }}"
+          # Eliminar TODAS las imágenes locales excepto latest y rollback
+          docker images $IMAGE --format "{{.Repository}}:{{.Tag}}" \
+            | grep "^$IMAGE:" \
+            | grep -v -E "^$IMAGE:latest$|^$IMAGE:rollback$" \
+            | xargs -r docker rmi -f
+          docker image prune -f
