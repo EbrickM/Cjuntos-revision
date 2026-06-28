@@ -44,7 +44,7 @@ jobs:
       # 3. Generar metadatos OCI y tags para la imagen
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@6
+        uses: docker/metadata-action@v6
         with:
           # Lista de imágenes a las que se aplicarán los tags
           images: |
