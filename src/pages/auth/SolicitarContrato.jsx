@@ -29,7 +29,7 @@ const PHASE_STEP = {
   sent:            -1,
   inv_p_landing:   -1,
   inv_c_landing:   -1,
-  inv_final:        3,
+  inv_final:       -1,
 };
 
 // step icon per index
@@ -318,15 +318,20 @@ export default function SolicitarContrato() {
 
   const [pymesInverso, setPymesInverso] = useState([{ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }]);
 
-  const [contData, setContData] = useState({
-    razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '', numEmpleados: '',
-    email: '', telefono: '', web: '',
-    pais: 'Guinea Ecuatorial', provincia: '', municipio: '', barrio: '', direccion: '', cp: 'GQ-240',
-  });
+  const [contData, setContData] = useState({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '' });
   const [contSearched, setContSearched] = useState(false);
   const [contFound, setContFound] = useState(null);
 
   const [refNumber] = useState(() => Math.floor(10000 + Math.random() * 90000));
+
+  // ── Invitation flow state ─────────────────────────────────────────────────────
+  const [inviterCompany, setInviterCompany]   = useState(null);
+  const [invLandingPhase, setInvLandingPhase] = useState(null);
+  const [invConfirmOpen, setInvConfirmOpen]   = useState(['empresa', 'operacion', 'contraparte']);
+  const [sentFromInv, setSentFromInv]         = useState(false);
+  const toggleInvConfirm = (id) => setInvConfirmOpen(prev =>
+    prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+  );
 
   // ── Confirmation accordion state ─────────────────────────────────────────────
   const [confirmOpen, setConfirmOpen] = useState(['empresa', 'operacion', 'contraparte']);
@@ -348,9 +353,11 @@ export default function SolicitarContrato() {
     setPhase('is_client');
   };
 
-  const startInvFlow = (chosenActor) => {
+  const startInvFlow = (chosenActor, landingPhase) => {
+    setInviterCompany(foundCompany);
+    setInvLandingPhase(landingPhase);
     setActor(chosenActor);
-    setReturnPhase(chosenActor === 'pyme' ? 'inv_final' : 'inv_final');
+    setReturnPhase('inv_final');
     setIsClient(null);
     setNif(''); setFoundCompany(null); setNifSearched(false);
     setPhase('is_client');
@@ -449,7 +456,7 @@ export default function SolicitarContrato() {
           </div>
         </div>
         <NavRow
-          onBack={() => setPhase('who_initiates')}
+          onBack={() => setPhase(invLandingPhase || 'who_initiates')}
           onNext={() => { setNif(''); setFoundCompany(null); setNifSearched(false); setPhase(isClient ? 'nif_search' : 'register'); }}
           nextDisabled={isClient === null}
         />
@@ -482,7 +489,7 @@ export default function SolicitarContrato() {
         </div>
         {foundCompany ? (
           <div className="pt-6 border-t border-border flex items-center justify-between gap-4 mt-10">
-            <button onClick={() => setPhase('who_initiates')}
+            <button onClick={() => setPhase(returnPhase === 'inv_final' ? 'is_client' : 'who_initiates')}
               className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer border border-border text-text-2 hover:bg-gray-50 transition-all shrink-0">
               <ChevronLeft className="w-4 h-4" /> Atrás
             </button>
@@ -490,13 +497,13 @@ export default function SolicitarContrato() {
               <BtnSecondary onClick={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}>
                 No, intentar otro NIF
               </BtnSecondary>
-              <BtnPrimary onClick={() => setPhase('operation')}>
+              <BtnPrimary onClick={() => setPhase(returnPhase || 'operation')}>
                 <Check className="w-4 h-4" /> Sí, usar estos datos
               </BtnPrimary>
             </div>
           </div>
         ) : (
-          <NavRow onBack={() => setPhase('who_initiates')} onNext={() => {}} nextDisabled />
+          <NavRow onBack={() => setPhase(returnPhase === 'inv_final' ? 'is_client' : 'who_initiates')} onNext={() => {}} nextDisabled />
         )}
       </>
     ),
@@ -582,8 +589,8 @@ export default function SolicitarContrato() {
           </div>
         </div>
         <NavRow
-          onBack={() => isClient ? setPhase('nif_search') : setPhase('who_initiates')}
-          onNext={() => setPhase('operation')}
+          onBack={() => setPhase(returnPhase === 'inv_final' ? 'is_client' : isClient ? 'nif_search' : 'who_initiates')}
+          onNext={() => setPhase(returnPhase || 'operation')}
           nextDisabled={false}
         />
       </>
@@ -765,112 +772,36 @@ export default function SolicitarContrato() {
         {/* ── PYME: Identificar Empresa Contratante ─── */}
         {!isCont && (
           <>
-            <div className="space-y-8 mb-10">
-              <div>
-                <SectionLabel>Datos de la empresa</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Field label="Razón social" required>
-                    <input className={iCls} value={contData.razonSocial}
-                      onChange={e => setContData(p => ({ ...p, razonSocial: e.target.value }))}
-                      placeholder="Nombre legal de la empresa" />
-                  </Field>
-                  <Field label="Nombre comercial">
-                    <input className={iCls} value={contData.nombreComercial}
-                      onChange={e => setContData(p => ({ ...p, nombreComercial: e.target.value }))}
-                      placeholder="Nombre con el que opera" />
-                  </Field>
-                  <Field label="NIF / RUC" required>
-                    <input className={iCls + ' uppercase'} value={contData.nif}
-                      onChange={e => setContData(p => ({ ...p, nif: e.target.value }))}
-                      placeholder="GQ-2024-00234" />
-                  </Field>
-                  <Field label="Fecha de constitución" required>
-                    <input className={iCls} type="date" value={contData.fechaConst}
-                      onChange={e => setContData(p => ({ ...p, fechaConst: e.target.value }))} />
-                  </Field>
-                  <Field label="Forma jurídica" required>
-                    <select className={sCls} value={contData.formaJuridica}
-                      onChange={e => setContData(p => ({ ...p, formaJuridica: e.target.value }))}>
-                      <option value="">Seleccionar...</option>
-                      <option>Sociedad Anónima (S.A.)</option>
-                      <option>Sociedad de Responsabilidad Limitada (S.R.L.)</option>
-                      <option>Empresa Individual</option>
-                      <option>Cooperativa</option>
-                      <option>Fundación</option>
-                      <option>ONG</option>
-                    </select>
-                  </Field>
-                  <Field label="Número de empleados">
-                    <input className={iCls} type="number" min="1" value={contData.numEmpleados}
-                      onChange={e => setContData(p => ({ ...p, numEmpleados: e.target.value }))}
-                      placeholder="Ej. 25" />
-                  </Field>
-                </div>
-              </div>
-
-              <div>
-                <SectionLabel>Datos de contacto</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Field label="Correo electrónico corporativo" required>
-                    <input className={iCls} type="email" value={contData.email}
-                      onChange={e => setContData(p => ({ ...p, email: e.target.value }))}
-                      placeholder="contacto@empresa.gq" />
-                  </Field>
-                  <Field label="Teléfono corporativo" required>
-                    <input className={iCls} type="tel" value={contData.telefono}
-                      onChange={e => setContData(p => ({ ...p, telefono: e.target.value }))}
-                      placeholder="+240 222 000 000" />
-                  </Field>
-                  <Field label="Página web">
-                    <input className={iCls} type="url" value={contData.web}
-                      onChange={e => setContData(p => ({ ...p, web: e.target.value }))}
-                      placeholder="www.empresa.gq" />
-                  </Field>
-                </div>
-              </div>
-
-              <div>
-                <SectionLabel>Dirección fiscal</SectionLabel>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Field label="País" required>
-                    <input className={iCls} value={contData.pais}
-                      onChange={e => setContData(p => ({ ...p, pais: e.target.value }))} />
-                  </Field>
-                  <Field label="Provincia" required>
-                    <select className={sCls} value={contData.provincia}
-                      onChange={e => setContData(p => ({ ...p, provincia: e.target.value }))}>
-                      <option value="">Seleccionar...</option>
-                      <option>Bioko Norte</option><option>Bioko Sur</option>
-                      <option>Centro Sur</option><option>Djibloho</option>
-                      <option>Kié-Ntem</option><option>Litoral</option><option>Wele-Nzas</option>
-                    </select>
-                  </Field>
-                  <Field label="Municipio" required>
-                    <input className={iCls} value={contData.municipio}
-                      onChange={e => setContData(p => ({ ...p, municipio: e.target.value }))}
-                      placeholder="Ej. Malabo" />
-                  </Field>
-                  <Field label="Barrio">
-                    <input className={iCls} value={contData.barrio}
-                      onChange={e => setContData(p => ({ ...p, barrio: e.target.value }))}
-                      placeholder="Ej. Santa Isabel" />
-                  </Field>
-                  <Field label="Dirección fiscal" required>
-                    <input className={iCls} value={contData.direccion}
-                      onChange={e => setContData(p => ({ ...p, direccion: e.target.value }))}
-                      placeholder="Calle, número, edificio..." />
-                  </Field>
-                  <Field label="Código postal">
-                    <input className={iCls} value={contData.cp}
-                      onChange={e => setContData(p => ({ ...p, cp: e.target.value }))}
-                      placeholder="Ej. GQ-240" />
-                  </Field>
-                </div>
-              </div>
-
-              <div>
-                <SectionLabel>Documentación</SectionLabel>
-                <ContractUpload label="Contrato con la Empresa Contratante" />
+            <div className="space-y-6 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label="Razón social" className="md:col-span-2">
+                  <input className={iCls} value={contData.razonSocial}
+                    onChange={e => setContData(p => ({ ...p, razonSocial: e.target.value }))}
+                    placeholder="Nombre legal de la empresa" />
+                </Field>
+                <Field label="NIF / RUC" required>
+                  <input className={iCls + ' uppercase'} value={contData.nif}
+                    onChange={e => setContData(p => ({ ...p, nif: e.target.value }))}
+                    placeholder="GQ-2024-00XXX" />
+                </Field>
+                <Field label="Nombre comercial">
+                  <input className={iCls} value={contData.nombreComercial}
+                    onChange={e => setContData(p => ({ ...p, nombreComercial: e.target.value }))}
+                    placeholder="Nombre comercial" />
+                </Field>
+                <Field label="Correo electrónico" required>
+                  <input className={iCls} type="email" value={contData.email}
+                    onChange={e => setContData(p => ({ ...p, email: e.target.value }))}
+                    placeholder="contacto@empresa.gq" />
+                </Field>
+                <Field label="Teléfono" required>
+                  <input className={iCls} type="tel" value={contData.tel}
+                    onChange={e => setContData(p => ({ ...p, tel: e.target.value }))}
+                    placeholder="+240 222 000 000" />
+                </Field>
+                <Field label="Contrato con la Empresa Contratante" required className="md:col-span-3">
+                  <ContractUpload />
+                </Field>
               </div>
             </div>
             <NavRow
@@ -1043,21 +974,11 @@ export default function SolicitarContrato() {
                   {!isCont && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {[
-                        { label: 'Razón social',          value: contData.razonSocial },
-                        { label: 'Nombre comercial',      value: contData.nombreComercial },
-                        { label: 'NIF',                   value: contData.nif },
-                        { label: 'Fecha de constitución', value: contData.fechaConst },
-                        { label: 'Forma jurídica',        value: contData.formaJuridica },
-                        { label: 'Número de empleados',   value: contData.numEmpleados },
-                        { label: 'Correo electrónico',    value: contData.email },
-                        { label: 'Teléfono',              value: contData.telefono },
-                        { label: 'Página web',            value: contData.web },
-                        { label: 'País',                  value: contData.pais },
-                        { label: 'Provincia',             value: contData.provincia },
-                        { label: 'Municipio',             value: contData.municipio },
-                        { label: 'Barrio',                value: contData.barrio },
-                        { label: 'Dirección fiscal',      value: contData.direccion },
-                        { label: 'Código postal',         value: contData.cp },
+                        { label: 'Razón social',       value: contData.razonSocial },
+                        { label: 'Nombre comercial',   value: contData.nombreComercial },
+                        { label: 'NIF',                value: contData.nif },
+                        { label: 'Correo electrónico', value: contData.email },
+                        { label: 'Teléfono',           value: contData.tel },
                       ].map((it, i) => (
                         <div key={i}>
                           <p className="text-xs text-text-4 mb-1">{it.label}</p>
@@ -1090,11 +1011,15 @@ export default function SolicitarContrato() {
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: GRAD }}>
             <Send className="w-9 h-9 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-text-1 mb-2">Solicitud enviada con éxito</h2>
+          <h2 className="text-2xl font-bold text-text-1 mb-2">
+            {sentFromInv ? 'Confirmación enviada a Bonafide' : 'Solicitud enviada con éxito'}
+          </h2>
           <p className="text-text-3 max-w-md mx-auto">
-            {isCont
-              ? 'Hemos enviado una invitación a la PYME para que confirme su participación en la operación.'
-              : 'Hemos enviado una invitación a la Empresa Contratante para que confirme la operación.'}
+            {sentFromInv
+              ? 'Tu confirmación de participación ha sido enviada a Bonafide. No es necesario realizar ninguna acción adicional hasta recibir respuesta.'
+              : isCont
+                ? 'Hemos enviado una invitación a la PYME para que confirme su participación en la operación.'
+                : 'Hemos enviado una invitación a la Empresa Contratante para que confirme la operación.'}
           </p>
           <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gray-100 rounded-full">
             <span className="text-xs text-text-4">Referencia</span>
@@ -1108,11 +1033,15 @@ export default function SolicitarContrato() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="font-semibold text-text-1 text-sm">Pendiente de respuesta</span>
+              <span className="font-semibold text-text-1 text-sm">
+                {sentFromInv ? 'Pendiente de respuesta de Bonafide' : 'Pendiente de respuesta'}
+              </span>
               <span className="text-xs bg-orange-tint text-orange px-2 py-0.5 rounded-full font-semibold">Estado actual</span>
             </div>
             <p className="text-sm text-text-3 leading-relaxed">
-              En espera de que la {isCont ? 'PYME' : 'Empresa Contratante'} confirme su participación.
+              {sentFromInv
+                ? 'Bonafide revisará tu confirmación y te notificará cuando haya novedades sobre la operación.'
+                : `En espera de que la ${isCont ? 'PYME' : 'Empresa Contratante'} confirme su participación.`}
             </p>
           </div>
         </div>
@@ -1183,7 +1112,7 @@ export default function SolicitarContrato() {
         </div>
 
         <div className="flex gap-3 pt-2">
-          <BtnPrimary onClick={() => startInvFlow('pyme')}>Continuar <ChevronRight className="w-4 h-4" /></BtnPrimary>
+          <BtnPrimary onClick={() => startInvFlow('pyme', 'inv_p_landing')}>Aceptar invitación <ChevronRight className="w-4 h-4" /></BtnPrimary>
           <BtnSecondary onClick={() => setPhase('sent')}><X className="w-4 h-4" /> Rechazar</BtnSecondary>
         </div>
       </div>
@@ -1273,7 +1202,7 @@ export default function SolicitarContrato() {
 
           {/* CTAs */}
           <div className="flex gap-3 pt-1">
-            <BtnPrimary onClick={() => startInvFlow('contratante')}>Continuar <ChevronRight className="w-4 h-4" /></BtnPrimary>
+            <BtnPrimary onClick={() => startInvFlow('contratante', 'inv_c_landing')}>Aceptar invitación <ChevronRight className="w-4 h-4" /></BtnPrimary>
             <BtnSecondary onClick={() => setPhase('sent')}><X className="w-4 h-4" /> Rechazar</BtnSecondary>
           </div>
         </div>
@@ -1281,44 +1210,103 @@ export default function SolicitarContrato() {
     })(),
 
     /* ── INVITATION FINAL (both parties) ───────────────────────────────────── */
-    inv_final: (
-      <div className="space-y-6">
-        <div className="rounded-xl border border-border bg-gray-50 p-5">
-          <SectionLabel>Resumen de la operación</SectionLabel>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <SummaryBox label="Empresa Contratante" value={isCont ? (foundCompany?.razonSocial ?? regData.razonSocial) : 'TotalEnerGE S.A.'} />
-            <SummaryBox label="PYME" value={isCont ? (pymeData.razonSocial || pymeData.nif || '—') : (foundCompany?.razonSocial ?? regData.razonSocial)} />
-            <SummaryBox label="Tipo" value={operation.tipo === 'factoring_inverso' ? 'Factoring Inverso' : 'Factoring'} highlight />
-            <SummaryBox label="Monto propuesto" value={operation.monto ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF` : '25 000 000 XAF'} />
-            <SummaryBox label="Plazo propuesto" value={`${operation.plazo || 60} días`} />
-            <SummaryBox label="Referencia" value={`SOL-2026-${refNumber}`} />
+    inv_final: (() => {
+      const miEmpresa  = foundCompany?.razonSocial || regData.razonSocial || '—';
+      const miNif      = foundCompany?.nif || regData.nif || '—';
+      const contraparte = inviterCompany?.razonSocial || (isCont ? 'PYME solicitante' : 'Empresa Contratante');
+      const montoFmt   = operation.monto
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
+        : '—';
+
+      const invSections = [
+        {
+          id: 'empresa',
+          title: isCont ? 'Empresa Contratante (mi empresa)' : 'PYME (mi empresa)',
+          items: foundCompany ? [
+            { label: 'Razón social',       value: foundCompany.razonSocial },
+            { label: 'NIF',                value: foundCompany.nif },
+            { label: 'Forma jurídica',     value: foundCompany.formaJuridica },
+            { label: 'Correo electrónico', value: foundCompany.email },
+            { label: 'Teléfono',           value: foundCompany.telefono },
+          ] : [
+            { label: 'Razón social',       value: regData.razonSocial },
+            { label: 'NIF',                value: regData.nif },
+            { label: 'Forma jurídica',     value: regData.formaJuridica },
+            { label: 'Correo electrónico', value: regData.email },
+            { label: 'Teléfono',           value: regData.telefono },
+          ],
+        },
+        {
+          id: 'operacion',
+          title: 'Operación',
+          items: [
+            { label: 'Tipo de operación', value: operation.tipo === 'factoring' ? 'Factoring' : 'Factoring Inverso' },
+            { label: 'Monto propuesto',   value: montoFmt },
+            ...(operation.tipo !== 'factoring_inverso' ? [{ label: 'Plazo propuesto', value: operation.plazo ? `${operation.plazo} días` : '—' }] : []),
+            { label: 'Referencia',        value: `SOL-2026-${refNumber}` },
+          ],
+        },
+        {
+          id: 'contraparte',
+          title: isCont ? 'PYME solicitante' : 'Empresa Contratante',
+          items: [
+            { label: 'Razón social', value: inviterCompany?.razonSocial || contraparte },
+            { label: 'NIF',          value: inviterCompany?.nif || '—' },
+            { label: 'Correo',       value: inviterCompany?.email || '—' },
+            { label: 'Teléfono',     value: inviterCompany?.telefono || '—' },
+          ],
+        },
+      ];
+
+      return (
+        <div className="space-y-3 mb-10">
+          {invSections.map((section) => {
+            const isExp = invConfirmOpen.includes(section.id);
+            return (
+              <div key={section.id} className="border border-border rounded-xl bg-white overflow-hidden">
+                <button
+                  onClick={() => toggleInvConfirm(section.id)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5" style={{ color: RED }} />
+                    <span className="font-semibold text-text-1 text-sm">{section.title}</span>
+                  </div>
+                  {isExp ? <ChevronUp className="w-5 h-5 text-text-4" /> : <ChevronDown className="w-5 h-5 text-text-4" />}
+                </button>
+                {isExp && (
+                  <div className="border-t border-border p-4 bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {section.items.map((item, i) => (
+                        <div key={i}>
+                          <p className="text-xs text-text-4 mb-1">{item.label}</p>
+                          <p className="text-sm font-medium text-text-1">{item.value || '—'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
+            <AlertCircle className="w-4 h-4 text-yellow-text mt-0.5 shrink-0" />
+            <p className="text-[13px] text-text-3">Las condiciones definitivas las establecerá <strong>Bonafide</strong> tras el análisis de riesgo. Ambas partes deberán aceptarlas.</p>
           </div>
-        </div>
 
-        <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
-          <AlertCircle className="w-4 h-4 text-yellow-text mt-0.5 shrink-0" />
-          <p className="text-sm text-text-3">Las condiciones definitivas (tasa, comisiones, monto y plazo aprobados) las establecerá <strong>Bonafide</strong> tras el análisis de riesgo. Ambas partes deberán aceptarlas.</p>
-        </div>
-
-        <div>
-          <p className="font-semibold text-text-1 mb-4">¿Deseas participar en esta operación?</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <BtnPrimary onClick={() => setPhase('sent')} className="sm:flex-1 justify-center">
-              <Check className="w-4 h-4" /> Aceptar solicitud
+          <div className="pt-2">
+            <BtnPrimary onClick={() => { setSentFromInv(true); setPhase('sent'); }}>
+              <Send className="w-4 h-4" /> Enviar confirmación a Bonafide
             </BtnPrimary>
-            <BtnSecondary onClick={() => setPhase('sent')} disabled={false}>
-              <X className="w-4 h-4" /> Rechazar solicitud
-            </BtnSecondary>
           </div>
         </div>
-
-        <NavRow onBack={() => setPhase('operation')} hideNext />
-      </div>
-    ),
+      );
+    })(),
   };
 
   // ── TOPBAR ─────────────────────────────────────────────────────────────────
-  const showStepper = step >= 0 && !['who_initiates', 'sent', 'inv_p_landing', 'inv_c_landing', 'inv_final'].includes(phase);
+  const showStepper = step >= 0 && !['who_initiates', 'sent', 'inv_p_landing', 'inv_c_landing', 'inv_final', 'is_client'].includes(phase);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
