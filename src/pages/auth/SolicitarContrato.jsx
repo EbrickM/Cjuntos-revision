@@ -539,31 +539,35 @@ export default function SolicitarContrato() {
         <div className="space-y-8 mb-10">
           <div>
             <SectionLabel>Tipo de operación</SectionLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <ChoiceBtn selected={operation.tipo === 'factoring'} onClick={() => setOperation(p => ({ ...p, tipo: 'factoring' }))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <ChoiceBtnH selected={operation.tipo === 'factoring'} onClick={() => setOperation(p => ({ ...p, tipo: 'factoring' }))}
                 Icon={FileText} title="Factoring"
-                desc="Anticipo del cobro de facturas pendientes cediendo el crédito comercial a Bonafide."
-                tags={isCont ? ['Empresa Contratante → PYME', 'Una PYME'] : ['Anticipo de facturas', 'Liquidez inmediata']}
               />
               {isCont && (
-                <ChoiceBtn selected={operation.tipo === 'factoring_inverso'} onClick={() => setOperation(p => ({ ...p, tipo: 'factoring_inverso' }))}
+                <ChoiceBtnH selected={operation.tipo === 'factoring_inverso'} onClick={() => setOperation(p => ({ ...p, tipo: 'factoring_inverso' }))}
                   Icon={DollarSign} title="Factoring Inverso"
-                  desc="Defines un fondo de participación y designas las PYMEs proveedoras que acceden a financiación."
-                  tags={['Fondo de participación', 'Múltiples PYMEs']}
                 />
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Field label="Monto solicitado" required hint="Propuesta del solicitante — monto definitivo lo aprueba Bonafide">
+            <Field label="Monto solicitado" required>
               <div className="relative">
-                <input className={iCls + ' pr-14'} type="number" value={operation.monto}
-                  onChange={e => setOperation(p => ({ ...p, monto: e.target.value }))} placeholder="0" />
+                <input
+                  className={iCls + ' pr-14'}
+                  inputMode="numeric"
+                  value={operation.monto ? operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''}
+                  onChange={e => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setOperation(p => ({ ...p, monto: digits }));
+                  }}
+                  placeholder="0"
+                />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-4">XAF</span>
               </div>
             </Field>
-            <Field label="Plazo solicitado" required hint="Plazo orientativo — el plazo definitivo lo determina Bonafide">
+            <Field label="Plazo solicitado" required>
               <select className={sCls} value={operation.plazo} onChange={e => setOperation(p => ({ ...p, plazo: e.target.value }))}>
                 <option value="30">30 días</option>
                 <option value="60">60 días</option>
