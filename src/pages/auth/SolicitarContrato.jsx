@@ -1295,7 +1295,7 @@ export default function SolicitarContrato() {
             <p className="text-[13px] text-text-3">Las condiciones definitivas las establecerá <strong>Bonafide</strong> tras el análisis de riesgo. Ambas partes deberán aceptarlas.</p>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex justify-end">
             <BtnPrimary onClick={() => { setSentFromInv(true); setPhase('sent'); }}>
               <Send className="w-4 h-4" /> Enviar confirmación a Bonafide
             </BtnPrimary>
