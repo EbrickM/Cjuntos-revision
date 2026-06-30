@@ -257,8 +257,9 @@ export default function SolicitarContrato() {
   const [nifSearched, setNifSearched] = useState(false);
   const [contactData, setContactData] = useState({ nombre: '', cargo: '', email: '', telefono: '' });
   const [regData, setRegData] = useState({
-    razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '',
-    email: '', telefono: '', pais: 'Guinea Ecuatorial', provincia: '', ciudad: '', direccion: '', cp: '',
+    razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '', numEmpleados: '',
+    email: '', telefono: '', web: '',
+    pais: 'Guinea Ecuatorial', provincia: '', municipio: '', barrio: '', direccion: '', cp: 'GQ-240',
   });
 
   // ── Operation state ─────────────────────────────────────────────────────────
@@ -451,14 +452,14 @@ export default function SolicitarContrato() {
           <div>
             <SectionLabel>Datos de la empresa</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Field label="Razón social" required className="md:col-span-2">
+              <Field label="Razón social" required>
                 <input className={iCls} value={regData.razonSocial} onChange={e => setRegData(p => ({ ...p, razonSocial: e.target.value }))} placeholder="Nombre legal de la empresa" />
-              </Field>
-              <Field label="NIF / RUC" required>
-                <input className={iCls + ' uppercase'} value={regData.nif} onChange={e => setRegData(p => ({ ...p, nif: e.target.value }))} placeholder="GQ-2024-00234" />
               </Field>
               <Field label="Nombre comercial">
                 <input className={iCls} value={regData.nombreComercial} onChange={e => setRegData(p => ({ ...p, nombreComercial: e.target.value }))} placeholder="Nombre con el que opera" />
+              </Field>
+              <Field label="NIF / RUC" required>
+                <input className={iCls + ' uppercase'} value={regData.nif} onChange={e => setRegData(p => ({ ...p, nif: e.target.value }))} placeholder="GQ-2024-00234" />
               </Field>
               <Field label="Fecha de constitución" required>
                 <input className={iCls} type="date" value={regData.fechaConst} onChange={e => setRegData(p => ({ ...p, fechaConst: e.target.value }))} />
@@ -474,28 +475,34 @@ export default function SolicitarContrato() {
                   <option>ONG</option>
                 </select>
               </Field>
+              <Field label="Número de empleados">
+                <input className={iCls} type="number" min="1" value={regData.numEmpleados} onChange={e => setRegData(p => ({ ...p, numEmpleados: e.target.value }))} placeholder="Ej. 25" />
+              </Field>
             </div>
           </div>
 
           <div>
             <SectionLabel>Datos de contacto</SectionLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Field label="Correo electrónico corporativo" required>
-                <input className={iCls} type="email" value={regData.email} onChange={e => setRegData(p => ({ ...p, email: e.target.value }))} placeholder="contacto@empresa.com" />
+                <input className={iCls} type="email" value={regData.email} onChange={e => setRegData(p => ({ ...p, email: e.target.value }))} placeholder="contacto@empresa.gq" />
               </Field>
               <Field label="Teléfono corporativo" required>
                 <input className={iCls} type="tel" value={regData.telefono} onChange={e => setRegData(p => ({ ...p, telefono: e.target.value }))} placeholder="+240 222 000 000" />
+              </Field>
+              <Field label="Página web">
+                <input className={iCls} type="url" value={regData.web} onChange={e => setRegData(p => ({ ...p, web: e.target.value }))} placeholder="www.empresa.gq" />
               </Field>
             </div>
           </div>
 
           <div>
-            <SectionLabel>Dirección</SectionLabel>
+            <SectionLabel>Dirección fiscal</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Field label="País" required>
                 <input className={iCls} value={regData.pais} onChange={e => setRegData(p => ({ ...p, pais: e.target.value }))} />
               </Field>
-              <Field label="Provincia / Región" required>
+              <Field label="Provincia" required>
                 <select className={sCls} value={regData.provincia} onChange={e => setRegData(p => ({ ...p, provincia: e.target.value }))}>
                   <option value="">Seleccionar...</option>
                   <option>Bioko Norte</option><option>Bioko Sur</option>
@@ -503,14 +510,17 @@ export default function SolicitarContrato() {
                   <option>Kié-Ntem</option><option>Litoral</option><option>Wele-Nzas</option>
                 </select>
               </Field>
-              <Field label="Ciudad" required>
-                <input className={iCls} value={regData.ciudad} onChange={e => setRegData(p => ({ ...p, ciudad: e.target.value }))} placeholder="Ej. Malabo" />
+              <Field label="Municipio" required>
+                <input className={iCls} value={regData.municipio} onChange={e => setRegData(p => ({ ...p, municipio: e.target.value }))} placeholder="Ej. Malabo" />
               </Field>
-              <Field label="Dirección completa" required className="md:col-span-2">
+              <Field label="Barrio">
+                <input className={iCls} value={regData.barrio} onChange={e => setRegData(p => ({ ...p, barrio: e.target.value }))} placeholder="Ej. Santa Isabel" />
+              </Field>
+              <Field label="Dirección fiscal" required>
                 <input className={iCls} value={regData.direccion} onChange={e => setRegData(p => ({ ...p, direccion: e.target.value }))} placeholder="Calle, número, edificio..." />
               </Field>
               <Field label="Código postal">
-                <input className={iCls} value={regData.cp} onChange={e => setRegData(p => ({ ...p, cp: e.target.value }))} placeholder="Ej. 240" />
+                <input className={iCls} value={regData.cp} onChange={e => setRegData(p => ({ ...p, cp: e.target.value }))} placeholder="Ej. GQ-240" />
               </Field>
             </div>
           </div>
@@ -518,7 +528,7 @@ export default function SolicitarContrato() {
         <NavRow
           onBack={() => isClient ? setPhase('nif_search') : setPhase('who_initiates')}
           onNext={() => setPhase('contact')}
-          nextDisabled={!regData.razonSocial || !regData.nif}
+          nextDisabled={false}
         />
       </>
     ),
@@ -545,7 +555,7 @@ export default function SolicitarContrato() {
         <NavRow
           onBack={() => setPhase(isClient ? 'nif_search' : 'register')}
           onNext={() => setPhase(returnPhase)}
-          nextDisabled={!contactData.nombre || !contactData.email}
+          nextDisabled={false}
         />
       </>
     ),
@@ -606,7 +616,7 @@ export default function SolicitarContrato() {
         <NavRow
           onBack={() => setPhase('contact')}
           onNext={() => setPhase('select_parties')}
-          nextDisabled={!operation.tipo || !operation.monto}
+          nextDisabled={false}
         />
       </>
     ),
@@ -672,7 +682,7 @@ export default function SolicitarContrato() {
             <NavRow
               onBack={() => setPhase('operation')}
               onNext={() => setPhase('confirmation')}
-              nextDisabled={!pymeSearched}
+              nextDisabled={false}
             />
           </>
         )}
@@ -781,7 +791,7 @@ export default function SolicitarContrato() {
             <NavRow
               onBack={() => setPhase('operation')}
               onNext={() => setPhase('confirmation')}
-              nextDisabled={!contSearched || contFound !== 'found'}
+              nextDisabled={false}
             />
           </>
         )}
