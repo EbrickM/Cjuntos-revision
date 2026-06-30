@@ -309,7 +309,7 @@ export default function SolicitarContrato() {
   });
 
   // ── Operation state ─────────────────────────────────────────────────────────
-  const [operation, setOperation] = useState({ tipo: '', monto: '', plazo: '30', observaciones: '' });
+  const [operation, setOperation] = useState({ tipo: 'factoring', monto: '', plazo: '30', observaciones: '' });
 
   // ── Party selection state ───────────────────────────────────────────────────
   const [pymeData, setPymeData] = useState({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', contrato: '' });
@@ -619,14 +619,16 @@ export default function SolicitarContrato() {
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-4">XAF</span>
               </div>
             </Field>
-            <Field label="Plazo solicitado" required>
-              <select className={sCls} value={operation.plazo} onChange={e => setOperation(p => ({ ...p, plazo: e.target.value }))}>
-                <option value="30">30 días</option>
-                <option value="60">60 días</option>
-                <option value="90">90 días</option>
-                <option value="120">120 días</option>
-              </select>
-            </Field>
+            {operation.tipo !== 'factoring_inverso' && (
+              <Field label="Plazo solicitado" required>
+                <select className={sCls} value={operation.plazo} onChange={e => setOperation(p => ({ ...p, plazo: e.target.value }))}>
+                  <option value="30">30 días</option>
+                  <option value="60">60 días</option>
+                  <option value="90">90 días</option>
+                  <option value="120">120 días</option>
+                </select>
+              </Field>
+            )}
           </div>
 
           <Field label="Observaciones">
@@ -638,7 +640,7 @@ export default function SolicitarContrato() {
           <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
             <AlertCircle className="w-4 h-4 text-yellow-text shrink-0 mt-0.5" />
             <p className="text-sm text-text-3">
-              <strong className="text-text-1">Nota importante:</strong> El monto y el plazo indicados son únicamente una <strong>propuesta del solicitante</strong>. Las <strong>condiciones definitivas</strong> (monto aprobado, plazo, tasa de interés y comisiones) las establece Bonafide tras el análisis de riesgo.
+              <strong className="text-text-1">Nota importante:</strong> El monto indicado es únicamente una <strong>propuesta del solicitante</strong>. Las <strong>condiciones definitivas</strong> (monto aprobado{operation.tipo !== 'factoring_inverso' ? ', plazo' : ''}, tasa de interés y comisiones) las establece Bonafide tras el análisis de riesgo.
             </p>
           </div>
         </div>
@@ -802,23 +804,45 @@ export default function SolicitarContrato() {
         ? `${pymesInverso.length} PYME${pymesInverso.length > 1 ? 's' : ''} beneficiaria${pymesInverso.length > 1 ? 's' : ''}`
         : isCont ? 'PYME beneficiaria' : 'Empresa Contratante';
 
+      const empresaItems = foundCompany ? [
+        { label: 'Razón social',          value: foundCompany.razonSocial },
+        { label: 'NIF',                   value: foundCompany.nif },
+        { label: 'Forma jurídica',        value: foundCompany.formaJuridica },
+        { label: 'País',                  value: foundCompany.pais },
+        { label: 'Correo electrónico',    value: foundCompany.email },
+        { label: 'Teléfono',              value: foundCompany.telefono },
+        { label: 'Última actualización',  value: foundCompany.ultimaAct },
+      ] : [
+        { label: 'Razón social',          value: regData.razonSocial },
+        { label: 'Nombre comercial',      value: regData.nombreComercial },
+        { label: 'NIF',                   value: regData.nif },
+        { label: 'Fecha de constitución', value: regData.fechaConst },
+        { label: 'Forma jurídica',        value: regData.formaJuridica },
+        { label: 'Número de empleados',   value: regData.numEmpleados },
+        { label: 'Correo electrónico',    value: regData.email },
+        { label: 'Teléfono',              value: regData.telefono },
+        { label: 'Página web',            value: regData.web },
+        { label: 'País',                  value: regData.pais },
+        { label: 'Provincia',             value: regData.provincia },
+        { label: 'Municipio',             value: regData.municipio },
+        { label: 'Barrio',                value: regData.barrio },
+        { label: 'Dirección fiscal',      value: regData.direccion },
+        { label: 'Código postal',         value: regData.cp },
+      ];
+
       const sections = [
         {
           id: 'empresa',
-          title: 'Empresa solicitante',
-          items: [
-            { label: 'Razón social', value: solicitante },
-            { label: 'NIF', value: foundCompany?.nif || regData.nif || '—' },
-            { label: 'Rol en la operación', value: isCont ? 'Empresa Contratante' : 'PYME' },
-          ],
+          title: isCont ? 'Empresa Contratante' : 'PYME',
+          items: empresaItems,
         },
         {
           id: 'operacion',
           title: 'Operación',
           items: [
             { label: 'Tipo de operación', value: operation.tipo === 'factoring' ? 'Factoring' : 'Factoring Inverso' },
-            { label: 'Monto propuesto', value: montoFmt },
-            { label: 'Plazo propuesto', value: operation.plazo ? `${operation.plazo} días` : '—' },
+            { label: 'Monto propuesto',   value: montoFmt },
+            ...(operation.tipo === 'factoring' ? [{ label: 'Plazo propuesto', value: operation.plazo ? `${operation.plazo} días` : '—' }] : []),
             ...(operation.observaciones ? [{ label: 'Observaciones', value: operation.observaciones }] : []),
           ],
         },
@@ -883,9 +907,11 @@ export default function SolicitarContrato() {
                   {isCont && operation.tipo === 'factoring' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {[
-                        { label: 'NIF', value: pymeData.nif || '—' },
+                        { label: 'Razón social',       value: pymeData.razonSocial || '—' },
+                        { label: 'Nombre comercial',   value: pymeData.nombreComercial || '—' },
+                        { label: 'NIF',                value: pymeData.nif || '—' },
                         { label: 'Correo electrónico', value: pymeData.email || '—' },
-                        { label: 'Teléfono', value: pymeData.tel || '—' },
+                        { label: 'Teléfono',           value: pymeData.tel || '—' },
                         { label: 'Estado en Bonafide', value: pymeFound === 'found' ? 'Cliente Bonafide' : 'Pendiente vinculación' },
                       ].map((it, i) => (
                         <div key={i}>
@@ -906,10 +932,12 @@ export default function SolicitarContrato() {
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
-                              { label: 'NIF', value: p.nif || '—' },
-                              { label: 'Correo', value: p.email || '—' },
-                              { label: 'Teléfono', value: p.tel || '—' },
-                              { label: 'Monto asignado', value: p.monto ? `XAF ${p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}` : '—' },
+                              { label: 'Razón social',     value: p.razonSocial || '—' },
+                              { label: 'Nombre comercial', value: p.nombreComercial || '—' },
+                              { label: 'NIF',              value: p.nif || '—' },
+                              { label: 'Correo electrónico', value: p.email || '—' },
+                              { label: 'Teléfono',         value: p.tel || '—' },
+                              { label: 'Monto asignado',   value: p.monto ? `XAF ${p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}` : '—' },
                             ].map((it, j) => (
                               <div key={j}>
                                 <p className="text-xs text-text-4 mb-1">{it.label}</p>
