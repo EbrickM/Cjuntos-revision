@@ -1,11 +1,11 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useRef } from 'react';
 import { useApp } from '../../state/AppContext';
 import logo from '../../assets/logo-color.webp';
 import {
   ChevronRight, ChevronLeft, Search, X, Check,
   Building2, User, FileText, DollarSign, Clock,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, MapPin, Send, LogOut,
+  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle2,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -228,6 +228,52 @@ function ChoiceBtnH({ selected, onClick, Icon, title }) {
   );
 }
 
+// ── Contract upload ───────────────────────────────────────────────────────────
+function ContractUpload({ label = 'Subir contrato', hint = 'PDF, DOC · máx 10 MB' }) {
+  const inputRef = useRef(null);
+  const [file, setFile] = useState(null);
+  const handleFile = (f) => { if (f) setFile(f); };
+  return (
+    <>
+      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" className="hidden"
+        onChange={e => handleFile(e.target.files[0])} />
+      <div
+        onClick={() => inputRef.current?.click()}
+        className={`border-2 rounded-[12px] p-5 text-center cursor-pointer transition-all
+          ${file
+            ? 'border-solid border-green-border bg-green-bg'
+            : 'border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint'
+          }`}
+      >
+        {file ? (
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-green-text shrink-0" />
+            <div className="text-left min-w-0 flex-1">
+              <div className="text-[13px] font-semibold text-green-text truncate">{file.name}</div>
+              <div className="text-[11px] text-text-4">
+                {(file.size / 1024 / 1024).toFixed(2)} MB ·{' '}
+                <span className="underline cursor-pointer" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}>Cambiar</span>
+              </div>
+            </div>
+            <button
+              onClick={e => { e.stopPropagation(); setFile(null); if (inputRef.current) inputRef.current.value = ''; }}
+              className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-text-4 hover:bg-red-100 hover:text-red-500 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <FileText className="w-7 h-7 text-text-4 mx-auto mb-2" />
+            <div className="text-[13px] font-semibold text-text-1 mb-1">{label}</div>
+            <div className="text-[11px] text-text-4">{hint}</div>
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 // ── Summary box (reusable) ────────────────────────────────────────────────────
 function SummaryBox({ label, value, highlight = false }) {
   return (
@@ -270,7 +316,7 @@ export default function SolicitarContrato() {
   const [pymeSearched, setPymeSearched] = useState(false);
   const [pymeFound, setPymeFound] = useState(null);   // null | 'found' | 'not_found'
 
-  const [pymesInverso, setPymesInverso] = useState([{ nif: '', email: '', tel: '', contrato: '', monto: '' }]);
+  const [pymesInverso, setPymesInverso] = useState([{ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }]);
 
   const [contData, setContData] = useState({ nif: '', email: '', tel: '', contrato: '' });
   const [contSearched, setContSearched] = useState(false);
@@ -621,40 +667,11 @@ export default function SolicitarContrato() {
                 <Field label="Teléfono" required>
                   <input className={iCls} type="tel" value={pymeData.tel} onChange={e => setPymeData(p => ({ ...p, tel: e.target.value }))} placeholder="+240 222 000 000" />
                 </Field>
-                <Field label="Nº contrato con esta PYME" required className="md:col-span-3">
-                  <input className={iCls} value={pymeData.contrato} onChange={e => setPymeData(p => ({ ...p, contrato: e.target.value }))} placeholder="Ej. CTR-2026-001" />
+                <Field label="Contrato con esta PYME" required className="md:col-span-3">
+                  <ContractUpload />
                 </Field>
               </div>
 
-              <button onClick={mockPymeVerify} disabled={!pymeData.nif || !pymeData.email}
-                className="h-11 px-6 flex items-center gap-2 text-white text-sm font-semibold rounded-xl disabled:opacity-40 cursor-pointer"
-                style={{ background: GRAD }}>
-                <Search className="w-4 h-4" /> Verificar empresa
-              </button>
-
-              {pymeSearched && pymeFound === 'found' && (
-                <div className="rounded-xl border border-green-border bg-green-bg p-5">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-text shrink-0" />
-                    <div>
-                      <div className="font-semibold text-green-text">Empresa verificada en Bonafide</div>
-                      <div className="text-sm text-text-3 mt-0.5">
-                        <span className="font-semibold text-text-1">{pymeData.razonSocial || 'Empresa PYME'}</span> · Estado: <span className="text-green-text font-medium">Cliente activo</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {pymeSearched && pymeFound === 'not_found' && (
-                <div className="rounded-xl border border-blue-text/20 bg-blue-bg p-5 flex items-start gap-3">
-                  <Bell className="w-5 h-5 text-blue-text shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-semibold text-text-1 mb-1">La empresa no está registrada en Bonafide</div>
-                    <p className="text-sm text-text-3">Se enviará una <strong>invitación</strong> al correo <strong>{pymeData.email}</strong> para que la PYME complete su vinculación con Bonafide y pueda participar en esta operación.</p>
-                  </div>
-                </div>
-              )}
             </div>
             <NavRow
               onBack={() => setPhase('operation')}
@@ -680,10 +697,32 @@ export default function SolicitarContrato() {
                     )}
                   </div>
                   <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Field label="Razón social">
+                      <input className={iCls} value={p.razonSocial}
+                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, razonSocial: e.target.value } : x))}
+                        placeholder="Nombre legal de la PYME" />
+                    </Field>
+                    <Field label="Nombre comercial">
+                      <input className={iCls} value={p.nombreComercial}
+                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, nombreComercial: e.target.value } : x))}
+                        placeholder="Nombre comercial" />
+                    </Field>
                     <Field label="NIF / RUC" required>
                       <input className={iCls + ' uppercase'} value={p.nif}
                         onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, nif: e.target.value } : x))}
                         placeholder="GQ-2024-00XXX" />
+                    </Field>
+                    <Field label="Monto a asignar" required>
+                      <div className="relative">
+                        <input className={iCls + ' pr-14'} inputMode="numeric"
+                          value={p.monto ? p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''}
+                          onChange={e => {
+                            const digits = e.target.value.replace(/\D/g, '');
+                            setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, monto: digits } : x));
+                          }}
+                          placeholder="0" />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-4">XAF</span>
+                      </div>
                     </Field>
                     <Field label="Correo electrónico" required>
                       <input className={iCls} type="email" value={p.email}
@@ -695,20 +734,13 @@ export default function SolicitarContrato() {
                         onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, tel: e.target.value } : x))}
                         placeholder="+240 222 000 000" />
                     </Field>
-                    <Field label="Nº de contrato" required>
-                      <input className={iCls} value={p.contrato}
-                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, contrato: e.target.value } : x))}
-                        placeholder="CTR-2026-00X" />
-                    </Field>
-                    <Field label="Monto asignado (XAF)" required>
-                      <input className={iCls} type="number" value={p.monto}
-                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, monto: e.target.value } : x))}
-                        placeholder="0" />
+                    <Field label="Contrato con esta PYME" required className="md:col-span-3">
+                      <ContractUpload />
                     </Field>
                   </div>
                 </div>
               ))}
-              <button onClick={() => setPymesInverso(p => [...p, { nif: '', email: '', tel: '', contrato: '', monto: '' }])}
+              <button onClick={() => setPymesInverso(p => [...p, { razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }])}
                 className="flex items-center gap-2 text-sm font-semibold cursor-pointer transition-colors hover:opacity-75"
                 style={{ color: RED }}>
                 <Plus className="w-4 h-4" /> Agregar otra PYME
@@ -738,32 +770,10 @@ export default function SolicitarContrato() {
                     onChange={e => setContData(p => ({ ...p, tel: e.target.value }))}
                     placeholder="+240 222 000 000" />
                 </Field>
-                <Field label="Nº contrato con la Empresa Contratante" required>
-                  <input className={iCls} value={contData.contrato}
-                    onChange={e => setContData(p => ({ ...p, contrato: e.target.value }))}
-                    placeholder="Ej. CTR-2026-001" />
+                <Field label="Contrato con la Empresa Contratante" required>
+                  <ContractUpload />
                 </Field>
               </div>
-              <button onClick={mockContVerify} disabled={!contData.nif || !contData.email}
-                className="h-11 px-6 flex items-center gap-2 text-white text-sm font-semibold rounded-xl disabled:opacity-40 cursor-pointer"
-                style={{ background: GRAD }}>
-                <Search className="w-4 h-4" /> Verificar empresa
-              </button>
-
-              {contSearched && contFound === 'found' && (
-                <div className="rounded-xl border border-green-border bg-green-bg p-5">
-                  <div className="flex items-center gap-3">
-                    <Check className="w-5 h-5 text-green-text shrink-0" />
-                    <div>
-                      <div className="font-semibold text-green-text">Empresa contratante verificada</div>
-                      <div className="text-sm text-text-3 mt-0.5">NIF <strong>{contData.nif}</strong> · Estado: <span className="text-green-text font-medium">Cliente activo</span></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {contSearched && contFound === 'not_found' && (
-                <NotFoundCard message="No encontramos esta empresa en Bonafide. Verifica el NIF o el correo e inténtalo de nuevo." />
-              )}
             </div>
             <NavRow
               onBack={() => setPhase('operation')}
