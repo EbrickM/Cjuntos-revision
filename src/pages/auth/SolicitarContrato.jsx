@@ -887,7 +887,7 @@ export default function SolicitarContrato() {
     confirmation: (() => {
       const solicitante = foundCompany?.razonSocial || regData.razonSocial || '—';
       const montoFmt = operation.monto
-        ? `XAF ${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
         : '—';
 
       const contraparteTitle = isCont && operation.tipo === 'factoring_inverso'
@@ -1027,7 +1027,7 @@ export default function SolicitarContrato() {
                               { label: 'NIF',              value: p.nif || '—' },
                               { label: 'Correo electrónico', value: p.email || '—' },
                               { label: 'Teléfono',         value: p.tel || '—' },
-                              { label: 'Monto asignado',   value: p.monto ? `XAF ${p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}` : '—' },
+                              { label: 'Monto asignado',   value: p.monto ? `${p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF` : '—' },
                             ].map((it, j) => (
                               <div key={j}>
                                 <p className="text-xs text-text-4 mb-1">{it.label}</p>
@@ -1164,7 +1164,7 @@ export default function SolicitarContrato() {
             {[
               ['Empresa Contratante', foundCompany?.razonSocial || 'TotalEnerGE S.A.'],
               ['Tipo de operación',   operation.tipo === 'factoring_inverso' ? 'Factoring Inverso' : 'Factoring'],
-              ['Monto propuesto',     operation.monto ? `XAF ${Number(operation.monto).toLocaleString()}` : 'XAF 25,000,000'],
+              ['Monto propuesto',     operation.monto ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF` : '25 000 000 XAF'],
               ['Plazo propuesto',     `${operation.plazo || 60} días`],
               ['Contrato asociado',   pymeData.contrato || 'CTR-2026-001'],
               ['Fecha de solicitud',  new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })],
@@ -1190,46 +1190,83 @@ export default function SolicitarContrato() {
     ),
 
     /* ── INVITATION LANDING (Contratante receives from PYME) ───────────────── */
-    inv_c_landing: (
-      <div className="space-y-6">
-        <div className="rounded-2xl border border-border overflow-hidden">
-          <div className="p-6 lg:p-8 bg-gray-50 border-b border-border">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: GRAD }}>
-                <User className="w-5 h-5 text-white" />
-              </div>
+    inv_c_landing: (() => {
+      const pyme       = foundCompany?.razonSocial || regData.razonSocial || 'Construcciones Silva S.R.L.';
+      const pymeNif    = foundCompany?.nif || regData.nif || 'GQ-2021-00234';
+      const initials   = pyme.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+      const montoFmt   = operation.monto
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
+        : '8 500 000 XAF';
+      const fechaHoy   = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      return (
+        <div className="space-y-4">
+
+          {/* Tarjeta principal */}
+          <div className="rounded-2xl border border-border bg-white overflow-hidden" style={{ boxShadow: SHADOW }}>
+
+            {/* Franja de marca */}
+            <div className="h-1.5" style={{ background: GRAD }} />
+
+            {/* Cabecera: tipo de solicitud + referencia */}
+            <div className="px-6 pt-5 pb-4 border-b border-border flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs text-text-4">Solicitud de</p>
-                <p className="font-bold text-text-1">{foundCompany?.razonSocial || 'Construcciones Silva S.R.L.'}</p>
+                <p className="text-[11px] font-semibold text-text-4 uppercase tracking-wider mb-1">Solicitud de operación financiera</p>
+                <h2 className="text-[20px] font-bold text-text-1">Factoring</h2>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-mono text-[12px] font-bold text-text-1">SOL-2026-{refNumber}</div>
+                <div className="text-[11px] text-text-4 mt-0.5">{fechaHoy}</div>
               </div>
             </div>
-            <p className="text-sm text-text-3 mt-2">
-              La PYME <strong className="text-text-1">{foundCompany?.razonSocial || 'Construcciones Silva S.R.L.'}</strong> desea realizar una operación de factoring con tu empresa como empresa contratante.
+
+            {/* Empresa solicitante */}
+            <div className="px-6 py-4 border-b border-border bg-page-bg">
+              <p className="text-[11px] text-text-4 uppercase tracking-wider mb-3">Solicitante</p>
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
+                  style={{ background: GRAD }}>
+                  {initials}
+                </div>
+                <div>
+                  <p className="font-bold text-text-1 text-[15px]">{pyme}</p>
+                  <p className="text-[12px] text-text-4 font-mono mt-0.5">{pymeNif}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Detalles de la operación */}
+            <div className="px-6 py-4">
+              <p className="text-[11px] text-text-4 uppercase tracking-wider mb-3">Detalles de la operación</p>
+              {[
+                { label: 'Monto propuesto',    value: montoFmt },
+                { label: 'Plazo propuesto',    value: `${operation.plazo || 30} días` },
+                { label: 'Fecha de solicitud', value: fechaHoy },
+              ].map(({ label, value }, i, arr) => (
+                <div key={label} className={`flex items-center justify-between py-2.5 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}>
+                  <span className="text-[13px] text-text-4">{label}</span>
+                  <span className="text-[13px] font-semibold text-text-1">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Aviso */}
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
+            <AlertCircle className="w-4 h-4 text-yellow-text mt-0.5 shrink-0" />
+            <p className="text-[13px] text-text-3">
+              El monto y plazo son una propuesta. Las <strong>condiciones definitivas</strong> las establecerá Bonafide tras el análisis de riesgo.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y divide-border">
-            {[
-              ['PYME solicitante',    foundCompany?.razonSocial || 'Construcciones Silva S.R.L.'],
-              ['Tipo de operación',   'Factoring'],
-              ['Monto propuesto',     operation.monto ? `XAF ${Number(operation.monto).toLocaleString()}` : 'XAF 8,500,000'],
-              ['Plazo propuesto',     `${operation.plazo || 30} días`],
-              ['Contrato asociado',   contData.contrato || 'CTR-2026-004'],
-              ['Fecha de solicitud',  new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })],
-            ].map(([k, v]) => (
-              <div key={k} className="p-4">
-                <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
-                <div className="font-semibold text-text-1 text-sm">{v}</div>
-              </div>
-            ))}
+
+          {/* CTAs */}
+          <div className="flex gap-3 pt-1">
+            <BtnPrimary onClick={() => startInvFlow('contratante')}>Continuar <ChevronRight className="w-4 h-4" /></BtnPrimary>
+            <BtnSecondary onClick={() => setPhase('sent')}><X className="w-4 h-4" /> Rechazar</BtnSecondary>
           </div>
         </div>
-
-        <div className="flex gap-3 pt-2">
-          <BtnPrimary onClick={() => startInvFlow('contratante')}>Continuar <ChevronRight className="w-4 h-4" /></BtnPrimary>
-          <BtnSecondary onClick={() => setPhase('sent')}><X className="w-4 h-4" /> Rechazar</BtnSecondary>
-        </div>
-      </div>
-    ),
+      );
+    })(),
 
     /* ── INVITATION FINAL (both parties) ───────────────────────────────────── */
     inv_final: (
@@ -1240,7 +1277,7 @@ export default function SolicitarContrato() {
             <SummaryBox label="Empresa Contratante" value={isCont ? (foundCompany?.razonSocial ?? regData.razonSocial) : 'TotalEnerGE S.A.'} />
             <SummaryBox label="PYME" value={isCont ? (pymeData.razonSocial || pymeData.nif || '—') : (foundCompany?.razonSocial ?? regData.razonSocial)} />
             <SummaryBox label="Tipo" value={operation.tipo === 'factoring_inverso' ? 'Factoring Inverso' : 'Factoring'} highlight />
-            <SummaryBox label="Monto propuesto" value={operation.monto ? `XAF ${Number(operation.monto).toLocaleString()}` : 'XAF 25,000,000'} />
+            <SummaryBox label="Monto propuesto" value={operation.monto ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF` : '25 000 000 XAF'} />
             <SummaryBox label="Plazo propuesto" value={`${operation.plazo || 60} días`} />
             <SummaryBox label="Referencia" value={`SOL-2026-${refNumber}`} />
           </div>
