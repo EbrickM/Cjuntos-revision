@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo-color.webp';
 import { CreditCard, BarChart3, Users, History, ArrowRight, Shield, Lock } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';

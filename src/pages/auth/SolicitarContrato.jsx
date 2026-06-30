@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { useApp } from '../../state/AppContext';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo-color.webp';
 import {
   ChevronRight, ChevronLeft, Search, X, Check,
   Building2, User, FileText, DollarSign, Clock,

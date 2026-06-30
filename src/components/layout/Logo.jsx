@@ -1,4 +1,4 @@
-import bonafideLogo from '../../assets/logo.png';
+import bonafideLogo from '../../assets/logo-color.webp';
 
 export default function Logo() {
   return (
