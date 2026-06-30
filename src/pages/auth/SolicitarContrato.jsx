@@ -121,12 +121,14 @@ function CompanyCard({ company, onConfirm, onReject, confirmLabel = 'Sí, contin
         </div>
       </div>
       {/* Datos */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-border bg-white">
+      <div className="grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-border bg-white">
         {[
-          ['Estado KYC',            company.estadoKyc  ?? 'Vigente'],
-          ['Última actualización',  company.ultimaAct  ?? 'Dic. 2025'],
-          ['País',                  company.pais       ?? 'Guinea Ecuatorial'],
+          ['Forma jurídica',        company.formaJuridica ?? 'S.A.'],
+          ['País',                  company.pais          ?? 'Guinea Ecuatorial'],
           ['NIF',                   company.nif],
+          ['Correo electrónico',    company.email         ?? 'contacto@empresa.gq'],
+          ['Teléfono',              company.telefono      ?? '+240 222 000 000'],
+          ['Última actualización',  company.ultimaAct     ?? 'Dic. 2025'],
         ].map(([k, v]) => (
           <div key={k} className="p-4">
             <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
@@ -299,11 +301,14 @@ export default function SolicitarContrato() {
 
   const mockNifSearch = (v) => {
     setFoundCompany({
-      razonSocial: 'TotalEnerGE S.A.',
-      nif: v,
-      estadoKyc: 'KYC Vigente',
-      ultimaAct: 'Dic. 2025',
-      pais: 'Guinea Ecuatorial',
+      razonSocial:   'TotalEnerGE S.A.',
+      nif:           v,
+      estadoKyc:     'KYC Vigente',
+      formaJuridica: 'Sociedad Anónima (S.A.)',
+      ultimaAct:     'Dic. 2025',
+      pais:          'Guinea Ecuatorial',
+      email:         'contacto@totalenerge.gq',
+      telefono:      '+240 222 100 200',
     });
     setNifSearched(true);
   };
