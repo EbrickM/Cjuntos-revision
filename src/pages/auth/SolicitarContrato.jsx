@@ -434,7 +434,7 @@ export default function SolicitarContrato() {
               <BtnSecondary onClick={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}>
                 No, intentar otro NIF
               </BtnSecondary>
-              <BtnPrimary onClick={() => setPhase('contact')}>
+              <BtnPrimary onClick={() => setPhase('operation')}>
                 <Check className="w-4 h-4" /> Sí, usar estos datos
               </BtnPrimary>
             </div>
@@ -527,34 +527,7 @@ export default function SolicitarContrato() {
         </div>
         <NavRow
           onBack={() => isClient ? setPhase('nif_search') : setPhase('who_initiates')}
-          onNext={() => setPhase('contact')}
-          nextDisabled={false}
-        />
-      </>
-    ),
-
-    /* ── CONTACT ───────────────────────────────────────────────────────────── */
-    contact: (
-      <>
-        <div className="space-y-5 mb-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Field label="Nombre completo" required>
-              <input className={iCls} value={contactData.nombre} onChange={e => setContactData(p => ({ ...p, nombre: e.target.value }))} placeholder="Ej. María García" />
-            </Field>
-            <Field label="Cargo en la empresa" required>
-              <input className={iCls} value={contactData.cargo} onChange={e => setContactData(p => ({ ...p, cargo: e.target.value }))} placeholder="Ej. Director Financiero" />
-            </Field>
-            <Field label="Correo electrónico" required hint="Recibirás las notificaciones de la solicitud en este correo">
-              <input className={iCls} type="email" value={contactData.email} onChange={e => setContactData(p => ({ ...p, email: e.target.value }))} placeholder="maria.garcia@empresa.com" />
-            </Field>
-            <Field label="Teléfono de contacto" required>
-              <input className={iCls} type="tel" value={contactData.telefono} onChange={e => setContactData(p => ({ ...p, telefono: e.target.value }))} placeholder="+240 222 000 000" />
-            </Field>
-          </div>
-        </div>
-        <NavRow
-          onBack={() => setPhase(isClient ? 'nif_search' : 'register')}
-          onNext={() => setPhase(returnPhase)}
+          onNext={() => setPhase('operation')}
           nextDisabled={false}
         />
       </>
@@ -614,7 +587,7 @@ export default function SolicitarContrato() {
           </div>
         </div>
         <NavRow
-          onBack={() => setPhase('contact')}
+          onBack={() => setPhase(isClient ? 'nif_search' : 'register')}
           onNext={() => setPhase('select_parties')}
           nextDisabled={false}
         />
@@ -1060,7 +1033,7 @@ export default function SolicitarContrato() {
           </div>
         </div>
 
-        <NavRow onBack={() => setPhase('contact')} hideNext />
+        <NavRow onBack={() => setPhase('operation')} hideNext />
       </div>
     ),
   };
