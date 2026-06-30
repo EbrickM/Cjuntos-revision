@@ -5,7 +5,7 @@ import {
   ChevronRight, ChevronLeft, Search, X, Check,
   Building2, User, FileText, DollarSign, Clock,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, MapPin, Send,
+  Bell, AlertCircle, MapPin, Send, LogOut,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -229,6 +229,7 @@ export default function SolicitarContrato() {
   const [phase, setPhase] = useState('who_initiates');
   const [actor, setActor] = useState(null);       // 'contratante' | 'pyme'
   const [returnPhase, setReturnPhase] = useState('operation');
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // ── Identification state ────────────────────────────────────────────────────
   const [isClient, setIsClient] = useState(null);
@@ -303,7 +304,7 @@ export default function SolicitarContrato() {
 
   // ── Step header meta ────────────────────────────────────────────────────────
   const HEADER = {
-    who_initiates:   { Icon: FileText,    title: 'Nueva solicitud de financiación',     sub: 'Seleccione quién inicia el proceso' },
+    who_initiates:   { Icon: FileText,    title: 'Nueva Solicitud de Contrato',         sub: 'Seleccione quién inicia el proceso' },
     is_client:       { Icon: Building2,   title: 'Identificación',                      sub: `¿${isCont ? 'Tu empresa' : 'Tu empresa'} ya tiene relación comercial con Bonafide?` },
     nif_search:      { Icon: Search,      title: 'Identificación',                      sub: 'Localiza tu empresa en nuestra base de datos' },
     confirm_company: { Icon: Building2,   title: 'Confirmar empresa',                   sub: 'Verifica que los datos corresponden a tu empresa' },
@@ -335,7 +336,6 @@ export default function SolicitarContrato() {
             Icon={Building2}
             title="Empresa Contratante"
             desc="Soy una empresa contratante que desea financiar a sus PYMEs proveedoras a través de Bonafide."
-            tags={['Factoring', 'Factoring Inverso', 'Múltiples PYMEs']}
           />
           <ChoiceBtn
             selected={actor === 'pyme'}
@@ -343,7 +343,6 @@ export default function SolicitarContrato() {
             Icon={User}
             title="Empresa PYME"
             desc="Soy una PYME y deseo solicitar financiación anticipada de mis facturas con una empresa contratante."
-            tags={['Factoring', 'Anticipo de facturas']}
           />
         </div>
         <NavRow
@@ -398,30 +397,24 @@ export default function SolicitarContrato() {
           </Field>
 
           {foundCompany && (
-            <div className="rounded-xl border border-green-border bg-green-bg p-4">
-              <div className="flex items-center gap-2 text-green-text font-semibold text-sm mb-3">
-                <Check className="w-4 h-4" /> Empresa encontrada en el sistema Bonafide
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[['Razón social', foundCompany.razonSocial], ['NIF', foundCompany.nif], ['Estado KYC', foundCompany.estadoKyc], ['Última actualización', foundCompany.ultimaAct]].map(([k, v]) => (
-                  <div key={k} className="bg-white rounded-lg p-3 border border-green-border">
-                    <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
-                    <div className="font-semibold text-text-1 text-sm">{v}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CompanyCard
+              company={foundCompany}
+              onConfirm={() => setPhase('authorize')}
+              onReject={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}
+              confirmLabel="Sí, usar estos datos"
+              rejectLabel="No, es otro NIF"
+            />
           )}
 
           {nifSearched && !foundCompany && (
             <NotFoundCard message="No encontramos ninguna empresa con ese NIF en Bonafide. Prueba con otro identificador o completa el registro." />
           )}
         </div>
-        <NavRow onBack={() => setPhase('is_client')} onNext={() => setPhase('confirm_company')} nextDisabled={!foundCompany} />
+        <NavRow onBack={() => setPhase('is_client')} hideNext={!!foundCompany} onNext={() => {}} nextDisabled={!foundCompany} />
       </>
     ),
 
-    /* ── CONFIRM COMPANY ───────────────────────────────────────────────────── */
+    /* ── CONFIRM COMPANY (kept for direct navigation fallback) ─────────────── */
     confirm_company: foundCompany ? (
       <>
         <div className="space-y-4 mb-10">
@@ -1083,20 +1076,39 @@ export default function SolicitarContrato() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
-      {/* Sticky topbar */}
-      <nav className="bg-white sticky top-0 z-50" style={{ boxShadow: SHADOW }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <img src={logo} alt="Bonafide" className="h-14 w-auto object-contain" />
-            <div className="flex items-center gap-4">
-              <span className="hidden sm:block text-sm text-text-4 font-medium">Solicitar Contrato</span>
+      {/* Exit confirmation modal */}
+      {showExitModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: GRAD }}>
+              <LogOut className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-lg font-bold text-text-1 text-center mb-2">¿Abandonar el proceso?</h3>
+            <p className="text-sm text-text-3 text-center mb-6">Perderás el progreso de tu solicitud. Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
               <button onClick={() => go('login')}
-                className="flex items-center gap-1.5 text-sm text-text-3 hover:text-text-1 transition-colors cursor-pointer px-3 py-1.5 rounded-lg hover:bg-gray-100">
-                <X className="w-4 h-4" /> Salir
+                className="flex-1 h-11 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
+                style={{ background: GRAD }}>
+                <LogOut className="w-4 h-4" /> Salir
+              </button>
+              <button onClick={() => setShowExitModal(false)}
+                className="flex-1 h-11 flex items-center justify-center text-sm font-semibold rounded-xl border border-border text-text-2 hover:bg-gray-50 cursor-pointer">
+                Cancelar
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sticky topbar */}
+      <nav className="bg-white sticky top-0 z-50 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8" style={{ boxShadow: SHADOW }}>
+        <img src={logo} alt="Bonafide" className="h-14 w-auto object-contain" />
+        <button onClick={() => setShowExitModal(true)}
+          className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
+          style={{ background: GRAD, boxShadow: '0 4px 12px rgba(224,32,28,0.25)' }}
+        >
+          Salir <LogOut className="w-4 h-4" />
+        </button>
       </nav>
 
       {/* Content */}
@@ -1124,10 +1136,6 @@ export default function SolicitarContrato() {
             {content[phase] ?? null}
           </div>
 
-          <p className="text-center text-sm text-text-4 mt-6">
-            ¿Necesitas ayuda?{' '}
-            <span className="font-medium cursor-pointer hover:underline" style={{ color: RED }}>soporte@bonafide.gq</span>
-          </p>
         </div>
       </main>
     </div>
