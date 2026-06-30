@@ -318,7 +318,11 @@ export default function SolicitarContrato() {
 
   const [pymesInverso, setPymesInverso] = useState([{ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }]);
 
-  const [contData, setContData] = useState({ nif: '', email: '', tel: '', contrato: '' });
+  const [contData, setContData] = useState({
+    razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '', numEmpleados: '',
+    email: '', telefono: '', web: '',
+    pais: 'Guinea Ecuatorial', provincia: '', municipio: '', barrio: '', direccion: '', cp: 'GQ-240',
+  });
   const [contSearched, setContSearched] = useState(false);
   const [contFound, setContFound] = useState(null);
 
@@ -761,26 +765,112 @@ export default function SolicitarContrato() {
         {/* ── PYME: Identificar Empresa Contratante ─── */}
         {!isCont && (
           <>
-            <div className="space-y-6 mb-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Field label="NIF de la Empresa Contratante" required>
-                  <input className={iCls + ' uppercase'} value={contData.nif}
-                    onChange={e => { setContData(p => ({ ...p, nif: e.target.value })); setContSearched(false); setContFound(null); }}
-                    placeholder="GQ-2024-00XXX" />
-                </Field>
-                <Field label="Correo electrónico" required>
-                  <input className={iCls} type="email" value={contData.email}
-                    onChange={e => setContData(p => ({ ...p, email: e.target.value }))}
-                    placeholder="contacto@contratante.com" />
-                </Field>
-                <Field label="Teléfono">
-                  <input className={iCls} type="tel" value={contData.tel}
-                    onChange={e => setContData(p => ({ ...p, tel: e.target.value }))}
-                    placeholder="+240 222 000 000" />
-                </Field>
-                <Field label="Contrato con la Empresa Contratante" required>
-                  <ContractUpload />
-                </Field>
+            <div className="space-y-8 mb-10">
+              <div>
+                <SectionLabel>Datos de la empresa</SectionLabel>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Field label="Razón social" required>
+                    <input className={iCls} value={contData.razonSocial}
+                      onChange={e => setContData(p => ({ ...p, razonSocial: e.target.value }))}
+                      placeholder="Nombre legal de la empresa" />
+                  </Field>
+                  <Field label="Nombre comercial">
+                    <input className={iCls} value={contData.nombreComercial}
+                      onChange={e => setContData(p => ({ ...p, nombreComercial: e.target.value }))}
+                      placeholder="Nombre con el que opera" />
+                  </Field>
+                  <Field label="NIF / RUC" required>
+                    <input className={iCls + ' uppercase'} value={contData.nif}
+                      onChange={e => setContData(p => ({ ...p, nif: e.target.value }))}
+                      placeholder="GQ-2024-00234" />
+                  </Field>
+                  <Field label="Fecha de constitución" required>
+                    <input className={iCls} type="date" value={contData.fechaConst}
+                      onChange={e => setContData(p => ({ ...p, fechaConst: e.target.value }))} />
+                  </Field>
+                  <Field label="Forma jurídica" required>
+                    <select className={sCls} value={contData.formaJuridica}
+                      onChange={e => setContData(p => ({ ...p, formaJuridica: e.target.value }))}>
+                      <option value="">Seleccionar...</option>
+                      <option>Sociedad Anónima (S.A.)</option>
+                      <option>Sociedad de Responsabilidad Limitada (S.R.L.)</option>
+                      <option>Empresa Individual</option>
+                      <option>Cooperativa</option>
+                      <option>Fundación</option>
+                      <option>ONG</option>
+                    </select>
+                  </Field>
+                  <Field label="Número de empleados">
+                    <input className={iCls} type="number" min="1" value={contData.numEmpleados}
+                      onChange={e => setContData(p => ({ ...p, numEmpleados: e.target.value }))}
+                      placeholder="Ej. 25" />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <SectionLabel>Datos de contacto</SectionLabel>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Field label="Correo electrónico corporativo" required>
+                    <input className={iCls} type="email" value={contData.email}
+                      onChange={e => setContData(p => ({ ...p, email: e.target.value }))}
+                      placeholder="contacto@empresa.gq" />
+                  </Field>
+                  <Field label="Teléfono corporativo" required>
+                    <input className={iCls} type="tel" value={contData.telefono}
+                      onChange={e => setContData(p => ({ ...p, telefono: e.target.value }))}
+                      placeholder="+240 222 000 000" />
+                  </Field>
+                  <Field label="Página web">
+                    <input className={iCls} type="url" value={contData.web}
+                      onChange={e => setContData(p => ({ ...p, web: e.target.value }))}
+                      placeholder="www.empresa.gq" />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <SectionLabel>Dirección fiscal</SectionLabel>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Field label="País" required>
+                    <input className={iCls} value={contData.pais}
+                      onChange={e => setContData(p => ({ ...p, pais: e.target.value }))} />
+                  </Field>
+                  <Field label="Provincia" required>
+                    <select className={sCls} value={contData.provincia}
+                      onChange={e => setContData(p => ({ ...p, provincia: e.target.value }))}>
+                      <option value="">Seleccionar...</option>
+                      <option>Bioko Norte</option><option>Bioko Sur</option>
+                      <option>Centro Sur</option><option>Djibloho</option>
+                      <option>Kié-Ntem</option><option>Litoral</option><option>Wele-Nzas</option>
+                    </select>
+                  </Field>
+                  <Field label="Municipio" required>
+                    <input className={iCls} value={contData.municipio}
+                      onChange={e => setContData(p => ({ ...p, municipio: e.target.value }))}
+                      placeholder="Ej. Malabo" />
+                  </Field>
+                  <Field label="Barrio">
+                    <input className={iCls} value={contData.barrio}
+                      onChange={e => setContData(p => ({ ...p, barrio: e.target.value }))}
+                      placeholder="Ej. Santa Isabel" />
+                  </Field>
+                  <Field label="Dirección fiscal" required>
+                    <input className={iCls} value={contData.direccion}
+                      onChange={e => setContData(p => ({ ...p, direccion: e.target.value }))}
+                      placeholder="Calle, número, edificio..." />
+                  </Field>
+                  <Field label="Código postal">
+                    <input className={iCls} value={contData.cp}
+                      onChange={e => setContData(p => ({ ...p, cp: e.target.value }))}
+                      placeholder="Ej. GQ-240" />
+                  </Field>
+                </div>
+              </div>
+
+              <div>
+                <SectionLabel>Documentación</SectionLabel>
+                <ContractUpload label="Contrato con la Empresa Contratante" />
               </div>
             </div>
             <NavRow
@@ -953,13 +1043,25 @@ export default function SolicitarContrato() {
                   {!isCont && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {[
-                        { label: 'NIF', value: contData.nif || '—' },
-                        { label: 'Correo electrónico', value: contData.email || '—' },
-                        { label: 'Teléfono', value: contData.tel || '—' },
+                        { label: 'Razón social',          value: contData.razonSocial },
+                        { label: 'Nombre comercial',      value: contData.nombreComercial },
+                        { label: 'NIF',                   value: contData.nif },
+                        { label: 'Fecha de constitución', value: contData.fechaConst },
+                        { label: 'Forma jurídica',        value: contData.formaJuridica },
+                        { label: 'Número de empleados',   value: contData.numEmpleados },
+                        { label: 'Correo electrónico',    value: contData.email },
+                        { label: 'Teléfono',              value: contData.telefono },
+                        { label: 'Página web',            value: contData.web },
+                        { label: 'País',                  value: contData.pais },
+                        { label: 'Provincia',             value: contData.provincia },
+                        { label: 'Municipio',             value: contData.municipio },
+                        { label: 'Barrio',                value: contData.barrio },
+                        { label: 'Dirección fiscal',      value: contData.direccion },
+                        { label: 'Código postal',         value: contData.cp },
                       ].map((it, i) => (
                         <div key={i}>
                           <p className="text-xs text-text-4 mb-1">{it.label}</p>
-                          <p className="text-sm font-medium text-text-1">{it.value}</p>
+                          <p className="text-sm font-medium text-text-1">{it.value || '—'}</p>
                         </div>
                       ))}
                     </div>
