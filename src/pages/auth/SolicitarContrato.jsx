@@ -1221,22 +1221,19 @@ export default function SolicitarContrato() {
             </div>
 
             {/* Empresa solicitante */}
-            <div className="px-6 py-4 border-b border-border bg-page-bg">
+            <div className="px-6 py-4 border-b border-border">
               <p className="text-[11px] text-text-4 uppercase tracking-wider mb-3">Solicitante</p>
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0"
                   style={{ background: GRAD }}>
                   {initials}
                 </div>
-                <div>
-                  <p className="font-bold text-text-1 text-[15px]">{pyme}</p>
-                  <p className="text-[12px] text-text-4 font-mono mt-0.5">{pymeNif}</p>
-                </div>
+                <p className="font-bold text-text-1 text-[15px]">{pyme}</p>
               </div>
             </div>
 
             {/* Detalles de la operación */}
-            <div className="px-6 py-4">
+            <div className="px-6 py-4 border-b border-border">
               <p className="text-[11px] text-text-4 uppercase tracking-wider mb-3">Detalles de la operación</p>
               {[
                 { label: 'Monto propuesto',    value: montoFmt },
@@ -1248,6 +1245,21 @@ export default function SolicitarContrato() {
                   <span className="text-[13px] font-semibold text-text-1">{value}</span>
                 </div>
               ))}
+            </div>
+
+            {/* Contrato adjunto */}
+            <div className="px-6 py-4">
+              <p className="text-[11px] text-text-4 uppercase tracking-wider mb-3">Documentación adjunta</p>
+              <div className="flex items-center gap-3 p-3 rounded-[10px] border border-green-border bg-green-bg">
+                <CheckCircle2 className="w-5 h-5 text-green-text shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-green-text truncate">
+                    {contData.razonSocial ? `Contrato_${contData.razonSocial.replace(/\s+/g, '_')}.pdf` : 'Contrato_adjunto.pdf'}
+                  </p>
+                  <p className="text-[11px] text-text-4">Contrato con la Empresa Contratante</p>
+                </div>
+                <FileText className="w-4 h-4 text-text-4 shrink-0" />
+              </div>
             </div>
           </div>
 
