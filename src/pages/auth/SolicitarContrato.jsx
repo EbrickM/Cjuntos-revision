@@ -193,18 +193,31 @@ function NavRow({ onBack, onNext, nextLabel = 'Continuar', nextDisabled = false,
 function ChoiceBtn({ selected, onClick, Icon, title, desc, tags }) {
   return (
     <button onClick={onClick}
-      className={`p-6 lg:p-8 rounded-2xl border-2 text-left transition-all cursor-pointer w-full
+      className={`p-6 lg:px-8 rounded-2xl border-2 text-left transition-all cursor-pointer w-full
         ${selected ? 'border-[#e0201c] bg-red-50' : 'border-border hover:border-[#e0201c] hover:bg-red-50/30'}`}>
       <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: GRAD }}>
         <Icon className="w-6 h-6 text-white" />
       </div>
-      <div className="font-bold text-text-1 text-base mb-1.5">{title}</div>
-      <div className="text-sm text-text-3 leading-relaxed mb-4">{desc}</div>
+      <div className="font-bold text-text-1 text-base">{title}</div>
+      {desc && <div className="text-sm text-text-3 leading-relaxed mt-1.5">{desc}</div>}
       {tags && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mt-4">
           {tags.map(t => <span key={t} className="text-xs bg-white border border-border px-2.5 py-0.5 rounded-full text-text-3">{t}</span>)}
         </div>
       )}
+    </button>
+  );
+}
+
+function ChoiceBtnH({ selected, onClick, Icon, title }) {
+  return (
+    <button onClick={onClick}
+      className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer w-full
+        ${selected ? 'border-[#e0201c] bg-red-50' : 'border-border hover:border-[#e0201c] hover:bg-red-50/30'}`}>
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: GRAD }}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <span className={`font-semibold text-sm ${selected ? 'text-[#e0201c]' : 'text-text-1'}`}>{title}</span>
     </button>
   );
 }
@@ -326,52 +339,52 @@ export default function SolicitarContrato() {
   // ══════════════════════════════════════════════════════════════════════════
   const content = {
 
-    /* ── WHO INITIATES ─────────────────────────────────────────────────────── */
+    /* ── WHO INITIATES + IS CLIENT (unified) ──────────────────────────────── */
     who_initiates: (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          <ChoiceBtn
-            selected={actor === 'contratante'}
-            onClick={() => setActor('contratante')}
-            Icon={Building2}
-            title="Empresa Contratante"
-            desc="Soy una empresa contratante que desea financiar a sus PYMEs proveedoras a través de Bonafide."
-          />
-          <ChoiceBtn
-            selected={actor === 'pyme'}
-            onClick={() => setActor('pyme')}
-            Icon={User}
-            title="Empresa PYME"
-            desc="Soy una PYME y deseo solicitar financiación anticipada de mis facturas con una empresa contratante."
-          />
+        <div className="space-y-8 mb-10">
+          <div>
+            <SectionLabel>¿Quién solicita el contrato?</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ChoiceBtnH selected={actor === 'contratante'} onClick={() => setActor('contratante')} Icon={Building2} title="Empresa Contratante" />
+              <ChoiceBtnH selected={actor === 'pyme'}        onClick={() => setActor('pyme')}        Icon={User}      title="Empresa PYME" />
+            </div>
+          </div>
+          <div>
+            <SectionLabel>¿Ya tiene relación con Bonafide?</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ChoiceBtnH selected={isClient === true}  onClick={() => setIsClient(true)}  Icon={Check}     title="Sí, somos clientes de Bonafide" />
+              <ChoiceBtnH selected={isClient === false} onClick={() => setIsClient(false)} Icon={Building2} title="No, es nuestra primera vez" />
+            </div>
+          </div>
         </div>
         <NavRow
           onBack={null}
-          onNext={() => startFlow(actor)}
+          onNext={() => {
+            setActor(actor);
+            setReturnPhase('operation');
+            setNif(''); setFoundCompany(null); setNifSearched(false);
+            setPhase(isClient ? 'nif_search' : 'register');
+          }}
           nextLabel="Iniciar solicitud"
-          nextDisabled={!actor}
+          nextDisabled={!actor || isClient === null}
         />
       </>
     ),
 
-    /* ── IS CLIENT ─────────────────────────────────────────────────────────── */
+    /* ── IS CLIENT (usado por flujo de invitación) ─────────────────────────── */
     is_client: (
       <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-          <ChoiceBtn selected={isClient === true}  onClick={() => setIsClient(true)}
-            Icon={Check}    title="Sí, somos clientes de Bonafide"
-            desc="Tenemos un expediente activo, contrato o historial de operaciones con Bonafide."
-            tags={['Identificación rápida', 'Sin rellenar formularios']}
-          />
-          <ChoiceBtn selected={isClient === false} onClick={() => setIsClient(false)}
-            Icon={Building2} title="No, es nuestra primera vez"
-            desc="No tenemos relación previa con Bonafide. Necesitamos registrar nuestra empresa."
-            tags={['Alta en el sistema', 'Proceso guiado']}
-          />
+        <div className="space-y-4 mb-10">
+          <SectionLabel>¿Ya tiene relación con Bonafide?</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ChoiceBtnH selected={isClient === true}  onClick={() => setIsClient(true)}  Icon={Check}     title="Sí, somos clientes de Bonafide" />
+            <ChoiceBtnH selected={isClient === false} onClick={() => setIsClient(false)} Icon={Building2} title="No, es nuestra primera vez" />
+          </div>
         </div>
         <NavRow
           onBack={() => setPhase('who_initiates')}
-          onNext={() => isClient ? setPhase('nif_search') : setPhase('register')}
+          onNext={() => { setNif(''); setFoundCompany(null); setNifSearched(false); setPhase(isClient ? 'nif_search' : 'register'); }}
           nextDisabled={isClient === null}
         />
       </>
