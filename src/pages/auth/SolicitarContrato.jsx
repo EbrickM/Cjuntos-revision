@@ -102,27 +102,31 @@ function SectionLabel({ children }) {
 
 function CompanyCard({ company, onConfirm, onReject, confirmLabel = 'Sí, continuar', rejectLabel = 'No, es otro NIF' }) {
   return (
-    <div className="rounded-2xl border border-border overflow-hidden">
-      <div className="flex items-center gap-5 p-6 bg-gray-50 border-b border-border">
-        <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0" style={{ background: GRAD }}>
-          <Building2 className="w-7 h-7 text-white" />
-        </div>
-        <div>
-          <div className="font-bold text-text-1 text-lg">{company.razonSocial}</div>
-          <div className="text-sm text-text-4">{company.nif}</div>
-        </div>
-        <div className="ml-auto">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-bg text-green-text border border-green-border">
+    <div className="rounded-2xl overflow-hidden" style={{ boxShadow: SHADOW }}>
+      {/* Header con degradado de marca */}
+      <div className="relative overflow-hidden p-6" style={{ background: GRAD }}>
+        <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+        <div className="absolute right-8 -bottom-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
+        <div className="relative flex items-center gap-5">
+          <div className="w-14 h-14 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+            <Building2 className="w-7 h-7 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-white text-xl leading-tight truncate">{company.razonSocial}</div>
+            <div className="text-white/70 text-sm mt-0.5">{company.nif}</div>
+          </div>
+          <span className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/20 text-white border border-white/30">
             {company.estadoKyc ?? 'KYC Vigente'}
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-border">
+      {/* Datos */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-border bg-white">
         {[
-          ['Estado KYC', company.estadoKyc ?? 'Vigente'],
-          ['Última actualización', company.ultimaAct ?? 'Dic. 2025'],
-          ['País', company.pais ?? 'Guinea Ecuatorial'],
-          ['NIF', company.nif],
+          ['Estado KYC',            company.estadoKyc  ?? 'Vigente'],
+          ['Última actualización',  company.ultimaAct  ?? 'Dic. 2025'],
+          ['País',                  company.pais       ?? 'Guinea Ecuatorial'],
+          ['NIF',                   company.nif],
         ].map(([k, v]) => (
           <div key={k} className="p-4">
             <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
@@ -172,12 +176,12 @@ function BtnSecondary({ onClick, children, disabled }) {
   );
 }
 
-function NavRow({ onBack, onNext, nextLabel = 'Continuar', nextDisabled = false, hideNext = false }) {
+function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás', nextDisabled = false, hideNext = false }) {
   return (
     <div className="pt-6 border-t border-border flex items-center justify-between gap-4 mt-10">
       <button onClick={onBack} disabled={!onBack}
         className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer transition-all border border-border text-text-2 hover:bg-gray-50 disabled:opacity-0 disabled:pointer-events-none">
-        <ChevronLeft className="w-4 h-4" /> Atrás
+        <ChevronLeft className="w-4 h-4" /> {backLabel}
       </button>
       {!hideNext && (
         <button onClick={onNext} disabled={nextDisabled}
@@ -393,13 +397,12 @@ export default function SolicitarContrato() {
     /* ── NIF SEARCH ────────────────────────────────────────────────────────── */
     nif_search: (
       <>
-        <div className="max-w-2xl space-y-6 mb-10">
-          <Field label="NIF / RUC / Identificador fiscal" required
-            hint="Introduce el identificador fiscal registrado en Bonafide. Ej: GQ-2024-00234">
-            <div className="flex gap-3">
+        <div className="space-y-6 mb-10">
+          <Field label="Número de Identificación Fiscal (NIF)" required hint="Ej: GQ-2024-00234">
+            <div className="flex gap-3 max-w-sm">
               <input className={iCls + ' flex-1'} value={nif}
                 onChange={e => { setNif(e.target.value); setNifSearched(false); setFoundCompany(null); }}
-                placeholder="Ej. GQ-2024-00234"
+                placeholder="GQ-2024-00234"
                 onKeyDown={e => e.key === 'Enter' && nif.trim() && mockNifSearch(nif)} />
               <button onClick={() => mockNifSearch(nif)} disabled={!nif.trim()}
                 className="h-[42px] px-5 rounded-lg text-white flex items-center gap-2 text-sm font-semibold disabled:opacity-40 cursor-pointer shrink-0"
@@ -409,66 +412,30 @@ export default function SolicitarContrato() {
             </div>
           </Field>
 
-          {foundCompany && (
-            <CompanyCard
-              company={foundCompany}
-              onConfirm={() => setPhase('authorize')}
-              onReject={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}
-              confirmLabel="Sí, usar estos datos"
-              rejectLabel="No, es otro NIF"
-            />
-          )}
+          {foundCompany && <CompanyCard company={foundCompany} />}
 
           {nifSearched && !foundCompany && (
-            <NotFoundCard message="No encontramos ninguna empresa con ese NIF en Bonafide. Prueba con otro identificador o completa el registro." />
+            <NotFoundCard message="No encontramos ninguna empresa con ese NIF en Bonafide. Prueba con otro identificador." />
           )}
         </div>
-        <NavRow onBack={() => setPhase('is_client')} hideNext={!!foundCompany} onNext={() => {}} nextDisabled={!foundCompany} />
-      </>
-    ),
-
-    /* ── CONFIRM COMPANY (kept for direct navigation fallback) ─────────────── */
-    confirm_company: foundCompany ? (
-      <>
-        <div className="space-y-4 mb-10">
-          <CompanyCard company={foundCompany}
-            onConfirm={() => setPhase('authorize')}
-            onReject={() => { setNif(''); setFoundCompany(null); setNifSearched(false); setPhase('nif_search'); }}
-            confirmLabel="Sí, esta es mi empresa"
-            rejectLabel="No, buscar otro NIF"
-          />
-        </div>
-        <NavRow onBack={() => setPhase('nif_search')} hideNext />
-      </>
-    ) : null,
-
-    /* ── AUTHORIZE ─────────────────────────────────────────────────────────── */
-    authorize: (
-      <>
-        <div className="space-y-5 mb-10">
-          <div className="rounded-xl border border-green-border bg-green-bg p-5">
-            <div className="flex items-start gap-3">
-              <Check className="w-5 h-5 text-green-text mt-0.5 shrink-0" />
-              <div>
-                <div className="font-semibold text-green-text mb-1">Información KYC disponible</div>
-                <p className="text-sm text-text-3">Disponemos de la información corporativa de <strong>{foundCompany?.razonSocial}</strong> actualizada a {foundCompany?.ultimaAct}. Puedes continuar sin volver a rellenar formularios.</p>
-              </div>
+        {foundCompany ? (
+          <div className="pt-6 border-t border-border flex items-center justify-between gap-4 mt-10">
+            <button onClick={() => setPhase('who_initiates')}
+              className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer border border-border text-text-2 hover:bg-gray-50 transition-all shrink-0">
+              <ChevronLeft className="w-4 h-4" /> Atrás
+            </button>
+            <div className="flex gap-3">
+              <BtnSecondary onClick={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}>
+                No, intentar otro NIF
+              </BtnSecondary>
+              <BtnPrimary onClick={() => setPhase('contact')}>
+                <Check className="w-4 h-4" /> Sí, usar estos datos
+              </BtnPrimary>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <ChoiceBtn selected={false} onClick={() => setPhase('contact')}
-              Icon={Check} title="Sí, autorizo usar mis datos"
-              desc="Bonafide utilizará la información registrada en el sistema para procesar esta solicitud."
-              tags={['Más rápido', 'Sin formularios adicionales']}
-            />
-            <ChoiceBtn selected={false} onClick={() => setPhase('register')}
-              Icon={Building2} title="No, quiero actualizar mis datos"
-              desc="Actualizaré mi información antes de continuar con la solicitud."
-              tags={['Datos actualizados', 'Control total']}
-            />
-          </div>
-        </div>
-        <NavRow onBack={() => setPhase('confirm_company')} hideNext />
+        ) : (
+          <NavRow onBack={() => setPhase('who_initiates')} onNext={() => {}} nextDisabled />
+        )}
       </>
     ),
 
@@ -544,7 +511,7 @@ export default function SolicitarContrato() {
           </div>
         </div>
         <NavRow
-          onBack={() => isClient ? setPhase('authorize') : setPhase('is_client')}
+          onBack={() => isClient ? setPhase('nif_search') : setPhase('who_initiates')}
           onNext={() => setPhase('contact')}
           nextDisabled={!regData.razonSocial || !regData.nif}
         />
@@ -571,7 +538,7 @@ export default function SolicitarContrato() {
           </div>
         </div>
         <NavRow
-          onBack={() => setPhase(isClient ? 'authorize' : 'register')}
+          onBack={() => setPhase(isClient ? 'nif_search' : 'register')}
           onNext={() => setPhase(returnPhase)}
           nextDisabled={!contactData.nombre || !contactData.email}
         />
