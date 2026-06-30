@@ -1102,28 +1102,19 @@ export default function SolicitarContrato() {
           </div>
         </div>
 
-        <div className="space-y-2.5">
-          {[
-            { label: 'Pendiente de respuesta',    desc: `En espera de que la ${isCont ? 'PYME' : 'Empresa Contratante'} confirme su participación.`, active: true,  Icon: Bell },
-            { label: 'Pendiente de Documentación',desc: 'Una vez aceptada la operación por ambas partes, Bonafide solicitará la documentación necesaria.', active: false, Icon: FileText },
-            { label: 'Pendiente de Compliance',   desc: 'Validación KYC, revisión de documentos e historial de las empresas participantes.', active: false, Icon: CheckSquare },
-            { label: 'Pendiente de Riesgo',       desc: 'Análisis de riesgo país, scoring de empresas, exposición acumulada y capacidad financiera.', active: false, Icon: Briefcase },
-            { label: 'Pendiente de Aprobación',   desc: 'Bonafide generará una propuesta con las condiciones definitivas para aceptación de ambas partes.', active: false, Icon: Clock },
-          ].map(({ label, desc, active, Icon }, i) => (
-            <div key={i} className={`flex gap-4 p-4 rounded-xl border ${active ? 'bg-yellow-bg border-yellow-text/30' : 'bg-gray-50 border-border'}`}>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${active ? '' : 'bg-white border border-border'}`}
-                style={active ? { background: GRAD } : {}}>
-                <Icon className={`w-5 h-5 ${active ? 'text-white' : 'text-text-4'}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <span className="font-semibold text-text-1 text-sm">{label}</span>
-                  {active && <span className="text-xs bg-orange-tint text-orange px-2 py-0.5 rounded-full font-semibold">Activo</span>}
-                </div>
-                <p className="text-sm text-text-3 leading-relaxed">{desc}</p>
-              </div>
+        <div className="flex gap-4 p-4 rounded-xl border bg-yellow-bg border-yellow-text/30">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: GRAD }}>
+            <Bell className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+              <span className="font-semibold text-text-1 text-sm">Pendiente de respuesta</span>
+              <span className="text-xs bg-orange-tint text-orange px-2 py-0.5 rounded-full font-semibold">Estado actual</span>
             </div>
-          ))}
+            <p className="text-sm text-text-3 leading-relaxed">
+              En espera de que la {isCont ? 'PYME' : 'Empresa Contratante'} confirme su participación.
+            </p>
+          </div>
         </div>
 
         {/* Demo: show invitation screens */}
