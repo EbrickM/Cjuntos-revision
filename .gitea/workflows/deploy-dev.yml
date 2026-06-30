@@ -1,0 +1,112 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'vite.config.ts'
+      - 'eslint.config.js'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'nginx.conf'
+      - '.gitea/workflows/**'
+
+env:
+  ENV: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    steps:
+      # 1. Checkout
+      - uses: actions/checkout@v4
+
+      # 2. Determinar registro npm y exportar variable con $GITHUB_ENV
+      - name: Determine npm registry
+        run: |
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 2>/dev/null; then
+            echo "Using Verdaccio: $REGISTRY"
+            echo "registry_url=$REGISTRY" >> $GITHUB_ENV
+          else
+            echo "Using default npm registry"
+            echo "registry_url=https://registry.npmjs.org/" >> $GITHUB_ENV
+          fi
+
+      # 3. Metadatos OCI y tags
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ vars.DOCKER_REGISTRY }}/${{ env.ENV }}/${{ vars.APP }}/${{ vars.SERVICE }}
+          tags: |
+            type=sha,prefix=dev-,suffix=
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=${{ vars.APP }}-${{ vars.SERVICE }}
+            org.opencontainers.image.vendor=${{ vars.VENDOR || 'Mi Empresa' }}
+            org.opencontainers.image.authors=${{ vars.MAINTAINER || 'devops@empresa.com' }}
+            org.opencontainers.image.description=${{ vars.DESCRIPTION || 'Aplicación desarrollada con Gitea Actions' }}
+
+      # 4. Login en el registro Docker
+      - name: Login to Docker registry
+        run: |
+          echo "${{ secrets.CI_BOT_PASSWORD }}" | \
+            docker login ${{ vars.DOCKER_REGISTRY }} \
+              -u ${{ vars.CI_BOT_USER }} \
+              --password-stdin
+
+      # 5. Construir y subir imagen (con load:true para tenerla localmente)
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NPM_REGISTRY=${{ env.registry_url }}
+
+      # 6. Crear tag rollback si ya existía la imagen
+      - name: Promote image (local)
+        run: |
+          set -e
+          IMAGE="${{ vars.DOCKER_REGISTRY }}/${{ env.ENV }}/${{ vars.APP }}/${{ vars.SERVICE }}"
+          if docker image inspect $IMAGE:latest >/dev/null 2>&1; then
+            docker tag $IMAGE:latest $IMAGE:rollback || true
+          fi
+
+      # 7. Desplegar contenedor usando la imagen completa
+      - name: Deploy container (local)
+        run: |
+          set -e
+          IMAGE="${{ vars.DOCKER_REGISTRY }}/${{ env.ENV }}/${{ vars.APP }}/${{ vars.SERVICE }}"
+          CONTAINER_NAME="${{ vars.APP }}-${{ vars.SERVICE }}-${{ env.ENV }}"
+          docker rm -f $CONTAINER_NAME 2>/dev/null || true
+          docker run -d \
+            --name $CONTAINER_NAME \
+            --restart unless-stopped \
+            -p 8081:80 \
+            $IMAGE:latest
+
+      # 8. Limpiar imágenes antiguas (excepto latest y rollback)
+      - name: Cleanup images (local)
+        if: always()
+        run: |
+          IMAGE="${{ vars.DOCKER_REGISTRY }}/${{ env.ENV }}/${{ vars.APP }}/${{ vars.SERVICE }}"
+          docker images $IMAGE --format "{{.Repository}}:{{.Tag}}" \
+            | grep "^$IMAGE:" \
+            | grep -v -E "^$IMAGE:latest$|^$IMAGE:rollback$" || true \
+            | xargs -r docker rmi -f
+          docker image prune -f
