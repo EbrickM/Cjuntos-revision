@@ -5,7 +5,7 @@ import {
   ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Search, X, Check,
   Building2, User, FileText, DollarSign, Clock,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle, CheckCircle2,
+  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle, CheckCircle2, Download,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -1187,7 +1187,7 @@ export default function SolicitarContrato() {
                   </p>
                   <p className="text-[11px] text-text-4">Contrato con la Empresa Contratante</p>
                 </div>
-                <FileText className="w-4 h-4 text-text-4 shrink-0" />
+                <Download className="w-4 h-4 text-text-4 shrink-0 cursor-pointer" />
               </div>
             </div>
           </div>
@@ -1201,9 +1201,9 @@ export default function SolicitarContrato() {
           </div>
 
           {/* CTAs */}
-          <div className="flex gap-3 pt-1">
-            <BtnPrimary onClick={() => startInvFlow('contratante', 'inv_c_landing')}>Aceptar invitación <ChevronRight className="w-4 h-4" /></BtnPrimary>
+          <div className="flex items-center justify-between pt-1">
             <BtnSecondary onClick={() => setPhase('sent')}><X className="w-4 h-4" /> Rechazar</BtnSecondary>
+            <BtnPrimary onClick={() => startInvFlow('contratante', 'inv_c_landing')}>Aceptar invitación <ChevronRight className="w-4 h-4" /></BtnPrimary>
           </div>
         </div>
       );
