@@ -2,10 +2,10 @@ import { Fragment, useState, useRef } from 'react';
 import { useApp } from '../../state/AppContext';
 import logo from '../../assets/logo-color.webp';
 import {
-  ChevronRight, ChevronLeft, Search, X, Check,
+  ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Search, X, Check,
   Building2, User, FileText, DollarSign, Clock,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle2,
+  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle, CheckCircle2,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -323,6 +323,12 @@ export default function SolicitarContrato() {
   const [contFound, setContFound] = useState(null);
 
   const [refNumber] = useState(() => Math.floor(10000 + Math.random() * 90000));
+
+  // ── Confirmation accordion state ─────────────────────────────────────────────
+  const [confirmOpen, setConfirmOpen] = useState(['empresa', 'operacion', 'contraparte']);
+  const toggleConfirm = (id) => setConfirmOpen(prev =>
+    prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+  );
 
   // ── Derived ─────────────────────────────────────────────────────────────────
   const isCont = actor === 'contratante';
@@ -786,77 +792,166 @@ export default function SolicitarContrato() {
     ),
 
     /* ── CONFIRMATION ──────────────────────────────────────────────────────── */
-    confirmation: (
-      <>
-        <div className="space-y-6 mb-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <SummaryBox label="Empresa solicitante" value={isCont ? (foundCompany?.razonSocial ?? regData.razonSocial) : (foundCompany?.razonSocial ?? regData.razonSocial)} />
-            <SummaryBox label="Tipo de operación" value={operation.tipo === 'factoring' ? 'Factoring' : 'Factoring Inverso'} highlight />
-            <SummaryBox label="Monto propuesto" value={operation.monto ? `XAF ${Number(operation.monto).toLocaleString()}` : '—'} />
-            <SummaryBox label="Plazo propuesto" value={`${operation.plazo} días`} />
+    confirmation: (() => {
+      const solicitante = foundCompany?.razonSocial || regData.razonSocial || '—';
+      const montoFmt = operation.monto
+        ? `XAF ${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}`
+        : '—';
+
+      const contraparteTitle = isCont && operation.tipo === 'factoring_inverso'
+        ? `${pymesInverso.length} PYME${pymesInverso.length > 1 ? 's' : ''} beneficiaria${pymesInverso.length > 1 ? 's' : ''}`
+        : isCont ? 'PYME beneficiaria' : 'Empresa Contratante';
+
+      const sections = [
+        {
+          id: 'empresa',
+          title: 'Empresa solicitante',
+          items: [
+            { label: 'Razón social', value: solicitante },
+            { label: 'NIF', value: foundCompany?.nif || regData.nif || '—' },
+            { label: 'Rol en la operación', value: isCont ? 'Empresa Contratante' : 'PYME' },
+          ],
+        },
+        {
+          id: 'operacion',
+          title: 'Operación',
+          items: [
+            { label: 'Tipo de operación', value: operation.tipo === 'factoring' ? 'Factoring' : 'Factoring Inverso' },
+            { label: 'Monto propuesto', value: montoFmt },
+            { label: 'Plazo propuesto', value: operation.plazo ? `${operation.plazo} días` : '—' },
+            ...(operation.observaciones ? [{ label: 'Observaciones', value: operation.observaciones }] : []),
+          ],
+        },
+      ];
+
+      return (
+        <>
+          <div className="space-y-3 mb-10">
+
+            {/* Secciones accordion */}
+            {sections.map((section) => {
+              const isExp = confirmOpen.includes(section.id);
+              return (
+                <div key={section.id} className="border border-border rounded-xl bg-white overflow-hidden">
+                  <button
+                    onClick={() => toggleConfirm(section.id)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="w-5 h-5" style={{ color: RED }} />
+                      <span className="font-semibold text-text-1 text-sm">{section.title}</span>
+                    </div>
+                    {isExp
+                      ? <ChevronUp className="w-5 h-5 text-text-4" />
+                      : <ChevronDown className="w-5 h-5 text-text-4" />
+                    }
+                  </button>
+                  {isExp && (
+                    <div className="border-t border-border p-4 bg-gray-50">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {section.items.map((item, i) => (
+                          <div key={i}>
+                            <p className="text-xs text-text-4 mb-1">{item.label}</p>
+                            <p className="text-sm font-medium text-text-1">{item.value || '—'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Sección contraparte */}
+            <div className="border border-border rounded-xl bg-white overflow-hidden">
+              <button
+                onClick={() => toggleConfirm('contraparte')}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5" style={{ color: RED }} />
+                  <span className="font-semibold text-text-1 text-sm">{contraparteTitle}</span>
+                </div>
+                {confirmOpen.includes('contraparte')
+                  ? <ChevronUp className="w-5 h-5 text-text-4" />
+                  : <ChevronDown className="w-5 h-5 text-text-4" />
+                }
+              </button>
+              {confirmOpen.includes('contraparte') && (
+                <div className="border-t border-border p-4 bg-gray-50">
+                  {/* Factoring simple — una PYME */}
+                  {isCont && operation.tipo === 'factoring' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { label: 'NIF', value: pymeData.nif || '—' },
+                        { label: 'Correo electrónico', value: pymeData.email || '—' },
+                        { label: 'Teléfono', value: pymeData.tel || '—' },
+                        { label: 'Estado en Bonafide', value: pymeFound === 'found' ? 'Cliente Bonafide' : 'Pendiente vinculación' },
+                      ].map((it, i) => (
+                        <div key={i}>
+                          <p className="text-xs text-text-4 mb-1">{it.label}</p>
+                          <p className="text-sm font-medium text-text-1">{it.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Factoring inverso — múltiples PYMEs */}
+                  {isCont && operation.tipo === 'factoring_inverso' && (
+                    <div className="space-y-4">
+                      {pymesInverso.map((p, i) => (
+                        <div key={i} className={i > 0 ? 'pt-4 border-t border-border' : ''}>
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: GRAD }}>{i + 1}</span>
+                            <span className="text-[12px] font-semibold text-text-2">{p.razonSocial || p.nombreComercial || `PYME ${i + 1}`}</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {[
+                              { label: 'NIF', value: p.nif || '—' },
+                              { label: 'Correo', value: p.email || '—' },
+                              { label: 'Teléfono', value: p.tel || '—' },
+                              { label: 'Monto asignado', value: p.monto ? `XAF ${p.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}` : '—' },
+                            ].map((it, j) => (
+                              <div key={j}>
+                                <p className="text-xs text-text-4 mb-1">{it.label}</p>
+                                <p className="text-sm font-medium text-text-1">{it.value}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* PYME ve la Empresa Contratante */}
+                  {!isCont && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { label: 'NIF', value: contData.nif || '—' },
+                        { label: 'Correo electrónico', value: contData.email || '—' },
+                        { label: 'Teléfono', value: contData.tel || '—' },
+                      ].map((it, i) => (
+                        <div key={i}>
+                          <p className="text-xs text-text-4 mb-1">{it.label}</p>
+                          <p className="text-sm font-medium text-text-1">{it.value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Aviso */}
+            <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
+              <AlertCircle className="w-4 h-4 text-yellow-text mt-0.5 shrink-0" />
+              <p className="text-[13px] text-text-3 leading-relaxed">
+                El monto y plazo indicados son una <strong>propuesta del solicitante</strong>. Tras el análisis de riesgo, Bonafide comunicará las <strong>condiciones definitivas</strong> a ambas partes para su aceptación.
+              </p>
+            </div>
           </div>
-
-          {isCont && operation.tipo === 'factoring' && (
-            <div className="border border-border rounded-xl overflow-hidden">
-              <div className="px-5 py-3 bg-gray-50 border-b border-border font-semibold text-sm text-text-1">PYME seleccionada</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-y divide-border">
-                {[['NIF', pymeData.nif || '—'], ['Correo', pymeData.email || '—'], ['Estado', pymeFound === 'found' ? 'Cliente Bonafide' : 'Pendiente vinculación'], ['Contrato', pymeData.contrato || '—']].map(([k, v]) => (
-                  <div key={k} className="p-4">
-                    <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
-                    <div className="font-semibold text-text-1 text-sm">{v}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {isCont && operation.tipo === 'factoring_inverso' && (
-            <div className="border border-border rounded-xl overflow-hidden">
-              <div className="px-5 py-3 bg-gray-50 border-b border-border font-semibold text-sm text-text-1">{pymesInverso.length} PYME{pymesInverso.length > 1 ? 's' : ''} beneficiaria{pymesInverso.length > 1 ? 's' : ''}</div>
-              <div className="divide-y divide-border">
-                {pymesInverso.map((p, i) => (
-                  <div key={i} className="flex items-center gap-4 px-5 py-3 text-sm">
-                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0" style={{ background: GRAD }}>{i + 1}</span>
-                    <span className="font-medium text-text-1 flex-1 min-w-0 truncate">{p.nif || '—'}</span>
-                    <span className="text-text-3">{p.monto ? `XAF ${Number(p.monto).toLocaleString()}` : '—'}</span>
-                    <span className="text-text-4 text-xs">{p.contrato || '—'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!isCont && (
-            <div className="border border-border rounded-xl overflow-hidden">
-              <div className="px-5 py-3 bg-gray-50 border-b border-border font-semibold text-sm text-text-1">Empresa Contratante</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-y divide-border">
-                {[['NIF', contData.nif || '—'], ['Correo', contData.email || '—'], ['Estado', 'Cliente activo'], ['Contrato', contData.contrato || '—']].map(([k, v]) => (
-                  <div key={k} className="p-4">
-                    <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{k}</div>
-                    <div className="font-semibold text-text-1 text-sm">{v}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {operation.observaciones && (
-            <div className="p-4 bg-gray-50 rounded-xl border border-border">
-              <div className="text-xs text-text-4 uppercase tracking-wider mb-1.5">Observaciones</div>
-              <p className="text-sm text-text-2">{operation.observaciones}</p>
-            </div>
-          )}
-
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-yellow-text/30 bg-yellow-bg">
-            <AlertCircle className="w-4 h-4 text-yellow-text mt-0.5 shrink-0" />
-            <p className="text-sm text-text-3">
-              El monto y plazo indicados son una <strong>propuesta del solicitante</strong>. Tras el análisis de riesgo, Bonafide comunicará las <strong>condiciones definitivas</strong> a ambas partes para su aceptación.
-            </p>
-          </div>
-        </div>
-        <NavRow onBack={() => setPhase('select_parties')} onNext={() => setPhase('sent')} nextLabel="Enviar solicitud" />
-      </>
-    ),
+          <NavRow onBack={() => setPhase('select_parties')} onNext={() => setPhase('sent')} nextLabel="Enviar solicitud" />
+        </>
+      );
+    })(),
 
     /* ── SENT ──────────────────────────────────────────────────────────────── */
     sent: (
