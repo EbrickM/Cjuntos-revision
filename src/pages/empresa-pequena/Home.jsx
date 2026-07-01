@@ -265,32 +265,53 @@ export default function EpHome() {
         {tab === 'financiacion' && (
           <div key="financiacion" className="fade-in space-y-5">
 
-            {/* Mi Billetera */}
+            {/* Mi Billetera + Dona */}
             <div className="bg-white rounded-[14px] border border-border overflow-hidden">
               <div className="h-1" style={{ background: GRAD }} />
-              <div className="px-6 py-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold text-text-4 uppercase tracking-wider mb-1">Mi Billetera</p>
-                    <p className="text-[15px] font-semibold text-text-1">Construcciones Silva</p>
-                  </div>
-                  <div className="text-right shrink-0">
+              <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-5">
+
+                {/* Info financiera */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-semibold text-text-4 uppercase tracking-wider mb-3">Mi Billetera · Junio 2026</p>
+                  <p className="text-[11px] text-text-4 mb-1">Línea de crédito total</p>
+                  <p className="font-extrabold text-text-1 leading-none tracking-tight mb-4"
+                    style={{ fontSize: 'clamp(22px, 4vw, 32px)' }}>
+                    231 000 000
+                    <span className="font-bold text-text-3 ml-1" style={{ fontSize: 'clamp(14px, 2.5vw, 18px)' }}>XAF</span>
+                  </p>
+                  <div className="flex items-center gap-3">
                     <div className="inline-flex items-baseline gap-1 bg-page-bg border border-border rounded-xl px-3 py-1.5">
-                      <span className="text-[20px] font-extrabold text-text-1 leading-none">650</span>
-                      <span className="text-[12px] text-text-4 font-medium">/ 1000</span>
+                      <span className="text-[18px] font-extrabold text-text-1 leading-none">650</span>
+                      <span className="text-[11px] text-text-4 font-medium">/ 1000</span>
                     </div>
-                    <p className="text-[10px] text-text-4 mt-1">Score Bonafide · Bueno</p>
+                    <div>
+                      <p className="text-[10px] text-text-4">Score Bonafide</p>
+                      <p className="text-[11px] font-semibold text-green-text">Bueno</p>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-4 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] text-text-4 mb-1">Línea de crédito total</p>
-                    <p className="font-extrabold text-text-1 leading-none tracking-tight" style={{ fontSize: 'clamp(22px, 5vw, 34px)' }}>
-                      231 000 000 <span className="font-bold text-text-3" style={{ fontSize: 'clamp(15px, 3vw, 20px)' }}>XAF</span>
-                    </p>
+
+                <div className="hidden sm:block w-px self-stretch bg-border" />
+                <div className="sm:hidden h-px bg-border" />
+
+                {/* Dona */}
+                <div className="flex items-center gap-5 justify-center sm:justify-start">
+                  <DonutChart data={lineaDona} centerLabel="65%" centerSub="utilizado" size={120} />
+                  <div className="flex flex-col gap-2.5">
+                    {lineaDona.map(d => (
+                      <div key={d.tipo} className="flex items-start gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: d.color }} />
+                        <div>
+                          <div className="text-[11px] text-text-2 font-medium">
+                            {d.tipo} <span className="font-bold" style={{ color: d.color }}>{d.pct}%</span>
+                          </div>
+                          <div className="text-[10px] text-text-4">{d.monto}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-[11px] text-text-4 shrink-0">Junio 2026</p>
                 </div>
+
               </div>
             </div>
 
@@ -310,7 +331,7 @@ export default function EpHome() {
               ))}
             </div>
 
-            {/* Row 1: Score Crediticio + Donut */}
+            {/* Row 1: Score Crediticio + VBarChart */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
               {/* Score Crediticio 2/5 */}
@@ -349,36 +370,8 @@ export default function EpHome() {
                 </div>
               </div>
 
-              {/* Donut 3/5 */}
+              {/* VBarChart 3/5 */}
               <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-3">
-                  <div className="text-[14px] font-bold text-text-1">Estado de la línea</div>
-                  <div className="text-[11px] text-text-4">¿Cuánto he utilizado?</div>
-                </div>
-                <div className="flex-1 flex flex-col items-center justify-center gap-4 py-2">
-                  <DonutChart data={lineaDona} centerLabel="65%" centerSub="utilizado" size={190} />
-                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 w-full">
-                    {lineaDona.map(d => (
-                      <div key={d.tipo} className="flex items-start gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: d.color }} />
-                        <div>
-                          <div className="text-[11px] text-text-2 font-medium">
-                            {d.tipo} <span className="font-bold" style={{ color: d.color }}>{d.pct}%</span>
-                          </div>
-                          <div className="text-[10px] text-text-4">{d.monto}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Row 2: VBarChart + Operaciones */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-              {/* VBarChart 2/5 */}
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
                   <div className="text-[14px] font-bold text-text-1">Uso de los fondos</div>
                   <div className="text-[11px] text-text-4">¿Cómo se usa la financiación? · millones XAF</div>
@@ -387,9 +380,13 @@ export default function EpHome() {
                   <VBarChart id="pyme-pay" data={payBarData} h={170} />
                 </div>
               </div>
+            </div>
 
-              {/* Operaciones 3/5 */}
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5">
+            {/* Row 2: Operaciones */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+              {/* Operaciones — full width */}
+              <div className="lg:col-span-5 bg-white rounded-[14px] border border-border p-5">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <div className="text-[14px] font-bold text-text-1">Operaciones activas</div>
