@@ -288,30 +288,31 @@ export default function EmpDash() {
           <div key="fondos" className="fade-in space-y-5">
 
             {/* Mi Billetera */}
-            <div className="rounded-2xl overflow-hidden relative" style={{ background: GRAD, boxShadow: WALLET_SHADOW }}>
-              <div className="absolute -right-12 -top-12 w-52 h-52 rounded-full bg-white/10 pointer-events-none" />
-              <div className="absolute right-10 -bottom-8 w-28 h-28 rounded-full bg-white/[0.08] pointer-events-none" />
-              <div className="relative px-6 py-5 sm:py-6">
-                <div className="flex items-start justify-between mb-5">
+            <div className="bg-white rounded-[14px] border border-border overflow-hidden">
+              <div className="h-1" style={{ background: GRAD }} />
+              <div className="px-6 py-5">
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-white/60 text-[11px] font-semibold uppercase tracking-wider">Mi Billetera</p>
-                    <p className="text-white text-[14px] font-semibold mt-0.5">TotalEnerGE S.A.</p>
+                    <p className="text-[11px] font-semibold text-text-4 uppercase tracking-wider mb-1">Mi Billetera</p>
+                    <p className="text-[15px] font-semibold text-text-1">TotalEnerGE S.A.</p>
                   </div>
-                  <div className="text-right">
-                    <div className="bg-white/20 border border-white/30 rounded-xl px-3 py-1.5 inline-block">
-                      <span className="text-white font-extrabold text-[20px] leading-none">720</span>
-                      <span className="text-white/70 text-[12px] font-medium ml-1">/ 1000</span>
+                  <div className="text-right shrink-0">
+                    <div className="inline-flex items-baseline gap-1 bg-page-bg border border-border rounded-xl px-3 py-1.5">
+                      <span className="text-[20px] font-extrabold text-text-1 leading-none">720</span>
+                      <span className="text-[12px] text-text-4 font-medium">/ 1000</span>
                     </div>
-                    <p className="text-white/60 text-[10px] mt-1">Score Bonafide · Bueno</p>
+                    <p className="text-[10px] text-text-4 mt-1">Score Bonafide · Bueno</p>
                   </div>
                 </div>
-                <div className="mb-1">
-                  <p className="text-white/60 text-[11px] mb-1">Fondo comprometido total</p>
-                  <p className="text-white font-extrabold leading-none tracking-tight" style={{ fontSize: 'clamp(22px, 5vw, 36px)' }}>
-                    500 000 000 <span className="font-bold opacity-75" style={{ fontSize: 'clamp(16px, 3vw, 22px)' }}>XAF</span>
-                  </p>
+                <div className="mt-4 flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] text-text-4 mb-1">Fondo comprometido total</p>
+                    <p className="font-extrabold text-text-1 leading-none tracking-tight" style={{ fontSize: 'clamp(22px, 5vw, 34px)' }}>
+                      500 000 000 <span className="font-bold text-text-3" style={{ fontSize: 'clamp(15px, 3vw, 20px)' }}>XAF</span>
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-text-4 shrink-0">Junio 2026</p>
                 </div>
-                <p className="text-white/40 text-[11px] mt-2">Junio 2026</p>
               </div>
             </div>
 
