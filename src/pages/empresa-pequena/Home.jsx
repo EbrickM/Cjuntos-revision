@@ -4,7 +4,17 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 
-const fmt = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
+// ── MIC v1.0 Color palette ────────────────────────────────────────────────────
+const GRAD   = 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)';
+const RED    = '#E0201C';
+const ORA    = '#EF7A2C';
+const GREEN  = '#2E7D5B';
+const WARN   = '#C68A1D';
+const BORDER = '#ECEAE7';
+const TEXT4  = '#A9A6A1';
+const WALLET_SHADOW = '0 8px 24px -4px rgba(224,32,28,0.35), 0 4px 12px rgba(239,122,44,0.2)';
+
+const fmt = (v) => `${new Intl.NumberFormat('fr-FR').format(Number(v) || 0)} XAF`;
 
 // ── Shared chart helpers ──────────────────────────────────────────────────────
 function bezierLine(pts) {
@@ -21,7 +31,7 @@ function bezierLine(pts) {
   return d;
 }
 
-function LineChart({ id, data, color = '#C62828', xKey = 'mes', yKey = 'monto', unit = 'M', h = 180 }) {
+function LineChart({ id, data, color = ORA, xKey = 'mes', yKey = 'monto', unit = 'M', h = 180 }) {
   const W = 500, H = h, PL = 48, PR = 20, PT = 24, PB = 34;
   const cW = W - PL - PR, cH = H - PT - PB;
   const vals = data.map(d => d[yKey]);
@@ -50,10 +60,10 @@ function LineChart({ id, data, color = '#C62828', xKey = 'mes', yKey = 'monto', 
         </g>
       ))}
       {data.map((d, i) => (
-        <text key={i} x={PL + (i / (data.length - 1)) * cW} y={H - 10} textAnchor="middle" fontSize="10" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{d[xKey]}</text>
+        <text key={i} x={PL + (i / (data.length - 1)) * cW} y={H - 10} textAnchor="middle" fontSize="10" fill={TEXT4} fontFamily="Poppins,sans-serif">{d[xKey]}</text>
       ))}
       {[0, 0.5, 1].map(p => (
-        <text key={p} x={PL - 5} y={PT + cH * (1 - p) + 4} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{Math.round(maxV * p)}{unit}</text>
+        <text key={p} x={PL - 5} y={PT + cH * (1 - p) + 4} textAnchor="end" fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{Math.round(maxV * p)}{unit}</text>
       ))}
     </svg>
   );
@@ -67,14 +77,14 @@ function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
   });
   return (
     <svg viewBox="0 0 110 110" style={{ width: size, height: size, flexShrink: 0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F0F0F0" strokeWidth="13" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={BORDER} strokeWidth="13" />
       {segs.map((s, i) => (
         <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth="13"
           strokeDasharray={`${s.dash} ${circ - s.dash}`} strokeDashoffset={s.off} strokeLinecap="round"
           style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
       ))}
-      {centerLabel && <text x={cx} y={cy - 4} textAnchor="middle" fontSize="14" fontWeight="800" fill="#1a1a1a" fontFamily="Poppins,sans-serif">{centerLabel}</text>}
-      {centerSub && <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{centerSub}</text>}
+      {centerLabel && <text x={cx} y={cy - 4} textAnchor="middle" fontSize="14" fontWeight="800" fill="#26262B" fontFamily="Poppins,sans-serif">{centerLabel}</text>}
+      {centerSub && <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{centerSub}</text>}
     </svg>
   );
 }
@@ -89,8 +99,8 @@ function VBarChart({ id, data, h = 170 }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       <defs>
         <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#C62828" />
-          <stop offset="100%" stopColor="#C62828" stopOpacity="0.55" />
+          <stop offset="0%" stopColor={ORA} />
+          <stop offset="100%" stopColor={ORA} stopOpacity="0.55" />
         </linearGradient>
       </defs>
       {[0, 0.25, 0.5, 0.75, 1].map(p => (
@@ -104,8 +114,8 @@ function VBarChart({ id, data, h = 170 }) {
         return (
           <g key={i}>
             <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />
-            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700" fill={d.color ?? '#C62828'} fontFamily="Poppins,sans-serif">{d.value}</text>
-            <text x={x + bW / 2} y={H - 10} textAnchor="middle" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{d.label}</text>
+            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700" fill={d.color ?? ORA} fontFamily="Poppins,sans-serif">{d.value}</text>
+            <text x={x + bW / 2} y={H - 10} textAnchor="middle" fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
         );
       })}
@@ -121,17 +131,15 @@ const TABS = [
 
 // ── Financiación tab data ─────────────────────────────────────────────────────
 const finKpis = [
-  { value: 'XAF 231M',  label: 'Línea aprobada',   sub: 'Crédito disponible total',  cls: 'text-orange',     trend: 'Activa',     tUp: null  },
-  { value: 'XAF 80.8M', label: 'Disponible',        sub: 'Dinero aún utilizable',     cls: 'text-green-text', trend: '35% libre',  tUp: true  },
-  { value: 'XAF 150M',  label: 'Utilizado',          sub: 'Capital consumido',         cls: 'text-orange',     trend: '65% usado',  tUp: null  },
-  { value: 'XAF 12.5M', label: 'Pendiente pago',    sub: 'Deuda vigente',             cls: 'text-yellow-text', trend: '-3%',       tUp: true  },
-  { value: '18',         label: 'Facturas finan.',   sub: 'Total en el periodo',       cls: 'text-blue-text',  trend: '+3',         tUp: true  },
-  { value: 'Verde',      label: 'Nivel de riesgo',   sub: 'Semáforo Bonafide',         cls: 'text-green-text', trend: 'Excelente',  tUp: true  },
+  { value: '3',      label: 'Facturas pendientes', sub: 'Pendientes de cobro',  cls: 'text-yellow-text', trend: '+1',       tUp: false },
+  { value: '18',     label: 'Facturas finan.',      sub: 'Total en el periodo',  cls: 'text-text-1',      trend: '+3',       tUp: true  },
+  { value: 'Verde',  label: 'Nivel de riesgo',      sub: 'Semáforo Bonafide',   cls: 'text-green-text',  trend: 'Excelente',tUp: true  },
+  { value: '5 días', label: 'Próx. vencimiento',    sub: 'FAC-2026-1025',       cls: 'text-yellow-text', trend: 'Próximo',  tUp: false },
 ];
 
 const lineaDona = [
-  { tipo: 'Utilizado',  pct: 65, color: '#C62828' },
-  { tipo: 'Disponible', pct: 35, color: '#059669' },
+  { tipo: 'Utilizado',  pct: 65, color: RED,   monto: '150 000 000 XAF' },
+  { tipo: 'Disponible', pct: 35, color: GREEN,  monto: '81 000 000 XAF'  },
 ];
 
 const finLineData = [
@@ -144,8 +152,8 @@ const finLineData = [
 ];
 
 const payBarData = [
-  { label: 'Pago directo',     value: 93, color: '#C62828' },
-  { label: 'Pago proveedores', value: 57, color: '#F57C00' },
+  { label: 'Pago directo',     value: 93, color: ORA },
+  { label: 'Pago proveedores', value: 57, color: RED },
 ];
 
 const operaciones = [
@@ -158,33 +166,33 @@ const operaciones = [
 
 // ── Medioambiental tab data ───────────────────────────────────────────────────
 const envKpis = [
-  { value: '8',        label: 'Proyectos registrados', sub: 'Total registrado',           cls: 'text-green-text',  trend: '+2',     tUp: true  },
-  { value: '5',        label: 'Proyectos activos',     sub: 'En ejecución actualmente',   cls: 'text-blue-text',   trend: 'estable', tUp: null },
-  { value: '3',        label: 'Proyectos financiados', sub: 'Con financiación aprobada',  cls: 'text-orange',      trend: '+1',     tUp: true  },
-  { value: '12,450 t', label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',   cls: 'text-green-text',  trend: '+8%',    tUp: true  },
-  { value: 'Medio',    label: 'Riesgo ambiental',      sub: 'Clasificación global',       cls: 'text-yellow-text', trend: 'Estable', tUp: null },
+  { value: '8',        label: 'Proyectos registrados', sub: 'Total registrado',          cls: 'text-green-text',  trend: '+2',      tUp: true  },
+  { value: '5',        label: 'Proyectos activos',     sub: 'En ejecución actualmente',  cls: 'text-text-1',      trend: 'Estable', tUp: null  },
+  { value: '3',        label: 'Proyectos financiados', sub: 'Con financiación aprobada', cls: 'text-orange',      trend: '+1',      tUp: true  },
+  { value: '12 450 t', label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  cls: 'text-green-text',  trend: '+8%',     tUp: true  },
+  { value: 'Medio',    label: 'Riesgo ambiental',      sub: 'Clasificación global',      cls: 'text-yellow-text', trend: 'Estable', tUp: null  },
 ];
 
 const proyectoDona = [
-  { tipo: 'En ejecución', pct: 45, color: '#059669' },
-  { tipo: 'Planificado',  pct: 18, color: '#3B82F6' },
-  { tipo: 'Finalizado',   pct: 27, color: '#C62828' },
-  { tipo: 'Suspendido',   pct: 10, color: '#9CA3AF' },
+  { tipo: 'En ejecución', pct: 45, color: GREEN },
+  { tipo: 'Planificado',  pct: 18, color: ORA   },
+  { tipo: 'Finalizado',   pct: 27, color: RED   },
+  { tipo: 'Suspendido',   pct: 10, color: TEXT4 },
 ];
 
 const catBarData = [
-  { label: 'Reforestación', value: 3, color: '#059669' },
-  { label: 'Agricultura',   value: 2, color: '#F57C00' },
-  { label: 'Energía',       value: 2, color: '#3B82F6' },
-  { label: 'Residuos',      value: 1, color: '#9CA3AF' },
+  { label: 'Reforestación', value: 3, color: GREEN },
+  { label: 'Agricultura',   value: 2, color: ORA   },
+  { label: 'Energía',       value: 2, color: RED   },
+  { label: 'Residuos',      value: 1, color: TEXT4 },
 ];
 
 const proyectos = [
-  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  fin: 'XAF 45M' },
-  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', fin: 'XAF 28M' },
-  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  fin: 'XAF 62M' },
-  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  fin: 'XAF 18M' },
-  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', fin: 'XAF 35M' },
+  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  fin: '45 000 000 XAF' },
+  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', fin: '28 000 000 XAF' },
+  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  fin: '62 000 000 XAF' },
+  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18 000 000 XAF' },
+  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', fin: '35 000 000 XAF' },
 ];
 
 const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
@@ -203,7 +211,6 @@ export default function EpHome() {
         {/* Header + Tab nav */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
-          {/* Título + badges (desktop: misma línea) */}
           <div className="flex items-center gap-3 min-w-0 flex-wrap">
             <div className="min-w-0">
               <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
@@ -211,10 +218,9 @@ export default function EpHome() {
                 <span className="hidden sm:inline">Bienvenido, </span>Construcciones Silva
               </div>
             </div>
-            {/* Badges — solo desktop */}
             <div className="hidden sm:flex gap-2">
               <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-                <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
                 Verde
               </span>
               <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
@@ -259,8 +265,36 @@ export default function EpHome() {
         {tab === 'financiacion' && (
           <div key="financiacion" className="fade-in space-y-5">
 
+            {/* Mi Billetera */}
+            <div className="rounded-2xl overflow-hidden relative" style={{ background: GRAD, boxShadow: WALLET_SHADOW }}>
+              <div className="absolute -right-12 -top-12 w-52 h-52 rounded-full bg-white/10 pointer-events-none" />
+              <div className="absolute right-10 -bottom-8 w-28 h-28 rounded-full bg-white/[0.08] pointer-events-none" />
+              <div className="relative px-6 py-5 sm:py-6">
+                <div className="flex items-start justify-between mb-5">
+                  <div>
+                    <p className="text-white/60 text-[11px] font-semibold uppercase tracking-wider">Mi Billetera</p>
+                    <p className="text-white text-[14px] font-semibold mt-0.5">Construcciones Silva</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="bg-white/20 border border-white/30 rounded-xl px-3 py-1.5 inline-block">
+                      <span className="text-white font-extrabold text-[20px] leading-none">650</span>
+                      <span className="text-white/70 text-[12px] font-medium ml-1">/ 1000</span>
+                    </div>
+                    <p className="text-white/60 text-[10px] mt-1">Score Bonafide · Bueno</p>
+                  </div>
+                </div>
+                <div className="mb-1">
+                  <p className="text-white/60 text-[11px] mb-1">Línea de crédito total</p>
+                  <p className="text-white font-extrabold leading-none tracking-tight" style={{ fontSize: 'clamp(22px, 5vw, 36px)' }}>
+                    231 000 000 <span className="font-bold opacity-75" style={{ fontSize: 'clamp(16px, 3vw, 22px)' }}>XAF</span>
+                  </p>
+                </div>
+                <p className="text-white/40 text-[11px] mt-2">Junio 2026</p>
+              </div>
+            </div>
+
             {/* KPIs */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {finKpis.map(({ value, label, sub, cls, trend, tUp }) => (
                 <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
                   <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
@@ -275,48 +309,71 @@ export default function EpHome() {
               ))}
             </div>
 
-            {/* Row 1: DonutChart + LineChart */}
+            {/* Row 1: Score Crediticio + Donut */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-              {/* DonutChart 2/5 */}
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              {/* Score Crediticio 2/5 */}
+              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
+                <div className="text-[14px] font-bold text-text-1 mb-1">Score Crediticio</div>
+                <div className="text-[11px] text-text-4 mb-5">Calificación Bonafide</div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="relative w-[140px] h-[72px] overflow-hidden">
+                    <svg viewBox="0 0 140 72" className="w-full h-full">
+                      <path d="M 12 70 A 58 58 0 0 1 128 70" fill="none" stroke={BORDER} strokeWidth="11" strokeLinecap="round" />
+                      <path d="M 12 70 A 58 58 0 0 1 128 70" fill="none" stroke={GREEN} strokeWidth="11" strokeLinecap="round"
+                        strokeDasharray="119 258" strokeDashoffset="0" />
+                    </svg>
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
+                      <span className="text-[26px] font-extrabold text-text-1 leading-none">650</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-green-bg text-green-text">Bueno</span>
+                    <span className="text-[11px] text-text-4">/ 1 000 pts</span>
+                  </div>
+                  <div className="w-full grid grid-cols-3 text-center mt-3 border-t border-border pt-3 gap-1">
+                    <div>
+                      <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Regular</div>
+                      <div className="text-[10px] font-semibold" style={{ color: WARN }}>400–649</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Bueno</div>
+                      <div className="text-[10px] font-semibold" style={{ color: GREEN }}>650–799</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-text-4 uppercase tracking-wide mb-0.5">Excelente</div>
+                      <div className="text-[10px] font-semibold" style={{ color: GREEN }}>800+</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Donut 3/5 */}
+              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-3">
                   <div className="text-[14px] font-bold text-text-1">Estado de la línea</div>
-                  <div className="text-[11px] text-text-4">¿Cuánto dinero tengo disponible?</div>
+                  <div className="text-[11px] text-text-4">¿Cuánto he utilizado?</div>
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 py-2">
+                <div className="flex-1 flex flex-col items-center justify-center gap-4 py-2">
                   <DonutChart data={lineaDona} centerLabel="65%" centerSub="utilizado" size={190} />
-                  <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 w-full">
+                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 w-full">
                     {lineaDona.map(d => (
-                      <div key={d.tipo} className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                        <span className="text-[11px] text-text-2 font-medium">{d.tipo}</span>
-                        <span className="text-[11px] font-bold" style={{ color: d.color }}>{d.pct}%</span>
+                      <div key={d.tipo} className="flex items-start gap-1.5">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0 mt-0.5" style={{ background: d.color }} />
+                        <div>
+                          <div className="text-[11px] text-text-2 font-medium">
+                            {d.tipo} <span className="font-bold" style={{ color: d.color }}>{d.pct}%</span>
+                          </div>
+                          <div className="text-[10px] text-text-4">{d.monto}</div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
-
-              {/* LineChart 3/5 */}
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
-                  <div>
-                    <div className="text-[14px] font-bold text-text-1">Evolución de financiación</div>
-                    <div className="text-[11px] text-text-4">Dinero recibido mensual · millones XAF</div>
-                  </div>
-                  <div className="flex items-center gap-1.5 bg-green-bg px-2.5 py-1 rounded-[6px]">
-                    <TrendingUp className="w-3 h-3 text-green-text" />
-                    <span className="text-[11px] font-bold text-green-text">+94% en 6 meses</span>
-                  </div>
-                </div>
-                <div className="flex-1 min-h-[200px]">
-                  <LineChart id="pyme-fin" data={finLineData} color="#C62828" xKey="mes" yKey="monto" unit="M" h={180} />
-                </div>
-              </div>
             </div>
 
-            {/* Row 2: VBarChart + Table */}
+            {/* Row 2: VBarChart + Operaciones */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
               {/* VBarChart 2/5 */}
@@ -330,7 +387,7 @@ export default function EpHome() {
                 </div>
               </div>
 
-              {/* Table 3/5 */}
+              {/* Operaciones 3/5 */}
               <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5">
                 <div className="flex justify-between items-center mb-4">
                   <div>
@@ -387,6 +444,23 @@ export default function EpHome() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* Row 3: LineChart */}
+            <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
+                <div>
+                  <div className="text-[14px] font-bold text-text-1">Evolución de financiación</div>
+                  <div className="text-[11px] text-text-4">Dinero recibido mensual · millones XAF</div>
+                </div>
+                <div className="flex items-center gap-1.5 bg-green-bg px-2.5 py-1 rounded-[6px]">
+                  <TrendingUp className="w-3 h-3 text-green-text" />
+                  <span className="text-[11px] font-bold text-green-text">+94% en 6 meses</span>
+                </div>
+              </div>
+              <div className="flex-1 min-h-[200px]">
+                <LineChart id="pyme-fin" data={finLineData} color={ORA} xKey="mes" yKey="monto" unit="M" h={180} />
               </div>
             </div>
           </div>
@@ -503,10 +577,10 @@ export default function EpHome() {
           </div>
         )}
 
-        {/* Badges móvil — al final del dashboard */}
+        {/* Badges móvil */}
         <div className="flex sm:hidden gap-2 justify-center pt-2">
           <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-            <div className="w-2 h-2 rounded-full bg-[#00C853] shrink-0" />
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
             Verde
           </span>
           <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
