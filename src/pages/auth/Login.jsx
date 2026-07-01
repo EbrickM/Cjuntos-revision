@@ -99,11 +99,11 @@ export default function Login() {
           onClick={() => setShowOTP(true)}
           className="w-full h-11 text-white font-semibold text-sm rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
           style={{
-            background: 'linear-gradient(135deg, var(--bonafide-red) 0%, var(--bonafide-orange) 100%)',
-            boxShadow: '0 4px 16px rgba(224,32,28,0.28)',
+            background: '#EF7A2C',
+            boxShadow: '0 4px 16px rgba(239,122,44,0.32)',
           }}
-          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(224,32,28,0.42)'; }}
-          onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(224,32,28,0.28)'; }}
+          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 6px 24px rgba(239,122,44,0.45)'; }}
+          onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(239,122,44,0.32)'; }}
         >
           Acceder
           <ArrowRight className="w-4 h-4" />

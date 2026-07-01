@@ -1,5 +1,5 @@
 const variants = {
-  primary:   'bg-gradient-to-r from-orange to-orange-dark text-white border border-transparent hover:shadow-[0_4px_12px_rgba(198,40,40,0.2)]',
+  primary:   'bg-[#EF7A2C] text-white border border-transparent hover:bg-[#e06a20] hover:shadow-[0_4px_12px_rgba(239,122,44,0.35)]',
   secondary: 'bg-white text-orange border-2 border-orange hover:bg-orange hover:text-white',
   ghost:     'bg-transparent text-orange border border-transparent hover:bg-orange/10',
   danger:    'bg-red-bg text-red-text border border-red/30',

@@ -163,7 +163,7 @@ function BtnPrimary({ onClick, children, disabled, className = '' }) {
   return (
     <button onClick={onClick} disabled={disabled}
       className={`h-11 px-6 flex items-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ${className}`}
-      style={{ background: GRAD, boxShadow: '0 4px 14px rgba(224,32,28,0.2)' }}>
+      style={{ background: ORA, boxShadow: '0 4px 14px rgba(239,122,44,0.28)' }}>
       {children}
     </button>
   );
@@ -188,7 +188,7 @@ function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás',
       {!hideNext && (
         <button onClick={onNext} disabled={nextDisabled}
           className="h-11 px-8 flex items-center gap-2 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          style={{ background: GRAD, boxShadow: '0 4px 14px rgba(224,32,28,0.25)' }}>
+          style={{ background: ORA, boxShadow: '0 4px 14px rgba(239,122,44,0.28)' }}>
           {nextLabel} <ChevronRight className="w-4 h-4" />
         </button>
       )}
@@ -475,7 +475,7 @@ export default function SolicitarContrato() {
                 onKeyDown={e => e.key === 'Enter' && nif.trim() && mockNifSearch(nif)} />
               <button onClick={() => mockNifSearch(nif)} disabled={!nif.trim()}
                 className="h-[42px] px-5 rounded-lg text-white flex items-center gap-2 text-sm font-semibold disabled:opacity-40 cursor-pointer shrink-0"
-                style={{ background: GRAD }}>
+                style={{ background: ORA }}>
                 <Search className="w-4 h-4" /> Buscar
               </button>
             </div>
@@ -1064,7 +1064,7 @@ export default function SolicitarContrato() {
         <div className="flex justify-center">
           <button onClick={() => go('login')}
             className="h-11 px-8 flex items-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
-            style={{ background: GRAD, boxShadow: '0 4px 14px rgba(224,32,28,0.25)' }}>
+            style={{ background: ORA, boxShadow: '0 4px 14px rgba(239,122,44,0.28)' }}>
             Volver al inicio
           </button>
         </div>
@@ -1371,7 +1371,7 @@ export default function SolicitarContrato() {
             <div className="flex gap-3">
               <button onClick={() => go('login')}
                 className="flex-1 h-11 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
-                style={{ background: GRAD }}>
+                style={{ background: ORA }}>
                 <LogOut className="w-4 h-4" /> Salir
               </button>
               <button onClick={() => setShowExitModal(false)}
@@ -1388,7 +1388,7 @@ export default function SolicitarContrato() {
         <img src={logo} alt="Bonafide" className="h-14 w-auto object-contain" />
         <button onClick={() => setShowExitModal(true)}
           className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
-          style={{ background: GRAD, boxShadow: '0 4px 12px rgba(224,32,28,0.25)' }}
+          style={{ background: ORA, boxShadow: '0 4px 12px rgba(239,122,44,0.28)' }}
         >
           Salir <LogOut className="w-4 h-4" />
         </button>
