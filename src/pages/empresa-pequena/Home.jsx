@@ -81,6 +81,63 @@ function Sparkline({ data, color, width = 72, height = 24 }) {
   );
 }
 
+// ── Gauge — Velocímetro Score Crediticio ─────────────────────────────────────
+// sweep=1 (horario en SVG donde Y↓) traza el semicírculo superior de izq. a der.
+function Gauge({ score = 82, size = 190 }) {
+  const W = 200, H = 140;
+  const cx = 100, cy = 100, r = 80, sw = 16;
+  const deg2rad = d => d * Math.PI / 180;
+  // Ángulo en convención matemática: 180°=izq, 90°=arriba, 0°=der
+  const scoreToAngle = s => 180 - (s / 100) * 180;
+  const pt = a => {
+    const rad = deg2rad(a);
+    return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
+  };
+  const zones = [
+    [0,  40,  ERR  ],
+    [40, 60,  ORA  ],
+    [60, 75,  WARN ],
+    [75, 100, GREEN],
+  ];
+  const needleAngle = scoreToAngle(score);
+  const needleRad = deg2rad(needleAngle);
+  const nx = cx + (r - sw - 2) * Math.cos(needleRad);
+  const ny = cy - (r - sw - 2) * Math.sin(needleRad);
+  const zoneLabel = score < 40 ? 'Crítico' : score < 60 ? 'Alto' : score < 75 ? 'Medio' : 'Bajo';
+  const zoneColor = score < 40 ? ERR : score < 60 ? ORA : score < 75 ? WARN : GREEN;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: size, height: Math.round(size * H / W) }}>
+      {/* Pista de fondo — semicírculo superior: sweep=1 (horario SVG) */}
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`}
+        fill="none" stroke={BORDER} strokeWidth={sw} strokeLinecap="butt" />
+      {/* Zonas de color sobre la pista */}
+      {zones.map(([s1, s2, color]) => {
+        const [x1, y1] = pt(scoreToAngle(s1));
+        const [x2, y2] = pt(scoreToAngle(s2));
+        return (
+          <path key={s1}
+            d={`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`}
+            fill="none" stroke={color} strokeWidth={sw} strokeLinecap="butt" opacity="0.9" />
+        );
+      })}
+      {/* Aguja */}
+      <line x1={cx} y1={cy} x2={nx.toFixed(2)} y2={ny.toFixed(2)}
+        stroke="#26262B" strokeWidth="3" strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r="6" fill="#26262B" />
+      {/* Score y etiqueta bajo el pivote */}
+      <text x={cx} y={cy + 22} textAnchor="middle" fontSize="22" fontWeight="800"
+        fill="#26262B" fontFamily="Poppins,sans-serif">{score}</text>
+      <text x={cx} y={cy + 36} textAnchor="middle" fontSize="10" fontWeight="700"
+        fill={zoneColor} fontFamily="Poppins,sans-serif">Riesgo {zoneLabel}</text>
+      {/* Etiquetas de escala */}
+      <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
+        fill={TEXT4} fontFamily="Poppins,sans-serif">0</text>
+      <text x={cx + r - 2} y={cy + 15} textAnchor="end" fontSize="9"
+        fill={TEXT4} fontFamily="Poppins,sans-serif">100</text>
+    </svg>
+  );
+}
+
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
 function LineChart({ data, series, h = 180 }) {
   const W = 560, H = h, PL = 44, PR = 16, PT = 14, PB = 28;
@@ -229,6 +286,9 @@ const FACTURAS_TOTAL_COUNT = 42;
 const FACTURAS_TOTAL_MONTO = 102_500_000;
 const VENCIMIENTOS_COUNT   = 4;
 const PROXIMO_MONTO        = 28_700_000;
+const NUEVOS_PROVEEDORES   = 3;
+const PENDIENTE_PAGO_COUNT = 7;
+const PENDIENTE_PAGO_XAF   = 32_500_000;
 const SOLICITUDES_PEND     = 5;
 const SOLICITUDES_XAF      = 44_000_000;
 const DESEMBOLSOS_MES      = 18;
@@ -370,168 +430,166 @@ export default function EpHome() {
         {tab === 'financiacion' && (
           <div key="financiacion" className="fade-in space-y-4">
 
-            {/* ── Fila 1: Hero (izq.) + Score/Alertas (der.) ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_236px] gap-4 items-start">
+            {/* ── Fila 1: mismo grid de 4 cols que fila 2 — Hero ocupa 3, Score ocupa 1 ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
 
-              {/* Columna izquierda */}
-              <div className="space-y-4">
+              {/* Hero — Mi Billetera (3 columnas) */}
+              <div className="lg:col-span-3 card-lift bg-white rounded-[18px] border border-border p-5 sm:p-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-5">
 
-                {/* Hero — Mi Billetera */}
-                <div className="card-lift bg-white rounded-[18px] border border-border p-5 sm:p-6">
-                  <div className="flex flex-col md:flex-row md:items-center gap-5">
+                  {/* Balance info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[1.2px] mb-3"
+                       style={{ color: TEXT4 }}>
+                      MI BILLETERA · CORTE JUN 2026
+                    </p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide mb-1"
+                       style={{ color: TEXT4 }}>
+                      Financiación Aprobada
+                    </p>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="font-extrabold text-text-1 leading-none"
+                            style={{ fontSize: 'clamp(26px, 4vw, 36px)' }}>
+                        {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)}
+                      </span>
+                      <span className="text-[15px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                    </div>
+                    <p className="text-[11px] mb-4" style={{ color: TEXT4 }}>
+                      de {new Intl.NumberFormat('fr-FR').format(LIMITE)} XAF aprobados
+                    </p>
 
-                    {/* Balance info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-semibold uppercase tracking-[1.2px] mb-3"
-                         style={{ color: TEXT4 }}>
-                        MI BILLETERA · CORTE JUN 2026
-                      </p>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide mb-1"
-                         style={{ color: TEXT4 }}>
-                        Financiación Aprobada
-                      </p>
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="font-extrabold text-text-1 leading-none"
-                              style={{ fontSize: 'clamp(26px, 4vw, 36px)' }}>
-                          {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)}
-                        </span>
-                        <span className="text-[15px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
-                      </div>
-                      <p className="text-[11px] mb-4" style={{ color: TEXT4 }}>
-                        de {new Intl.NumberFormat('fr-FR').format(LIMITE)} XAF aprobados
-                      </p>
-
-                      {/* CTAs */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
-                                style={{ background: ORA }}>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                          Solicitar Financiación
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                          <Download className="w-3.5 h-3.5" />
-                          Extracto
-                        </button>
-                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                          Retirar fondos
-                        </button>
-                      </div>
-
-                      {/* Indicadores */}
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                              style={{ background: '#E3F4EA', color: GREEN }}>
-                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
-                          {CONTRATOS_ACTIVOS} contratos activos
-                        </span>
-                        <span className="text-[11px] font-semibold" style={{ color: GREEN }}>
-                          ▲ {TREND_DIA} al día anterior
-                        </span>
-                      </div>
+                    {/* CTAs */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                              style={{ background: ORA }}>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                        Solicitar Financiación
+                      </button>
+                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
+                        <Download className="w-3.5 h-3.5" />
+                        Extracto
+                      </button>
+                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
+                        Retirar fondos
+                      </button>
                     </div>
 
-                    {/* Donut + leyenda */}
-                    <div className="flex items-center gap-4 shrink-0">
-                      <DonutChart
-                        data={[
-                          { pct: pctUsado,      gradient: true, color: RED },
-                          { pct: pctDisponible, color: DONUT_EMPTY         },
-                        ]}
-                        centerLabel={`${pctDisponible}%`}
-                        centerSub="DISPONIBLE"
-                        size={190}
-                        inner={82}
-                      />
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: GRAD }} />
-                            <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
-                          </div>
-                          <p className="text-[13px] font-extrabold text-text-1">
-                            {new Intl.NumberFormat('fr-FR').format(USADO)} XAF
-                          </p>
-                          <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
-                            <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
-                          </div>
-                          <p className="text-[13px] font-extrabold" style={{ color: ORA }}>
-                            {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)} XAF
-                          </p>
-                          <p className="text-[10px]" style={{ color: TEXT4 }}>{pctDisponible}%</p>
-                        </div>
-                      </div>
+                    {/* Indicadores */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#E3F4EA', color: GREEN }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                        {CONTRATOS_ACTIVOS} contratos activos
+                      </span>
+                      <span className="text-[11px] font-semibold" style={{ color: GREEN }}>
+                        ▲ {TREND_DIA} al día anterior
+                      </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Facturas Activas + Próximos Vencimientos */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                    <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Facturas Activas</p>
-                    <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{FACTURAS_TOTAL_COUNT}</p>
-                    <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                      por un total de {new Intl.NumberFormat('fr-FR').format(FACTURAS_TOTAL_MONTO)} XAF
-                    </p>
-                    <button onClick={() => go('epFacturacion')}
-                      className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                      style={{ color: ORA }}>
-                      Ver facturas <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                    <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Próximos Vencimientos</p>
-                    <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{VENCIMIENTOS_COUNT}</p>
-                    <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                      próximo en {new Intl.NumberFormat('fr-FR').format(PROXIMO_MONTO)} XAF
-                    </p>
-                    <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                            style={{ color: ORA }}>
-                      Ver vencimientos <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                  {/* Donut + leyenda */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <DonutChart
+                      data={[
+                        { pct: pctUsado,      gradient: true, color: RED },
+                        { pct: pctDisponible, color: DONUT_EMPTY         },
+                      ]}
+                      centerLabel={`${pctDisponible}%`}
+                      centerSub="DISPONIBLE"
+                      size={190}
+                      inner={82}
+                    />
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: GRAD }} />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
+                        </div>
+                        <p className="text-[13px] font-extrabold text-text-1">
+                          {new Intl.NumberFormat('fr-FR').format(USADO)} XAF
+                        </p>
+                        <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
+                          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
+                        </div>
+                        <p className="text-[13px] font-extrabold" style={{ color: ORA }}>
+                          {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)} XAF
+                        </p>
+                        <p className="text-[10px]" style={{ color: TEXT4 }}>{pctDisponible}%</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Columna derecha: Score + Alertas */}
-              <div className="space-y-4">
-                <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Score Crediticio</p>
-                  <div className="flex items-end gap-2 mb-2">
-                    <p className="text-[36px] font-extrabold leading-none text-text-1">{SCORE}</p>
-                    <div className="mb-1">
-                      <Sparkline data={scoreSparkline} color={GREEN} />
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full mb-2"
-                        style={{ background: '#E3F4EA', color: GREEN }}>
-                    Riesgo Bajo
-                  </span>
-                  <p className="text-[10px]" style={{ color: TEXT4 }}>+4 pts vs mes anterior</p>
-                </div>
+              {/* Score Crediticio con Gauge */}
+              <div className="card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
+                <Gauge score={SCORE} size={160} />
+                <p className="text-[10px] self-center" style={{ color: TEXT4 }}>+4 pts vs mes anterior</p>
+              </div>
+            </div>
 
-                <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Alertas</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="relative">
-                      <Bell className="w-6 h-6 text-text-3" />
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center"
-                            style={{ background: ORA }}>
-                        {ALERTAS_COUNT}
-                      </span>
-                    </div>
-                    <p className="text-[24px] font-extrabold text-text-1 leading-none">{ALERTAS_COUNT}</p>
+            {/* ── Fila 2: Facturas Finalizadas + Nuevos Proveedores + Pendiente de Pago + Alertas ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Facturas Finalizadas</p>
+                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{FACTURAS_TOTAL_COUNT}</p>
+                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                  por un total de {new Intl.NumberFormat('fr-FR').format(FACTURAS_TOTAL_MONTO)} XAF
+                </p>
+                <button onClick={() => go('epFacturacion')}
+                  className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                  style={{ color: ORA }}>
+                  Ver facturas <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Nuevos Proveedores</p>
+                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{NUEVOS_PROVEEDORES}</p>
+                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                  incorporados este mes
+                </p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver proveedores <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Pendiente de Pago</p>
+                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{PENDIENTE_PAGO_COUNT}</p>
+                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                  {new Intl.NumberFormat('fr-FR').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
+                </p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver pagos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Alertas</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="relative">
+                    <Bell className="w-6 h-6 text-text-3" />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center"
+                          style={{ background: ORA }}>
+                      {ALERTAS_COUNT}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
-                  <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                          style={{ color: ORA }}>
-                    Ver alertas <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  <p className="text-[24px] font-extrabold text-text-1 leading-none">{ALERTAS_COUNT}</p>
                 </div>
+                <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver alertas <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
