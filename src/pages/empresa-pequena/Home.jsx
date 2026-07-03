@@ -37,7 +37,7 @@ function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
       {segs.map((s, i) => (
         <circle key={i} cx={cx} cy={cy} r={r} fill="none"
           stroke={s.gradient ? 'url(#donut-grad)' : s.color}
-          strokeWidth="13"
+          strokeWidth="15"
           strokeDasharray={`${s.dash} ${circ - s.dash}`}
           strokeDashoffset={s.off}
           strokeLinecap="round"
@@ -268,7 +268,7 @@ export default function EpHome() {
                     ]}
                     centerLabel={`${pctDisponible}%`}
                     centerSub="DISPONIBLE"
-                    size={180}
+                    size={240}
                   />
                   <div className="space-y-4">
                     <div>
