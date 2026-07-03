@@ -16,8 +16,17 @@ const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
 
 // ── DonutChart ────────────────────────────────────────────────────────────────
-function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
-  const r = 40, cx = 55, cy = 55, circ = 2 * Math.PI * r;
+// inner: radio del anillo en unidades viewBox (default 40).
+// El viewBox se recalcula para que el anillo llene el SVG con margen fijo,
+// así aumentar `inner` expande el diámetro sin cambiar el grosor visual.
+function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
+  const sw = 13;
+  const margin = 8;
+  const vb = Math.round((inner + sw / 2 + margin) * 2);
+  const cx = vb / 2, cy = vb / 2;
+  const circ = 2 * Math.PI * inner;
+  const scale = vb / 110;
+
   let acc = 0;
   const segs = data.map(d => {
     const dash = (d.pct / 100) * circ;
@@ -26,29 +35,31 @@ function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
     return s;
   });
   return (
-    <svg viewBox="0 0 110 110" style={{ width: size, height: size, flexShrink: 0 }}>
+    <svg viewBox={`0 0 ${vb} ${vb}`} style={{ width: size, height: size, flexShrink: 0 }}>
       <defs>
         <linearGradient id="donut-grad" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={RED} />
           <stop offset="100%" stopColor={ORA} />
         </linearGradient>
       </defs>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke={BORDER} strokeWidth="13" />
+      <circle cx={cx} cy={cy} r={inner} fill="none" stroke={BORDER} strokeWidth={sw} />
       {segs.map((s, i) => (
-        <circle key={i} cx={cx} cy={cy} r={r} fill="none"
+        <circle key={i} cx={cx} cy={cy} r={inner} fill="none"
           stroke={s.gradient ? 'url(#donut-grad)' : s.color}
-          strokeWidth="15"
+          strokeWidth={sw}
           strokeDasharray={`${s.dash} ${circ - s.dash}`}
           strokeDashoffset={s.off}
           strokeLinecap="round"
           style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
       ))}
       {centerLabel && (
-        <text x={cx} y={cy - 4} textAnchor="middle" fontSize="14" fontWeight="800"
+        <text x={cx} y={cy - 4 * scale} textAnchor="middle"
+          fontSize={Math.round(14 * scale)} fontWeight="800"
           fill="#26262B" fontFamily="Poppins,sans-serif">{centerLabel}</text>
       )}
       {centerSub && (
-        <text x={cx} y={cy + 11} textAnchor="middle" fontSize="8" fill={TEXT4}
+        <text x={cx} y={cy + 11 * scale} textAnchor="middle"
+          fontSize={Math.round(8 * scale)} fill={TEXT4}
           fontFamily="Poppins,sans-serif">{centerSub}</text>
       )}
     </svg>
@@ -269,6 +280,7 @@ export default function EpHome() {
                     centerLabel={`${pctDisponible}%`}
                     centerSub="DISPONIBLE"
                     size={240}
+                    inner={105}
                   />
                   <div className="space-y-4">
                     <div>
