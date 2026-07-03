@@ -128,3 +128,13 @@
   from { width: 0%; }
   to   { width: 100%; }
 }
+
+/* Elevación de tarjetas con sombra de marca en hover */
+.card-lift {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.22s ease, transform 0.22s ease;
+}
+.card-lift:hover {
+  box-shadow: 0 10px 32px rgba(224, 32, 28, 0.18), 0 4px 14px rgba(239, 122, 44, 0.12);
+  transform: translateY(-2px);
+}
