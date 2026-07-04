@@ -141,50 +141,33 @@ function Gauge({ score = 82, size = 190 }) {
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
 function LineChart({ data, series, h = 180 }) {
-  const W = 560, H = h, PL = 44, PR = 16, PT = 14, PB = 28;
+  const W = 560, H = h, PL = 98, PR = 16, PT = 14, PB = 28;
   const cW = W - PL - PR, cH = H - PT - PB;
-  const allV = data.flatMap(d => series.map(s => d[s.key]));
-  const maxV = Math.max(...allV) * 1.15;
+  const maxV = 250;
+  const yTicks = [50, 100, 150, 200, 250];
   const xPos = i => PL + (i / (data.length - 1)) * cW;
   const yPos = v => PT + cH - (v / maxV) * cH;
+  const fmtM = v => new Intl.NumberFormat('de-DE').format(v * 1_000_000);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
-      <defs>
-        {series.map((s, si) => (
-          <linearGradient key={si} id={`lg-area-${si}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={s.color} stopOpacity="0.14" />
-            <stop offset="100%" stopColor={s.color} stopOpacity="0.01" />
-          </linearGradient>
-        ))}
-      </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map(p => (
-        <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
+      {yTicks.map(t => (
+        <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
           stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
       ))}
       {series.map((s, si) => {
-        const areaD = `M ${xPos(0)},${yPos(data[0][s.key])} ` +
-          data.map((d, i) => `L ${xPos(i)},${yPos(d[s.key])}`).join(' ') +
-          ` L ${xPos(data.length - 1)},${PT + cH} L ${xPos(0)},${PT + cH} Z`;
         const pts = data.map((d, i) => `${xPos(i)},${yPos(d[s.key])}`).join(' ');
         return (
-          <g key={si}>
-            <path d={areaD} fill={`url(#lg-area-${si})`} />
-            <polyline points={pts} fill="none" stroke={s.color}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
+          <polyline key={si} points={pts} fill="none" stroke={s.color}
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         );
       })}
       {data.map((d, i) => (
-        i % 2 === 0 && (
-          <text key={i} x={xPos(i)} y={H - 4} textAnchor="middle"
-            fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
-        )
+        <text key={i} x={xPos(i)} y={H - 4} textAnchor="middle"
+          fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
-      {[0, 0.5, 1].map(p => (
-        <text key={p} x={PL - 5} y={PT + cH * (1 - p) + 4} textAnchor="end"
-          fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">
-          {Math.round(maxV * p)}M
-        </text>
+      {yTicks.map(t => (
+        <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
+          fontSize="8" fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
       ))}
     </svg>
   );
@@ -296,23 +279,18 @@ const SOLICITUDES_XAF      = 44_000_000;
 
 
 const evolucionData = [
-  { label: 'Jun',  prestamos: 165, facturas:  75 },
-  { label: 'Jul',  prestamos: 178, facturas:  88 },
-  { label: 'Ago',  prestamos: 172, facturas:  82 },
-  { label: 'Sep',  prestamos: 198, facturas: 108 },
-  { label: 'Oct',  prestamos: 190, facturas: 102 },
-  { label: 'Nov',  prestamos: 215, facturas: 125 },
-  { label: 'Dic',  prestamos: 208, facturas: 118 },
-  { label: 'Ene',  prestamos: 202, facturas: 115 },
-  { label: 'Feb',  prestamos: 218, facturas: 128 },
-  { label: 'Mar',  prestamos: 225, facturas: 138 },
-  { label: 'Abr',  prestamos: 222, facturas: 133 },
-  { label: 'May',  prestamos: 231, facturas: 150 },
+  { label: 'Feb', aprobada: 185, utilizado:  82, disponible: 128 },
+  { label: 'Mar', aprobada: 202, utilizado: 158, disponible:  62 },
+  { label: 'Abr', aprobada: 218, utilizado: 112, disponible: 118 },
+  { label: 'May', aprobada: 208, utilizado: 170, disponible:  52 },
+  { label: 'Jun', aprobada: 226, utilizado: 138, disponible:  98 },
+  { label: 'Jul', aprobada: 231, utilizado: 150, disponible:  81 },
 ];
 
 const evolucionSeries = [
-  { key: 'prestamos', color: RED, label: 'Préstamos otorgados' },
-  { key: 'facturas',  color: ORA, label: 'Facturas utilizadas' },
+  { key: 'aprobada',   color: RED,   label: 'Financiación Aprobada' },
+  { key: 'utilizado',  color: ORA,   label: 'Crédito Utilizado'     },
+  { key: 'disponible', color: GREEN, label: 'Disponible'            },
 ];
 
 const flujoData = [
@@ -596,31 +574,31 @@ export default function EpHome() {
               </div>
             </div>
 
-            {/* ── Fila 2: Evolución Financiera + Flujo Financiero ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+            {/* ── Evolución Financiera + Flujo Financiero — 50/50 ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-              <div className="card-lift bg-white rounded-[14px] border border-border p-5">
-                <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+              <div className="card-lift bg-white rounded-[14px] border border-border overflow-hidden pb-3">
+                <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Evolución Financiera</p>
-                    <p className="text-[11px] text-text-4">Últimos 12 meses · millones XAF</p>
+                    <p className="text-[11px] text-text-4">Últimos 6 meses · XAF</p>
                   </div>
                   <div className="flex items-center gap-4">
                     {evolucionSeries.map(s => (
                       <div key={s.key} className="flex items-center gap-1.5">
-                        <div className="w-5 h-1.5 rounded-full" style={{ background: s.color }} />
+                        <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
                         <span className="text-[10px] text-text-4">{s.label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="min-h-[180px]">
-                  <LineChart data={evolucionData} series={evolucionSeries} h={180} />
+                <div className="h-[220px] w-full">
+                  <LineChart data={evolucionData} series={evolucionSeries} h={220} />
                 </div>
               </div>
 
-              <div className="card-lift bg-white rounded-[14px] border border-border p-5">
-                <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+              <div className="card-lift bg-white rounded-[14px] border border-border overflow-hidden pb-3">
+                <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Flujo Financiero</p>
                     <p className="text-[11px] text-text-4">Últimas 4 semanas · millones XAF</p>
@@ -636,10 +614,11 @@ export default function EpHome() {
                     </div>
                   </div>
                 </div>
-                <div className="min-h-[180px]">
-                  <StackedBarChart data={flujoData} h={180} />
+                <div className="h-[220px] w-full">
+                  <StackedBarChart data={flujoData} h={220} />
                 </div>
               </div>
+
             </div>
 
             {/* ── Fila 3: Riesgo (2 cols) + Solicitudes + Próximos + Alertas ── */}
