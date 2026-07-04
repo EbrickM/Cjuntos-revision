@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar } from 'lucide-react';
+import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar, TreePine, Wind, Recycle } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -311,11 +311,11 @@ const riesgoOps = [
 
 // ── Datos Medioambiental ──────────────────────────────────────────────────────
 const envKpis = [
-  { value: '8',        label: 'Proyectos registrados', sub: 'Total registrado',          cls: 'text-green-text',  trend: '+2',      tUp: true  },
-  { value: '5',        label: 'Proyectos activos',     sub: 'En ejecución actualmente',  cls: 'text-text-1',      trend: 'Estable', tUp: null  },
-  { value: '3',        label: 'Proyectos financiados', sub: 'Con financiación aprobada', cls: 'text-orange',      trend: '+1',      tUp: true  },
-  { value: '12 450 t', label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  cls: 'text-green-text',  trend: '+8%',     tUp: true  },
-  { value: 'Medio',    label: 'Riesgo ambiental',      sub: 'Clasificación global',      cls: 'text-yellow-text', trend: 'Estable', tUp: null  },
+  { value: '8',         label: 'Proyectos registrados', sub: 'Total registrado',          Icon: TreePine,    iconBg: '#E3F4EA', iconColor: GREEN, trend: '+2',      tUp: true  },
+  { value: '5',         label: 'Proyectos activos',     sub: 'En ejecución actualmente',  Icon: CheckCircle, iconBg: '#FFF3E0', iconColor: ORA,   trend: 'Estable', tUp: null  },
+  { value: '3',         label: 'Proyectos financiados', sub: 'Con financiación aprobada', Icon: CreditCard,  iconBg: '#FDEEEB', iconColor: RED,   trend: '+1',      tUp: true  },
+  { value: '12.450 t',  label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  Icon: Wind,        iconBg: '#E3F4EA', iconColor: GREEN, trend: '+8%',     tUp: true  },
+  { value: 'Medio',     label: 'Riesgo ambiental',      sub: 'Clasificación global',      Icon: Shield,      iconBg: '#FDF6E8', iconColor: WARN,  trend: 'Estable', tUp: null  },
 ];
 
 const proyectoDona = [
@@ -364,11 +364,11 @@ export default function EpHome() {
               </div>
             </div>
             <div className="hidden sm:flex gap-2">
-              <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ORA }} />
                 Verde
               </span>
-              <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                 <Leaf className="w-3.5 h-3.5" />
                 Verde Bonafide
               </span>
@@ -731,14 +731,19 @@ export default function EpHome() {
           <div key="medioambiental" className="fade-in space-y-5">
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {envKpis.map(({ value, label, sub, cls, trend, tUp }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
-                  <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
-                  <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
-                  <div className="text-[10px] text-text-5 leading-snug">{sub}</div>
-                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    tUp === true ? 'bg-green-bg text-green-text' :
-                    tUp === false ? 'bg-red-bg text-red-text' :
+              {envKpis.map(({ value, label, sub, Icon, iconBg, iconColor, trend, tUp }) => (
+                <div key={label} className="card-lift bg-white rounded-[14px] border border-border p-4">
+                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3 leading-tight">{label}</p>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+                      <Icon className="w-5 h-5" style={{ color: iconColor }} />
+                    </div>
+                    <p className="font-extrabold leading-none text-text-1" style={{ fontSize: value.length > 4 ? '16px' : '24px' }}>{value}</p>
+                  </div>
+                  <p className="text-[10px] mb-2.5" style={{ color: TEXT4 }}>{sub}</p>
+                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+                    tUp === true  ? 'bg-green-bg text-green-text' :
+                    tUp === false ? 'bg-red-bg text-red-text'     :
                     'bg-orange-tint text-orange'
                   }`}>{trend}</span>
                 </div>
@@ -746,7 +751,7 @@ export default function EpHome() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-2 card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-3">
                   <div className="text-[14px] font-bold text-text-1">Estado de proyectos</div>
                   <div className="text-[11px] text-text-4">Distribución por fase</div>
@@ -765,7 +770,7 @@ export default function EpHome() {
                 </div>
               </div>
 
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-3 card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
                   <div className="text-[14px] font-bold text-text-1">Proyectos por categoría</div>
                   <div className="text-[11px] text-text-4">Distribución por tipo de proyecto</div>
@@ -776,15 +781,16 @@ export default function EpHome() {
               </div>
             </div>
 
-            <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="card-lift bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-[14px] font-bold text-text-1">Proyectos</div>
                   <div className="text-[11px] text-text-4">Todos tus proyectos medioambientales</div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Leaf className="w-4 h-4 text-green-text" />
-                  <span className="text-[11px] font-bold text-green-text">8 registrados</span>
+                <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
+                     style={{ background: '#E3F4EA', color: GREEN }}>
+                  <TreePine className="w-3.5 h-3.5" />
+                  8 registrados
                 </div>
               </div>
               <div className="sm:hidden space-y-2">
