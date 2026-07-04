@@ -163,11 +163,11 @@ function LineChart({ data, series, h = 180 }) {
       })}
       {data.map((d, i) => (
         <text key={i} x={xPos(i)} y={H - 4} textAnchor="middle"
-          fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+          fontSize="11" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
       {yTicks.map(t => (
         <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
-          fontSize="8" fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
+          fontSize="10" fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
       ))}
     </svg>
   );
@@ -200,14 +200,14 @@ function GroupedBarChart({ data, h = 180 }) {
           <g key={i}>
             {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
             {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
-            <text x={slotX + slot / 2} y={H - 4} textAnchor="middle" fontSize="8"
+            <text x={slotX + slot / 2} y={H - 4} textAnchor="middle" fontSize="11"
               fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
         );
       })}
       {[0, 0.33, 0.67, 1].map(p => (
         <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
-          fontSize="8" fill={TEXT4} fontFamily="Poppins,sans-serif">
+          fontSize="10" fill={TEXT4} fontFamily="Poppins,sans-serif">
           {fmt(maxV * p)}
         </text>
       ))}
@@ -414,26 +414,23 @@ export default function EpHome() {
 
               {/* Hero — Mi Billetera (3 columnas) */}
               <div className="lg:col-span-3 card-lift bg-white rounded-[18px] border border-border p-5 sm:p-6">
-                <div className="flex flex-col md:flex-row md:items-center gap-5">
+                <div className="flex flex-col md:flex-row md:items-start gap-5">
 
-                  {/* Balance info */}
+                  {/* Izquierda: título + cifra principal + (desktop) CTAs + indicadores */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[16px] font-semibold uppercase tracking-[1.2px] mb-2"
-                       style={{ color: TEXT4 }}>
+                    <p className="text-[11px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
                       MI BILLETERA
                     </p>
-
-                    <div className="flex items-baseline gap-2 mb-5">
+                    <div className="flex items-baseline gap-2 mb-4">
                       <span className="font-extrabold text-text-1 leading-none"
-                            style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
+                            style={{ fontSize: 'clamp(24px, 3.5vw, 34px)' }}>
                         {new Intl.NumberFormat('de-DE').format(LIMITE)}
                       </span>
-                      <span className="text-[15px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                      <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
-          
 
-                    {/* CTAs */}
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    {/* CTAs — texto visible solo en desktop */}
+                    <div className="hidden md:flex flex-wrap gap-2 mb-4">
                       <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
@@ -443,11 +440,10 @@ export default function EpHome() {
                         <Download className="w-3.5 h-3.5" />
                         Descargar Estado de Cuenta
                       </button>
-                      
                     </div>
 
-                    {/* Indicadores */}
-                    <div className="flex items-center gap-3 flex-wrap">
+                    {/* Indicadores — solo desktop */}
+                    <div className="hidden md:flex items-center gap-3 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
                             style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
@@ -459,8 +455,8 @@ export default function EpHome() {
                     </div>
                   </div>
 
-                  {/* Donut + leyenda */}
-                  <div className="flex items-center gap-4 shrink-0">
+                  {/* Donut + leyenda debajo */}
+                  <div className="flex flex-col items-center gap-3 shrink-0">
                     <DonutChart
                       data={[
                         { pct: pctUsado,      gradient: true, color: RED },
@@ -468,31 +464,54 @@ export default function EpHome() {
                       ]}
                       centerLabel={`${pctDisponible}%`}
                       centerSub="DISPONIBLE"
-                      size={200}
+                      size={175}
                       inner={60}
                     />
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: GRAD }} />
+                    {/* Leyenda horizontal bajo la dona */}
+                    <div className="flex gap-5 justify-center">
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 justify-center mb-0.5">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GRAD }} />
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                         </div>
-                        <p className="text-[13px] font-extrabold text-text-1">
+                        <p className="text-[12px] font-extrabold text-text-1">
                           {new Intl.NumberFormat('de-DE').format(USADO)} XAF
                         </p>
                         <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
+                      <div className="w-px bg-border self-stretch" />
+                      <div className="text-center">
+                        <div className="flex items-center gap-1 justify-center mb-0.5">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                         </div>
-                        <p className="text-[13px] font-extrabold" style={{ color: ORA }}>
+                        <p className="text-[12px] font-extrabold" style={{ color: ORA }}>
                           {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
                         </p>
                         <p className="text-[10px]" style={{ color: TEXT4 }}>{pctDisponible}%</p>
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Móvil: botones icono + indicadores al final */}
+                <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
+                  <div className="flex gap-2">
+                    <button className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
+                            style={{ background: ORA }}>
+                      <ArrowUpRight className="w-4 h-4" />
+                    </button>
+                    <button className="w-9 h-9 rounded-[9px] flex items-center justify-center text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
+                      <Download className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-[5px]"
+                          style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                      <div className="w-1 h-1 rounded-full" style={{ background: ORA }} />
+                      {CONTRATOS_ACTIVOS} activos
+                    </span>
+                    <span className="text-[10px] font-semibold" style={{ color: ORA }}>▲ {TREND_DIA}</span>
                   </div>
                 </div>
               </div>
@@ -508,69 +527,69 @@ export default function EpHome() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
               {/* Nuevos Contratos — naranja marca */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Nuevos Contratos</p>
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Nuevos Contratos</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
                     <FilePlus className="w-6 h-6" style={{ color: ORA }} />
                   </div>
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_CONTRATOS}</p>
                 </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>firmados este mes</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>firmados este mes</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver contratos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Nuevos Proveedores — gris marca */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Nuevos Proveedores</p>
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Nuevos Proveedores</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#ECEAE7' }}>
                     <Users className="w-6 h-6" style={{ color: '#5B5B5F' }} />
                   </div>
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_PROVEEDORES}</p>
                 </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>incorporados este mes</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>incorporados este mes</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver proveedores <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Facturas Finalizadas — verde éxito */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Facturas Finalizadas</p>
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Facturas Finalizadas</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
                     <FileCheck className="w-6 h-6" style={{ color: GREEN }} />
                   </div>
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</p>
                 </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
                 </p>
                 <button onClick={() => go('epFacturacion')}
-                  className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                  className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                   style={{ color: ORA }}>
                   Ver facturas <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Pendiente de Pago — rojo error */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Pendiente de Pago</p>
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Pendiente de Pago</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
                     <CreditCard className="w-6 h-6" style={{ color: ERR }} />
                   </div>
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_PAGO_COUNT}</p>
                 </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('de-DE').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
                 </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver pagos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -595,8 +614,8 @@ export default function EpHome() {
                     ))}
                   </div>
                 </div>
-                <div className="h-[220px] w-full">
-                  <LineChart data={evolucionData} series={evolucionSeries} h={220} />
+                <div className="h-[260px] w-full">
+                  <LineChart data={evolucionData} series={evolucionSeries} h={260} />
                 </div>
               </div>
 
@@ -617,8 +636,8 @@ export default function EpHome() {
                     </div>
                   </div>
                 </div>
-                <div className="h-[220px] w-full">
-                  <GroupedBarChart data={flujoData} h={220} />
+                <div className="h-[260px] w-full">
+                  <GroupedBarChart data={flujoData} h={260} />
                 </div>
               </div>
 
