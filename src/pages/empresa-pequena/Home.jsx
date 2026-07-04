@@ -84,7 +84,7 @@ function Sparkline({ data, color, width = 72, height = 24 }) {
 // ── Gauge — Velocímetro Score Crediticio ─────────────────────────────────────
 // sweep=1 (horario en SVG donde Y↓) traza el semicírculo superior de izq. a der.
 function Gauge({ score = 82, size = 190 }) {
-  const W = 200, H = 140;
+  const W = 200, H = 165;
   const cx = 100, cy = 100, r = 80, sw = 16;
   const deg2rad = d => d * Math.PI / 180;
   // Ángulo en convención matemática: 180°=izq, 90°=arriba, 0°=der
@@ -125,9 +125,10 @@ function Gauge({ score = 82, size = 190 }) {
         stroke="#26262B" strokeWidth="3" strokeLinecap="round" />
       <circle cx={cx} cy={cy} r="6" fill="#26262B" />
       {/* Score y etiqueta bajo el pivote */}
-      <text x={cx} y={cy + 22} textAnchor="middle" fontSize="22" fontWeight="800"
+      
+      <text x={cx} y={cy + 32} textAnchor="middle" fontSize="27" fontWeight="800"
         fill="#26262B" fontFamily="Poppins,sans-serif">{score}</text>
-      <text x={cx} y={cy + 36} textAnchor="middle" fontSize="10" fontWeight="700"
+      <text x={cx} y={cy + 50} textAnchor="middle" fontSize="13" fontWeight="700"
         fill={zoneColor} fontFamily="Poppins,sans-serif">Riesgo {zoneLabel}</text>
       {/* Etiquetas de escala */}
       <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
@@ -292,11 +293,7 @@ const PENDIENTE_PAGO_COUNT = 7;
 const PENDIENTE_PAGO_XAF   = 32_500_000;
 const SOLICITUDES_PEND     = 5;
 const SOLICITUDES_XAF      = 44_000_000;
-const DESEMBOLSOS_MES      = 18;
-const DESEMBOLSOS_XAF      = 86_000_000;
-const TIEMPO_APROBACION    = 2.4;
 
-const scoreSparkline = [74, 76, 75, 78, 79, 80, 82];
 
 const evolucionData = [
   { label: 'Jun',  prestamos: 165, facturas:  75 },
@@ -440,49 +437,42 @@ export default function EpHome() {
 
                   {/* Balance info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[1.2px] mb-3"
+                    <p className="text-[16px] font-semibold uppercase tracking-[1.2px] mb-2"
                        style={{ color: TEXT4 }}>
-                      MI BILLETERA · CORTE JUN 2026
+                      MI BILLETERA
                     </p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide mb-1"
-                       style={{ color: TEXT4 }}>
-                      Financiación Aprobada
-                    </p>
-                    <div className="flex items-baseline gap-2 mb-1">
+
+                    <div className="flex items-baseline gap-2 mb-5">
                       <span className="font-extrabold text-text-1 leading-none"
-                            style={{ fontSize: 'clamp(26px, 4vw, 36px)' }}>
-                        {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)}
+                            style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
+                        {new Intl.NumberFormat('fr-FR').format(LIMITE)}
                       </span>
                       <span className="text-[15px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
-                    <p className="text-[11px] mb-4" style={{ color: TEXT4 }}>
-                      de {new Intl.NumberFormat('fr-FR').format(LIMITE)} XAF aprobados
-                    </p>
+          
 
                     {/* CTAs */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
-                        Solicitar Financiación
+                        Solicitar Nuevo Contrato
                       </button>
                       <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
                         <Download className="w-3.5 h-3.5" />
-                        Extracto
+                        Descargar Estado de Cuenta
                       </button>
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                        Retirar fondos
-                      </button>
+                      
                     </div>
 
                     {/* Indicadores */}
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#E3F4EA', color: GREEN }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIVOS} contratos activos
                       </span>
-                      <span className="text-[11px] font-semibold" style={{ color: GREEN }}>
+                      <span className="text-[11px] font-semibold" style={{ color: ORA }}>
                         ▲ {TREND_DIA} al día anterior
                       </span>
                     </div>
@@ -497,8 +487,8 @@ export default function EpHome() {
                       ]}
                       centerLabel={`${pctDisponible}%`}
                       centerSub="DISPONIBLE"
-                      size={190}
-                      inner={82}
+                      size={200}
+                      inner={60}
                     />
                     <div className="space-y-4">
                       <div>
@@ -529,8 +519,7 @@ export default function EpHome() {
               {/* Score Crediticio con Gauge */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
-                <Gauge score={SCORE} size={160} />
-                <p className="text-[10px] self-center" style={{ color: TEXT4 }}>+4 pts vs mes anterior</p>
+                <Gauge score={SCORE} size={220} />
               </div>
             </div>
 
@@ -857,11 +846,11 @@ export default function EpHome() {
 
         {/* Badges móvil */}
         <div className="flex sm:hidden gap-2 justify-center pt-2">
-          <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ORA }} />
             Verde
           </span>
-          <span className="inline-flex items-center gap-1.5 bg-green-bg text-green-text text-[11px] font-bold px-3 py-1.5 rounded-[8px] border border-green-border">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
             <Leaf className="w-3.5 h-3.5" />
             Verde Bonafide
           </span>
