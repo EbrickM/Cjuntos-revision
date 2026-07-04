@@ -175,7 +175,7 @@ function LineChart({ data, series, h = 180 }) {
 
 // ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
 function GroupedBarChart({ data, h = 180 }) {
-  const W = 560, H = h, PL = 26, PR = 8, PT = 14, PB = 28;
+  const W = 560, H = h, PL = 98, PR = 8, PT = 14, PB = 28;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
   const slot = cW / data.length;
@@ -183,6 +183,7 @@ function GroupedBarChart({ data, h = 180 }) {
   const outerGap = slot * 0.14;
   const bW = (slot - outerGap * 2 - innerGap) / 2;
   const base = PT + cH;
+  const fmt = v => new Intl.NumberFormat('de-DE').format(Math.round(v));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {[0, 0.33, 0.67, 1].map(p => (
@@ -204,10 +205,10 @@ function GroupedBarChart({ data, h = 180 }) {
           </g>
         );
       })}
-      {[0, 0.5, 1].map(p => (
+      {[0, 0.33, 0.67, 1].map(p => (
         <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
           fontSize="8" fill={TEXT4} fontFamily="Poppins,sans-serif">
-          {Math.round(maxV * p / 1_000_000)}M
+          {fmt(maxV * p)}
         </text>
       ))}
     </svg>
@@ -333,11 +334,11 @@ const catBarData = [
 ];
 
 const proyectos = [
-  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  fin: '45 000 000 XAF' },
-  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', fin: '28 000 000 XAF' },
-  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  fin: '62 000 000 XAF' },
-  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18 000 000 XAF' },
-  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', fin: '35 000 000 XAF' },
+  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  fin: '45.000.000 XAF' },
+  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', fin: '28.000.000 XAF' },
+  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  fin: '62.000.000 XAF' },
+  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18.000.000 XAF' },
+  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', fin: '35.000.000 XAF' },
 ];
 
 const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
@@ -364,11 +365,11 @@ export default function EpHome() {
               </div>
             </div>
             <div className="hidden sm:flex gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ORA }} />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
                 Verde
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
                 <Leaf className="w-3.5 h-3.5" />
                 Verde Bonafide
               </span>
@@ -425,7 +426,7 @@ export default function EpHome() {
                     <div className="flex items-baseline gap-2 mb-5">
                       <span className="font-extrabold text-text-1 leading-none"
                             style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
-                        {new Intl.NumberFormat('fr-FR').format(LIMITE)}
+                        {new Intl.NumberFormat('de-DE').format(LIMITE)}
                       </span>
                       <span className="text-[15px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
@@ -477,7 +478,7 @@ export default function EpHome() {
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                         </div>
                         <p className="text-[13px] font-extrabold text-text-1">
-                          {new Intl.NumberFormat('fr-FR').format(USADO)} XAF
+                          {new Intl.NumberFormat('de-DE').format(USADO)} XAF
                         </p>
                         <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
                       </div>
@@ -487,7 +488,7 @@ export default function EpHome() {
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                         </div>
                         <p className="text-[13px] font-extrabold" style={{ color: ORA }}>
-                          {new Intl.NumberFormat('fr-FR').format(DISPONIBLE)} XAF
+                          {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
                         </p>
                         <p className="text-[10px]" style={{ color: TEXT4 }}>{pctDisponible}%</p>
                       </div>
@@ -548,7 +549,7 @@ export default function EpHome() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</p>
                 </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('fr-FR').format(FACTURAS_TOTAL_MONTO)} XAF
+                  {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
                 </p>
                 <button onClick={() => go('epFacturacion')}
                   className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
@@ -567,7 +568,7 @@ export default function EpHome() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_PAGO_COUNT}</p>
                 </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('fr-FR').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
+                  {new Intl.NumberFormat('de-DE').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
                 </p>
                 <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
                         style={{ color: ORA }}>
@@ -660,7 +661,7 @@ export default function EpHome() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
                 </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('fr-FR').format(SOLICITUDES_XAF)} XAF
+                  {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
                 </p>
                 <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
                         style={{ color: ORA }}>
@@ -678,7 +679,7 @@ export default function EpHome() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{VENCIMIENTOS_COUNT}</p>
                 </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  próximo en {new Intl.NumberFormat('fr-FR').format(PROXIMO_MONTO)} XAF
+                  próximo en {new Intl.NumberFormat('de-DE').format(PROXIMO_MONTO)} XAF
                 </p>
                 <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
                         style={{ color: ORA }}>
@@ -833,11 +834,11 @@ export default function EpHome() {
 
         {/* Badges móvil */}
         <div className="flex sm:hidden gap-2 justify-center pt-2">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: ORA }} />
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
             Verde
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
             <Leaf className="w-3.5 h-3.5" />
             Verde Bonafide
           </span>
