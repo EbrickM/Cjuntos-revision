@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle } from 'lucide-react';
+import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -286,6 +286,7 @@ const FACTURAS_TOTAL_COUNT = 42;
 const FACTURAS_TOTAL_MONTO = 102_500_000;
 const VENCIMIENTOS_COUNT   = 4;
 const PROXIMO_MONTO        = 28_700_000;
+const NUEVOS_CONTRATOS     = 6;
 const NUEVOS_PROVEEDORES   = 3;
 const PENDIENTE_PAGO_COUNT = 7;
 const PENDIENTE_PAGO_XAF   = 32_500_000;
@@ -533,14 +534,52 @@ export default function EpHome() {
               </div>
             </div>
 
-            {/* ── Fila 2: Facturas Finalizadas + Nuevos Proveedores + Pendiente de Pago + Alertas ── */}
+            {/* ── Fila 2: Nuevos Contratos + Nuevos Proveedores + Facturas Finalizadas + Pendiente de Pago ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
+              {/* Nuevos Contratos — naranja marca */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Facturas Finalizadas</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{FACTURAS_TOTAL_COUNT}</p>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Nuevos Contratos</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <FilePlus className="w-6 h-6" style={{ color: ORA }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_CONTRATOS}</p>
+                </div>
+                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>firmados este mes</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver contratos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Nuevos Proveedores — gris marca */}
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Nuevos Proveedores</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#ECEAE7' }}>
+                    <Users className="w-6 h-6" style={{ color: '#5B5B5F' }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_PROVEEDORES}</p>
+                </div>
+                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>incorporados este mes</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver proveedores <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Facturas Finalizadas — verde éxito */}
+              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Facturas Finalizadas</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                    <FileCheck className="w-6 h-6" style={{ color: GREEN }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</p>
+                </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  por un total de {new Intl.NumberFormat('fr-FR').format(FACTURAS_TOTAL_MONTO)} XAF
+                  {new Intl.NumberFormat('fr-FR').format(FACTURAS_TOTAL_MONTO)} XAF
                 </p>
                 <button onClick={() => go('epFacturacion')}
                   className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
@@ -549,46 +588,21 @@ export default function EpHome() {
                 </button>
               </div>
 
+              {/* Pendiente de Pago — rojo error */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Nuevos Proveedores</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{NUEVOS_PROVEEDORES}</p>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  incorporados este mes
-                </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                        style={{ color: ORA }}>
-                  Ver proveedores <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Pendiente de Pago</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{PENDIENTE_PAGO_COUNT}</p>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Pendiente de Pago</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
+                    <CreditCard className="w-6 h-6" style={{ color: ERR }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_PAGO_COUNT}</p>
+                </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('fr-FR').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
                 </p>
                 <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
                         style={{ color: ORA }}>
                   Ver pagos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Alertas</p>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="relative">
-                    <Bell className="w-6 h-6 text-text-3" />
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-extrabold text-white flex items-center justify-center"
-                          style={{ background: ORA }}>
-                      {ALERTAS_COUNT}
-                    </span>
-                  </div>
-                  <p className="text-[24px] font-extrabold text-text-1 leading-none">{ALERTAS_COUNT}</p>
-                </div>
-                <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                        style={{ color: ORA }}>
-                  Ver alertas <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -639,13 +653,18 @@ export default function EpHome() {
               </div>
             </div>
 
-            {/* ── Fila 3: 5 KPIs inferiores ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            {/* ── Fila 3: Riesgo (2 cols) + Solicitudes + Próximos + Alertas ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
 
-              {/* Riesgo de Operaciones */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Riesgo de Operaciones</p>
-                <div className="space-y-2.5">
+              {/* Riesgo de Operaciones — col-span-2, amarillo advertencia */}
+              <div className="col-span-2 card-lift bg-white rounded-[14px] border border-border p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
+                    <Shield className="w-6 h-6" style={{ color: WARN }} />
+                  </div>
+                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
                   {riesgoOps.map(r => (
                     <div key={r.label}>
                       <div className="flex justify-between items-center mb-1">
@@ -661,10 +680,15 @@ export default function EpHome() {
                 </div>
               </div>
 
-              {/* Solicitudes Pendientes */}
+              {/* Solicitudes Pendientes — naranja marca */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Solicitudes Pendientes</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{SOLICITUDES_PEND}</p>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <Clock className="w-6 h-6" style={{ color: ORA }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
+                </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('fr-FR').format(SOLICITUDES_XAF)} XAF
                 </p>
@@ -674,23 +698,15 @@ export default function EpHome() {
                 </button>
               </div>
 
-              {/* Desembolsos del Mes */}
+              {/* Próximos Vencimientos — amarillo proceso */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Desembolsos del Mes</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{DESEMBOLSOS_MES}</p>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('fr-FR').format(DESEMBOLSOS_XAF)} XAF
-                </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
-                        style={{ color: ORA }}>
-                  Ver desembolsos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Próximos Vencimientos */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Próximos Vencimientos</p>
-                <p className="text-[28px] font-extrabold leading-none text-text-1 mb-1">{VENCIMIENTOS_COUNT}</p>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Próximos Vencimientos</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
+                    <Calendar className="w-6 h-6" style={{ color: WARN }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{VENCIMIENTOS_COUNT}</p>
+                </div>
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
                   próximo en {new Intl.NumberFormat('fr-FR').format(PROXIMO_MONTO)} XAF
                 </p>
@@ -700,18 +716,20 @@ export default function EpHome() {
                 </button>
               </div>
 
-              {/* Tiempo Promedio Aprobación */}
+              {/* Alertas — naranja marca con badge */}
               <div className="card-lift bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Tiempo Prom. Aprobación</p>
-                <div className="flex items-baseline gap-1 mb-1">
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{TIEMPO_APROBACION}</p>
-                  <span className="text-[12px] font-semibold" style={{ color: TEXT4 }}>días</span>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Alertas</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <Bell className="w-6 h-6" style={{ color: ORA }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{ALERTAS_COUNT}</p>
                 </div>
-                <p className="text-[10px] mb-3" style={{ color: GREEN }}>▲ 0.3 días mejor vs anterior</p>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: '#E3F4EA', color: GREEN }}>
-                  3 indicadores activos
-                </span>
+                <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                        style={{ color: ORA }}>
+                  Ver alertas <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
