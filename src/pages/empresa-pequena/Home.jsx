@@ -173,40 +173,40 @@ function LineChart({ data, series, h = 180 }) {
   );
 }
 
-// ── StackedBarChart — Flujo Financiero ───────────────────────────────────────
-function StackedBarChart({ data, h = 180 }) {
-  const W = 420, H = h, PL = 40, PR = 12, PT = 14, PB = 28;
+// ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
+function GroupedBarChart({ data, h = 180 }) {
+  const W = 560, H = h, PL = 26, PR = 8, PT = 14, PB = 28;
   const cW = W - PL - PR, cH = H - PT - PB;
-  const maxV = Math.max(...data.map(d => d.inflow + d.outflow)) * 1.22;
-  const slot = cW / data.length, bW = slot * 0.52;
+  const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
+  const slot = cW / data.length;
+  const innerGap = slot * 0.08;
+  const outerGap = slot * 0.14;
+  const bW = (slot - outerGap * 2 - innerGap) / 2;
+  const base = PT + cH;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {[0, 0.33, 0.67, 1].map(p => (
         <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
-          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
+          stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
       ))}
       {data.map((d, i) => {
-        const x = PL + slot * i + (slot - bW) / 2;
+        const slotX = PL + slot * i;
+        const xIn  = slotX + outerGap;
+        const xOut = slotX + outerGap + bW + innerGap;
         const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
         const outH = maxV ? (d.outflow / maxV) * cH : 0;
-        const base = PT + cH;
         return (
           <g key={i}>
-            {d.inflow > 0 && (
-              <rect x={x} y={base - inH} width={bW} height={inH} rx="3" fill={ORA} opacity="0.88" />
-            )}
-            {d.outflow > 0 && (
-              <rect x={x} y={base - inH - outH} width={bW} height={outH} rx="3"
-                fill="#FDEEEB" stroke={ERR} strokeWidth="0.75" />
-            )}
-            <text x={x + bW / 2} y={H - 4} textAnchor="middle" fontSize="9"
+            {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
+            {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
+            <text x={slotX + slot / 2} y={H - 4} textAnchor="middle" fontSize="8"
               fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
         );
       })}
       {[0, 0.5, 1].map(p => (
-        <text key={p} x={PL - 5} y={PT + cH * (1 - p) + 4} textAnchor="end"
-          fontSize="9" fill={TEXT4} fontFamily="Poppins,sans-serif">
+        <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
+          fontSize="8" fill={TEXT4} fontFamily="Poppins,sans-serif">
           {Math.round(maxV * p / 1_000_000)}M
         </text>
       ))}
@@ -295,9 +295,11 @@ const evolucionSeries = [
 
 const flujoData = [
   { label: 'Sem 1', inflow: 42_000_000, outflow: 18_000_000 },
-  { label: 'Sem 2', inflow: 25_000_000, outflow: 30_000_000 },
-  { label: 'Sem 3', inflow:           0, outflow: 15_000_000 },
-  { label: 'Sem 4', inflow: 35_000_000, outflow: 12_000_000 },
+  { label: 'Sem 2', inflow: 25_000_000, outflow: 33_000_000 },
+  { label: 'Sem 3', inflow: 38_000_000, outflow: 14_000_000 },
+  { label: 'Sem 4', inflow: 16_000_000, outflow: 29_000_000 },
+  { label: 'Sem 5', inflow: 48_000_000, outflow: 21_000_000 },
+  { label: 'Sem 6', inflow: 35_000_000, outflow: 12_000_000 },
 ];
 
 const riesgoOps = [
@@ -609,13 +611,13 @@ export default function EpHome() {
                       <span className="text-[10px] text-text-4">Entradas</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-sm" style={{ background: '#FDEEEB', border: `1px solid ${ERR}` }} />
+                      <div className="w-3 h-3 rounded-sm" style={{ background: RED, opacity: 0.82 }} />
                       <span className="text-[10px] text-text-4">Salidas</span>
                     </div>
                   </div>
                 </div>
                 <div className="h-[220px] w-full">
-                  <StackedBarChart data={flujoData} h={220} />
+                  <GroupedBarChart data={flujoData} h={220} />
                 </div>
               </div>
 
