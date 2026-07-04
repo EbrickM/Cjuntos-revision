@@ -620,7 +620,7 @@ export default function SolicitarContrato() {
                 <input
                   className={iCls + ' pr-14'}
                   inputMode="numeric"
-                  value={operation.monto ? operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : ''}
+                  value={operation.monto ? operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''}
                   onChange={e => {
                     const digits = e.target.value.replace(/\D/g, '');
                     setOperation(p => ({ ...p, monto: digits }));
@@ -818,7 +818,7 @@ export default function SolicitarContrato() {
     confirmation: (() => {
       const solicitante = foundCompany?.razonSocial || regData.razonSocial || '—';
       const montoFmt = operation.monto
-        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
         : '—';
 
       const contraparteTitle = isCont && operation.tipo === 'factoring_inverso'
@@ -1076,8 +1076,8 @@ export default function SolicitarContrato() {
       const contratante = foundCompany?.razonSocial || regData.razonSocial || 'TotalEnerGE S.A.';
       const initials    = contratante.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
       const montoFmt    = operation.monto
-        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
-        : '25 000 000 XAF';
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
+        : '25.000.000 XAF';
       const tipoLabel   = operation.tipo === 'factoring_inverso' ? 'Factoring Inverso' : 'Factoring';
       const fechaHoy    = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -1169,8 +1169,8 @@ export default function SolicitarContrato() {
       const pymeNif    = foundCompany?.nif || regData.nif || 'GQ-2021-00234';
       const initials   = pyme.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
       const montoFmt   = operation.monto
-        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
-        : '8 500 000 XAF';
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
+        : '8.500.000 XAF';
       const fechaHoy   = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
       return (
@@ -1260,7 +1260,7 @@ export default function SolicitarContrato() {
       const miNif      = foundCompany?.nif || regData.nif || '—';
       const contraparte = inviterCompany?.razonSocial || (isCont ? 'PYME solicitante' : 'Empresa Contratante');
       const montoFmt   = operation.monto
-        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} XAF`
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
         : '—';
 
       const invSections = [
