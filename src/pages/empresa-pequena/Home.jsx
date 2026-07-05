@@ -140,14 +140,14 @@ function Gauge({ score = 82, size = 190 }) {
 }
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
-function LineChart({ data, series, h = 180 }) {
-  const W = 560, H = h, PL = 98, PR = 16, PT = 14, PB = 28;
+function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+  const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = 250;
   const yTicks = [50, 100, 150, 200, 250];
   const xPos = i => PL + (i / (data.length - 1)) * cW;
   const yPos = v => PT + cH - (v / maxV) * cH;
-  const fmtM = v => new Intl.NumberFormat('de-DE').format(v * 1_000_000);
+  const fmtM = v => compact ? `${v}M` : new Intl.NumberFormat('de-DE').format(v * 1_000_000);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {yTicks.map(t => (
@@ -162,20 +162,20 @@ function LineChart({ data, series, h = 180 }) {
         );
       })}
       {data.map((d, i) => (
-        <text key={i} x={xPos(i)} y={H - 4} textAnchor="middle"
-          fontSize="11" fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+        <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
+          fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
       {yTicks.map(t => (
         <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
-          fontSize="10" fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
+          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
       ))}
     </svg>
   );
 }
 
 // ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
-function GroupedBarChart({ data, h = 180 }) {
-  const W = 560, H = h, PL = 98, PR = 8, PT = 14, PB = 28;
+function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+  const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
   const slot = cW / data.length;
@@ -183,7 +183,9 @@ function GroupedBarChart({ data, h = 180 }) {
   const outerGap = slot * 0.14;
   const bW = (slot - outerGap * 2 - innerGap) / 2;
   const base = PT + cH;
-  const fmt = v => new Intl.NumberFormat('de-DE').format(Math.round(v));
+  const fmt = v => compact
+    ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
+    : new Intl.NumberFormat('de-DE').format(Math.round(v));
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {[0, 0.33, 0.67, 1].map(p => (
@@ -200,14 +202,14 @@ function GroupedBarChart({ data, h = 180 }) {
           <g key={i}>
             {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
             {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
-            <text x={slotX + slot / 2} y={H - 4} textAnchor="middle" fontSize="11"
+            <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
               fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
         );
       })}
       {[0, 0.33, 0.67, 1].map(p => (
         <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
-          fontSize="10" fill={TEXT4} fontFamily="Poppins,sans-serif">
+          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">
           {fmt(maxV * p)}
         </text>
       ))}
@@ -603,7 +605,7 @@ export default function EpHome() {
                 <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Evolución Financiera</p>
-                    <p className="text-[11px] text-text-4">Últimos 6 meses · XAF</p>
+                    <p className="text-[11px] text-text-4">Últimos 6 meses<span className="hidden md:inline"> · XAF</span></p>
                   </div>
                   <div className="flex items-center gap-4">
                     {evolucionSeries.map(s => (
@@ -614,16 +616,25 @@ export default function EpHome() {
                     ))}
                   </div>
                 </div>
-                <div className="h-[260px] w-full">
+                {/* Desktop */}
+                <div className="hidden md:block h-[260px] w-full">
                   <LineChart data={evolucionData} series={evolucionSeries} h={260} />
                 </div>
+                {/* Móvil */}
+                <div className="block md:hidden h-[360px] w-full">
+                  <LineChart data={evolucionData} series={evolucionSeries} h={360}
+                    vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                </div>
+                <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
+                  Valores expresados en millones XAF
+                </p>
               </div>
 
               <div className="card-lift bg-white rounded-[14px] border border-border overflow-hidden pb-3">
                 <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Flujo Financiero</p>
-                    <p className="text-[11px] text-text-4">Últimas 4 semanas · millones XAF</p>
+                    <p className="text-[11px] text-text-4">Últimas 4 semanas<span className="hidden md:inline"> · XAF</span></p>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
@@ -636,9 +647,18 @@ export default function EpHome() {
                     </div>
                   </div>
                 </div>
-                <div className="h-[260px] w-full">
+                {/* Desktop */}
+                <div className="hidden md:block h-[260px] w-full">
                   <GroupedBarChart data={flujoData} h={260} />
                 </div>
+                {/* Móvil */}
+                <div className="block md:hidden h-[360px] w-full">
+                  <GroupedBarChart data={flujoData} h={360}
+                    vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                </div>
+                <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
+                  Valores expresados en millones XAF
+                </p>
               </div>
 
             </div>
