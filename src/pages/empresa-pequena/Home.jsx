@@ -691,7 +691,7 @@ export default function EpHome() {
               </div>
 
               {/* Solicitudes Pendientes — naranja marca */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
@@ -702,14 +702,14 @@ export default function EpHome() {
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
                 </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
                         style={{ color: ORA }}>
                   Ver solicitudes <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Próximos Vencimientos — amarillo proceso */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Próximos Vencimientos</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
@@ -720,14 +720,14 @@ export default function EpHome() {
                 <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
                   próximo en {new Intl.NumberFormat('de-DE').format(PROXIMO_MONTO)} XAF
                 </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
                         style={{ color: ORA }}>
                   Ver vencimientos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Alertas — naranja marca con badge */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Alertas</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
@@ -736,7 +736,7 @@ export default function EpHome() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{ALERTAS_COUNT}</p>
                 </div>
                 <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
                         style={{ color: ORA }}>
                   Ver alertas <ChevronRight className="w-3.5 h-3.5" />
                 </button>
