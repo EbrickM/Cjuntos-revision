@@ -361,9 +361,8 @@ export default function EpHome() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 self-center">
             <div className="min-w-0">
-              <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
               <div className="text-[20px] font-bold text-text-1 truncate">
-                <span className="hidden sm:inline">Bienvenido, </span>Construcciones Silva
+                Bienvenido, Construcciones Silva
               </div>
             </div>
             <div className="hidden sm:flex gap-2">
