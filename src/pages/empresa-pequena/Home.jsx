@@ -421,50 +421,53 @@ export default function EpHome() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
 
               {/* Hero — Mi Billetera (3 columnas) */}
-              <div className="lg:col-span-3 card-lift bg-white rounded-[18px] border border-border p-5 sm:p-6">
-                <div className="flex flex-col md:flex-row md:items-start gap-5">
+              <div className="lg:col-span-3 card-lift bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-stretch gap-5 flex-1">
 
                   {/* Izquierda: título + cifra principal + (desktop) CTAs + indicadores */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
-                      MI BILLETERA
-                    </p>
-                    <div className="flex items-baseline gap-2 mb-4">
-                      <span className="font-extrabold text-text-1 leading-none"
-                            style={{ fontSize: 'clamp(24px, 3.5vw, 34px)' }}>
-                        {new Intl.NumberFormat('de-DE').format(LIMITE)}
-                      </span>
-                      <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                  <div className="flex-1 min-w-0 flex flex-col justify-around">
+                    {/* Bloque superior */}
+                    <div>
+                      <p className="text-[18px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
+                        MI BILLETERA
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-extrabold text-text-1 leading-none"
+                              style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
+                          {new Intl.NumberFormat('de-DE').format(LIMITE)}
+                        </span>
+                        <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                      </div>
                     </div>
 
-                    {/* CTAs — texto visible solo en desktop */}
-                    <div className="hidden md:flex flex-wrap gap-2 mb-4">
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
-                              style={{ background: ORA }}>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                        Solicitar Nuevo Contrato
-                      </button>
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                        <Download className="w-3.5 h-3.5" />
-                        Descargar Estado de Cuenta
-                      </button>
-                    </div>
-
-                    {/* Indicadores — solo desktop */}
-                    <div className="hidden md:flex items-center gap-3 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
-                        {CONTRATOS_ACTIVOS} contratos activos
-                      </span>
-                      <span className="text-[11px] font-semibold" style={{ color: ORA }}>
-                        ▲ {TREND_DIA} al día anterior
-                      </span>
+                    {/* Bloque inferior — CTAs + indicadores, solo desktop */}
+                    <div className="hidden md:block">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                                style={{ background: ORA }}>
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                          Solicitar Nuevo Contrato
+                        </button>
+                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
+                          <Download className="w-3.5 h-3.5" />
+                          Descargar Estado de Cuenta
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
+                          {CONTRATOS_ACTIVOS} contratos activos
+                        </span>
+                        <span className="text-[11px] font-semibold" style={{ color: ORA }}>
+                          ▲ {TREND_DIA} al día anterior
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Donut + leyenda debajo */}
-                  <div className="flex flex-col items-center gap-3 shrink-0">
+                  {/* Donut + leyenda al lado */}
+                  <div className="flex flex-row items-center gap-4 shrink-0 self-center md:self-auto">
                     <DonutChart
                       data={[
                         { pct: pctUsado,      gradient: true, color: RED },
@@ -475,10 +478,10 @@ export default function EpHome() {
                       size={175}
                       inner={60}
                     />
-                    {/* Leyenda horizontal bajo la dona */}
-                    <div className="flex gap-5 justify-center">
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 justify-center mb-0.5">
+                    {/* Leyenda vertical */}
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <div className="flex items-center gap-1 mb-0.5">
                           <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GRAD }} />
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                         </div>
@@ -487,9 +490,9 @@ export default function EpHome() {
                         </p>
                         <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
                       </div>
-                      <div className="w-px bg-border self-stretch" />
-                      <div className="text-center">
-                        <div className="flex items-center gap-1 justify-center mb-0.5">
+                      <div className="h-px w-full bg-border" />
+                      <div>
+                        <div className="flex items-center gap-1 mb-0.5">
                           <div className="w-2 h-2 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
                           <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                         </div>
