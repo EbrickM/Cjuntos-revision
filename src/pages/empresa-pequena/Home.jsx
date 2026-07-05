@@ -257,8 +257,8 @@ function VBarChart({ id, data, h = 170 }) {
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp },
-  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: Leaf },
+  { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: TreePine,   iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
 // ── Datos Financiación ────────────────────────────────────────────────────────
@@ -358,8 +358,8 @@ export default function EpHome() {
       <div className="fade-in space-y-4">
 
         {/* Header + Tab nav ─────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center gap-3 min-w-0 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 self-center">
             <div className="min-w-0">
               <div className="text-[13px] text-text-4 leading-tight sm:hidden">Bienvenido,</div>
               <div className="text-[20px] font-bold text-text-1 truncate">
@@ -380,10 +380,13 @@ export default function EpHome() {
           <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
                 }`}>
-                <t.Icon className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-opacity"
+                     style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                  <t.Icon className="w-4 h-4" style={{ color: t.iconColor }} />
+                </div>
                 {t.line1} {t.line2}
               </button>
             ))}
@@ -394,10 +397,13 @@ export default function EpHome() {
         <div className="flex sm:hidden gap-1 bg-page-bg p-1 rounded-xl w-full">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex flex-col items-center gap-1 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
+              className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
-              <t.Icon className="w-3.5 h-3.5" />
+              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity"
+                   style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                <t.Icon className="w-5 h-5" style={{ color: t.iconColor }} />
+              </div>
               <span className="leading-[1.25]">
                 <span className="block">{t.line1}</span>
                 <span className="block">{t.line2}</span>
@@ -741,25 +747,6 @@ export default function EpHome() {
                   Ver alertas <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
-            </div>
-
-            {/* ── Barra de estado ── */}
-            <div className="flex items-center justify-between gap-3 rounded-[12px] px-4 py-3 border"
-                 style={{ background: '#E3F4EA', borderColor: '#A8D5BE' }}>
-              <div className="flex items-center gap-2 min-w-0">
-                <CheckCircle className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
-                <span className="text-[12px] font-semibold" style={{ color: GREEN }}>
-                  Tu empresa se encuentra al día
-                </span>
-                <span className="hidden sm:inline text-[12px]" style={{ color: '#5B8E74' }}>
-                  · No tienes obligaciones vencidas ni pagos pendientes
-                </span>
-              </div>
-              <button onClick={() => go('epFacturacion')}
-                className="text-[11px] font-semibold whitespace-nowrap flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition shrink-0"
-                style={{ color: GREEN }}>
-                Ir a mis obligaciones <ChevronRight className="w-3.5 h-3.5" />
-              </button>
             </div>
 
           </div>
