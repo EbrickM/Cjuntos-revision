@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ArrowLeft, Upload, FileText, Trash2, CheckCircle2, Pencil,
+  ArrowLeft, Upload, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -28,6 +28,12 @@ const CONCEPTO_ICONS = {
   'Otro':                 FolderOpen,
 };
 
+const KYC_BADGE = {
+  vigente:  { label: 'KYC Vigente',   bg: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE'             },
+  pendiente:{ label: 'KYC Pendiente', bg: '#FDF6E8', color: '#C68A1D', border: '1px solid rgba(198,138,29,.3)' },
+  vencido:  { label: 'KYC Vencido',   bg: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,.3)'  },
+};
+
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
 const INVOICE_MODAL_EMPTY = { open: false, editId: null, type: 'contratante', monto: '', concepto: '', proveedorId: '' };
@@ -40,22 +46,22 @@ const initialProviders = [
 
 const initialContracts = [
   {
-    id: 'CTR-2026-001',
+    id: 'CTR-2026-001', kyc: 'vigente',
     monto: 58000000, asignado: 0, disponible: 58000000,
     paso: 1, estado: 'Pendiente datos del contratante',
     nota: 'Aprobado por Bonafide. Completa los datos del contratante para activar la verificación.',
     contratante: {
-      razonSocial: '', nombreComercial: '', ruc: '', sectorProductivo: '',
-      telefonoCorporativo: '', correoCorporativo: '',
-      objetoTrabajo: '', documentoContrato: null, montoGlobal: '',
-      fechaInicio: '', fechaFin: '', plazosEjecucion: '',
+      razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción',
+      telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
+      objetoTrabajo: '', documentoContrato: null, montoGlobal: '58000000',
+      fechaInicio: '2026-05-01', fechaFin: '2027-04-30', plazosEjecucion: '12 meses',
       repNombre: '', repTipoDoc: '', repIdentificacion: '', repCargo: '', repTelefono: '', repCorreo: '',
       confirmado: false, lock: false,
     },
     distribucion: [],
   },
   {
-    id: 'CTR-2026-003',
+    id: 'CTR-2026-003', kyc: 'vigente',
     monto: 31000000, asignado: 0, disponible: 31000000,
     paso: 2, estado: 'En espera de confirmación del contratante',
     nota: 'Se envió la solicitud de verificación al contratante. Cuando confirme, Bonafide continuará con la autorización.',
@@ -72,7 +78,7 @@ const initialContracts = [
     distribucion: [],
   },
   {
-    id: 'CTR-2026-004',
+    id: 'CTR-2026-004', kyc: 'vencido',
     monto: 75000000, asignado: 0, disponible: 75000000,
     paso: 3, estado: 'Pendiente autorización Bonafide',
     nota: 'El contratante confirmó los datos. Bonafide debe autorizar para que puedas distribuir el crédito.',
@@ -89,7 +95,7 @@ const initialContracts = [
     distribucion: [],
   },
   {
-    id: 'CTR-2026-002',
+    id: 'CTR-2026-002', kyc: 'vigente',
     monto: 42000000, asignado: 9000000, disponible: 33000000,
     paso: 4, estado: '', nota: '',
     contratante: {
@@ -107,7 +113,7 @@ const initialContracts = [
     ],
   },
   {
-    id: 'CTR-2026-005',
+    id: 'CTR-2026-005', kyc: 'pendiente',
     monto: 25000000, asignado: 0, disponible: 25000000,
     paso: 4, estado: '', nota: '',
     contratante: {
@@ -150,6 +156,7 @@ export default function EpCreditos() {
   const [detailId, setDetailId]                   = useState(null);
   const [activeTab, setActiveTab]                 = useState('contratante');
   const [invoices, setInvoices]                   = useState(initialInvoices);
+  const [search, setSearch]                       = useState('');
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [distribModal, setDistribModal]           = useState(DISTRIB_EMPTY);
   const [invoiceModal, setInvoiceModal]           = useState(INVOICE_MODAL_EMPTY);
@@ -163,11 +170,15 @@ export default function EpCreditos() {
 
   const detailContract = detailId ? (contracts.find(c => c.id === detailId) ?? null) : null;
 
-  const totalContratos         = contracts.length;
-  const activosContratos       = contracts.filter(c => c.paso === 4).length;
-  const pendientesDatos        = contracts.filter(c => c.paso === 1).length;
-  const pendientesConfirm      = contracts.filter(c => c.paso === 2).length;
-  const pendientesAutorizacion = contracts.filter(c => c.paso === 3).length;
+  const totalContratos = contracts.length;
+
+  const filteredContracts = search.trim()
+    ? contracts.filter(c =>
+        c.id.toLowerCase().includes(search.toLowerCase()) ||
+        (c.contratante?.razonSocial || '').toLowerCase().includes(search.toLowerCase()) ||
+        (c.contratante?.sectorProductivo || '').toLowerCase().includes(search.toLowerCase())
+      )
+    : contracts;
 
   const updateContract   = (id, patch) =>
     setContracts(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
@@ -301,72 +312,93 @@ export default function EpCreditos() {
         {/* ── LISTA ── */}
         {detailId === null ? (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
-              {[
-                { value: totalContratos,         label: 'Contratos de crédito totales',               numCls: 'text-text-1'     },
-                { value: activosContratos,        label: 'Contratos de crédito activos',               numCls: 'text-green-text' },
-                { value: pendientesDatos,         label: 'Pendientes de datos del contratante',        numCls: 'text-yellow-text'},
-                { value: pendientesConfirm,       label: 'Pendientes de confirmación del contratante', numCls: 'text-blue-text'  },
-                { value: pendientesAutorizacion,  label: 'Pendientes de autorización del banco',       numCls: 'text-orange'     },
-              ].map(({ value, label, numCls }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-                  <div className={`text-[36px] font-extrabold leading-none mb-2 ${numCls}`}>{value}</div>
-                  <div className="text-[12px] text-text-4 leading-snug">{label}</div>
+            {/* Título */}
+            <h1 className="text-[22px] font-bold text-text-1 mb-4">Mis Contratos</h1>
+
+            {/* Fila: card total (izquierda) + buscador (derecha) */}
+            <div className="flex items-center justify-between gap-3 mb-5">
+              {/* Card total — estilo dashboard */}
+              <div className="card-lift bg-white rounded-[12px] border border-border px-4 h-12 flex items-center gap-3 shrink-0">
+                <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                  <FileText className="w-4 h-4 text-orange" />
                 </div>
-              ))}
+                <span className="text-[22px] font-extrabold leading-none text-text-1">{totalContratos}</span>
+                <span className="text-[12px] text-text-4 leading-snug">Contratos de crédito</span>
+              </div>
+
+              {/* Buscador */}
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-4 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar por ID, empresa o sector…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full h-12 pl-9 pr-4 text-[13px] rounded-[10px] border border-border bg-white focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
+                />
+              </div>
             </div>
 
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="text-[14px] font-bold mb-4">Contratos</div>
-              <div className="space-y-3">
-                {contracts.map(contract => {
-                  const badge   = contractBadge(contract.paso);
-                  const pctVal  = parseFloat(pct(contract.asignado, contract.monto));
-                  const ctName  = contract.contratante?.razonSocial || '';
-                  return (
-                    <div
-                      key={contract.id}
-                      onClick={() => { setDetailId(contract.id); setActiveTab('contratante'); }}
-                      className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-pointer"
-                      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
-                    >
-                      <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
-                        <FileText className="w-5 h-5 text-orange" />
+            {/* Grid de tarjetas — ~3 por fila */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredContracts.map(contract => {
+                const pctVal = parseFloat(pct(contract.asignado, contract.monto));
+                const ctName = contract.contratante?.razonSocial || '—';
+                const sector = contract.contratante?.sectorProductivo || '';
+                return (
+                  <div
+                    key={contract.id}
+                    onClick={() => { setDetailId(contract.id); setActiveTab('contratante'); }}
+                    className="bg-white rounded-[16px] p-5 border border-border cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
+                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                  >
+                    {/* Empresa + sector con icono + ID */}
+                    <div className="flex items-start gap-2 min-w-0">
+                      <div className="w-8 h-8 rounded-[10px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
+                        <FileText className="w-4 h-4 text-orange" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                          <span className="text-[13px] font-bold text-text-1">{contract.id}</span>
-                          <Badge variant={badge.variant}>{badge.label}</Badge>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-1 mb-0.5">
+                          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+                          <span className="text-[10px] font-semibold text-text-4 shrink-0">{contract.id}</span>
                         </div>
-                        {ctName
-                          ? <div className="text-[12px] text-text-4 truncate">{ctName}</div>
-                          : contract.estado
-                            ? <div className="text-[12px] text-text-4 truncate">{contract.estado}</div>
-                            : null
-                        }
-                        {contract.paso === 4 && (
-                          <div className="mt-2.5 flex items-center gap-2">
-                            <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
-                              <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
-                            </div>
-                            <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}% asignado</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="shrink-0 flex items-start gap-2">
-                        <div className="text-right">
-                          <div className="text-[15px] font-extrabold text-text-1">{formatXaf(contract.monto)}</div>
-                          {contract.paso === 4 && (
-                            <div className="text-[11px] text-text-5 mt-0.5">Disp: {formatXaf(contract.disponible)}</div>
-                          )}
-                        </div>
-                        <div className="text-text-4 text-[18px] leading-none pt-0.5">›</div>
+                        {sector && <div className="text-[11px] text-text-4">{sector}</div>}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Monto: label arriba, cifra abajo */}
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto del crédito</div>
+                      <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
+                    </div>
+
+                    {/* Barra de distribución */}
+                    <div className="mt-auto">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-[10px] text-text-4">Disp: {formatXaf(contract.disponible)}</span>
+                        <span className="text-[10px] font-bold text-orange">{pctVal}% distribuido</span>
+                      </div>
+                      <div className="h-[5px] bg-page-bg rounded-full overflow-hidden">
+                        <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
+                      </div>
+                    </div>
+
+                    {/* Botón Ver */}
+                    <button
+                      onClick={e => { e.stopPropagation(); setDetailId(contract.id); setActiveTab('contratante'); }}
+                      className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition"
+                    >
+                      Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+              {filteredContracts.length === 0 && (
+                <div className="col-span-full text-[13px] text-text-4 text-center py-12">
+                  No se encontraron contratos para "{search}".
+                </div>
+              )}
             </div>
           </>
 
