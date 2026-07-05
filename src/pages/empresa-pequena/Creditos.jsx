@@ -359,11 +359,9 @@ export default function EpCreditos() {
                         <FileText className="w-4 h-4 text-orange" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-1 mb-0.5">
-                          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
-                          <span className="text-[10px] font-semibold text-text-4 shrink-0">{contract.id}</span>
-                        </div>
-                        {sector && <div className="text-[11px] text-text-4">{sector}</div>}
+                        <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
+                        <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+                        {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
                       </div>
                     </div>
 
@@ -387,7 +385,7 @@ export default function EpCreditos() {
                     {/* Botón Ver */}
                     <button
                       onClick={e => { e.stopPropagation(); setDetailId(contract.id); setActiveTab('contratante'); }}
-                      className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition"
+                      className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
                     >
                       Ver contrato <ChevronRight className="w-3.5 h-3.5" />
                     </button>
