@@ -271,16 +271,17 @@ export default function EpFacturacion() {
                         <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
                       )}
                     </div>
-                    <div className="text-[12px] text-text-3 truncate">{inv.concepto || inv.proveedorNombre}</div>
-                    <div className="text-[11px] text-text-5 mt-0.5">
-                      {inv.proveedorNombre}
-                      {inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}
-                    </div>
-                    {contract && (
-                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      {contract && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
-                        <span className="text-[12px] font-semibold text-text-2 truncate">{contract.contratante}</span>
-                      </div>
+                      )}
+                      {inv.proveedorNombre && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>
+                      )}
+                    </div>
+                    {inv.fechaVencimiento && (
+                      <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>
                     )}
                   </div>
                   <div className="shrink-0 flex items-center gap-3">
