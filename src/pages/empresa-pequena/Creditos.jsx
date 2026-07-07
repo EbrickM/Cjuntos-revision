@@ -456,7 +456,7 @@ export default function EpCreditos() {
 
               {/* Grid de tarjetas */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredContracts.map(contract => {
+              {filteredContracts.map((contract, idx) => {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));
                 const ctName = contract.contratante?.razonSocial || '—';
                 const sector = contract.contratante?.sectorProductivo || '';
@@ -466,7 +466,8 @@ export default function EpCreditos() {
                   <div
                     key={contract.id}
                     onClick={() => { setDetailId(contract.id); setActiveTab('contrato'); }}
-                    className="bg-white rounded-[16px] p-5 border border-border cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
+                    className="bg-white rounded-[16px] p-5 border border-border cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 card-enter"
+                    style={{ animationDelay: `${idx * 70}ms` }}
                     onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
                     onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
                   >

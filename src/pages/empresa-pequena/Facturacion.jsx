@@ -224,10 +224,11 @@ export default function EpFacturacion() {
             }
           />
           <div className="space-y-3">
-            {filteredCT.map(inv => {
+            {filteredCT.map((inv, idx) => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift">
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift card-enter"
+                     style={{ animationDelay: `${idx * 70}ms` }}>
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
                       <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
@@ -289,14 +290,15 @@ export default function EpFacturacion() {
             }
           />
           <div className="space-y-3">
-            {filteredPR.map(inv => {
+            {filteredPR.map((inv, idx) => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               const estadoStyle =
                 inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
                 inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                 { background: '#FDF6E8', color: '#C68A1D' };
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 card-lift">
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 card-lift card-enter"
+                     style={{ animationDelay: `${idx * 70}ms` }}>
                   <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
                     <Truck className="w-5 h-5 text-orange" />
                   </div>

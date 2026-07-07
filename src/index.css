@@ -129,6 +129,21 @@
   to   { width: 100%; }
 }
 
+/* Animación de entrada estilo reparto de cartas */
+@keyframes cardDeal {
+  from {
+    opacity: 0;
+    transform: translateX(48px) rotate(2deg) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+.card-enter {
+  animation: cardDeal 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* Elevación de tarjetas con sombra de marca en hover */
 .card-lift {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.05);

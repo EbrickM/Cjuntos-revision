@@ -173,13 +173,14 @@ export default function EpMisProveedores() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProviders.map(p => {
+            {filteredProviders.map((p, idx) => {
               const SectorIcon = SECTOR_ICONS[p.sector] ?? Building2;
               const kycStyle   = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
               const sStyle     = scoreStyle(p.scoreCredito);
               return (
                 <div key={p.id}
-                  className="bg-white rounded-[16px] p-5 border border-border flex flex-col gap-4 card-lift transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
+                  className="bg-white rounded-[16px] p-5 border border-border flex flex-col gap-4 card-lift card-enter transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
+                  style={{ animationDelay: `${idx * 70}ms` }}
                 >
                   {/* Icono + nombre + sector + RUC | Score (esquina sup. der.) */}
                   <div className="flex items-start gap-3">
