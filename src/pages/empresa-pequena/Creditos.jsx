@@ -105,7 +105,7 @@ const initialProviders = [
 
 const initialContracts = [
   {
-    id: 'CTR-2026-001', kyc: 'vigente',
+    id: 'CTR-2026-001', kyc: 'vigente', tipoFactoring: 'inverso',
     monto: 58000000, asignado: 0, disponible: 58000000,
     contratante: {
       razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
@@ -118,7 +118,7 @@ const initialContracts = [
     distribucion: [],
   },
   {
-    id: 'CTR-2026-003', kyc: 'vigente',
+    id: 'CTR-2026-003', kyc: 'vigente', tipoFactoring: 'directo',
     monto: 31000000, asignado: 0, disponible: 31000000,
     contratante: {
       razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía', scoreCredito: 815,
@@ -132,7 +132,7 @@ const initialContracts = [
     distribucion: [],
   },
   {
-    id: 'CTR-2026-004', kyc: 'vencido',
+    id: 'CTR-2026-004', kyc: 'vencido', tipoFactoring: 'inverso',
     monto: 75000000, asignado: 0, disponible: 75000000,
     contratante: {
       razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción', scoreCredito: 680,
@@ -146,7 +146,7 @@ const initialContracts = [
     distribucion: [],
   },
   {
-    id: 'CTR-2026-002', kyc: 'vigente',
+    id: 'CTR-2026-002', kyc: 'vigente', tipoFactoring: 'inverso',
     monto: 42000000, asignado: 9000000, disponible: 33000000,
     contratante: {
       razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción', scoreCredito: 758,
@@ -162,7 +162,7 @@ const initialContracts = [
     ],
   },
   {
-    id: 'CTR-2026-005', kyc: 'pendiente',
+    id: 'CTR-2026-005', kyc: 'pendiente', tipoFactoring: 'directo',
     monto: 25000000, asignado: 0, disponible: 25000000,
     contratante: {
       razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte', scoreCredito: 630,
@@ -186,17 +186,17 @@ const initialInvoices = [
   {
     id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002',
     monto: 18000000, estado: 'Validada', concepto: 'Avance de obra fase 1 – Cimentación y estructura',
-    fecha: '10/05/2026', fechaVencimiento: '10/06/2026', tipoFactoring: 'inverso', documento: null,
+    fecha: '10/05/2026', fechaVencimiento: '10/06/2026', documento: null,
   },
   {
     id: 'FAC-2026-1038', tipo: 'contratante', contrato: 'CTR-2026-002',
     monto: 7500000, estado: 'Enviada', concepto: 'Suministro e instalación de carpintería metálica – Fase 2',
-    fecha: '28/05/2026', fechaVencimiento: '28/06/2026', tipoFactoring: 'directo', documento: null,
+    fecha: '28/05/2026', fechaVencimiento: '28/06/2026', documento: null,
   },
   {
     id: 'FAC-2026-1044', tipo: 'contratante', contrato: 'CTR-2026-002',
     monto: 12000000, estado: 'IPI Emitido', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
-    fecha: '02/06/2026', fechaVencimiento: '02/07/2026', tipoFactoring: 'inverso', documento: null,
+    fecha: '02/06/2026', fechaVencimiento: '02/07/2026', documento: null,
   },
 ];
 
@@ -324,7 +324,7 @@ export default function EpCreditos() {
       setInvoices(prev => [...prev, {
         id: nextInvoiceId(), tipo: 'contratante', contrato: detailContract.id,
         monto, estado: 'Creada', concepto: invCtModal.concepto, fecha: today,
-        fechaVencimiento: invCtModal.fechaVencimiento, tipoFactoring: 'inverso', documento: invCtModal.documento,
+        fechaVencimiento: invCtModal.fechaVencimiento, documento: invCtModal.documento,
       }]);
     }
     setInvCtModal(INV_CT_EMPTY);
@@ -333,15 +333,6 @@ export default function EpCreditos() {
   const handleOpenEditCTInvoice = (inv) =>
     setInvCtModal({ open: true, editId: inv.id, monto: inv.monto.toString(), concepto: inv.concepto || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null });
 
-  const handleAdvanceCTInvoice = (invId) => {
-    setInvoices(prev => prev.map(inv => {
-      if (inv.id !== invId || inv.tipo !== 'contratante') return inv;
-      const steps = inv.tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
-      const idx = steps.indexOf(inv.estado);
-      if (idx === -1 || idx >= steps.length - 1) return inv;
-      return { ...inv, estado: steps[idx + 1] };
-    }));
-  };
 
   const handleSavePRInvoice = () => {
     const monto = Number(invPrModal.monto.replace?.(/[^0-9]/g, '') ?? invPrModal.monto) || 0;
@@ -742,59 +733,39 @@ export default function EpCreditos() {
                       action={<Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>}
                     />
                     <div className="space-y-3">
-                      {contratanteInvoices.map(inv => {
-                        const steps = inv.tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
-                        const isLast = steps.indexOf(inv.estado) === steps.length - 1;
-                        return (
-                          <div key={inv.id}
-                            className="rounded-[16px] p-4 border border-border transition-all duration-200 cursor-default"
-                            style={{ background: '#ffffff' }}
-                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(59,130,246,0.12)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.35)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
-                          >
-                            <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                                <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                      {contratanteInvoices.map(inv => (
+                        <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
+                              <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                                {inv.documento && (
+                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
+                                )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                                  {inv.documento && (
-                                    <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                                  )}
-                                </div>
-                                <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
-                                <CTPipeline estado={inv.estado} tipoFactoring={inv.tipoFactoring} />
+                              <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
+                              <CTPipeline estado={inv.estado} tipoFactoring={detailContract.tipoFactoring} />
+                            </div>
+                            <div className="shrink-0 flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                                <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
                               </div>
-                              <div className="shrink-0 flex items-center gap-3">
-                                <div className="text-right">
-                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                                  <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                                </div>
-                                <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                  {!isLast && (
-                                    <button onClick={() => handleAdvanceCTInvoice(inv.id)}
-                                      title="Avanzar estado"
-                                      className="p-1.5 rounded-[8px] transition text-text-4"
-                                      style={{}}
-                                      onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.color = '#3B82F6'; }}
-                                      onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; }}
-                                    >
-                                      <ChevronRight className="w-3.5 h-3.5" />
-                                    </button>
-                                  )}
-                                  <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
+                              <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                       {contratanteInvoices.length === 0 && (
                         <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas al contratante para este contrato.</div>
                       )}
