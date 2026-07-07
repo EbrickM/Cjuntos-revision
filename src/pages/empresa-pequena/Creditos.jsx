@@ -67,20 +67,21 @@ const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action 
 const CTPipeline = ({ estado, tipoFactoring }) => {
   const steps = tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
   const currentIdx = steps.indexOf(estado);
+  const completed  = currentIdx === steps.length - 1;
   return (
     <div className="flex items-center gap-0.5 flex-wrap">
       {steps.map((step, idx) => (
         <div key={step} className="flex items-center gap-0.5">
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
                 style={
-                  idx < currentIdx  ? { background: '#E3F4EA', color: '#2E7D5B' } :
-                  idx === currentIdx ? { background: '#EF7A2C', color: '#ffffff', boxShadow: '0 0 0 2px rgba(239,122,44,0.25)' } :
-                  { background: '#F6F5F3', color: '#A9A6A1' }
+                  completed || idx < currentIdx  ? { background: '#E3F4EA', color: '#2E7D5B' } :
+                  idx === currentIdx              ? { background: '#EF7A2C', color: '#ffffff', boxShadow: '0 0 0 2px rgba(239,122,44,0.25)' } :
+                                                    { background: '#F6F5F3', color: '#A9A6A1' }
                 }>
             {step}
           </span>
           {idx < steps.length - 1 && (
-            <div className="w-3 h-px shrink-0" style={{ background: idx < currentIdx ? '#A8D5BE' : '#ECEAE7' }} />
+            <div className="w-3 h-px shrink-0" style={{ background: (completed || idx < currentIdx) ? '#A8D5BE' : '#ECEAE7' }} />
           )}
         </div>
       ))}
