@@ -728,7 +728,7 @@ export default function EpCreditos() {
                   <div className="bg-white rounded-[14px] border border-border p-5">
                     <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
                       title="Facturas al Contratante"
-                      subtitle="Emitidas por la PYME. Ciclo: Creada → Enviada → Validada → [IPI Emitido →] Pagada."
+                      subtitle="Facturas emitidas por la PYME al contratante."
                       action={<Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>}
                     />
                     <div className="space-y-3">
@@ -806,9 +806,7 @@ export default function EpCreditos() {
                           { background: '#FDF6E8', color: '#C68A1D' };
                         return (
                           <div key={inv.id}
-                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 cursor-default"
-                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,122,44,0.4)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
+                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4"
                           >
                             <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
                               <Truck className="w-5 h-5 text-orange" />
