@@ -3,6 +3,7 @@ import {
   ArrowLeft, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
   BarChart2, ScrollText, UserSquare, CalendarDays, Banknote, TrendingUp, Wallet,
+  Upload, Paperclip,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -63,10 +64,38 @@ const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action 
   </div>
 );
 
+const CTPipeline = ({ estado, tipoFactoring }) => {
+  const steps = tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
+  const currentIdx = steps.indexOf(estado);
+  return (
+    <div className="flex items-center gap-0.5 flex-wrap">
+      {steps.map((step, idx) => (
+        <div key={step} className="flex items-center gap-0.5">
+          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
+                style={
+                  idx < currentIdx  ? { background: '#E3F4EA', color: '#2E7D5B' } :
+                  idx === currentIdx ? { background: '#FFF3E0', color: '#EF7A2C' } :
+                  { background: '#F6F5F3', color: '#A9A6A1' }
+                }>
+            {step}
+          </span>
+          {idx < steps.length - 1 && (
+            <div className="w-3 h-px shrink-0" style={{ background: idx < currentIdx ? '#A8D5BE' : '#ECEAE7' }} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
-const INVOICE_MODAL_EMPTY = { open: false, editId: null, type: 'contratante', monto: '', concepto: '', proveedorId: '' };
-const PAGO_MODAL_EMPTY    = { open: false, editId: null, providerId: '', monto: '', concepto: '', fecha: '' };
+const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', tipoFactoring: 'inverso', documento: null };
+const INV_PR_EMPTY        = { open: false, editId: null, proveedorNombre: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
+const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', documento: null };
+
+const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pagada'];
+const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
 
 const initialProviders = [
   { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true },
@@ -149,12 +178,24 @@ const initialContracts = [
 ];
 
 const initialInvoices = [
-  { id: 'FAC-2026-1025', tipo: 'proveedor',   contrato: 'CTR-2026-002', proveedorId: 'p2', proveedor: 'TransGE S.L.', monto: 4500000,  estado: 'Enviada',  concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026' },
-  { id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002', monto: 18000000, estado: 'Pagada', concepto: 'Avance de obra fase 1 – Cimentación y estructura', fecha: '10/05/2026' },
+  {
+    id: 'FAC-2026-1025', tipo: 'proveedor', contrato: 'CTR-2026-002',
+    proveedorNombre: 'TransGE S.L.', monto: 4500000, estado: 'Pendiente',
+    concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026', fechaVencimiento: '01/06/2026', documento: null,
+  },
+  {
+    id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002',
+    monto: 18000000, estado: 'Validada', concepto: 'Avance de obra fase 1 – Cimentación y estructura',
+    fecha: '10/05/2026', tipoFactoring: 'inverso', documento: null,
+  },
 ];
 
 const initialPagos = [
-  { id: 'PAG-2026-001', contrato: 'CTR-2026-002', providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte', monto: 2500000, concepto: 'Anticipo por servicios de transporte — Fase 2', fecha: '15/05/2026', estado: 'Procesado' },
+  {
+    id: 'PAG-2026-001', contrato: 'CTR-2026-002',
+    monto: 2500000, concepto: 'Anticipo por servicios de transporte — Fase 2',
+    fecha: '15/05/2026', estado: 'Procesado', facturaProvId: 'FAC-2026-1025', proveedorNombre: 'TransGE S.L.', documento: null,
+  },
 ];
 
 const TABS = [
@@ -176,7 +217,8 @@ export default function EpCreditos() {
   const [search, setSearch]                       = useState('');
   const [showProviderModal, setShowProviderModal] = useState(false);
   const [distribModal, setDistribModal]           = useState(DISTRIB_EMPTY);
-  const [invoiceModal, setInvoiceModal]           = useState(INVOICE_MODAL_EMPTY);
+  const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
+  const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
   const [providerForm, setProviderForm]           = useState(PROVIDER_FORM_EMPTY);
   const [toast, setToast] = useState({ visible: false, message: '' });
@@ -260,41 +302,58 @@ export default function EpCreditos() {
     return `FAC-2026-${max + 1}`;
   };
 
-  const getProviderMaxMonto = (proveedorId) =>
-    detailContract?.distribucion.filter(d => d.providerId === proveedorId).reduce((s, d) => s + d.monto, 0) ?? 0;
-
-  const handleOpenNewInvoice = (type) => {
-    const firstProviderId = detailContract?.distribucion.find(d => d.providerId)?.providerId || '';
-    setInvoiceModal({ open: true, editId: null, type, monto: '', concepto: '', proveedorId: firstProviderId });
-  };
-
-  const handleOpenEditInvoice = (inv) =>
-    setInvoiceModal({ open: true, editId: inv.id, type: inv.tipo, monto: inv.monto.toString(), concepto: inv.concepto || '', proveedorId: inv.proveedorId || '' });
-
-  const handleSaveInvoice = () => {
-    const monto = Number(invoiceModal.monto.replace?.(/[^0-9]/g, '') ?? invoiceModal.monto) || 0;
-    if (monto <= 0 || !invoiceModal.concepto.trim()) return;
-    if (invoiceModal.editId) {
-      const prov = providers.find(p => p.id === invoiceModal.proveedorId);
-      setInvoices(prev => prev.map(inv => inv.id === invoiceModal.editId
-        ? { ...inv, monto, concepto: invoiceModal.concepto, proveedorId: invoiceModal.proveedorId || null, proveedor: prov?.razonSocial || inv.proveedor }
+  const handleSaveCTInvoice = () => {
+    const monto = Number(invCtModal.monto.replace?.(/[^0-9]/g, '') ?? invCtModal.monto) || 0;
+    if (monto <= 0 || !invCtModal.concepto.trim()) return;
+    const today = new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (invCtModal.editId) {
+      setInvoices(prev => prev.map(inv => inv.id === invCtModal.editId
+        ? { ...inv, monto, concepto: invCtModal.concepto, tipoFactoring: invCtModal.tipoFactoring, documento: invCtModal.documento }
         : inv));
     } else {
-      const prov  = providers.find(p => p.id === invoiceModal.proveedorId);
-      const today = new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
       setInvoices(prev => [...prev, {
-        id: nextInvoiceId(),
-        tipo: invoiceModal.type,
-        contrato: detailContract.id,
-        monto,
-        estado: 'Pendiente',
-        concepto: invoiceModal.concepto,
-        fecha: today,
-        ...(invoiceModal.type === 'proveedor' ? { proveedorId: invoiceModal.proveedorId, proveedor: prov?.razonSocial || '' } : {}),
+        id: nextInvoiceId(), tipo: 'contratante', contrato: detailContract.id,
+        monto, estado: 'Creada', concepto: invCtModal.concepto, fecha: today,
+        tipoFactoring: invCtModal.tipoFactoring, documento: invCtModal.documento,
       }]);
     }
-    setInvoiceModal(INVOICE_MODAL_EMPTY);
+    setInvCtModal(INV_CT_EMPTY);
   };
+
+  const handleOpenEditCTInvoice = (inv) =>
+    setInvCtModal({ open: true, editId: inv.id, monto: inv.monto.toString(), concepto: inv.concepto || '', tipoFactoring: inv.tipoFactoring || 'inverso', documento: inv.documento || null });
+
+  const handleAdvanceCTInvoice = (invId) => {
+    setInvoices(prev => prev.map(inv => {
+      if (inv.id !== invId || inv.tipo !== 'contratante') return inv;
+      const steps = inv.tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
+      const idx = steps.indexOf(inv.estado);
+      if (idx === -1 || idx >= steps.length - 1) return inv;
+      return { ...inv, estado: steps[idx + 1] };
+    }));
+  };
+
+  const handleSavePRInvoice = () => {
+    const monto = Number(invPrModal.monto.replace?.(/[^0-9]/g, '') ?? invPrModal.monto) || 0;
+    if (monto <= 0 || !invPrModal.proveedorNombre.trim()) return;
+    const today = invPrModal.fecha || new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (invPrModal.editId) {
+      setInvoices(prev => prev.map(inv => inv.id === invPrModal.editId
+        ? { ...inv, monto, concepto: invPrModal.concepto, proveedorNombre: invPrModal.proveedorNombre, fecha: today, fechaVencimiento: invPrModal.fechaVencimiento, documento: invPrModal.documento }
+        : inv));
+    } else {
+      setInvoices(prev => [...prev, {
+        id: nextInvoiceId(), tipo: 'proveedor', contrato: detailContract.id,
+        monto, estado: 'Pendiente', concepto: invPrModal.concepto,
+        proveedorNombre: invPrModal.proveedorNombre, fecha: today,
+        fechaVencimiento: invPrModal.fechaVencimiento, documento: invPrModal.documento,
+      }]);
+    }
+    setInvPrModal(INV_PR_EMPTY);
+  };
+
+  const handleOpenEditPRInvoice = (inv) =>
+    setInvPrModal({ open: true, editId: inv.id, proveedorNombre: inv.proveedorNombre || '', monto: inv.monto.toString(), concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null });
 
   const handleDeleteInvoice = (invId) =>
     setInvoices(prev => prev.filter(inv => inv.id !== invId));
@@ -308,24 +367,20 @@ export default function EpCreditos() {
 
   const handleSavePago = () => {
     const monto = Number(pagoModal.monto.replace?.(/[^0-9]/g, '') ?? pagoModal.monto) || 0;
-    if (monto <= 0 || !pagoModal.concepto.trim() || !pagoModal.providerId) return;
-    const prov  = providers.find(p => p.id === pagoModal.providerId);
+    if (monto <= 0 || !pagoModal.concepto.trim()) return;
     const today = pagoModal.fecha || new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const linkedInv = pagoModal.facturaProvId ? invoices.find(inv => inv.id === pagoModal.facturaProvId) : null;
     if (pagoModal.editId) {
       setPagos(prev => prev.map(p => p.id === pagoModal.editId
-        ? { ...p, monto, concepto: pagoModal.concepto, providerId: pagoModal.providerId, providerName: prov?.razonSocial || p.providerName, providerSector: prov?.sector || p.providerSector, fecha: today }
+        ? { ...p, monto, concepto: pagoModal.concepto, fecha: today, facturaProvId: pagoModal.facturaProvId || null, proveedorNombre: linkedInv?.proveedorNombre || p.proveedorNombre || '', documento: pagoModal.documento }
         : p));
     } else {
       setPagos(prev => [...prev, {
-        id: nextPagoId(),
-        contrato: detailContract.id,
-        providerId: pagoModal.providerId,
-        providerName: prov?.razonSocial || '',
-        providerSector: prov?.sector || '',
-        monto,
-        concepto: pagoModal.concepto,
-        fecha: today,
-        estado: 'Procesado',
+        id: nextPagoId(), contrato: detailContract.id,
+        monto, concepto: pagoModal.concepto, fecha: today, estado: 'Procesado',
+        facturaProvId: pagoModal.facturaProvId || null,
+        proveedorNombre: linkedInv?.proveedorNombre || '',
+        documento: pagoModal.documento,
       }]);
     }
     setPagoModal(PAGO_MODAL_EMPTY);
@@ -335,7 +390,7 @@ export default function EpCreditos() {
     setPagos(prev => prev.filter(p => p.id !== pagoId));
 
   const handleOpenEditPago = (p) =>
-    setPagoModal({ open: true, editId: p.id, providerId: p.providerId, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha });
+    setPagoModal({ open: true, editId: p.id, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha, facturaProvId: p.facturaProvId || '', documento: p.documento || null });
 
   return (
     <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito">
@@ -661,154 +716,200 @@ export default function EpCreditos() {
               const contractInvoices    = invoices.filter(inv => inv.contrato === detailContract.id);
               const contratanteInvoices = contractInvoices.filter(inv => inv.tipo === 'contratante');
               const proveedorInvoices   = contractInvoices.filter(inv => inv.tipo === 'proveedor');
-
-              const InvoiceCard = ({ inv }) => (
-                <div
-                  className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
-                >
-                  <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                    {inv.tipo === 'contratante' ? <Building2 className="w-5 h-5 text-orange" /> : <Truck className="w-5 h-5 text-orange" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                      <Badge variant={inv.estado === 'Pagada' ? 'green' : inv.estado === 'Enviada' ? 'blue' : 'yellow'}>{inv.estado}</Badge>
-                    </div>
-                    <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
-                    {inv.tipo === 'proveedor' && inv.proveedor && (
-                      <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedor}</div>
-                    )}
-                  </div>
-                  <div className="shrink-0 flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                      <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                    </div>
-                    <div className="flex flex-col gap-1 border-l border-border pl-3">
-                      <button onClick={() => handleOpenEditInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-
               return (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[
-                      { value: contractInvoices.length,    label: 'Total de facturas',        cls: 'text-text-1'    },
-                      { value: contratanteInvoices.length, label: 'Facturas del contratante', cls: 'text-blue-text' },
-                      { value: proveedorInvoices.length,   label: 'Facturas de proveedores',  cls: 'text-orange'    },
-                    ].map(({ value, label, cls }) => (
-                      <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-                        <div className={`text-[32px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
-                        <div className="text-[12px] text-text-4">{label}</div>
-                      </div>
-                    ))}
-                  </div>
 
+                  {/* Facturas al Contratante */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={Receipt} iconBg="#FDF6E8" iconColor="#C68A1D"
-                      title="Facturas" subtitle="Historial de facturas asociadas a este contrato."
-                      action={
-                        <div className="flex gap-2">
-                          <Button variant="primary" onClick={() => handleOpenNewInvoice('contratante')}>Nueva al Contratante</Button>
-                          <Button variant="primary" onClick={() => handleOpenNewInvoice('proveedor')}>A Proveedor</Button>
-                        </div>
-                      }
+                    <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
+                      title="Facturas al Contratante"
+                      subtitle="Emitidas por la PYME. Ciclo: Creada → Enviada → Validada → [IPI Emitido →] Pagada."
+                      action={<Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>}
                     />
-
-                    {contractInvoices.length === 0 && (
-                      <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas para este contrato.</div>
-                    )}
-                    {contratanteInvoices.length > 0 && (
-                      <div className="mb-4">
-                        <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] mb-2.5">Al contratante</div>
-                        <div className="space-y-3">{contratanteInvoices.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}</div>
-                      </div>
-                    )}
-                    {proveedorInvoices.length > 0 && (
-                      <div>
-                        <div className="text-[10px] font-semibold text-text-5 uppercase tracking-[1px] mb-2.5">A proveedores</div>
-                        <div className="space-y-3">{proveedorInvoices.map(inv => <InvoiceCard key={inv.id} inv={inv} />)}</div>
-                      </div>
-                    )}
+                    <div className="space-y-3">
+                      {contratanteInvoices.map(inv => {
+                        const steps = inv.tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
+                        const isLast = steps.indexOf(inv.estado) === steps.length - 1;
+                        return (
+                          <div key={inv.id}
+                            className="rounded-[16px] p-4 border border-border transition-all duration-200 cursor-default"
+                            style={{ background: '#ffffff' }}
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(59,130,246,0.12)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.35)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
+                                <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                                  {inv.documento && (
+                                    <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
+                                  )}
+                                </div>
+                                <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
+                                <CTPipeline estado={inv.estado} tipoFactoring={inv.tipoFactoring} />
+                              </div>
+                              <div className="shrink-0 flex items-center gap-3">
+                                <div className="text-right">
+                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+                                </div>
+                                <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                  {!isLast && (
+                                    <button onClick={() => handleAdvanceCTInvoice(inv.id)}
+                                      title="Avanzar estado"
+                                      className="p-1.5 rounded-[8px] transition text-text-4"
+                                      style={{}}
+                                      onMouseEnter={e => { e.currentTarget.style.background = '#EFF6FF'; e.currentTarget.style.color = '#3B82F6'; }}
+                                      onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = ''; }}
+                                    >
+                                      <ChevronRight className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {contratanteInvoices.length === 0 && (
+                        <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas al contratante para este contrato.</div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Facturas de Proveedores */}
+                  <div className="bg-white rounded-[14px] border border-border p-5">
+                    <SectionHeader icon={Truck} iconBg="#FDF6E8" iconColor="#C68A1D"
+                      title="Facturas de Proveedores"
+                      subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
+                      action={<Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>}
+                    />
+                    <div className="space-y-3">
+                      {proveedorInvoices.map(inv => {
+                        const estadoStyle =
+                          inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
+                          inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
+                          { background: '#FDF6E8', color: '#C68A1D' };
+                        return (
+                          <div key={inv.id}
+                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 cursor-default"
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; e.currentTarget.style.borderColor = 'rgba(239,122,44,0.4)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
+                          >
+                            <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                              <Truck className="w-5 h-5 text-orange" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                                {inv.documento && (
+                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
+                                )}
+                              </div>
+                              <div className="text-[12px] text-text-3 truncate">{inv.concepto || inv.proveedorNombre}</div>
+                              <div className="text-[11px] text-text-5 mt-0.5">
+                                {inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}
+                              </div>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                                <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+                              </div>
+                              <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {proveedorInvoices.length === 0 && (
+                        <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas para este contrato.</div>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
               );
             })()}
 
             {/* ── TAB: Pagos ── */}
             {activeTab === 'pagos' && (() => {
-              const contractPagos = pagos.filter(p => p.contrato === detailContract.id);
-              const totalPagado   = contractPagos.reduce((s, p) => s + p.monto, 0);
+              const contractPagos     = pagos.filter(p => p.contrato === detailContract.id);
+              const proveedorInvoices = invoices.filter(inv => inv.contrato === detailContract.id && inv.tipo === 'proveedor');
               return (
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[
-                      { value: contractPagos.length,    label: 'Pagos realizados',   cls: 'text-text-1'     },
-                      { value: formatXaf(totalPagado),  label: 'Total pagado',        cls: 'text-orange'     },
-                      { value: formatXaf(detailContract.disponible), label: 'Crédito disponible', cls: 'text-green-text' },
-                    ].map(({ value, label, cls }) => (
-                      <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-                        <div className={`text-[20px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
-                        <div className="text-[12px] text-text-4">{label}</div>
-                      </div>
-                    ))}
-                  </div>
-
                   <div className="bg-white rounded-[14px] border border-border p-5">
                     <SectionHeader icon={CreditCard} iconBg="#E3F4EA" iconColor="#2E7D5B"
-                      title="Pagos Directos" subtitle="Pagos realizados directamente a proveedores, sin vincular a una factura."
+                      title="Pagos"
+                      subtitle="Registra pagos a proveedores. Pueden vincularse a una factura recibida o ser pagos directos."
                       action={<Button variant="primary" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>Nuevo Pago</Button>}
                     />
-
                     <div className="space-y-3">
-                      {contractPagos.map(p => (
-                        <div
-                          key={p.id}
-                          className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
-                          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
-                        >
-                          <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                            <CreditCard className="w-5 h-5 text-orange" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-[13px] font-bold text-text-1">{p.id}</span>
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                    style={{ background: '#E3F4EA', color: '#2E7D5B' }}>
-                                {p.estado}
-                              </span>
+                      {contractPagos.map(p => {
+                        const linkedInv = p.facturaProvId ? invoices.find(inv => inv.id === p.facturaProvId) : null;
+                        return (
+                          <div key={p.id}
+                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 cursor-default"
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(46,125,91,0.12)'; e.currentTarget.style.borderColor = '#A8D5BE'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
+                          >
+                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                              <CreditCard className="w-5 h-5" style={{ color: '#2E7D5B' }} />
                             </div>
-                            <div className="text-[12px] text-text-3 truncate">{p.concepto}</div>
-                            <div className="text-[11px] text-text-5 mt-0.5">{p.providerName} · {p.providerSector}</div>
-                          </div>
-                          <div className="shrink-0 flex items-center gap-3">
-                            <div className="text-right">
-                              <div className="text-[15px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
-                              <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="text-[13px] font-bold text-text-1">{p.id}</span>
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
+                                {p.documento && (
+                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
+                                )}
+                              </div>
+                              <div className="text-[12px] text-text-3 truncate">{p.concepto}</div>
+                              {linkedInv ? (
+                                <div className="flex items-center gap-1 text-[11px] text-text-5 mt-0.5">
+                                  <Receipt className="w-3 h-3 shrink-0" /> {linkedInv.id} · {linkedInv.proveedorNombre}
+                                </div>
+                              ) : p.proveedorNombre ? (
+                                <div className="text-[11px] text-text-5 mt-0.5">{p.proveedorNombre}</div>
+                              ) : (
+                                <div className="text-[11px] text-text-5 mt-0.5">Pago directo sin factura vinculada</div>
+                              )}
                             </div>
-                            <div className="flex flex-col gap-1 border-l border-border pl-3">
-                              <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                            <div className="shrink-0 flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
+                                <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                              </div>
+                              <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       {contractPagos.length === 0 && (
-                        <div className="text-[12px] text-text-4 py-6 text-center">No hay pagos directos registrados para este contrato.</div>
+                        <div className="text-[12px] text-text-4 py-6 text-center">No hay pagos registrados para este contrato.</div>
                       )}
                     </div>
                   </div>
@@ -918,131 +1019,205 @@ export default function EpCreditos() {
         </Modal>
       )}
 
-      {/* ── Modal: Nueva / Editar factura ── */}
-      {invoiceModal.open && (() => {
-        const isEdit      = !!invoiceModal.editId;
-        const isProv      = invoiceModal.type === 'proveedor';
-        const maxMonto    = isProv && invoiceModal.proveedorId ? getProviderMaxMonto(invoiceModal.proveedorId) : null;
-        const autoId      = isEdit ? invoiceModal.editId : nextInvoiceId();
-        return (
-          <Modal
-            title={isEdit
-              ? `Editar factura ${invoiceModal.editId}`
-              : (isProv ? 'Nueva factura a proveedor' : 'Nueva factura al contratante')}
-            onClose={() => setInvoiceModal(INVOICE_MODAL_EMPTY)}
-            footer={
-              <>
-                <Button variant="ghost"   onClick={() => setInvoiceModal(INVOICE_MODAL_EMPTY)}>Cancelar</Button>
-                <Button variant="primary" onClick={handleSaveInvoice}>{isEdit ? 'Guardar cambios' : 'Crear factura'}</Button>
-              </>
-            }
-            wide
-          >
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormGroup label="Nº de factura"><Input value={autoId} disabled /></FormGroup>
-                <FormGroup label="Contrato"><Input value={detailContract?.id || ''} disabled /></FormGroup>
-              </div>
-              {isProv ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormGroup label="Proveedor" required>
-                    <Select
-                      value={invoiceModal.proveedorId}
-                      onChange={e => setInvoiceModal({ ...invoiceModal, proveedorId: e.target.value, monto: '' })}
-                    >
-                      <option value="">Seleccionar proveedor…</option>
-                      {detailContract?.distribucion.filter(d => d.providerId).map(item => (
-                        <option key={item.id} value={item.providerId}>{item.providerName} · {item.providerSector}</option>
-                      ))}
-                    </Select>
-                  </FormGroup>
-                  <FormGroup label="Monto (XAF)" required>
-                    <Input
-                      type="text" inputMode="numeric" placeholder="Ej: 4,500,000"
-                      value={invoiceModal.monto}
-                      onChange={e => setInvoiceModal({ ...invoiceModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-                    />
-                    {maxMonto !== null && (
-                      <div className={`text-[11px] mt-1 ${Number(invoiceModal.monto) > maxMonto ? 'text-red-text font-semibold' : 'text-text-4'}`}>
-                        Máximo asignable: {formatXaf(maxMonto)}
-                        {Number(invoiceModal.monto) > maxMonto && ' — supera el monto otorgado'}
-                      </div>
-                    )}
-                    {invoiceModal.monto && Number(invoiceModal.monto) <= (maxMonto ?? Infinity) && (
-                      <div className="text-[11px] text-text-4 mt-1">{formatXaf(invoiceModal.monto)}</div>
-                    )}
-                  </FormGroup>
-                </div>
-              ) : (
-                <FormGroup label="Monto (XAF)" required>
-                  <Input
-                    type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
-                    value={invoiceModal.monto}
-                    onChange={e => setInvoiceModal({ ...invoiceModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-                  />
-                  {invoiceModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invoiceModal.monto)}</div>}
-                </FormGroup>
-              )}
-              <FormGroup label="Concepto" required>
-                <Textarea
-                  value={invoiceModal.concepto}
-                  onChange={e => setInvoiceModal({ ...invoiceModal, concepto: e.target.value })}
-                  placeholder="Descripción del servicio o trabajo facturado…"
-                />
-              </FormGroup>
-            </div>
-          </Modal>
-        );
-      })()}
-
-      {/* ── Modal: Nuevo / Editar pago ── */}
-      {pagoModal.open && (
+      {/* ── Modal: Nueva / Editar factura al Contratante ── */}
+      {invCtModal.open && (
         <Modal
-          title={pagoModal.editId ? `Editar pago ${pagoModal.editId}` : 'Nuevo Pago Directo'}
-          onClose={() => setPagoModal(PAGO_MODAL_EMPTY)}
+          title={invCtModal.editId ? `Editar factura ${invCtModal.editId}` : 'Nueva Factura al Contratante'}
+          onClose={() => setInvCtModal(INV_CT_EMPTY)}
           footer={
             <>
-              <Button variant="ghost"   onClick={() => setPagoModal(PAGO_MODAL_EMPTY)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleSavePago}>{pagoModal.editId ? 'Guardar cambios' : 'Registrar pago'}</Button>
+              <Button variant="ghost" onClick={() => setInvCtModal(INV_CT_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleSaveCTInvoice}>{invCtModal.editId ? 'Guardar cambios' : 'Crear factura'}</Button>
             </>
           }
           wide
         >
           <div className="space-y-4">
-            <div className="text-[12px] text-text-4">Registra un pago directo a un proveedor, no vinculado a ninguna factura existente.</div>
-            <FormGroup label="Proveedor" required>
-              <Select value={pagoModal.providerId} onChange={e => setPagoModal({ ...pagoModal, providerId: e.target.value })}>
-                <option value="">Seleccionar proveedor…</option>
-                {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormGroup label="Contrato"><Input value={detailContract?.id || ''} disabled /></FormGroup>
+              <FormGroup label="Tipo de factoring" required>
+                <Select value={invCtModal.tipoFactoring} onChange={e => setInvCtModal({ ...invCtModal, tipoFactoring: e.target.value })}>
+                  <option value="inverso">Factoring Inverso (con IPI)</option>
+                  <option value="directo">Factoring Directo (sin IPI)</option>
+                </Select>
+              </FormGroup>
+            </div>
+            <FormGroup label="Monto (XAF)" required>
+              <Input
+                type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
+                value={invCtModal.monto}
+                onChange={e => setInvCtModal({ ...invCtModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+              />
+              {invCtModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invCtModal.monto)}</div>}
+            </FormGroup>
+            <FormGroup label="Concepto" required>
+              <Textarea
+                value={invCtModal.concepto}
+                onChange={e => setInvCtModal({ ...invCtModal, concepto: e.target.value })}
+                placeholder="Descripción del servicio o hito facturado…"
+              />
+            </FormGroup>
+            <div>
+              <div className="text-[12px] font-medium text-text-3 mb-1.5">Adjuntar documento</div>
+              {invCtModal.documento ? (
+                <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
+                  <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
+                  <span className="flex-1 truncate">{invCtModal.documento.name}</span>
+                  <button onClick={() => setInvCtModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                  <Upload className="w-3.5 h-3.5 shrink-0" />
+                  Seleccionar archivo (PDF, imagen)
+                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) setInvCtModal(p => ({ ...p, documento: { name: file.name, url: URL.createObjectURL(file) } }));
+                  }} />
+                </label>
+              )}
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal: Importar / Editar factura de Proveedor ── */}
+      {invPrModal.open && (
+        <Modal
+          title={invPrModal.editId ? `Editar factura ${invPrModal.editId}` : 'Importar Factura de Proveedor'}
+          onClose={() => setInvPrModal(INV_PR_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setInvPrModal(INV_PR_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleSavePRInvoice}>{invPrModal.editId ? 'Guardar cambios' : 'Importar factura'}</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">Registra una factura recibida de un proveedor para llevar el control interno de pagos.</div>
+            <FormGroup label="Nombre del proveedor" required>
+              <Input
+                value={invPrModal.proveedorNombre}
+                onChange={e => setInvPrModal({ ...invPrModal, proveedorNombre: e.target.value })}
+                placeholder="Nombre del proveedor o empresa emisora"
+              />
             </FormGroup>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormGroup label="Monto (XAF)" required>
                 <Input
-                  type="text" inputMode="numeric" placeholder="Ej: 2,500,000"
-                  value={pagoModal.monto}
-                  onChange={e => setPagoModal({ ...pagoModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+                  type="text" inputMode="numeric" placeholder="Ej: 4,500,000"
+                  value={invPrModal.monto}
+                  onChange={e => setInvPrModal({ ...invPrModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
                 />
-                {pagoModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(pagoModal.monto)}</div>}
+                {invPrModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invPrModal.monto)}</div>}
               </FormGroup>
-              <FormGroup label="Fecha del pago">
-                <Input
-                  type="text" placeholder="DD/MM/AAAA"
-                  value={pagoModal.fecha}
-                  onChange={e => setPagoModal({ ...pagoModal, fecha: e.target.value })}
-                />
+              <FormGroup label="Fecha de emisión">
+                <Input type="text" placeholder="DD/MM/AAAA" value={invPrModal.fecha} onChange={e => setInvPrModal({ ...invPrModal, fecha: e.target.value })} />
               </FormGroup>
             </div>
-            <FormGroup label="Concepto" required>
+            <FormGroup label="Fecha de vencimiento">
+              <Input type="text" placeholder="DD/MM/AAAA" value={invPrModal.fechaVencimiento} onChange={e => setInvPrModal({ ...invPrModal, fechaVencimiento: e.target.value })} />
+            </FormGroup>
+            <FormGroup label="Concepto">
               <Textarea
-                value={pagoModal.concepto}
-                onChange={e => setPagoModal({ ...pagoModal, concepto: e.target.value })}
-                placeholder="Descripción del pago realizado…"
+                value={invPrModal.concepto}
+                onChange={e => setInvPrModal({ ...invPrModal, concepto: e.target.value })}
+                placeholder="Descripción del servicio o producto facturado…"
               />
             </FormGroup>
+            <div>
+              <div className="text-[12px] font-medium text-text-3 mb-1.5">Adjuntar documento</div>
+              {invPrModal.documento ? (
+                <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
+                  <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
+                  <span className="flex-1 truncate">{invPrModal.documento.name}</span>
+                  <button onClick={() => setInvPrModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                  <Upload className="w-3.5 h-3.5 shrink-0" />
+                  Seleccionar archivo (PDF, imagen)
+                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) setInvPrModal(p => ({ ...p, documento: { name: file.name, url: URL.createObjectURL(file) } }));
+                  }} />
+                </label>
+              )}
+            </div>
           </div>
         </Modal>
       )}
+
+      {/* ── Modal: Nuevo / Editar pago ── */}
+      {pagoModal.open && (() => {
+        const proveedorInvoices = invoices.filter(inv => inv.contrato === detailContract?.id && inv.tipo === 'proveedor');
+        return (
+          <Modal
+            title={pagoModal.editId ? `Editar pago ${pagoModal.editId}` : 'Nuevo Pago'}
+            onClose={() => setPagoModal(PAGO_MODAL_EMPTY)}
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setPagoModal(PAGO_MODAL_EMPTY)}>Cancelar</Button>
+                <Button variant="primary" onClick={handleSavePago}>{pagoModal.editId ? 'Guardar cambios' : 'Registrar pago'}</Button>
+              </>
+            }
+            wide
+          >
+            <div className="space-y-4">
+              <div className="text-[12px] text-text-4">El pago puede vincularse a una factura de proveedor o registrarse como pago directo sin factura.</div>
+              {proveedorInvoices.length > 0 && (
+                <FormGroup label="Vincular a factura de proveedor (opcional)">
+                  <Select value={pagoModal.facturaProvId} onChange={e => setPagoModal({ ...pagoModal, facturaProvId: e.target.value })}>
+                    <option value="">Sin vinculación — pago directo</option>
+                    {proveedorInvoices.map(inv => (
+                      <option key={inv.id} value={inv.id}>{inv.id} · {inv.proveedorNombre} · {formatXaf(inv.monto)}</option>
+                    ))}
+                  </Select>
+                </FormGroup>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormGroup label="Monto (XAF)" required>
+                  <Input
+                    type="text" inputMode="numeric" placeholder="Ej: 2,500,000"
+                    value={pagoModal.monto}
+                    onChange={e => setPagoModal({ ...pagoModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+                  />
+                  {pagoModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(pagoModal.monto)}</div>}
+                </FormGroup>
+                <FormGroup label="Fecha del pago">
+                  <Input type="text" placeholder="DD/MM/AAAA" value={pagoModal.fecha} onChange={e => setPagoModal({ ...pagoModal, fecha: e.target.value })} />
+                </FormGroup>
+              </div>
+              <FormGroup label="Concepto" required>
+                <Textarea
+                  value={pagoModal.concepto}
+                  onChange={e => setPagoModal({ ...pagoModal, concepto: e.target.value })}
+                  placeholder="Descripción del pago realizado…"
+                />
+              </FormGroup>
+              <div>
+                <div className="text-[12px] font-medium text-text-3 mb-1.5">Adjuntar documento / factura</div>
+                {pagoModal.documento ? (
+                  <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
+                    <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
+                    <span className="flex-1 truncate">{pagoModal.documento.name}</span>
+                    <button onClick={() => setPagoModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                    <Upload className="w-3.5 h-3.5 shrink-0" />
+                    Adjuntar comprobante o factura (PDF, imagen)
+                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) setPagoModal(p => ({ ...p, documento: { name: file.name, url: URL.createObjectURL(file) } }));
+                    }} />
+                  </label>
+                )}
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* ── Toast ── */}
       <div className={`fixed bottom-6 right-6 z-50 w-[340px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
