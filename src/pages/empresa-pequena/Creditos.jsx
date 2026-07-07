@@ -91,7 +91,7 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
 const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', tipoFactoring: 'inverso', documento: null };
-const INV_PR_EMPTY        = { open: false, editId: null, proveedorNombre: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
+const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', documento: null };
 
 const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pagada'];
@@ -180,7 +180,7 @@ const initialContracts = [
 const initialInvoices = [
   {
     id: 'FAC-2026-1025', tipo: 'proveedor', contrato: 'CTR-2026-002',
-    proveedorNombre: 'TransGE S.L.', monto: 4500000, estado: 'Pendiente',
+    proveedorId: 'p2', proveedorNombre: 'TransGE S.L.', monto: 4500000, estado: 'Pendiente',
     concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026', fechaVencimiento: '01/06/2026', documento: null,
   },
   {
@@ -335,17 +335,18 @@ export default function EpCreditos() {
 
   const handleSavePRInvoice = () => {
     const monto = Number(invPrModal.monto.replace?.(/[^0-9]/g, '') ?? invPrModal.monto) || 0;
-    if (monto <= 0 || !invPrModal.proveedorNombre.trim()) return;
+    if (monto <= 0 || !invPrModal.proveedorId) return;
+    const prov  = providers.find(p => p.id === invPrModal.proveedorId);
     const today = invPrModal.fecha || new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
     if (invPrModal.editId) {
       setInvoices(prev => prev.map(inv => inv.id === invPrModal.editId
-        ? { ...inv, monto, concepto: invPrModal.concepto, proveedorNombre: invPrModal.proveedorNombre, fecha: today, fechaVencimiento: invPrModal.fechaVencimiento, documento: invPrModal.documento }
+        ? { ...inv, monto, concepto: invPrModal.concepto, proveedorId: invPrModal.proveedorId, proveedorNombre: prov?.razonSocial || '', fecha: today, fechaVencimiento: invPrModal.fechaVencimiento, documento: invPrModal.documento }
         : inv));
     } else {
       setInvoices(prev => [...prev, {
         id: nextInvoiceId(), tipo: 'proveedor', contrato: detailContract.id,
         monto, estado: 'Pendiente', concepto: invPrModal.concepto,
-        proveedorNombre: invPrModal.proveedorNombre, fecha: today,
+        proveedorId: invPrModal.proveedorId, proveedorNombre: prov?.razonSocial || '', fecha: today,
         fechaVencimiento: invPrModal.fechaVencimiento, documento: invPrModal.documento,
       }]);
     }
@@ -353,7 +354,7 @@ export default function EpCreditos() {
   };
 
   const handleOpenEditPRInvoice = (inv) =>
-    setInvPrModal({ open: true, editId: inv.id, proveedorNombre: inv.proveedorNombre || '', monto: inv.monto.toString(), concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null });
+    setInvPrModal({ open: true, editId: inv.id, proveedorId: inv.proveedorId || '', monto: inv.monto.toString(), concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null });
 
   const handleDeleteInvoice = (invId) =>
     setInvoices(prev => prev.filter(inv => inv.id !== invId));
@@ -1094,15 +1095,13 @@ export default function EpCreditos() {
           wide
         >
           <div className="space-y-4">
-            <div className="text-[12px] text-text-4">Registra una factura recibida de un proveedor para llevar el control interno de pagos.</div>
-            <FormGroup label="Nombre del proveedor" required>
-              <Input
-                value={invPrModal.proveedorNombre}
-                onChange={e => setInvPrModal({ ...invPrModal, proveedorNombre: e.target.value })}
-                placeholder="Nombre del proveedor o empresa emisora"
-              />
-            </FormGroup>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormGroup label="Proveedor" required>
+                <Select value={invPrModal.proveedorId} onChange={e => setInvPrModal({ ...invPrModal, proveedorId: e.target.value })}>
+                  <option value="">Seleccionar proveedor…</option>
+                  {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
+                </Select>
+              </FormGroup>
               <FormGroup label="Monto (XAF)" required>
                 <Input
                   type="text" inputMode="numeric" placeholder="Ej: 4,500,000"
@@ -1111,13 +1110,15 @@ export default function EpCreditos() {
                 />
                 {invPrModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invPrModal.monto)}</div>}
               </FormGroup>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormGroup label="Fecha de emisión">
                 <Input type="text" placeholder="DD/MM/AAAA" value={invPrModal.fecha} onChange={e => setInvPrModal({ ...invPrModal, fecha: e.target.value })} />
               </FormGroup>
+              <FormGroup label="Fecha de vencimiento">
+                <Input type="text" placeholder="DD/MM/AAAA" value={invPrModal.fechaVencimiento} onChange={e => setInvPrModal({ ...invPrModal, fechaVencimiento: e.target.value })} />
+              </FormGroup>
             </div>
-            <FormGroup label="Fecha de vencimiento">
-              <Input type="text" placeholder="DD/MM/AAAA" value={invPrModal.fechaVencimiento} onChange={e => setInvPrModal({ ...invPrModal, fechaVencimiento: e.target.value })} />
-            </FormGroup>
             <FormGroup label="Concepto">
               <Textarea
                 value={invPrModal.concepto}
