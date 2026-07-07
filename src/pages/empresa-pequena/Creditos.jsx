@@ -34,6 +34,12 @@ const KYC_BADGE = {
   vencido:  { label: 'KYC Vencido',   bg: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,.3)'  },
 };
 
+const scoreStyle = (score) => {
+  if (score >= 750) return { bg: '#E3F4EA', color: '#2E7D5B' };
+  if (score >= 600) return { bg: '#FDF6E8', color: '#C68A1D' };
+  return { bg: '#FDEEEB', color: '#B8352A' };
+};
+
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
 const INVOICE_MODAL_EMPTY = { open: false, editId: null, type: 'contratante', monto: '', concepto: '', proveedorId: '' };
@@ -51,7 +57,7 @@ const initialContracts = [
     paso: 1, estado: 'Pendiente datos del contratante',
     nota: 'Aprobado por Bonafide. Completa los datos del contratante para activar la verificación.',
     contratante: {
-      razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción',
+      razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
       objetoTrabajo: '', documentoContrato: null, montoGlobal: '58000000',
       fechaInicio: '2026-05-01', fechaFin: '2027-04-30', plazosEjecucion: '12 meses',
@@ -66,7 +72,7 @@ const initialContracts = [
     paso: 2, estado: 'En espera de confirmación del contratante',
     nota: 'Se envió la solicitud de verificación al contratante. Cuando confirme, Bonafide continuará con la autorización.',
     contratante: {
-      razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía',
+      razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía', scoreCredito: 815,
       telefonoCorporativo: '+240 222 456 789', correoCorporativo: 'contratos@petroguinea.gq',
       objetoTrabajo: 'Suministro de combustible y lubricantes industriales para operaciones en tierra y plataformas offshore.',
       documentoContrato: null, montoGlobal: '31000000',
@@ -83,7 +89,7 @@ const initialContracts = [
     paso: 3, estado: 'Pendiente autorización Bonafide',
     nota: 'El contratante confirmó los datos. Bonafide debe autorizar para que puedas distribuir el crédito.',
     contratante: {
-      razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción',
+      razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción', scoreCredito: 680,
       telefonoCorporativo: '+240 222 001 002', correoCorporativo: 'adm@obras.gob.gq',
       objetoTrabajo: 'Construcción y pavimentación de 12 km de infraestructura vial en la zona norte de Malabo, incluyendo drenajes y señalización.',
       documentoContrato: null, montoGlobal: '75000000',
@@ -99,7 +105,7 @@ const initialContracts = [
     monto: 42000000, asignado: 9000000, disponible: 33000000,
     paso: 4, estado: '', nota: '',
     contratante: {
-      razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción',
+      razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción', scoreCredito: 758,
       telefonoCorporativo: '+240 222 909 111', correoCorporativo: 'admin@evans.gq',
       objetoTrabajo: 'Obras de edificación, remodelación integral y adecuación de oficinas corporativas en el complejo empresarial de Sipopo.',
       documentoContrato: null, montoGlobal: '42000000',
@@ -117,7 +123,7 @@ const initialContracts = [
     monto: 25000000, asignado: 0, disponible: 25000000,
     paso: 4, estado: '', nota: '',
     contratante: {
-      razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte',
+      razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte', scoreCredito: 630,
       telefonoCorporativo: '+240 222 654 321', correoCorporativo: 'admin@bataporto.gq',
       objetoTrabajo: 'Gestión operativa, mantenimiento preventivo y correctivo de instalaciones y equipos en el Puerto de Bata.',
       documentoContrato: null, montoGlobal: '25000000',
@@ -345,6 +351,8 @@ export default function EpCreditos() {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));
                 const ctName = contract.contratante?.razonSocial || '—';
                 const sector = contract.contratante?.sectorProductivo || '';
+                const score  = contract.contratante?.scoreCredito ?? null;
+                const sStyle = score !== null ? scoreStyle(score) : null;
                 return (
                   <div
                     key={contract.id}
@@ -360,7 +368,15 @@ export default function EpCreditos() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
-                        <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+                          {sStyle && (
+                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]"
+                                  style={{ background: sStyle.bg, color: sStyle.color }}>
+                              {score}
+                            </span>
+                          )}
+                        </div>
                         {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
                       </div>
                     </div>
