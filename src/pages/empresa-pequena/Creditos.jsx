@@ -186,7 +186,17 @@ const initialInvoices = [
   {
     id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002',
     monto: 18000000, estado: 'Validada', concepto: 'Avance de obra fase 1 – Cimentación y estructura',
-    fecha: '10/05/2026', tipoFactoring: 'inverso', documento: null,
+    fecha: '10/05/2026', fechaVencimiento: '10/06/2026', tipoFactoring: 'inverso', documento: null,
+  },
+  {
+    id: 'FAC-2026-1038', tipo: 'contratante', contrato: 'CTR-2026-002',
+    monto: 7500000, estado: 'Enviada', concepto: 'Suministro e instalación de carpintería metálica – Fase 2',
+    fecha: '28/05/2026', fechaVencimiento: '28/06/2026', tipoFactoring: 'directo', documento: null,
+  },
+  {
+    id: 'FAC-2026-1044', tipo: 'contratante', contrato: 'CTR-2026-002',
+    monto: 12000000, estado: 'IPI Emitido', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
+    fecha: '02/06/2026', fechaVencimiento: '02/07/2026', tipoFactoring: 'inverso', documento: null,
   },
 ];
 
