@@ -89,7 +89,7 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
 };
 
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
-const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
+const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '', esClienteBonafide: false };
 const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', fechaVencimiento: '', documento: null };
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
@@ -288,7 +288,7 @@ export default function EpCreditos() {
   const handleAddProvider = () => {
     if (!providerForm.razonSocial.trim()) return;
     const newId = `p${Math.max(...providers.map(p => Number(p.id.replace('p', ''))), 0) + 1}`;
-    const next  = { id: newId, razonSocial: providerForm.razonSocial, nombreComercial: providerForm.nombreComercial, ruc: providerForm.ruc, sector: providerForm.sector, email: providerForm.correo, telefono: providerForm.telefono, activo: true };
+    const next  = { id: newId, razonSocial: providerForm.razonSocial, nombreComercial: providerForm.nombreComercial, ruc: providerForm.ruc, sector: providerForm.sector, email: providerForm.correo, telefono: providerForm.telefono, esClienteBonafide: providerForm.esClienteBonafide, activo: true };
     setProviders(prev => [...prev, next]);
     setShowProviderModal(false);
     setProviderForm(PROVIDER_FORM_EMPTY);
@@ -1020,6 +1020,29 @@ export default function EpCreditos() {
                 <Input type="email" value={providerForm.correo} onChange={e => setProviderForm({ ...providerForm, correo: e.target.value })} placeholder="correo@empresa.gq" />
               </FormGroup>
             </div>
+            <button
+              type="button"
+              onClick={() => setProviderForm({ ...providerForm, esClienteBonafide: !providerForm.esClienteBonafide })}
+              className="flex items-center gap-3 w-full rounded-[10px] border px-4 py-3 transition-all"
+              style={{
+                borderColor: providerForm.esClienteBonafide ? 'rgba(224,32,28,0.35)' : '#ECEAE7',
+                background:  providerForm.esClienteBonafide ? '#FFF3E0' : '#F6F5F3',
+              }}
+            >
+              <div className="w-9 h-5 rounded-full flex items-center transition-all shrink-0 px-0.5"
+                   style={{ background: providerForm.esClienteBonafide ? '#E0201C' : '#A9A6A1' }}>
+                <div className="w-4 h-4 rounded-full bg-white shadow transition-transform"
+                     style={{ transform: providerForm.esClienteBonafide ? 'translateX(16px)' : 'translateX(0)' }} />
+              </div>
+              <div className="text-left">
+                <div className="text-[13px] font-semibold" style={{ color: providerForm.esClienteBonafide ? '#E0201C' : '#26262B' }}>
+                  Cliente Bonafide
+                </div>
+                <div className="text-[11px] text-text-4">
+                  {providerForm.esClienteBonafide ? 'Este proveedor es cliente de Bonafide' : 'Este proveedor no es cliente de Bonafide'}
+                </div>
+              </div>
+            </button>
           </div>
         </Modal>
       )}
