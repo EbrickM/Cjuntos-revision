@@ -92,7 +92,7 @@ const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: ''
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
 const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', fechaVencimiento: '', documento: null };
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
-const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', documento: null };
+const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
 
 const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pagada'];
 const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
@@ -369,18 +369,22 @@ export default function EpCreditos() {
   const handleSavePago = () => {
     const monto = Number(pagoModal.monto.replace?.(/[^0-9]/g, '') ?? pagoModal.monto) || 0;
     if (monto <= 0 || !pagoModal.concepto.trim()) return;
-    const today = pagoModal.fecha || new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const linkedInv = pagoModal.facturaProvId ? invoices.find(inv => inv.id === pagoModal.facturaProvId) : null;
+    if (!linkedInv && !pagoModal.proveedorId) return;
+    const prov  = !linkedInv ? providers.find(p => p.id === pagoModal.proveedorId) : null;
+    const today = pagoModal.fecha || new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const proveedorNombre = linkedInv?.proveedorNombre || prov?.razonSocial || '';
     if (pagoModal.editId) {
       setPagos(prev => prev.map(p => p.id === pagoModal.editId
-        ? { ...p, monto, concepto: pagoModal.concepto, fecha: today, facturaProvId: pagoModal.facturaProvId || null, proveedorNombre: linkedInv?.proveedorNombre || p.proveedorNombre || '', documento: pagoModal.documento }
+        ? { ...p, monto, concepto: pagoModal.concepto, fecha: today, facturaProvId: pagoModal.facturaProvId || null, proveedorId: pagoModal.proveedorId || null, proveedorNombre, documento: pagoModal.documento }
         : p));
     } else {
       setPagos(prev => [...prev, {
         id: nextPagoId(), contrato: detailContract.id,
         monto, concepto: pagoModal.concepto, fecha: today, estado: 'Procesado',
         facturaProvId: pagoModal.facturaProvId || null,
-        proveedorNombre: linkedInv?.proveedorNombre || '',
+        proveedorId: pagoModal.proveedorId || null,
+        proveedorNombre,
         documento: pagoModal.documento,
       }]);
     }
@@ -391,7 +395,7 @@ export default function EpCreditos() {
     setPagos(prev => prev.filter(p => p.id !== pagoId));
 
   const handleOpenEditPago = (p) =>
-    setPagoModal({ open: true, editId: p.id, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha, facturaProvId: p.facturaProvId || '', documento: p.documento || null });
+    setPagoModal({ open: true, editId: p.id, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha, facturaProvId: p.facturaProvId || '', proveedorId: p.proveedorId || '', documento: p.documento || null });
 
   return (
     <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito">
@@ -1155,20 +1159,28 @@ export default function EpCreditos() {
             footer={
               <>
                 <Button variant="ghost" onClick={() => setPagoModal(PAGO_MODAL_EMPTY)}>Cancelar</Button>
-                <Button variant="primary" onClick={handleSavePago}>{pagoModal.editId ? 'Guardar cambios' : 'Registrar pago'}</Button>
+                <Button variant="primary" onClick={handleSavePago}>{pagoModal.editId ? 'Guardar cambios' : 'Realizar Pago'}</Button>
               </>
             }
             wide
           >
             <div className="space-y-4">
-              <div className="text-[12px] text-text-4">El pago puede vincularse a una factura de proveedor o registrarse como pago directo sin factura.</div>
+              <div className="text-[12px] text-text-4">El pago puede vincularse a una factura de proveedor o realizarse directamente especificando el proveedor.</div>
               {proveedorInvoices.length > 0 && (
                 <FormGroup label="Vincular a factura de proveedor (opcional)">
-                  <Select value={pagoModal.facturaProvId} onChange={e => setPagoModal({ ...pagoModal, facturaProvId: e.target.value })}>
+                  <Select value={pagoModal.facturaProvId} onChange={e => setPagoModal({ ...pagoModal, facturaProvId: e.target.value, proveedorId: '' })}>
                     <option value="">Sin vinculación — pago directo</option>
                     {proveedorInvoices.map(inv => (
                       <option key={inv.id} value={inv.id}>{inv.id} · {inv.proveedorNombre} · {formatXaf(inv.monto)}</option>
                     ))}
+                  </Select>
+                </FormGroup>
+              )}
+              {!pagoModal.facturaProvId && (
+                <FormGroup label="Proveedor" required>
+                  <Select value={pagoModal.proveedorId} onChange={e => setPagoModal({ ...pagoModal, proveedorId: e.target.value })}>
+                    <option value="">Seleccionar proveedor…</option>
+                    {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
                   </Select>
                 </FormGroup>
               )}
