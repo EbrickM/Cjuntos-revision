@@ -241,7 +241,10 @@ export default function EpCreditos() {
 
   const detailContract = detailId ? (contracts.find(c => c.id === detailId) ?? null) : null;
 
-  const totalContratos = contracts.length;
+  const totalContratos   = contracts.length;
+  const montoTotal       = contracts.reduce((s, c) => s + c.monto, 0);
+  const disponibleTotal  = contracts.reduce((s, c) => s + c.disponible, 0);
+  const kycVigentes      = contracts.filter(c => c.kyc === 'vigente').length;
 
   const filteredContracts = search.trim()
     ? contracts.filter(c =>
@@ -405,32 +408,54 @@ export default function EpCreditos() {
 
         {/* ── LISTA ── */}
         {detailId === null ? (
-          <>
-            <h1 className="text-[22px] font-bold text-text-1 mb-4">Mis Contratos</h1>
+          <div className="space-y-5">
 
-            {/* Fila: card total + buscador */}
-            <div className="flex items-center justify-between gap-3 mb-5">
-              <div className="card-lift bg-white rounded-[12px] border border-border px-4 h-12 flex items-center gap-3 shrink-0">
-                <div className="w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                  <FileText className="w-4 h-4 text-orange" />
+            {/* Resumen */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+              {[
+                { label: 'Contratos',        value: totalContratos,                    display: totalContratos,             Icon: FileText,  iconBg: '#FFF3E0', color: '#EF7A2C' },
+                { label: 'Monto total',      value: montoTotal,                        display: formatXaf(montoTotal),      Icon: Banknote,  iconBg: '#FFF3E0', color: '#EF7A2C' },
+                { label: 'Total disponible', value: disponibleTotal,                   display: formatXaf(disponibleTotal), Icon: Wallet,    iconBg: '#E3F4EA', color: '#2E7D5B' },
+                { label: 'KYC Vigentes',     value: kycVigentes,                       display: kycVigentes,                Icon: TrendingUp,iconBg: '#EFF6FF', color: '#3B82F6' },
+              ].map(({ label, display, Icon, iconBg, color }) => (
+                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+                    <Icon className="w-5 h-5" style={{ color }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
+                    <div className="text-[15px] font-extrabold leading-tight truncate" style={{ color }}>{display}</div>
+                  </div>
                 </div>
-                <span className="text-[22px] font-extrabold leading-none text-text-1">{totalContratos}</span>
-                <span className="text-[12px] text-text-4 leading-snug">Contratos de crédito</span>
-              </div>
-              <div className="relative w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-4 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Buscar por ID, empresa o sector…"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  className="w-full h-12 pl-9 pr-4 text-[13px] rounded-[10px] border border-border bg-white focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
-                />
-              </div>
+              ))}
             </div>
 
-            {/* Grid de tarjetas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Contenedor principal */}
+            <div className="bg-white rounded-[14px] border border-border p-5">
+
+              {/* Cabecera: título + buscador + botón */}
+              <div className="flex items-center justify-between gap-4 mb-5">
+                <div>
+                  <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
+                  <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Buscar contrato…"
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      className="h-9 pl-8 pr-3 w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
+                    />
+                  </div>
+                  <Button variant="primary">Solicitar Nuevo Contrato</Button>
+                </div>
+              </div>
+
+              {/* Grid de tarjetas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredContracts.map(contract => {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));
                 const ctName = contract.contratante?.razonSocial || '—';
@@ -471,13 +496,17 @@ export default function EpCreditos() {
                       <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
                     </div>
 
-                    {/* Distribución */}
-                    <div className="mt-auto flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-text-4">Disp: {formatXaf(contract.disponible)}</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
-                        {pctVal}% distribuido
-                      </span>
+                    {/* Barra de distribución */}
+                    <div className="mt-auto space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-text-4">Distribuido</span>
+                        <span className="text-[11px] font-bold" style={{ color: '#EF7A2C' }}>{pctVal}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full"
+                             style={{ width: `${pctVal}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
+                      </div>
+                      <div className="text-[10px] text-text-5">Disponible: {formatXaf(contract.disponible)}</div>
                     </div>
 
                     {/* Botón Ver */}
@@ -495,8 +524,9 @@ export default function EpCreditos() {
                   No se encontraron contratos para "{search}".
                 </div>
               )}
+              </div>
             </div>
-          </>
+          </div>
 
         /* ── DETALLE ── */
         ) : detailContract ? (

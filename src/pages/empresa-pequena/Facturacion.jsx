@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Pencil, Trash2, Building2, Truck, Receipt, BarChart2, Upload, Paperclip,
+  Pencil, Trash2, Building2, Truck, Receipt, BarChart2, Upload, Paperclip, Search,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -105,9 +105,28 @@ export default function EpFacturacion() {
   const [providers]                 = useState(initialProviders);
   const [invCtModal, setInvCtModal] = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal] = useState(INV_PR_EMPTY);
+  const [searchCT, setSearchCT]     = useState('');
+  const [searchPR, setSearchPR]     = useState('');
 
   const contratanteInvoices = invoices.filter(inv => inv.tipo === 'contratante');
   const proveedorInvoices   = invoices.filter(inv => inv.tipo === 'proveedor');
+
+  const filteredCT = searchCT.trim()
+    ? contratanteInvoices.filter(inv =>
+        inv.id.toLowerCase().includes(searchCT.toLowerCase()) ||
+        (inv.concepto || '').toLowerCase().includes(searchCT.toLowerCase()) ||
+        inv.contrato.toLowerCase().includes(searchCT.toLowerCase())
+      )
+    : contratanteInvoices;
+
+  const filteredPR = searchPR.trim()
+    ? proveedorInvoices.filter(inv =>
+        inv.id.toLowerCase().includes(searchPR.toLowerCase()) ||
+        (inv.concepto || '').toLowerCase().includes(searchPR.toLowerCase()) ||
+        (inv.proveedorNombre || '').toLowerCase().includes(searchPR.toLowerCase()) ||
+        inv.contrato.toLowerCase().includes(searchPR.toLowerCase())
+      )
+    : proveedorInvoices;
 
   const nextInvoiceId = () => {
     const max = invoices.reduce((m, inv) => Math.max(m, parseInt(inv.id.replace('FAC-2026-', '')) || 0), 1044);
@@ -193,10 +212,19 @@ export default function EpFacturacion() {
           <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
             title="Facturas al Contratante"
             subtitle="Facturas emitidas por la PYME al contratante."
-            action={<Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>}
+            action={
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
+                  <input type="text" placeholder="Buscar…" value={searchCT} onChange={e => setSearchCT(e.target.value)}
+                    className="h-9 pl-8 pr-3 w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
+                </div>
+                <Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>
+              </div>
+            }
           />
           <div className="space-y-3">
-            {contratanteInvoices.map(inv => {
+            {filteredCT.map(inv => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               return (
                 <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift">
@@ -249,10 +277,19 @@ export default function EpFacturacion() {
           <SectionHeader icon={Truck} iconBg="#FDF6E8" iconColor="#C68A1D"
             title="Facturas de Proveedores"
             subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
-            action={<Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>}
+            action={
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
+                  <input type="text" placeholder="Buscar…" value={searchPR} onChange={e => setSearchPR(e.target.value)}
+                    className="h-9 pl-8 pr-3 w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
+                </div>
+                <Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>
+              </div>
+            }
           />
           <div className="space-y-3">
-            {proveedorInvoices.map(inv => {
+            {filteredPR.map(inv => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               const estadoStyle =
                 inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
