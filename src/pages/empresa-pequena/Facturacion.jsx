@@ -213,7 +213,10 @@ export default function EpFacturacion() {
                       </div>
                       <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
                       {contract && (
-                        <div className="text-[11px] text-text-5 mb-2">{inv.contrato} · {contract.contratante}</div>
+                        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                          <span className="text-[12px] font-semibold text-text-2 truncate">{contract.contratante}</span>
+                        </div>
                       )}
                       <CTPipeline estado={inv.estado} tipoFactoring={contract?.tipoFactoring || 'inverso'} />
                     </div>
@@ -272,8 +275,13 @@ export default function EpFacturacion() {
                     <div className="text-[11px] text-text-5 mt-0.5">
                       {inv.proveedorNombre}
                       {inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}
-                      {contract ? ` · ${inv.contrato}` : ''}
                     </div>
+                    {contract && (
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                        <span className="text-[12px] font-semibold text-text-2 truncate">{contract.contratante}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="shrink-0 flex items-center gap-3">
                     <div className="text-right">
