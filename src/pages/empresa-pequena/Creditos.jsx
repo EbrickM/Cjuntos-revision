@@ -195,7 +195,7 @@ const initialInvoices = [
   },
   {
     id: 'FAC-2026-1044', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 12000000, estado: 'IPI Emitido', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
+    monto: 12000000, estado: 'Pagada', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
     fecha: '02/06/2026', fechaVencimiento: '02/07/2026', documento: null,
   },
 ];
