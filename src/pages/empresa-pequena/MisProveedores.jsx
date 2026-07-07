@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Building2, Package, Truck, Cpu, Wrench, Zap, HardHat, Leaf, ShoppingCart, Settings } from 'lucide-react';
+import {
+  Pencil, Trash2, Building2, Package, Truck, Cpu, Wrench, Zap, HardHat,
+  Leaf, ShoppingCart, Settings, ShieldCheck, Star, FileText,
+} from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -22,13 +25,44 @@ const SECTOR_ICONS = {
   Comercio:     ShoppingCart,
 };
 
-const MODAL_EMPTY = { open: false, editId: null, razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
+const KYC_BADGE = {
+  vigente:   { label: 'KYC Vigente',   bg: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE'              },
+  pendiente: { label: 'KYC Pendiente', bg: '#FDF6E8', color: '#C68A1D', border: '1px solid rgba(198,138,29,.3)'  },
+  vencido:   { label: 'KYC Vencido',   bg: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,.3)'   },
+};
+
+const scoreStyle = (score) => {
+  if (!score) return { bg: '#F6F5F3', color: '#A9A6A1', label: 'Sin datos' };
+  if (score >= 750) return { bg: '#E3F4EA', color: '#2E7D5B', label: 'Bajo'     };
+  if (score >= 600) return { bg: '#FDF6E8', color: '#C68A1D', label: 'Moderado' };
+  return               { bg: '#FDEEEB', color: '#B8352A', label: 'Alto'     };
+};
+
+
+const MODAL_EMPTY = {
+  open: false, editId: null,
+  razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales',
+  telefono: '', correo: '', esClienteBonafide: false, kyc: 'pendiente', scoreCredito: '',
+};
 
 const initialProviders = [
-  { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', contratos: 0 },
-  { id: 'p2', razonSocial: 'TransGE S.L.',  nombreComercial: 'TransGE',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', contratos: 1 },
-  { id: 'p3', razonSocial: 'ServTec GE',    nombreComercial: 'ServTec GE', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', contratos: 0 },
+  {
+    id: 'p1', razonSocial: 'Cemex GE', nombreComercial: 'Cemex GE',
+    ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq', telefono: '+240 222 111 222',
+    contratos: 0, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 780,
+  },
+  {
+    id: 'p2', razonSocial: 'TransGE S.L.', nombreComercial: 'TransGE',
+    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq', telefono: '+240 222 333 444',
+    contratos: 1, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 645,
+  },
+  {
+    id: 'p3', razonSocial: 'ServTec GE', nombreComercial: 'ServTec GE',
+    ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888',
+    contratos: 0, esClienteBonafide: false, kyc: 'pendiente', scoreCredito: 510,
+  },
 ];
+
 
 export default function EpMisProveedores() {
   const { go } = useApp();
@@ -41,23 +75,36 @@ export default function EpMisProveedores() {
     setTimeout(() => setToast(p => ({ ...p, visible: false })), 4500);
   };
 
-  const asociados   = providers.filter(p => p.contratos > 0).length;
-  const noAsociados = providers.filter(p => p.contratos === 0).length;
+  const kycVigentes      = providers.filter(p => p.kyc === 'vigente').length;
+  const clientesBonafide = providers.filter(p => p.esClienteBonafide).length;
+  const conContratos     = providers.filter(p => p.contratos > 0).length;
 
   const handleOpenNew  = () => setModal({ ...MODAL_EMPTY, open: true });
-  const handleOpenEdit = (p) => setModal({ open: true, editId: p.id, razonSocial: p.razonSocial, nombreComercial: p.nombreComercial, ruc: p.ruc, sector: p.sector, telefono: p.telefono, correo: p.email });
-  const handleClose    = () => setModal(MODAL_EMPTY);
+  const handleOpenEdit = (p) => setModal({
+    open: true, editId: p.id,
+    razonSocial: p.razonSocial, nombreComercial: p.nombreComercial, ruc: p.ruc,
+    sector: p.sector, telefono: p.telefono, correo: p.email,
+    esClienteBonafide: p.esClienteBonafide ?? false,
+    kyc: p.kyc ?? 'pendiente',
+    scoreCredito: p.scoreCredito?.toString() ?? '',
+  });
+  const handleClose = () => setModal(MODAL_EMPTY);
 
   const handleSave = () => {
     if (!modal.razonSocial.trim()) return;
+    const score = modal.scoreCredito ? parseInt(modal.scoreCredito, 10) || null : null;
     if (modal.editId) {
       setProviders(prev => prev.map(p => p.id === modal.editId
-        ? { ...p, razonSocial: modal.razonSocial, nombreComercial: modal.nombreComercial, ruc: modal.ruc, sector: modal.sector, telefono: modal.telefono, email: modal.correo }
+        ? { ...p, razonSocial: modal.razonSocial, nombreComercial: modal.nombreComercial, ruc: modal.ruc, sector: modal.sector, telefono: modal.telefono, email: modal.correo, esClienteBonafide: modal.esClienteBonafide, kyc: modal.kyc, scoreCredito: score }
         : p));
       showToast(`${modal.razonSocial} ha sido actualizado correctamente.`);
     } else {
       const newId = `p${Math.max(...providers.map(p => Number(p.id.replace('p', ''))), 0) + 1}`;
-      setProviders(prev => [...prev, { id: newId, razonSocial: modal.razonSocial, nombreComercial: modal.nombreComercial, ruc: modal.ruc, sector: modal.sector, email: modal.correo, telefono: modal.telefono, contratos: 0 }]);
+      setProviders(prev => [...prev, {
+        id: newId, razonSocial: modal.razonSocial, nombreComercial: modal.nombreComercial,
+        ruc: modal.ruc, sector: modal.sector, email: modal.correo, telefono: modal.telefono,
+        contratos: 0, esClienteBonafide: modal.esClienteBonafide, kyc: modal.kyc, scoreCredito: score,
+      }]);
       showToast(`${modal.razonSocial} ha sido añadido al directorio de proveedores.`);
     }
     handleClose();
@@ -73,79 +120,95 @@ export default function EpMisProveedores() {
     <AppShell active="epProveedores" role="empresa-pequena" title="Mis Proveedores" sub="Directorio de proveedores">
       <div className="fade-in space-y-5">
 
-        {/* Resumen */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* KPIs */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { value: providers.length, label: 'Proveedores registrados',           cls: 'text-text-1'     },
-            { value: asociados,        label: 'Asociados a contratos',              cls: 'text-orange'     },
-            { value: noAsociados,      label: 'No asociados a contratos',           cls: 'text-text-4'     },
-          ].map(({ value, label, cls }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-              <div className={`text-[32px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
-              <div className="text-[12px] text-text-4">{label}</div>
+            { value: providers.length, label: 'Proveedores registrados', Icon: Building2,    iconBg: '#FFF3E0', color: '#EF7A2C' },
+            { value: clientesBonafide, label: 'Clientes Bonafide',        Icon: Star,         iconBg: '#FDEEEB', color: '#E0201C' },
+            { value: kycVigentes,      label: 'KYC Vigentes',             Icon: ShieldCheck,  iconBg: '#E3F4EA', color: '#2E7D5B' },
+            { value: conContratos,     label: 'Con contratos activos',     Icon: Package,      iconBg: '#EFF6FF', color: '#3B82F6' },
+          ].map(({ value, label, Icon, iconBg, color }) => (
+            <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+                <Icon className="w-5 h-5" style={{ color }} />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
+                <div className="text-[22px] font-extrabold leading-none" style={{ color }}>{value}</div>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Lista */}
+        {/* Directorio */}
         <div className="bg-white rounded-[14px] border border-border p-5">
-          <div className="flex justify-between items-start gap-4 mb-4">
+          <div className="flex justify-between items-start gap-4 mb-5">
             <div>
-              <div className="text-[14px] font-bold">Directorio</div>
+              <div className="text-[14px] font-bold text-text-1">Directorio</div>
               <div className="text-[12px] text-text-4">Todos los proveedores registrados en tu cuenta.</div>
             </div>
             <Button variant="primary" onClick={handleOpenNew}>Nuevo proveedor</Button>
           </div>
 
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {providers.map(p => {
               const SectorIcon = SECTOR_ICONS[p.sector] ?? Building2;
+              const kycStyle   = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
+              const sStyle     = scoreStyle(p.scoreCredito);
               return (
-                <div
-                  key={p.id}
-                  className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                <div key={p.id}
+                  className="bg-white rounded-[16px] p-5 border border-border flex flex-col gap-4 card-lift transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
                 >
-                  {/* Icono sector */}
-                  <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
-                    <SectorIcon className="w-5 h-5 text-orange" />
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-0.5 flex-wrap">
-                      <span className="text-[14px] font-bold text-text-1">{p.razonSocial}</span>
-                      {p.nombreComercial && p.nombreComercial !== p.razonSocial && (
-                        <span className="text-[11px] text-text-5">· {p.nombreComercial}</span>
-                      )}
+                  {/* Icono + nombre + sector + RUC | Score (esquina sup. der.) */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-[12px] bg-orange-tint flex items-center justify-center shrink-0">
+                      <SectorIcon className="w-5 h-5 text-orange" />
                     </div>
-                    <div className="text-[12px] text-text-4 mb-2">
-                      <span className="font-mono">{p.ruc}</span>
-                      <span className="mx-1.5 text-text-5">·</span>
-                      <span className="font-medium">{p.sector}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[14px] font-bold text-text-1 leading-tight truncate">{p.razonSocial}</div>
+                      <div className="text-[11px] text-text-4 mt-0.5">{p.sector}</div>
+                      <div className="text-[11px] font-mono text-text-5 mt-0.5">{p.ruc}</div>
                     </div>
-                    <div className="flex flex-wrap gap-x-5 gap-y-0.5 text-[11px] text-text-5">
-                      {p.email    && <span>✉ {p.email}</span>}
-                      {p.telefono && <span>📞 {p.telefono}</span>}
+                    <div className="shrink-0 text-right">
+                      <div className="text-[9px] font-semibold uppercase tracking-wide text-text-4">Score</div>
+                      <div className="text-[18px] font-extrabold leading-tight" style={{ color: sStyle.color }}>
+                        {p.scoreCredito ?? '—'}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Contratos + acciones */}
-                  <div className="shrink-0 flex items-start gap-3">
-                    <div className="text-right min-w-[52px]">
-                      <div className={`text-[22px] font-extrabold leading-tight ${p.contratos > 0 ? 'text-orange' : 'text-text-5'}`}>
-                        {p.contratos}
-                      </div>
-                      <div className="text-[10px] font-semibold text-text-5 uppercase tracking-wide">
-                        {p.contratos === 1 ? 'contrato' : 'contratos'}
-                      </div>
+                  {/* Badges: Cliente Bonafide + KYC + Riesgo */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {p.esClienteBonafide && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                            style={{ background: '#FDEEEB', color: '#E0201C', border: '1px solid rgba(224,32,28,0.2)' }}>
+                        Cliente Bonafide
+                      </span>
+                    )}
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                          style={{ background: kycStyle.bg, color: kycStyle.color, border: kycStyle.border }}>
+                      {kycStyle.label}
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                          style={{ background: sStyle.bg, color: sStyle.color, border: `1px solid ${sStyle.color}22` }}>
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: sStyle.color }} />
+                      Riesgo {sStyle.label}
+                    </span>
+                  </div>
+
+                  {/* Footer: contratos (izq) + acciones (der) */}
+                  <div className="mt-auto flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-[11px] text-text-4">
+                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                      <span>{p.contratos} {p.contratos === 1 ? 'contrato' : 'contratos'}</span>
                     </div>
-                    <div className="flex flex-col gap-1 border-l border-border pl-3">
-                      <button onClick={() => handleOpenEdit(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange">
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button onClick={() => handleOpenEdit(p)}
+                              className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text">
+                      <button onClick={() => handleDelete(p.id)}
+                              className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -155,7 +218,9 @@ export default function EpMisProveedores() {
             })}
 
             {providers.length === 0 && (
-              <div className="text-[12px] text-text-4 py-8 text-center">No hay proveedores registrados aún.</div>
+              <div className="col-span-full text-[12px] text-text-4 py-10 text-center">
+                No hay proveedores registrados aún.
+              </div>
             )}
           </div>
         </div>
@@ -180,6 +245,7 @@ export default function EpMisProveedores() {
             <div className="text-[12px] text-text-4">
               {modal.editId ? 'Modifica los datos del proveedor.' : 'Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento.'}
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormGroup label="Razón Social" required>
                 <Input value={modal.razonSocial} onChange={e => setModal({ ...modal, razonSocial: e.target.value })} placeholder="Nombre legal exacto" />
@@ -191,6 +257,7 @@ export default function EpMisProveedores() {
                 <Input value={modal.ruc} onChange={e => setModal({ ...modal, ruc: e.target.value })} placeholder="Ej: GE-2024-00123" />
               </FormGroup>
             </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormGroup label="Sector Productivo" required>
                 <Select value={modal.sector} onChange={e => setModal({ ...modal, sector: e.target.value })}>
@@ -205,6 +272,49 @@ export default function EpMisProveedores() {
                 <Input type="email" value={modal.correo} onChange={e => setModal({ ...modal, correo: e.target.value })} placeholder="correo@empresa.gq" />
               </FormGroup>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormGroup label="Estado KYC">
+                <Select value={modal.kyc} onChange={e => setModal({ ...modal, kyc: e.target.value })}>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="vigente">Vigente</option>
+                  <option value="vencido">Vencido</option>
+                </Select>
+              </FormGroup>
+              <FormGroup label="Score crediticio">
+                <Input
+                  type="text" inputMode="numeric" placeholder="Ej: 720"
+                  value={modal.scoreCredito}
+                  onChange={e => setModal({ ...modal, scoreCredito: e.target.value.replace(/[^0-9]/g, '') })}
+                />
+                {modal.scoreCredito && (
+                  <div className="text-[11px] mt-1" style={{ color: scoreStyle(parseInt(modal.scoreCredito)).color }}>
+                    {scoreStyle(parseInt(modal.scoreCredito)).label}
+                  </div>
+                )}
+              </FormGroup>
+            </div>
+
+            {/* Toggle Cliente Bonafide */}
+            <button
+              type="button"
+              onClick={() => setModal({ ...modal, esClienteBonafide: !modal.esClienteBonafide })}
+              className="flex items-center gap-3 w-full rounded-[10px] border px-4 py-3 transition-all"
+              style={{
+                borderColor: modal.esClienteBonafide ? 'rgba(224,32,28,0.35)' : '#ECEAE7',
+                background:  modal.esClienteBonafide ? '#FFF3E0' : '#F6F5F3',
+              }}
+            >
+              <div className="w-9 h-5 rounded-full flex items-center transition-all shrink-0 px-0.5"
+                   style={{ background: modal.esClienteBonafide ? '#E0201C' : '#A9A6A1' }}>
+                <div className="w-4 h-4 rounded-full bg-white shadow transition-transform"
+                     style={{ transform: modal.esClienteBonafide ? 'translateX(16px)' : 'translateX(0)' }} />
+              </div>
+              <div className="text-left">
+                <div className="text-[13px] font-semibold text-text-1">Cliente Bonafide</div>
+                <div className="text-[11px] text-text-4">Este proveedor también opera como cliente dentro del ecosistema Bonafide.</div>
+              </div>
+            </button>
           </div>
         </Modal>
       )}
