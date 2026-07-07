@@ -74,7 +74,7 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
                 style={
                   idx < currentIdx  ? { background: '#E3F4EA', color: '#2E7D5B' } :
-                  idx === currentIdx ? { background: '#FFF3E0', color: '#EF7A2C' } :
+                  idx === currentIdx ? { background: '#EF7A2C', color: '#ffffff', boxShadow: '0 0 0 2px rgba(239,122,44,0.25)' } :
                   { background: '#F6F5F3', color: '#A9A6A1' }
                 }>
             {step}
