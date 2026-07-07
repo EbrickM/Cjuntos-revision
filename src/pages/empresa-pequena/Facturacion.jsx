@@ -199,7 +199,7 @@ export default function EpFacturacion() {
             {contratanteInvoices.map(inv => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
                       <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
@@ -259,7 +259,7 @@ export default function EpFacturacion() {
                 inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                 { background: '#FDF6E8', color: '#C68A1D' };
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4">
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 card-lift">
                   <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
                     <Truck className="w-5 h-5 text-orange" />
                   </div>
