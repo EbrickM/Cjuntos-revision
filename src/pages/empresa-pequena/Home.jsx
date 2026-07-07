@@ -420,7 +420,7 @@ export default function EpHome() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
 
               {/* Hero — Mi Billetera (3 columnas) */}
-              <div className="lg:col-span-3 card-lift bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
+              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
                 <div className="flex flex-col md:flex-row md:items-stretch gap-5 flex-1">
 
                   {/* Izquierda: título + cifra principal + (desktop) CTAs + indicadores */}
@@ -527,7 +527,7 @@ export default function EpHome() {
               </div>
 
               {/* Score Crediticio con Gauge */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
                 <Gauge score={SCORE} size={220} />
               </div>
@@ -537,7 +537,7 @@ export default function EpHome() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
               {/* Nuevos Contratos — naranja marca */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Nuevos Contratos</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
@@ -553,7 +553,7 @@ export default function EpHome() {
               </div>
 
               {/* Nuevos Proveedores — gris marca */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Nuevos Proveedores</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#ECEAE7' }}>
@@ -569,7 +569,7 @@ export default function EpHome() {
               </div>
 
               {/* Facturas Finalizadas — verde éxito */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Facturas Finalizadas</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
@@ -588,7 +588,7 @@ export default function EpHome() {
               </div>
 
               {/* Pendiente de Pago — rojo error */}
-              <div className="card-lift bg-white rounded-[14px] border border-border p-4 flex flex-col">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Pendiente de Pago</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
@@ -609,7 +609,7 @@ export default function EpHome() {
             {/* ── Evolución Financiera + Flujo Financiero — 50/50 ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-              <div className="card-lift bg-white rounded-[14px] border border-border overflow-hidden pb-3">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3">
                 <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Evolución Financiera</p>
@@ -638,7 +638,7 @@ export default function EpHome() {
                 </p>
               </div>
 
-              <div className="card-lift bg-white rounded-[14px] border border-border overflow-hidden pb-3">
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3">
                 <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
                   <div>
                     <p className="text-[13px] font-bold text-text-1">Flujo Financiero</p>
@@ -675,7 +675,7 @@ export default function EpHome() {
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
 
               {/* Riesgo de Operaciones — col-span-2, amarillo advertencia */}
-              <div className="col-span-2 card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
                     <Shield className="w-6 h-6" style={{ color: WARN }} />
@@ -699,7 +699,7 @@ export default function EpHome() {
               </div>
 
               {/* Solicitudes Pendientes — naranja marca */}
-              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
@@ -717,7 +717,7 @@ export default function EpHome() {
               </div>
 
               {/* Próximos Vencimientos — amarillo proceso */}
-              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Próximos Vencimientos</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
@@ -735,7 +735,7 @@ export default function EpHome() {
               </div>
 
               {/* Alertas — naranja marca con badge */}
-              <div className="col-span-2 lg:col-span-1 card-lift bg-white rounded-[14px] border border-border p-4">
+              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Alertas</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
@@ -761,7 +761,7 @@ export default function EpHome() {
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {envKpis.map(({ value, label, sub, Icon, iconBg, iconColor, trend, tUp }) => (
-                <div key={label} className="card-lift bg-white rounded-[14px] border border-border p-4">
+                <div key={label} className="card-lift card-enter bg-white rounded-[14px] border border-border p-4">
                   <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3 leading-tight">{label}</p>
                   <div className="flex items-center gap-2.5 mb-2">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
@@ -780,7 +780,7 @@ export default function EpHome() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-2 card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-3">
                   <div className="text-[14px] font-bold text-text-1">Estado de proyectos</div>
                   <div className="text-[11px] text-text-4">Distribución por fase</div>
@@ -799,7 +799,7 @@ export default function EpHome() {
                 </div>
               </div>
 
-              <div className="lg:col-span-3 card-lift bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
                   <div className="text-[14px] font-bold text-text-1">Proyectos por categoría</div>
                   <div className="text-[11px] text-text-4">Distribución por tipo de proyecto</div>
@@ -810,7 +810,7 @@ export default function EpHome() {
               </div>
             </div>
 
-            <div className="card-lift bg-white rounded-[14px] border border-border p-5">
+            <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-[14px] font-bold text-text-1">Proyectos</div>

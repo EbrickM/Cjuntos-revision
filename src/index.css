@@ -143,6 +143,10 @@
 .card-enter {
   animation: cardDeal 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.card-enter:nth-child(2) { animation-delay:  60ms; }
+.card-enter:nth-child(3) { animation-delay: 120ms; }
+.card-enter:nth-child(4) { animation-delay: 180ms; }
+.card-enter:nth-child(5) { animation-delay: 240ms; }
 
 /* Elevación de tarjetas con sombra de marca en hover */
 .card-lift {
