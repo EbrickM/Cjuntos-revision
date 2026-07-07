@@ -1,23 +1,41 @@
 import { useState } from 'react';
 import {
-  Camera, Shield, Leaf, Star, TrendingUp, CheckCircle2,
-  Clock, FileCheck, AlertCircle, BadgeCheck,
+  Camera, Shield, Leaf, CheckCircle2,
+  Clock, FileCheck, AlertCircle, Building2, ShieldCheck, Star,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 
-const SCORE            = 82;
+const SCORE            = 820;
 const KYC_VENCIMIENTO  = '31/12/2026';
 const ULTIMA_AUDITORIA = '15/03/2026';
 
-const StatBadge = ({ label, value, Icon, bg, color }) => (
-  <div className="rounded-[10px] px-3 py-2.5" style={{ background: bg }}>
-    <div className="flex items-center gap-1 mb-1">
-      <Icon className="w-3 h-3 shrink-0" style={{ color }} />
-      <span className="text-[9px] font-bold uppercase tracking-wide" style={{ color }}>{label}</span>
+const HeroBadge = ({ label, value, Icon, bg, color }) => (
+  <div className="flex items-center gap-3 px-4 py-3 rounded-[12px]" style={{ background: bg }}>
+    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-white/60">
+      <Icon className="w-5 h-5" style={{ color }} />
     </div>
-    <div className="text-[15px] font-extrabold leading-none" style={{ color }}>{value}</div>
+    <div>
+      <div className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">{label}</div>
+      <div className="text-[14px] font-extrabold leading-none" style={{ color }}>{value}</div>
+    </div>
+  </div>
+);
+
+const SectionHeader = ({ title, sub, Icon, right }) => (
+  <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="flex items-center gap-3">
+      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+           style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div>
+        <div className="text-[14px] font-bold text-text-1">{title}</div>
+        {sub && <div className="text-[12px] text-text-4">{sub}</div>}
+      </div>
+    </div>
+    {right}
   </div>
 );
 
@@ -46,6 +64,8 @@ export default function EpPerfil() {
 
         {/* ── Hero card ── */}
         <div className="bg-white rounded-[14px] border border-border p-6">
+
+          {/* Fila superior: avatar + info + score */}
           <div className="flex flex-col sm:flex-row items-start gap-6">
 
             {/* Avatar con botón de upload */}
@@ -75,91 +95,104 @@ export default function EpPerfil() {
               <div className="text-[11px] text-text-4 mt-1">Construcción · 11–25 empleados</div>
             </div>
 
-            {/* Badges — esquina derecha */}
-            <div className="grid grid-cols-3 gap-2 w-full sm:w-auto shrink-0">
-              <StatBadge label="Score"    value={SCORE}    Icon={TrendingUp}  bg="#E3F4EA" color="#2E7D5B" />
-              <StatBadge label="Riesgo"   value="Bajo"     Icon={Shield}      bg="#E3F4EA" color="#2E7D5B" />
-              <StatBadge label="ESG"      value="Verde"    Icon={Leaf}        bg="#E3F4EA" color="#2E7D5B" />
-              <StatBadge label="KYC"      value="Vigente"  Icon={CheckCircle2}bg="#E3F4EA" color="#2E7D5B" />
-              <StatBadge label="Rating"   value="AA"       Icon={Star}        bg="#EFF6FF" color="#3B82F6" />
-              <StatBadge label="Bonafide" value="Verde"    Icon={BadgeCheck}  bg="#FDEEEB" color="#E0201C" />
+            {/* Score crediticio prominente */}
+            <div className="shrink-0 flex flex-col items-center sm:items-end">
+              <div className="text-[9px] font-bold uppercase tracking-widest text-text-4 mb-1">Score Crediticio</div>
+              <div className="text-[48px] font-extrabold leading-none" style={{ color: '#2E7D5B' }}>{SCORE}</div>
+              <div className="text-[11px] text-text-4 mt-1.5">
+                / 1000 · <span className="font-semibold" style={{ color: '#2E7D5B' }}>Riesgo Bajo</span>
+              </div>
             </div>
+          </div>
+
+          {/* Separador + badges distribuidos en fila */}
+          <div className="border-t border-border mt-5 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <HeroBadge label="Nivel de Riesgo" value="Bajo"     Icon={Shield}       bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Calificación ESG" value="Verde"   Icon={Leaf}         bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Estado KYC"       value="Vigente" Icon={CheckCircle2} bg="#E3F4EA" color="#2E7D5B" />
           </div>
         </div>
 
-        {/* ── Datos de la empresa ── */}
-        <div className="bg-white rounded-[14px] border border-border p-6">
-          <div className="mb-5">
-            <div className="text-[14px] font-bold text-text-1">Datos de la empresa</div>
-            <div className="text-[12px] text-text-4">Información registrada en la plataforma. Contacta con Bonafide para solicitar modificaciones.</div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            <FormGroup label="Razón Social">
-              <Input value="Construcciones Silva Ltd." disabled />
-            </FormGroup>
-            <FormGroup label="RUC / NIF">
-              <Input value="GE-2021-00234" disabled />
-            </FormGroup>
-            <FormGroup label="Sector Productivo">
-              <Input value="Construcción" disabled />
-            </FormGroup>
-            <FormGroup label="Número de empleados">
-              <Input value="11 – 25" disabled />
-            </FormGroup>
-            <FormGroup label="Teléfono corporativo">
-              <Input value="+240 222 456 789" disabled />
-            </FormGroup>
-            <FormGroup label="Correo corporativo">
-              <Input value="carlos@construccionessilva.gq" disabled />
-            </FormGroup>
-          </div>
-        </div>
+        {/* ── Datos + Compliance en dos columnas ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* ── Compliance / KYC ── */}
-        <div className="bg-white rounded-[14px] border border-border p-6">
-          <div className="flex items-start justify-between gap-4 mb-5">
-            <div>
-              <div className="text-[14px] font-bold text-text-1">Compliance & KYC</div>
-              <div className="text-[12px] text-text-4">Estado regulatorio y de cumplimiento normativo de la empresa.</div>
+          {/* Datos de la empresa */}
+          <div className="bg-white rounded-[14px] border border-border p-6">
+            <SectionHeader
+              title="Datos de la empresa"
+              sub="Información registrada. Contacta con Bonafide para modificaciones."
+              Icon={Building2}
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormGroup label="Razón Social">
+                <Input value="Construcciones Silva Ltd." disabled />
+              </FormGroup>
+              <FormGroup label="RUC / NIF">
+                <Input value="GE-2021-00234" disabled />
+              </FormGroup>
+              <FormGroup label="Sector Productivo">
+                <Input value="Construcción" disabled />
+              </FormGroup>
+              <FormGroup label="Número de empleados">
+                <Input value="11 – 25" disabled />
+              </FormGroup>
+              <FormGroup label="Teléfono corporativo">
+                <Input value="+240 222 456 789" disabled />
+              </FormGroup>
+              <FormGroup label="Correo corporativo">
+                <Input value="carlos@construccionessilva.gq" disabled />
+              </FormGroup>
             </div>
-            <span className="text-[11px] font-bold px-3 py-1.5 rounded-[8px] shrink-0"
-                  style={{ background: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE' }}>
-              Aprobado
-            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ComplianceItem
-              label="KYC" value="Vigente"
-              sub={<>Vence el <span className="font-semibold text-text-2">{KYC_VENCIMIENTO}</span></>}
-              Icon={CheckCircle2} iconBg="#E3F4EA" iconColor="#2E7D5B"
+          {/* Compliance / KYC */}
+          <div className="bg-white rounded-[14px] border border-border p-6">
+            <SectionHeader
+              title="Compliance & KYC"
+              sub="Estado regulatorio y de cumplimiento normativo de la empresa."
+              Icon={ShieldCheck}
+              right={
+                <span className="text-[11px] font-bold px-3 py-1.5 rounded-[8px] shrink-0"
+                      style={{ background: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE' }}>
+                  Aprobado
+                </span>
+              }
             />
-            <ComplianceItem
-              label="AML" value="Aprobado"
-              sub="Sin alertas de lavado de activos"
-              Icon={Shield} iconBg="#E3F4EA" iconColor="#2E7D5B"
-            />
-            <ComplianceItem
-              label="Documentos" value="4 / 4"
-              sub="Todos los documentos verificados"
-              Icon={FileCheck} iconBg="#EFF6FF" iconColor="#3B82F6"
-            />
-            <ComplianceItem
-              label="Nivel Compliance" value="AA"
-              sub="Calificación de cumplimiento normativo"
-              Icon={Star} iconBg="#EFF6FF" iconColor="#3B82F6"
-            />
-            <ComplianceItem
-              label="Última Auditoría" value={ULTIMA_AUDITORIA}
-              sub={<>Próxima revisión en <span className="font-semibold text-text-2">Sep 2026</span></>}
-              Icon={Clock} iconBg="#FDF6E8" iconColor="#C68A1D"
-            />
-            <ComplianceItem
-              label="Firma Digital" value="Pendiente"
-              sub="Renovación de firma digital requerida"
-              Icon={AlertCircle} iconBg="#FDF6E8" iconColor="#C68A1D"
-            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ComplianceItem
+                label="KYC" value="Vigente"
+                sub={<>Vence el <span className="font-semibold text-text-2">{KYC_VENCIMIENTO}</span></>}
+                Icon={CheckCircle2} iconBg="#E3F4EA" iconColor="#2E7D5B"
+              />
+              <ComplianceItem
+                label="AML" value="Aprobado"
+                sub="Sin alertas de lavado de activos"
+                Icon={Shield} iconBg="#E3F4EA" iconColor="#2E7D5B"
+              />
+              <ComplianceItem
+                label="Documentos" value="4 / 4"
+                sub="Todos los documentos verificados"
+                Icon={FileCheck} iconBg="#EFF6FF" iconColor="#3B82F6"
+              />
+              <ComplianceItem
+                label="Nivel Compliance" value="AA"
+                sub="Calificación de cumplimiento normativo"
+                Icon={Star} iconBg="#EFF6FF" iconColor="#3B82F6"
+              />
+              <ComplianceItem
+                label="Última Auditoría" value={ULTIMA_AUDITORIA}
+                sub={<>Próxima revisión en <span className="font-semibold text-text-2">Sep 2026</span></>}
+                Icon={Clock} iconBg="#FDF6E8" iconColor="#C68A1D"
+              />
+              <ComplianceItem
+                label="Firma Digital" value="Pendiente"
+                sub="Renovación de firma digital requerida"
+                Icon={AlertCircle} iconBg="#FDF6E8" iconColor="#C68A1D"
+              />
+            </div>
           </div>
+
         </div>
 
       </div>
