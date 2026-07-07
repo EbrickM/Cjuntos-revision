@@ -90,7 +90,7 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
 
 const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
 const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '' };
-const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', tipoFactoring: 'inverso', documento: null };
+const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', fechaVencimiento: '', documento: null };
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', documento: null };
 
@@ -308,20 +308,20 @@ export default function EpCreditos() {
     const today = new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
     if (invCtModal.editId) {
       setInvoices(prev => prev.map(inv => inv.id === invCtModal.editId
-        ? { ...inv, monto, concepto: invCtModal.concepto, tipoFactoring: invCtModal.tipoFactoring, documento: invCtModal.documento }
+        ? { ...inv, monto, concepto: invCtModal.concepto, fechaVencimiento: invCtModal.fechaVencimiento, documento: invCtModal.documento }
         : inv));
     } else {
       setInvoices(prev => [...prev, {
         id: nextInvoiceId(), tipo: 'contratante', contrato: detailContract.id,
         monto, estado: 'Creada', concepto: invCtModal.concepto, fecha: today,
-        tipoFactoring: invCtModal.tipoFactoring, documento: invCtModal.documento,
+        fechaVencimiento: invCtModal.fechaVencimiento, tipoFactoring: 'inverso', documento: invCtModal.documento,
       }]);
     }
     setInvCtModal(INV_CT_EMPTY);
   };
 
   const handleOpenEditCTInvoice = (inv) =>
-    setInvCtModal({ open: true, editId: inv.id, monto: inv.monto.toString(), concepto: inv.concepto || '', tipoFactoring: inv.tipoFactoring || 'inverso', documento: inv.documento || null });
+    setInvCtModal({ open: true, editId: inv.id, monto: inv.monto.toString(), concepto: inv.concepto || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null });
 
   const handleAdvanceCTInvoice = (invId) => {
     setInvoices(prev => prev.map(inv => {
@@ -1035,22 +1035,18 @@ export default function EpCreditos() {
         >
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Contrato"><Input value={detailContract?.id || ''} disabled /></FormGroup>
-              <FormGroup label="Tipo de factoring" required>
-                <Select value={invCtModal.tipoFactoring} onChange={e => setInvCtModal({ ...invCtModal, tipoFactoring: e.target.value })}>
-                  <option value="inverso">Factoring Inverso (con IPI)</option>
-                  <option value="directo">Factoring Directo (sin IPI)</option>
-                </Select>
+              <FormGroup label="Monto (XAF)" required>
+                <Input
+                  type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
+                  value={invCtModal.monto}
+                  onChange={e => setInvCtModal({ ...invCtModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
+                />
+                {invCtModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invCtModal.monto)}</div>}
+              </FormGroup>
+              <FormGroup label="Fecha de vencimiento">
+                <Input type="text" placeholder="DD/MM/AAAA" value={invCtModal.fechaVencimiento} onChange={e => setInvCtModal({ ...invCtModal, fechaVencimiento: e.target.value })} />
               </FormGroup>
             </div>
-            <FormGroup label="Monto (XAF)" required>
-              <Input
-                type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
-                value={invCtModal.monto}
-                onChange={e => setInvCtModal({ ...invCtModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-              />
-              {invCtModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invCtModal.monto)}</div>}
-            </FormGroup>
             <FormGroup label="Concepto" required>
               <Textarea
                 value={invCtModal.concepto}
