@@ -409,15 +409,13 @@ export default function EpCreditos() {
                       <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
                     </div>
 
-                    {/* Barra de distribución */}
-                    <div className="mt-auto">
-                      <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-[10px] text-text-4">Disp: {formatXaf(contract.disponible)}</span>
-                        <span className="text-[10px] font-bold text-orange">{pctVal}% distribuido</span>
-                      </div>
-                      <div className="h-[5px] bg-page-bg rounded-full overflow-hidden">
-                        <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
-                      </div>
+                    {/* Distribución */}
+                    <div className="mt-auto flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-text-4">Disp: {formatXaf(contract.disponible)}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
+                        {pctVal}% distribuido
+                      </span>
                     </div>
 
                     {/* Botón Ver */}
@@ -629,17 +627,12 @@ export default function EpCreditos() {
                               ? <div className="text-[12px] text-text-4 mt-0.5 truncate">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
                               : <div className="text-[12px] text-text-5 mt-0.5">Sin proveedor asociado</div>
                             }
-                            <div className="mt-2.5 flex items-center gap-2">
-                              <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
-                                <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
-                              </div>
-                              <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}%</span>
-                            </div>
                           </div>
                           <div className="shrink-0 flex items-center gap-3">
                             <div className="text-right">
                               <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
-                              <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-tint text-orange border border-orange/20">
+                              <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                   style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
                                 {pctVal}% del crédito
                               </div>
                             </div>
