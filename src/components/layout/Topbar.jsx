@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Bell, LogOut, X, Menu } from 'lucide-react';
+import { Bell, LogOut, X, Menu, UserPlus } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Logo from './Logo';
+import Button from '../ui/Button';
 
 const USERS = {
   'empresa-pequena': {
@@ -62,6 +63,14 @@ export default function Topbar({ role, onMenuClick }) {
         <span className="hidden sm:block"><Logo /></span>
 
         <div className="flex-1" />
+
+        {/* Invitar PYME — solo contratante */}
+        {role === 'contratante' && (
+          <Button variant="primary" size="sm" className="hidden sm:inline-flex shrink-0">
+            <UserPlus className="w-3.5 h-3.5" />
+            Invitar PYME
+          </Button>
+        )}
 
         {/* Usuario */}
         <div className="flex items-center gap-2 sm:gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
