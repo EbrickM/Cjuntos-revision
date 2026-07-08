@@ -108,8 +108,9 @@ export default function EpProyectosAmbientales() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {kpis.map(({ value, label, mobileLabel, cls, trend, tUp, Icon }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
+          {kpis.map(({ value, label, mobileLabel, cls, trend, tUp, Icon }, idx) => (
+            <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5"
+                 style={{ animationDelay: `${idx * 70}ms` }}>
               <div className="flex items-center gap-1.5">
                 <Icon className={`w-3.5 h-3.5 shrink-0 ${cls}`} />
                 <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">
@@ -129,7 +130,7 @@ export default function EpProyectosAmbientales() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
           {/* Certification Journey — 2/5 */}
-          <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
+          <div className="card-enter lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
             <CardHeader title="Camino de Certificación" sub="Progresión de Construcciones Silva" Icon={Leaf} />
 
             <div className="relative">
@@ -178,7 +179,7 @@ export default function EpProyectosAmbientales() {
           <div className="lg:col-span-3 flex flex-col gap-4">
 
             {/* Current cert */}
-            <div className="bg-green-bg rounded-[14px] border border-green-border p-5">
+            <div className="card-enter bg-green-bg rounded-[14px] border border-green-border p-5">
               <div className="text-[11px] font-semibold text-green-text uppercase tracking-wide mb-3">Certificación actual</div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 rounded-[12px] bg-white border border-green-border flex items-center justify-center shrink-0">
@@ -194,7 +195,7 @@ export default function EpProyectosAmbientales() {
 
             {/* Next cert */}
             {nextCert && (
-              <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '70ms' }}>
                 <div className="text-[11px] font-semibold text-text-4 uppercase tracking-wide mb-3">
                   Siguiente nivel — {nextCert.label}
                 </div>
@@ -224,7 +225,7 @@ export default function EpProyectosAmbientales() {
             )}
 
             {/* Metas ESG 2026 */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '140ms' }}>
               <div className="flex items-center gap-2.5 mb-4">
                 <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
                      style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
@@ -254,7 +255,7 @@ export default function EpProyectosAmbientales() {
         </div>
 
         {/* Projects table */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
+        <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '210ms' }}>
           <CardHeader
             title="Proyectos Registrados"
             sub="Todos tus proyectos medioambientales"
