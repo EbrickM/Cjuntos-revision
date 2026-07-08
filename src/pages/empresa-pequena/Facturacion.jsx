@@ -10,6 +10,13 @@ import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGrou
 
 const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
 
+const ctBadgeStyle = (estado) =>
+  estado === 'Pagada'      ? { background: '#E3F4EA', color: '#2E7D5B' } :
+  estado === 'Validada'    ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'IPI Emitido' ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
+                             { background: '#F6F5F3', color: '#9CA3AF' };
+
 const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pagada'];
 const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
 
@@ -229,16 +236,40 @@ export default function EpFacturacion() {
               return (
                 <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift card-enter"
                      style={{ animationDelay: `${idx * 70}ms` }}>
-                  <div className="flex items-start gap-4">
+                  {/* Mobile */}
+                  <div className="sm:hidden">
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
+                        <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                      </div>
+                      <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
+                      {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
+                    </div>
+                    <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
+                    {contract && (
+                      <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                        <span className="text-[11px] text-text-3 truncate">{contract.contratante}</span>
+                      </div>
+                    )}
+                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>
+                    <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
+                      <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Desktop */}
+                  <div className="hidden sm:flex items-start gap-4">
                     <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
                       <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                        {inv.documento && (
-                          <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                        )}
+                        {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
                       </div>
                       <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
                       {contract && (
@@ -255,12 +286,8 @@ export default function EpFacturacion() {
                         <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
                       </div>
                       <div className="flex flex-col gap-1 border-l border-border pl-3">
-                        <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                   </div>
@@ -297,44 +324,59 @@ export default function EpFacturacion() {
                 inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                 { background: '#FDF6E8', color: '#C68A1D' };
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 card-lift card-enter"
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift card-enter"
                      style={{ animationDelay: `${idx * 70}ms` }}>
-                  <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                    <Truck className="w-5 h-5 text-orange" />
+                  {/* Mobile */}
+                  <div className="sm:hidden">
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
+                        <Truck className="w-4 h-4 text-orange" />
+                      </div>
+                      <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={estadoStyle}>{inv.estado}</span>
+                      {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
+                    </div>
+                    <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
+                    <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                      {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                      {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
+                    </div>
+                    {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}
+                    <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
+                      <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
-                      {inv.documento && (
-                        <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                      )}
+                  {/* Desktop */}
+                  <div className="hidden sm:flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                      <Truck className="w-5 h-5 text-orange" />
                     </div>
-                    <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
-                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      {contract && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
-                      )}
-                      {inv.proveedorNombre && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                        {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
+                      </div>
+                      <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                        {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
+                      </div>
+                      {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}
                     </div>
-                    {inv.fechaVencimiento && (
-                      <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>
-                    )}
-                  </div>
-                  <div className="shrink-0 flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                      <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                    </div>
-                    <div className="flex flex-col gap-1 border-l border-border pl-3">
-                      <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    <div className="shrink-0 flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                        <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+                      </div>
+                      <div className="flex flex-col gap-1 border-l border-border pl-3">
+                        <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
                     </div>
                   </div>
                 </div>

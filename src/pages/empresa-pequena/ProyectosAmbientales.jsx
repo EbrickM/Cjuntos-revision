@@ -62,7 +62,7 @@ const EMPTY_FORM = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fecha
 
 // ── CardHeader ────────────────────────────────────────────────────────────────
 const CardHeader = ({ title, sub, Icon, right }) => (
-  <div className="flex items-start justify-between gap-4 mb-5">
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
            style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
