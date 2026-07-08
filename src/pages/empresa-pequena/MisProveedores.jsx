@@ -157,8 +157,9 @@ export default function EpMisProveedores() {
               <div className="text-[14px] font-bold text-text-1">Directorio</div>
               <div className="text-[12px] text-text-4">Todos los proveedores registrados en tu cuenta.</div>
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:flex-none">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={handleOpenNew}>Nuevo proveedor</Button>
+              <div className="relative w-full sm:flex-none order-last sm:order-first">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                 <input
                   type="text"
@@ -168,7 +169,6 @@ export default function EpMisProveedores() {
                   className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
                 />
               </div>
-              <Button variant="primary" className="shrink-0" onClick={handleOpenNew}>Nuevo proveedor</Button>
             </div>
           </div>
 
