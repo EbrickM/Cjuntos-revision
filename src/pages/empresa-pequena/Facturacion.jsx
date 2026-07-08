@@ -40,7 +40,7 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
 };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex items-start justify-between gap-4 mb-5">
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div className="flex items-center gap-3">
       <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
         <Icon className="w-4 h-4" style={{ color: iconColor }} />
@@ -213,11 +213,11 @@ export default function EpFacturacion() {
             title="Facturas al Contratante"
             subtitle="Facturas emitidas por la PYME al contratante."
             action={
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                   <input type="text" placeholder="Buscar…" value={searchCT} onChange={e => setSearchCT(e.target.value)}
-                    className="h-9 pl-8 pr-3 w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
+                    className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
                 </div>
                 <Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>
               </div>
@@ -279,11 +279,11 @@ export default function EpFacturacion() {
             title="Facturas de Proveedores"
             subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
             action={
-              <div className="flex items-center gap-2">
-                <div className="relative">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                   <input type="text" placeholder="Buscar…" value={searchPR} onChange={e => setSearchPR(e.target.value)}
-                    className="h-9 pl-8 pr-3 w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
+                    className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
                 </div>
                 <Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>
               </div>

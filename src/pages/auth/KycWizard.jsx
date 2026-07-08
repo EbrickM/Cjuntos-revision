@@ -57,7 +57,7 @@ export function KycStep1() {
           </div>
         </div>
         <div className="flex justify-end mt-5">
-          <Button variant="primary" className="h-[52px] min-w-[180px] text-[15px]" onClick={() => go('kyc2')}>
+          <Button variant="primary" className="h-[52px] w-full sm:w-auto sm:min-w-[180px] text-[15px]" onClick={() => go('kyc2')}>
             Siguiente <EmojiIcon emoji="→" size={16} className="ml-2" />
           </Button>
         </div>
@@ -108,7 +108,7 @@ export function KycStep2() {
         </div>
         <div className="flex justify-between mt-5 gap-3">
           <Button variant="ghost" onClick={() => go('kyc1')}><EmojiIcon emoji="←" size={16} className="mr-2" />Anterior</Button>
-          <Button variant="primary" className="h-[52px] min-w-[180px] text-[15px]" onClick={() => go('kyc3')}>Siguiente <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
+          <Button variant="primary" className="h-[52px] sm:min-w-[180px] text-[15px]" onClick={() => go('kyc3')}>Siguiente <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
         </div>
       </div>
     </div>
@@ -151,7 +151,7 @@ export function KycStep3() {
         </div>
         <div className="flex justify-between mt-5 gap-3">
           <Button variant="ghost" onClick={() => go('kyc2')}><EmojiIcon emoji="←" size={16} className="mr-2" />Anterior</Button>
-          <Button variant="primary" className="h-[52px] min-w-[200px] text-[15px]" onClick={() => go('kyc4')}>Enviar solicitud KYC <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
+          <Button variant="primary" className="h-[52px] sm:min-w-[200px] text-[15px]" onClick={() => go('kyc4')}>Enviar solicitud KYC <EmojiIcon emoji="→" size={16} className="ml-2" /></Button>
         </div>
       </div>
     </div>

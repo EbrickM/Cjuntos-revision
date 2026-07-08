@@ -98,7 +98,7 @@ export default function EpPerfil() {
             {/* Score crediticio prominente */}
             <div className="shrink-0 flex flex-col items-center sm:items-end">
               <div className="text-[9px] font-bold uppercase tracking-widest text-text-4 mb-1">Score Crediticio</div>
-              <div className="text-[48px] font-extrabold leading-none" style={{ color: '#2E7D5B' }}>{SCORE}</div>
+              <div className="text-[32px] sm:text-[48px] font-extrabold leading-none" style={{ color: '#2E7D5B' }}>{SCORE}</div>
               <div className="text-[11px] text-text-4 mt-1.5">
                 / 1000 · <span className="font-semibold" style={{ color: '#2E7D5B' }}>Riesgo Bajo</span>
               </div>

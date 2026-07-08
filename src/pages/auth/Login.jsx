@@ -71,22 +71,22 @@ export default function Login() {
 
         {/* Trust indicators */}
         <div className="flex gap-3 mb-4">
-          <div className="flex-1 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-orange-tint flex items-center justify-center shrink-0">
+          <div className="flex-1 flex flex-col items-center gap-1.5 text-center bg-gray-50 rounded-xl border border-gray-100 py-3 px-2">
+            <div className="w-7 h-7 rounded-full bg-orange-tint flex items-center justify-center">
               <Shield className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px] text-nowrap">Plataforma regulada</p>
+              <p className="font-medium text-text-1 text-[11px]">Plataforma regulada</p>
               <p className="text-[10px] text-text-3">Normativa de Guinea Ecuatorial</p>
             </div>
           </div>
-          <div className="flex-1 flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-orange-tint flex items-center justify-center shrink-0">
+          <div className="flex-1 flex flex-col items-center gap-1.5 text-center bg-gray-50 rounded-xl border border-gray-100 py-3 px-2">
+            <div className="w-7 h-7 rounded-full bg-orange-tint flex items-center justify-center">
               <Lock className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px] text-nowrap">Datos protegidos</p>
-              <p className="text-[10px] text-text-3 text-nowrap">Cifrado de extremo<br/> a extremo</p>
+              <p className="font-medium text-text-1 text-[11px]">Datos protegidos</p>
+              <p className="text-[10px] text-text-3">Cifrado de extremo a extremo</p>
             </div>
           </div>
         </div>
