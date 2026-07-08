@@ -7,7 +7,7 @@ const roles = [
   {
     id: 'epHome',
     Icon: Briefcase,
-    gradient: 'from-[#C62828] to-[#F57C00]',
+    gradient: 'from-[#EF7A2C] to-[#FF9800]',
     badge: 'Empresa financiada',
     title: 'Empresa PYME',
     subtitle: 'Pequeña y Mediana Empresa',
