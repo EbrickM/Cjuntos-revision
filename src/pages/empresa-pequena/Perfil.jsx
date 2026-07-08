@@ -63,7 +63,7 @@ export default function EpPerfil() {
       <div className="fade-in space-y-5">
 
         {/* ── Hero card ── */}
-        <div className="bg-white rounded-[14px] border border-border p-6">
+        <div className="card-enter bg-white rounded-[14px] border border-border p-6">
 
           {/* Fila superior: avatar + info + score */}
           <div className="flex flex-col sm:flex-row items-start gap-6">
@@ -117,7 +117,7 @@ export default function EpPerfil() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
           {/* Datos de la empresa */}
-          <div className="bg-white rounded-[14px] border border-border p-6">
+          <div className="card-enter bg-white rounded-[14px] border border-border p-6" style={{ animationDelay: '70ms' }}>
             <SectionHeader
               title="Datos de la empresa"
               sub="Información registrada. Contacta con Bonafide para modificaciones."
@@ -146,7 +146,7 @@ export default function EpPerfil() {
           </div>
 
           {/* Compliance / KYC */}
-          <div className="bg-white rounded-[14px] border border-border p-6">
+          <div className="card-enter bg-white rounded-[14px] border border-border p-6" style={{ animationDelay: '140ms' }}>
             <SectionHeader
               title="Compliance & KYC"
               sub="Estado regulatorio y de cumplimiento normativo de la empresa."
