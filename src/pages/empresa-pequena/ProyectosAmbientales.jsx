@@ -1,66 +1,25 @@
+import { useState, useRef } from 'react';
 import {
   Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight,
   Plus, FolderOpen, Activity, Banknote, ShieldAlert, Target,
+  Upload, X as XIcon, FileText,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
+import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 
 // ── Certification path ────────────────────────────────────────────────────────
 const CERT_PATH = [
-  {
-    Icon: CircleDashed,
-    label: 'Sin certificación',
-    desc: 'Sin proyectos medioambientales registrados',
-    color: '#9CA3AF',
-    status: 'done',
-    date: 'Antes de 2024',
-  },
-  {
-    Icon: Sprout,
-    label: 'Eco en Proceso',
-    desc: 'Proceso de certificación ambiental en curso',
-    color: '#D97706',
-    status: 'done',
-    date: 'Enero 2024',
-  },
-  {
-    Icon: Leaf,
-    label: 'Verde',
-    desc: 'Proyectos ambientales registrados en Bonafide',
-    color: '#059669',
-    status: 'done',
-    date: 'Marzo 2024',
-  },
-  {
-    Icon: BadgeCheck,
-    label: 'Verde Bonafide',
-    desc: 'Certificación completa verificada por Bonafide',
-    color: '#059669',
-    status: 'active',
-    date: 'Junio 2025',
-  },
-  {
-    Icon: Wind,
-    label: 'Verde CO₂',
-    desc: 'Captura activa de carbono certificada',
-    color: '#3B82F6',
-    status: 'pending',
-  },
-  {
-    Icon: Recycle,
-    label: 'Verde Neutro',
-    desc: 'Balance de carbono neutro certificado',
-    color: '#059669',
-    status: 'pending',
-  },
-  {
-    Icon: Trophy,
-    label: 'Verde ESG',
-    desc: 'Cumplimiento Ambiental + Social + Gobernanza verificado',
-    color: '#F57C00',
-    status: 'pending',
-  },
+  { Icon: CircleDashed, label: 'Sin certificación', desc: 'Sin proyectos medioambientales registrados', color: '#9CA3AF', status: 'done',    date: 'Antes de 2024' },
+  { Icon: Sprout,       label: 'Eco en Proceso',    desc: 'Proceso de certificación ambiental en curso', color: '#D97706', status: 'done',   date: 'Enero 2024'    },
+  { Icon: Leaf,         label: 'Verde',             desc: 'Proyectos ambientales registrados en Bonafide', color: '#059669', status: 'done', date: 'Marzo 2024'    },
+  { Icon: BadgeCheck,   label: 'Verde Bonafide',    desc: 'Certificación completa verificada por Bonafide', color: '#059669', status: 'active', date: 'Junio 2025' },
+  { Icon: Wind,         label: 'Verde CO₂',         desc: 'Captura activa de carbono certificada', color: '#3B82F6', status: 'pending' },
+  { Icon: Recycle,      label: 'Verde Neutro',      desc: 'Balance de carbono neutro certificado', color: '#059669', status: 'pending' },
+  { Icon: Trophy,       label: 'Verde ESG',         desc: 'Cumplimiento Ambiental + Social + Gobernanza verificado', color: '#F57C00', status: 'pending' },
 ];
 
 const NEXT_REQS = {
@@ -77,7 +36,7 @@ const ESG_METAS = [
   { label: 'Reducción de residuos', pct: 30, color: '#C68A1D' },
 ];
 
-// ── Data ──────────────────────────────────────────────────────────────────────
+// ── KPIs ──────────────────────────────────────────────────────────────────────
 const kpis = [
   { value: '8',        label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text',  trend: '+2',      tUp: true,  Icon: FolderOpen  },
   { value: '5',        label: 'Proyectos activos',                               cls: 'text-blue-text',   trend: 'Estable', tUp: null,  Icon: Activity    },
@@ -86,6 +45,7 @@ const kpis = [
   { value: 'Medio',    label: 'Riesgo ambiental',                                cls: 'text-yellow-text', trend: 'Estable', tUp: null,  Icon: ShieldAlert },
 ];
 
+// ── Projects ──────────────────────────────────────────────────────────────────
 const proyectos = [
   { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 45M' },
   { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', cert: 'Verde',          fin: 'XAF 28M' },
@@ -96,8 +56,11 @@ const proyectos = [
 
 const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
+const formatSize  = (b) => b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+const EMPTY_FORM = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', financiamiento: '', estado: 'Planificado' };
+
+// ── CardHeader ────────────────────────────────────────────────────────────────
 const CardHeader = ({ title, sub, Icon, right }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
     <div className="flex items-center gap-3">
@@ -119,6 +82,25 @@ export default function EpProyectosAmbientales() {
   const activeIdx  = CERT_PATH.findIndex(c => c.status === 'active');
   const activeCert = CERT_PATH[activeIdx];
   const nextCert   = CERT_PATH[activeIdx + 1];
+
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [files, setFiles]         = useState([]);
+  const fileRef                   = useRef(null);
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const onFiles = (e) => {
+    setFiles(prev => [...prev, ...Array.from(e.target.files)]);
+    e.target.value = '';
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+  };
+
+  const closeModal = () => { setShowModal(false); setForm(EMPTY_FORM); setFiles([]); };
 
   return (
     <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales">
@@ -160,44 +142,31 @@ export default function EpProyectosAmbientales() {
                   <div key={cert.label} className="relative flex gap-3.5 pb-5 last:pb-0">
                     {!isLast && (
                       <div className={`absolute left-[19px] top-10 bottom-0 w-0.5
-                        ${isDone    ? 'bg-green-border' : ''}
-                        ${isActive  ? 'bg-green-border/50' : ''}
-                        ${isPending ? 'bg-border' : ''}
+                        ${isDone ? 'bg-green-border' : isActive ? 'bg-green-border/50' : 'bg-border'}
                       `} />
                     )}
                     <div
                       className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2
-                        ${isDone    ? 'bg-green-bg border-green-border' : ''}
-                        ${isActive  ? 'bg-green-bg border-green-border' : ''}
-                        ${isPending ? 'bg-page-bg border-border' : ''}
+                        ${isDone || isActive ? 'bg-green-bg border-green-border' : 'bg-page-bg border-border'}
                       `}
                       style={isActive ? { boxShadow: '0 0 0 4px rgba(0,200,83,0.12)' } : {}}
                     >
-                      <cert.Icon
-                        className="w-[18px] h-[18px]"
-                        style={{ color: isPending ? '#D1D5DB' : cert.color }}
-                      />
+                      <cert.Icon className="w-[18px] h-[18px]" style={{ color: isPending ? '#D1D5DB' : cert.color }} />
                     </div>
                     <div className={`flex-1 pt-1.5 ${isPending ? 'opacity-50' : ''}`}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-[13px] font-bold
-                          ${isActive  ? 'text-green-text' : ''}
-                          ${isDone    ? 'text-text-1' : ''}
-                          ${isPending ? 'text-text-4' : ''}
+                          ${isActive ? 'text-green-text' : isDone ? 'text-text-1' : 'text-text-4'}
                         `}>{cert.label}</span>
                         {isActive && (
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border">
                             Nivel actual
                           </span>
                         )}
-                        {isDone && (
-                          <span className="text-[10px] font-semibold text-green-text">✓</span>
-                        )}
+                        {isDone && <span className="text-[10px] font-semibold text-green-text">✓</span>}
                       </div>
                       <div className="text-[10px] text-text-4 mt-0.5 leading-snug">{cert.desc}</div>
-                      {cert.date && (
-                        <div className="text-[10px] text-text-5 mt-0.5">{cert.date}</div>
-                      )}
+                      {cert.date && <div className="text-[10px] text-text-5 mt-0.5">{cert.date}</div>}
                     </div>
                   </div>
                 );
@@ -205,10 +174,10 @@ export default function EpProyectosAmbientales() {
             </div>
           </div>
 
-          {/* Right column — 3/5 */}
+          {/* Right column — 3/5: apiladas verticalmente */}
           <div className="lg:col-span-3 flex flex-col gap-4">
 
-            {/* Current cert card */}
+            {/* Current cert */}
             <div className="bg-green-bg rounded-[14px] border border-green-border p-5">
               <div className="text-[11px] font-semibold text-green-text uppercase tracking-wide mb-3">Certificación actual</div>
               <div className="flex items-center gap-3 mb-3">
@@ -223,68 +192,64 @@ export default function EpProyectosAmbientales() {
               <div className="text-[11px] text-text-3">Obtenida el 15 de Junio, 2025 · Válida hasta Junio 2027</div>
             </div>
 
-            {/* Bottom row: Next cert + Metas ESG */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-
-              {/* Next cert card */}
-              {nextCert && (
-                <div className="bg-white rounded-[14px] border border-border p-5">
-                  <div className="text-[11px] font-semibold text-text-4 uppercase tracking-wide mb-3">
-                    Siguiente nivel — {nextCert.label}
-                  </div>
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-[10px] bg-blue-bg border border-blue-text/20 flex items-center justify-center shrink-0">
-                      <nextCert.Icon className="w-5 h-5 text-blue-text" />
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-bold text-text-1 mb-0.5">{nextCert.label}</div>
-                      <div className="text-[11px] text-text-4 leading-snug">{nextCert.desc}</div>
-                    </div>
-                  </div>
-                  <div className="text-[11px] font-semibold text-text-3 mb-2">Requisitos para avanzar:</div>
-                  <div className="space-y-2">
-                    {(NEXT_REQS[nextCert.label] ?? [
-                      'Completar los requisitos documentales requeridos',
-                      'Validación por parte del equipo Bonafide',
-                      'Auditoría ambiental externa aprobada',
-                    ]).map(req => (
-                      <div key={req} className="flex items-start gap-2">
-                        <ChevronRight className="w-3.5 h-3.5 text-blue-text shrink-0 mt-0.5" />
-                        <span className="text-[11px] text-text-4 leading-snug">{req}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Metas ESG 2026 */}
+            {/* Next cert */}
+            {nextCert && (
               <div className="bg-white rounded-[14px] border border-border p-5">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                       style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
-                    <Target className="w-5 h-5 text-white" />
+                <div className="text-[11px] font-semibold text-text-4 uppercase tracking-wide mb-3">
+                  Siguiente nivel — {nextCert.label}
+                </div>
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-[10px] bg-blue-bg border border-blue-text/20 flex items-center justify-center shrink-0">
+                    <nextCert.Icon className="w-5 h-5 text-blue-text" />
                   </div>
                   <div>
-                    <div className="text-[13px] font-bold text-text-1">Metas ESG 2026</div>
-                    <div className="text-[11px] text-text-4">Progreso hacia los objetivos del año</div>
+                    <div className="text-[13px] font-bold text-text-1 mb-0.5">{nextCert.label}</div>
+                    <div className="text-[11px] text-text-4 leading-snug">{nextCert.desc}</div>
                   </div>
                 </div>
-                <div className="space-y-4">
-                  {ESG_METAS.map(({ label, pct, color }) => (
-                    <div key={label}>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
-                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-                      </div>
+                <div className="text-[11px] font-semibold text-text-3 mb-2">Requisitos para avanzar:</div>
+                <div className="space-y-2">
+                  {(NEXT_REQS[nextCert.label] ?? [
+                    'Completar los requisitos documentales requeridos',
+                    'Validación por parte del equipo Bonafide',
+                    'Auditoría ambiental externa aprobada',
+                  ]).map(req => (
+                    <div key={req} className="flex items-start gap-2">
+                      <ChevronRight className="w-3.5 h-3.5 text-blue-text shrink-0 mt-0.5" />
+                      <span className="text-[11px] text-text-4 leading-snug">{req}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
 
+            {/* Metas ESG 2026 */}
+            <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+                     style={{ background: 'linear-gradient(135deg, #059669, #10B981)' }}>
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold text-text-1">Metas ESG 2026</div>
+                  <div className="text-[11px] text-text-4">Progreso hacia los objetivos del año</div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                {ESG_METAS.map(({ label, pct, color }) => (
+                  <div key={label}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                      <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
+
           </div>
         </div>
 
@@ -300,13 +265,10 @@ export default function EpProyectosAmbientales() {
                   <Leaf className="w-4 h-4 text-green-text" />
                   <span className="text-[11px] font-bold text-green-text">8 registrados</span>
                 </div>
-                <button
-                  className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-[8px] text-white transition hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}
-                >
+                <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
                   <Plus className="w-3.5 h-3.5" />
                   Registrar Proyecto
-                </button>
+                </Button>
               </div>
             }
           />
@@ -362,6 +324,159 @@ export default function EpProyectosAmbientales() {
         </div>
 
       </div>
+
+      {/* ── Modal Registrar Proyecto ── */}
+      {showModal && (
+        <Modal
+          title="Registrar Nuevo Proyecto"
+          onClose={closeModal}
+          wide
+          footer={
+            <>
+              <Button variant="ghost" onClick={closeModal}>Cancelar</Button>
+              <Button variant="primary" onClick={closeModal}>
+                <Plus className="w-4 h-4" />
+                Registrar Proyecto
+              </Button>
+            </>
+          }
+        >
+          {/* Sección 1 — Información general */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <FolderOpen className="w-4 h-4 text-orange" />
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Información del proyecto</span>
+            </div>
+            <div className="mb-0">
+              <FormGroup label="Nombre del proyecto" required>
+                <Input
+                  placeholder="Ej. Reforestación Sierra Norte"
+                  value={form.nombre}
+                  onChange={set('nombre')}
+                />
+              </FormGroup>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <FormGroup label="Tipo de proyecto" required>
+                <Select value={form.tipo} onChange={set('tipo')}>
+                  <option value="">Seleccionar tipo…</option>
+                  <option>Reforestación</option>
+                  <option>Energía Solar</option>
+                  <option>Gestión de Residuos</option>
+                  <option>Agroecológico</option>
+                  <option>Captura de CO₂</option>
+                  <option>Conservación de Biodiversidad</option>
+                  <option>Otro</option>
+                </Select>
+              </FormGroup>
+              <FormGroup label="Ubicación" required>
+                <Input
+                  placeholder="Ciudad o región"
+                  value={form.ubicacion}
+                  onChange={set('ubicacion')}
+                />
+              </FormGroup>
+              <FormGroup label="Fecha de inicio" required>
+                <Input type="date" value={form.fechaInicio} onChange={set('fechaInicio')} />
+              </FormGroup>
+              <FormGroup label="Fecha estimada de fin">
+                <Input type="date" value={form.fechaFin} onChange={set('fechaFin')} />
+              </FormGroup>
+              <FormGroup label="Financiamiento solicitado (XAF)">
+                <Input
+                  placeholder="Ej. 45000000"
+                  value={form.financiamiento}
+                  onChange={set('financiamiento')}
+                />
+              </FormGroup>
+              <FormGroup label="Estado inicial">
+                <Select value={form.estado} onChange={set('estado')}>
+                  <option>Planificado</option>
+                  <option>En ejecución</option>
+                </Select>
+              </FormGroup>
+            </div>
+          </div>
+
+          {/* Separador */}
+          <div className="border-t border-border mb-5" />
+
+          {/* Sección 2 — Descripción */}
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="w-4 h-4 text-orange" />
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Descripción</span>
+            </div>
+            <FormGroup label="Descripción del proyecto">
+              <Textarea
+                placeholder="Describe los objetivos, alcance e impacto esperado del proyecto…"
+                value={form.descripcion}
+                onChange={set('descripcion')}
+                className="h-28"
+              />
+            </FormGroup>
+          </div>
+
+          {/* Separador */}
+          <div className="border-t border-border mb-5" />
+
+          {/* Sección 3 — Documentos adjuntos */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Upload className="w-4 h-4 text-orange" />
+                <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Documentos adjuntos</span>
+              </div>
+              {files.length > 0 && (
+                <span className="text-[10px] font-semibold text-text-4">{files.length} archivo{files.length > 1 ? 's' : ''} añadido{files.length > 1 ? 's' : ''}</span>
+              )}
+            </div>
+
+            {/* Drop zone */}
+            <div
+              className="border-2 border-dashed border-input-border bg-page-bg rounded-[12px] p-6 text-center cursor-pointer
+                         hover:border-orange hover:bg-orange-tint transition-colors"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={onDrop}
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload className="w-7 h-7 text-text-4 mx-auto mb-2" />
+              <div className="text-[13px] font-semibold text-text-1 mb-1">Arrastra archivos aquí o haz clic para seleccionar</div>
+              <div className="text-[11px] text-text-4">PDF, JPG, PNG, DOCX · Máx. 10 MB por archivo · Múltiples archivos permitidos</div>
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.xlsx"
+                onChange={onFiles}
+              />
+            </div>
+
+            {/* Lista de archivos añadidos */}
+            {files.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {files.map((file, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-[10px] bg-page-bg border border-border">
+                    <FileText className="w-4 h-4 text-text-4 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-medium text-text-1 truncate">{file.name}</div>
+                      <div className="text-[10px] text-text-4">{formatSize(file.size)}</div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setFiles(prev => prev.filter((_, idx) => idx !== i)); }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-bg transition shrink-0"
+                    >
+                      <XIcon className="w-3.5 h-3.5 text-text-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
     </AppShell>
   );
 }
