@@ -385,18 +385,6 @@ export default function EmpDash() {
                         Descargar Estado de Cuenta
                       </button>
                     </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
-                        {CONTRATOS_ACTIV} contratos activos
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
-                        {PYMES_FINANC} PYMEs financiadas
-                      </span>
-                    </div>
                   </div>
                 </div>
 
