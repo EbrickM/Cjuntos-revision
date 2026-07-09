@@ -437,6 +437,18 @@ export default function EmpDash() {
                         Descargar Estado de Cuenta
                       </button>
                     </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
+                        {CONTRATOS_ACTIV} contratos activos
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                        {PYMES_FINANC} PYMEs financiadas
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -474,19 +486,6 @@ export default function EmpDash() {
                   </div>
                 </div>
 
-                {/* Derecha: mini-KPIs PYMEs + Contratos (solo desktop) */}
-                <div className="hidden md:flex flex-col gap-3 shrink-0 self-center">
-                  <div className="px-5 py-3.5 rounded-[12px] text-center min-w-[120px]"
-                       style={{ background: '#E3F4EA', border: '1px solid rgba(46,125,91,0.2)' }}>
-                    <p className="text-[30px] font-extrabold leading-none mb-0.5" style={{ color: GREEN }}>{PYMES_FINANC}</p>
-                    <p className="text-[10px] font-semibold whitespace-nowrap" style={{ color: GREEN }}>PYMEs Financiadas</p>
-                  </div>
-                  <div className="px-5 py-3.5 rounded-[12px] text-center min-w-[120px]"
-                       style={{ background: '#FFF3E0', border: '1px solid rgba(239,122,44,0.2)' }}>
-                    <p className="text-[30px] font-extrabold leading-none mb-0.5" style={{ color: ORA }}>{CONTRATOS_ACTIV}</p>
-                    <p className="text-[10px] font-semibold whitespace-nowrap" style={{ color: ORA }}>Contratos Activos</p>
-                  </div>
-                </div>
               </div>
 
               {/* Móvil: botones icono + badges */}
