@@ -240,6 +240,10 @@ const PCT_DISP        = 100 - PCT_USADO;
 const PYMES_FINANC    = 18;
 const CONTRATOS_ACTIV = 26;
 const SCORE           = 82;
+const FACTURAS_COUNT  = 42;
+const FACTURAS_MONTO  = 102_500_000;
+const PENDIENTE_COUNT = 7;
+const PENDIENTE_XAF   = 32_500_000;
 
 const fondoDona = [
   { pct: PCT_USADO, gradient: true, color: RED },
@@ -518,6 +522,74 @@ export default function EmpDash() {
               <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
                 <Gauge score={SCORE} size={220} />
+              </div>
+            </div>
+
+            {/* ── Fila 2: KPIs ──────────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">PYMEs Financiadas</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                    <Users className="w-6 h-6" style={{ color: GREEN }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{PYMES_FINANC}</p>
+                </div>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>beneficiarias activas</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                        style={{ color: ORA }}>
+                  Ver PYMEs <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Contratos Activos</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <FilePlus className="w-6 h-6" style={{ color: ORA }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{CONTRATOS_ACTIV}</p>
+                </div>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>en vigor actualmente</p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                        style={{ color: ORA }}>
+                  Ver contratos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Facturas Aprobadas</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                    <FileCheck className="w-6 h-6" style={{ color: GREEN }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{FACTURAS_COUNT}</p>
+                </div>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
+                  {new Intl.NumberFormat('de-DE').format(FACTURAS_MONTO)} XAF
+                </p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                        style={{ color: ORA }}>
+                  Ver facturas <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Pendiente de Liquidar</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
+                    <CreditCard className="w-6 h-6" style={{ color: ERR }} />
+                  </div>
+                  <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_COUNT}</p>
+                </div>
+                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
+                  {new Intl.NumberFormat('de-DE').format(PENDIENTE_XAF)} XAF por liquidar
+                </p>
+                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                        style={{ color: ORA }}>
+                  Ver pagos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
