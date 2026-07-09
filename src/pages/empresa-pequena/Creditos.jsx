@@ -566,7 +566,7 @@ export default function EpCreditos() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-5 bg-page-bg p-1 rounded-[10px] w-fit overflow-x-auto">
+            <div className="flex gap-1 mb-5 bg-page-bg p-1 rounded-[10px] overflow-x-auto">
               {TABS.map(({ id, label, Icon, iconBg, iconColor }) => {
                 const isActive = activeTab === id;
                 return (
