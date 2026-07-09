@@ -264,7 +264,7 @@ export default function EpProyectosAmbientales() {
               <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-1.5">
                   <Leaf className="w-4 h-4 text-green-text" />
-                  <span className="text-[11px] font-bold text-green-text">8 registrados</span>
+                  <span className="text-[11px] font-bold text-green-text whitespace-nowrap">8 registrados</span>
                 </div>
                 <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
                   <Plus className="w-3.5 h-3.5" />
@@ -277,16 +277,12 @@ export default function EpProyectosAmbientales() {
           {/* Móvil: cards */}
           <div className="sm:hidden space-y-2">
             {proyectos.map((p, i) => (
-              <div key={i} className="rounded-[12px] border border-border p-3">
-                <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
-                <div className="flex flex-wrap gap-1.5 mb-2">
+              <div key={i} className="rounded-[12px] border border-border px-3 py-2.5 flex items-center gap-2">
+                <span className="text-[12px] font-medium text-text-1 flex-1 min-w-0 truncate">{p.nombre}</span>
+                <div className="flex items-center gap-1 shrink-0">
                   <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
                   <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border">{p.cert}</span>
-                </div>
-                <div className="flex items-center justify-between text-[12px]">
-                  <span className="text-text-4">Financiamiento</span>
-                  <span className="font-bold text-text-1">{p.fin}</span>
+                  <span className="text-[12px] font-bold text-text-1 whitespace-nowrap ml-1">{p.fin}</span>
                 </div>
               </div>
             ))}
