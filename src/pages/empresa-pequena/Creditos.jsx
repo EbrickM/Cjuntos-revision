@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ArrowLeft, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight,
+  ArrowLeft, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
   BarChart2, ScrollText, UserSquare, CalendarDays, Banknote, TrendingUp, Wallet,
   Upload, Paperclip,
@@ -41,6 +41,13 @@ const scoreStyle = (score) => {
   if (score >= 600) return { bg: '#FDF6E8', color: '#C68A1D' };
   return { bg: '#FDEEEB', color: '#B8352A' };
 };
+
+const ctBadgeStyle = (estado) =>
+  estado === 'Pagada'      ? { background: '#E3F4EA', color: '#2E7D5B' } :
+  estado === 'Validada'    ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'IPI Emitido' ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
+                             { background: '#F6F5F3', color: '#9CA3AF' };
 
 const InfoRow = ({ label, value }) => (
   <div>
@@ -648,10 +655,17 @@ export default function EpCreditos() {
                     <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
                       title="Datos de Identidad" subtitle="Información legal y fiscal de la empresa contratante."
                       action={sStyle && (
-                        <div className="flex items-center gap-1.5 shrink-0 px-2.5 py-1.5 rounded-[8px]"
-                             style={{ background: sStyle.bg }}>
-                          <span className="text-[11px] font-semibold" style={{ color: sStyle.color }}>Score crediticio</span>
-                          <span className="text-[15px] font-extrabold" style={{ color: sStyle.color }}>{score}</span>
+                        <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: sStyle.bg }}>
+                          {/* Mobile */}
+                          <div className="flex flex-col items-center sm:hidden">
+                            <span className="text-[10px] font-semibold whitespace-nowrap" style={{ color: sStyle.color }}>Score C.</span>
+                            <span className="text-[18px] font-extrabold leading-none mt-0.5" style={{ color: sStyle.color }}>{score}</span>
+                          </div>
+                          {/* Desktop */}
+                          <div className="hidden sm:flex items-center gap-1.5">
+                            <span className="text-[11px] font-semibold" style={{ color: sStyle.color }}>Score crediticio</span>
+                            <span className="text-[15px] font-extrabold" style={{ color: sStyle.color }}>{score}</span>
+                          </div>
                         </div>
                       )}
                     />
@@ -689,13 +703,21 @@ export default function EpCreditos() {
                   <SectionHeader icon={BarChart2} iconBg="#FFF3E0" iconColor="#EF7A2C"
                     title="Distribuciones" subtitle="Asignaciones del crédito por concepto y proveedor."
                     action={
-                      <div className="flex gap-2">
-                        <Button variant="primary" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
-                          Nueva Distribución
-                        </Button>
-                        <Button variant="ghost" onClick={() => setShowProviderModal(true)}>
-                          Añadir proveedor
-                        </Button>
+                      <div className="flex items-center gap-1.5">
+                        <div className="sm:hidden flex items-center gap-1.5">
+                          <Button variant="ghost" size="sm" onClick={() => setShowProviderModal(true)} title="Añadir proveedor">
+                            <Users className="w-4 h-4" />
+                          </Button>
+                          <Button variant="primary" size="sm" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="hidden sm:flex gap-2">
+                          <Button variant="ghost" onClick={() => setShowProviderModal(true)}>Añadir proveedor</Button>
+                          <Button variant="primary" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
+                            Nueva Distribución
+                          </Button>
+                        </div>
                       </div>
                     }
                   />
@@ -707,35 +729,68 @@ export default function EpCreditos() {
                       return (
                         <div
                           key={item.id}
-                          className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
+                          className="bg-white rounded-[16px] p-4 border border-border transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
                           onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
                           onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
                         >
-                          <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                            <ConceptIcon className="w-5 h-5 text-orange" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
+                          {/* Mobile */}
+                          <div className="sm:hidden">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
+                                <ConceptIcon className="w-4 h-4 text-orange" />
+                              </div>
+                              <span className="text-[13px] font-bold text-text-1 leading-tight">{item.concepto}</span>
+                            </div>
                             {item.providerName
-                              ? <div className="text-[12px] text-text-4 mt-0.5 truncate">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
-                              : <div className="text-[12px] text-text-5 mt-0.5">Sin proveedor asociado</div>
+                              ? <div className="text-[12px] text-text-4 truncate mb-2">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
+                              : <div className="text-[12px] text-text-5 mb-2">Sin proveedor asociado</div>
                             }
-                          </div>
-                          <div className="shrink-0 flex items-center gap-3">
-                            <div className="text-right">
-                              <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
-                              <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                   style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
-                                {pctVal}% del crédito
+                            <div className="flex items-center justify-between pt-2.5 border-t border-border">
+                              <div>
+                                <div className="text-[14px] font-extrabold text-text-1">{formatXaf(item.monto)}</div>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1"
+                                      style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
+                                  {pctVal}% del crédito
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
                             </div>
-                            <div className="flex flex-col gap-1 border-l border-border pl-3">
-                              <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                                <Pencil className="w-3.5 h-3.5" />
-                              </button>
-                              <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                          </div>
+                          {/* Desktop */}
+                          <div className="hidden sm:flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                              <ConceptIcon className="w-5 h-5 text-orange" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
+                              {item.providerName
+                                ? <div className="text-[12px] text-text-4 mt-0.5 truncate">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
+                                : <div className="text-[12px] text-text-5 mt-0.5">Sin proveedor asociado</div>
+                              }
+                            </div>
+                            <div className="shrink-0 flex items-center gap-3">
+                              <div className="text-right">
+                                <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
+                                <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                     style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
+                                  {pctVal}% del crédito
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -762,21 +817,50 @@ export default function EpCreditos() {
                     <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
                       title="Facturas al Contratante"
                       subtitle="Facturas emitidas por la PYME al contratante."
-                      action={<Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>}
+                      action={
+                        <div className="flex items-center">
+                          <div className="sm:hidden">
+                            <Button variant="primary" size="sm" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="hidden sm:block">
+                            <Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>
+                          </div>
+                        </div>
+                      }
                     />
                     <div className="space-y-3">
                       {contratanteInvoices.map(inv => (
                         <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
-                          <div className="flex items-start gap-4">
+                          {/* Mobile */}
+                          <div className="sm:hidden">
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
+                                <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                              </div>
+                              <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
+                              {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
+                            </div>
+                            <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
+                            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>
+                            <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
+                              <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Desktop */}
+                          <div className="hidden sm:flex items-start gap-4">
                             <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
                               <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                                {inv.documento && (
-                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                                )}
+                                {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
                               </div>
                               <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
                               <CTPipeline estado={inv.estado} tipoFactoring={detailContract.tipoFactoring} />
@@ -787,12 +871,8 @@ export default function EpCreditos() {
                                 <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
                               </div>
                               <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
                             </div>
                           </div>
@@ -809,7 +889,18 @@ export default function EpCreditos() {
                     <SectionHeader icon={Truck} iconBg="#FDF6E8" iconColor="#C68A1D"
                       title="Facturas de Proveedores"
                       subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
-                      action={<Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>}
+                      action={
+                        <div className="flex items-center">
+                          <div className="sm:hidden">
+                            <Button variant="primary" size="sm" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>
+                              <Upload className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="hidden sm:block">
+                            <Button variant="primary" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>
+                          </div>
+                        </div>
+                      }
                     />
                     <div className="space-y-3">
                       {proveedorInvoices.map(inv => {
@@ -818,37 +909,50 @@ export default function EpCreditos() {
                           inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                           { background: '#FDF6E8', color: '#C68A1D' };
                         return (
-                          <div key={inv.id}
-                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4"
-                          >
-                            <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                              <Truck className="w-5 h-5 text-orange" />
+                          <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
+                            {/* Mobile */}
+                            <div className="sm:hidden">
+                              <div className="flex items-center gap-2.5 mb-2">
+                                <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
+                                  <Truck className="w-4 h-4 text-orange" />
+                                </div>
+                                <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={estadoStyle}>{inv.estado}</span>
+                                {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
+                              </div>
+                              <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto || inv.proveedorNombre}</div>
+                              {inv.proveedorNombre && <div className="text-[11px] text-text-5 mb-1">{inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}</div>}
+                              <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
+                                <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
-                                {inv.documento && (
-                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                                )}
+                            {/* Desktop */}
+                            <div className="hidden sm:flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
+                                <Truck className="w-5 h-5 text-orange" />
                               </div>
-                              <div className="text-[12px] text-text-3 truncate">{inv.concepto || inv.proveedorNombre}</div>
-                              <div className="text-[11px] text-text-5 mt-0.5">
-                                {inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                                  {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
+                                </div>
+                                <div className="text-[12px] text-text-3 truncate">{inv.concepto || inv.proveedorNombre}</div>
+                                <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}</div>
                               </div>
-                            </div>
-                            <div className="shrink-0 flex items-center gap-3">
-                              <div className="text-right">
-                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                                <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                              </div>
-                              <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                              <div className="shrink-0 flex items-center gap-3">
+                                <div className="text-right">
+                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
+                                </div>
+                                <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                  <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -874,51 +978,90 @@ export default function EpCreditos() {
                     <SectionHeader icon={CreditCard} iconBg="#E3F4EA" iconColor="#2E7D5B"
                       title="Pagos"
                       subtitle="Registra pagos a proveedores. Pueden vincularse a una factura recibida o ser pagos directos."
-                      action={<Button variant="primary" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>Nuevo Pago</Button>}
+                      action={
+                        <div className="flex items-center">
+                          <div className="sm:hidden">
+                            <Button variant="primary" size="sm" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="hidden sm:block">
+                            <Button variant="primary" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>Nuevo Pago</Button>
+                          </div>
+                        </div>
+                      }
                     />
                     <div className="space-y-3">
                       {contractPagos.map(p => {
                         const linkedInv = p.facturaProvId ? invoices.find(inv => inv.id === p.facturaProvId) : null;
                         return (
                           <div key={p.id}
-                            className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4 transition-all duration-200 cursor-default"
+                            className="bg-white rounded-[16px] p-4 border border-border transition-all duration-200 cursor-default"
                             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(46,125,91,0.12)'; e.currentTarget.style.borderColor = '#A8D5BE'; }}
                             onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
                           >
-                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                              <CreditCard className="w-5 h-5" style={{ color: '#2E7D5B' }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-[13px] font-bold text-text-1">{p.id}</span>
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
-                                {p.documento && (
-                                  <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
-                                )}
+                            {/* Mobile */}
+                            <div className="sm:hidden">
+                              <div className="flex items-center gap-2.5 mb-2">
+                                <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                                  <CreditCard className="w-4 h-4" style={{ color: '#2E7D5B' }} />
+                                </div>
+                                <span className="text-[13px] font-bold text-text-1 truncate">{p.id}</span>
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
+                                {p.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
                               </div>
-                              <div className="text-[12px] text-text-3 truncate">{p.concepto}</div>
+                              <div className="text-[12px] text-text-3 truncate mb-1">{p.concepto}</div>
                               {linkedInv ? (
-                                <div className="flex items-center gap-1 text-[11px] text-text-5 mt-0.5">
+                                <div className="flex items-center gap-1 text-[11px] text-text-5 mb-1">
                                   <Receipt className="w-3 h-3 shrink-0" /> {linkedInv.id} · {linkedInv.proveedorNombre}
                                 </div>
                               ) : p.proveedorNombre ? (
-                                <div className="text-[11px] text-text-5 mt-0.5">{p.proveedorNombre}</div>
+                                <div className="text-[11px] text-text-5 mb-1">{p.proveedorNombre}</div>
                               ) : (
-                                <div className="text-[11px] text-text-5 mt-0.5">Pago directo sin factura vinculada</div>
+                                <div className="text-[11px] text-text-5 mb-1">Pago directo sin factura vinculada</div>
                               )}
-                            </div>
-                            <div className="shrink-0 flex items-center gap-3">
-                              <div className="text-right">
-                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
-                                <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                              <div className="flex items-center justify-between pt-2.5 border-t border-border">
+                                <div>
+                                  <div className="text-[14px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
                               </div>
-                              <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
+                            </div>
+                            {/* Desktop */}
+                            <div className="hidden sm:flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                                <CreditCard className="w-5 h-5" style={{ color: '#2E7D5B' }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="text-[13px] font-bold text-text-1">{p.id}</span>
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
+                                  {p.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
+                                </div>
+                                <div className="text-[12px] text-text-3 truncate">{p.concepto}</div>
+                                {linkedInv ? (
+                                  <div className="flex items-center gap-1 text-[11px] text-text-5 mt-0.5">
+                                    <Receipt className="w-3 h-3 shrink-0" /> {linkedInv.id} · {linkedInv.proveedorNombre}
+                                  </div>
+                                ) : p.proveedorNombre ? (
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.proveedorNombre}</div>
+                                ) : (
+                                  <div className="text-[11px] text-text-5 mt-0.5">Pago directo sin factura vinculada</div>
+                                )}
+                              </div>
+                              <div className="shrink-0 flex items-center gap-3">
+                                <div className="text-right">
+                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                                </div>
+                                <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                  <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
                               </div>
                             </div>
                           </div>
