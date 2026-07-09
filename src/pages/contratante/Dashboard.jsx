@@ -65,6 +65,56 @@ function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
   );
 }
 
+// ── Gauge — Score Crediticio ──────────────────────────────────────────────────
+function Gauge({ score = 82, size = 190 }) {
+  const W = 200, H = 165;
+  const cx = 100, cy = 100, r = 80, sw = 16;
+  const deg2rad = d => d * Math.PI / 180;
+  const scoreToAngle = s => 180 - (s / 100) * 180;
+  const pt = a => {
+    const rad = deg2rad(a);
+    return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
+  };
+  const zones = [
+    [0,  40,  ERR  ],
+    [40, 60,  ORA  ],
+    [60, 75,  WARN ],
+    [75, 100, GREEN],
+  ];
+  const needleAngle = scoreToAngle(score);
+  const needleRad = deg2rad(needleAngle);
+  const nx = cx + (r - sw - 2) * Math.cos(needleRad);
+  const ny = cy - (r - sw - 2) * Math.sin(needleRad);
+  const zoneLabel = score < 40 ? 'Crítico' : score < 60 ? 'Alto' : score < 75 ? 'Medio' : 'Bajo';
+  const zoneColor = score < 40 ? ERR : score < 60 ? ORA : score < 75 ? WARN : GREEN;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: size, height: Math.round(size * H / W) }}>
+      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`}
+        fill="none" stroke={BORDER} strokeWidth={sw} strokeLinecap="butt" />
+      {zones.map(([s1, s2, color]) => {
+        const [x1, y1] = pt(scoreToAngle(s1));
+        const [x2, y2] = pt(scoreToAngle(s2));
+        return (
+          <path key={s1}
+            d={`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`}
+            fill="none" stroke={color} strokeWidth={sw} strokeLinecap="butt" opacity="0.9" />
+        );
+      })}
+      <line x1={cx} y1={cy} x2={nx.toFixed(2)} y2={ny.toFixed(2)}
+        stroke="#26262B" strokeWidth="3" strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r="6" fill="#26262B" />
+      <text x={cx} y={cy + 32} textAnchor="middle" fontSize="27" fontWeight="800"
+        fill="#26262B" fontFamily="Poppins,sans-serif">{score}</text>
+      <text x={cx} y={cy + 50} textAnchor="middle" fontSize="13" fontWeight="700"
+        fill={zoneColor} fontFamily="Poppins,sans-serif">Riesgo {zoneLabel}</text>
+      <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
+        fill={TEXT4} fontFamily="Poppins,sans-serif">0</text>
+      <text x={cx + r - 2} y={cy + 15} textAnchor="end" fontSize="9"
+        fill={TEXT4} fontFamily="Poppins,sans-serif">100</text>
+    </svg>
+  );
+}
+
 // ── MultiLineChart ────────────────────────────────────────────────────────────
 function MultiLineChart({ data, series, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
@@ -189,6 +239,7 @@ const PCT_USADO       = Math.round((FONDO_USADO / FONDO_TOTAL) * 100);
 const PCT_DISP        = 100 - PCT_USADO;
 const PYMES_FINANC    = 18;
 const CONTRATOS_ACTIV = 26;
+const SCORE           = 82;
 
 const fondoDona = [
   { pct: PCT_USADO, gradient: true, color: RED },
@@ -355,8 +406,9 @@ export default function EmpDash() {
         {tab === 'fondos' && (
           <div key="fondos" className="fade-in space-y-4">
 
-            {/* ── Hero: Fondo de Participación ──────────────────────────────── */}
-            <div className="card-lift card-enter bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
+            {/* ── Hero + Score Crediticio ───────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+            <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
               <div className="flex flex-col md:flex-row md:items-stretch gap-5 flex-1">
 
                 {/* Izquierda: título + cifra + CTAs + badges */}
@@ -460,6 +512,13 @@ export default function EmpDash() {
                     {PYMES_FINANC} PYMEs
                   </span>
                 </div>
+              </div>
+            </div>
+
+              {/* Score Crediticio */}
+              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
+                <Gauge score={SCORE} size={220} />
               </div>
             </div>
 
