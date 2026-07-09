@@ -593,36 +593,31 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Evolución del Fondo de Financiación ───────────────────────── */}
-            <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3">
-              <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
-                <div>
-                  <p className="text-[13px] font-bold text-text-1">Evolución del Fondo de Financiación</p>
-                  <p className="text-[11px] text-text-4">Ene – Jul 2026<span className="hidden md:inline"> · millones XAF</span></p>
-                </div>
-                <div className="flex items-center gap-4 flex-wrap">
-                  {evolucionFondoSeries.map(s => (
-                    <div key={s.key} className="flex items-center gap-1.5">
-                      <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
-                      <span className="text-[10px] text-text-4">{s.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="hidden md:block h-[240px] w-full">
-                <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={240} vbW={560} pl={56} />
-              </div>
-              <div className="block md:hidden h-[320px] w-full">
-                <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={320}
-                  vbW={420} pl={48} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
-              </div>
-              <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
-                Valores expresados en millones XAF
-              </p>
-            </div>
-
-            {/* ── Distribución por PYME + Estado de Operaciones ─────────────── */}
+            {/* ── Evolución + Distribución por PYME ────────────────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3 flex flex-col">
+                <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
+                  <div>
+                    <p className="text-[13px] font-bold text-text-1">Evolución del Fondo de Financiación</p>
+                    <p className="text-[11px] text-text-4">Ene – Jul 2026<span className="hidden md:inline"> · millones XAF</span></p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {evolucionFondoSeries.map(s => (
+                      <div key={s.key} className="flex items-center gap-1.5">
+                        <div className="w-5 h-[2px] rounded-full" style={{ background: s.color }} />
+                        <span className="text-[10px] text-text-4">{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 min-h-[200px] w-full">
+                  <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={220} vbW={480} pl={48} />
+                </div>
+                <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
+                  Valores expresados en millones XAF
+                </p>
+              </div>
 
               <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-5">
@@ -639,6 +634,10 @@ export default function EmpDash() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            {/* ── Estado de Operaciones + Próximos Vencimientos ─────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
               <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
@@ -672,20 +671,6 @@ export default function EmpDash() {
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Tipo de Contratante + Próximos Vencimientos ───────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-4">
-                  <p className="text-[13px] font-bold text-text-1">Tipo de Contratante y Financiaciones</p>
-                  <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
-                </div>
-                <div className="flex-1 min-h-[180px]">
-                  <VBarChart id="ct-tipo" data={tipoBarData} h={170} unit="M" />
                 </div>
               </div>
 
@@ -734,6 +719,17 @@ export default function EmpDash() {
                     Ver todos los vencimientos <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* ── Tipo de Contratante y Financiaciones ─────────────────────── */}
+            <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="mb-4">
+                <p className="text-[13px] font-bold text-text-1">Tipo de Contratante y Financiaciones</p>
+                <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
+              </div>
+              <div className="flex-1 min-h-[180px]">
+                <VBarChart id="ct-tipo" data={tipoBarData} h={170} unit="M" />
               </div>
             </div>
 
