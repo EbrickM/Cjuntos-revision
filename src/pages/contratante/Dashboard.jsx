@@ -686,8 +686,8 @@ export default function EmpDash() {
                   <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
                 </div>
                 {/* Desktop */}
-                <div className="hidden sm:block h-[220px] w-full">
-                  <VBarChart id="ct-tipo" data={tipoBarData} h={210} unit="M" />
+                <div className="hidden sm:block h-[300px] w-full">
+                  <VBarChart id="ct-tipo" data={tipoBarData} h={280} unit="M" />
                 </div>
                 {/* Móvil */}
                 <div className="block sm:hidden h-[300px] w-full">
