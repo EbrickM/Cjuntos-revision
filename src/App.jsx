@@ -30,6 +30,7 @@ import EmpConf from './pages/contratante/Confirming';
 import EmpFactEP from './pages/contratante/FacturasEmpresaPequena';
 import EmpVerifContr from './pages/contratante/VerifContratos';
 import { EmpConfDet, EmpProv, EmpProvPerfil, EmpRisk, EmpESG, EmpNotif, EmpSettings } from './pages/contratante/OtherScreens';
+import { EmpContratos, EmpFacturas, EmpPymes, EmpSolicitudes, EmpPerfil } from './pages/contratante/ContratanteScreens';
 
 function Router() {
   const { screen } = useApp();
@@ -65,7 +66,14 @@ function Router() {
     epESG:            <EpProyectosAmbientales />,
 
     // Contratante
-    empDash:       <EmpDash />,
+    empDash:        <EmpDash />,
+    empContratos:   <EmpContratos />,
+    empFacturas:    <EmpFacturas />,
+    empPymes:       <EmpPymes />,
+    empSolicitudes: <EmpSolicitudes />,
+    empESG:         <EmpESG />,
+    empPerfil:      <EmpPerfil />,
+    // legado (accesibles por navegación interna)
     empConf:       <EmpConf />,
     empConfDet:    <EmpConfDet />,
     empFactEP:     <EmpFactEP />,
@@ -73,7 +81,6 @@ function Router() {
     empProv:       <EmpProv />,
     empProvPerfil: <EmpProvPerfil />,
     empRisk:       <EmpRisk />,
-    empESG:        <EmpESG />,
     empNotif:      <EmpNotif />,
     empSettings:   <EmpSettings />,
   };

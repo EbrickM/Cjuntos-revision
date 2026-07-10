@@ -1,7 +1,7 @@
 import {
   Home, Building2, AlertTriangle,
   Settings, ClipboardList, Users, Receipt,
-  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard, X,
+  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard, X, Clock,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 
@@ -21,15 +21,13 @@ const NAV = {
     { id: 'epPerfil',      Icon: User,       lbl: 'Mi Perfil' },
   ],
   contratante: [
-    { id: 'empDash',       Icon: Home,          lbl: 'Inicio' },
-    { id: 'empConf',       Icon: ClipboardList, lbl: 'Confirming',           badge: '5' },
-    { id: 'empFactEP',     Icon: Receipt,       lbl: 'Facturas PYME',        badge: '3' },
-    { id: 'empVerifContr', Icon: ShieldCheck,   lbl: 'Verificar Contratos',  badge: '2' },
-    { id: 'empProv',       Icon: Users,         lbl: 'Proveedores' },
-    { id: 'empRisk',       Icon: AlertTriangle, lbl: 'Riesgos',              badge: '2' },
-    { id: 'empESG',        Icon: Leaf,          lbl: 'Huella Verde' },
-    { id: 'empNotif',      Icon: Bell,          lbl: 'Notificaciones' },
-    { id: 'empSettings',   Icon: Settings,      lbl: 'Configuración' },
+    { id: 'empDash',        Icon: Home,          lbl: 'Inicio' },
+    { id: 'empContratos',   Icon: ClipboardList, lbl: 'Mis Contratos',   badge: '26' },
+    { id: 'empFacturas',    Icon: Receipt,       lbl: 'Mis Facturas',    badge: '3'  },
+    { id: 'empPymes',       Icon: Users,         lbl: 'PYMEs',           badge: '18' },
+    { id: 'empSolicitudes', Icon: Clock,         lbl: 'Solicitudes',     badge: '5'  },
+    { id: 'empESG',         Icon: Leaf,          lbl: 'Huella Verde' },
+    { id: 'empPerfil',      Icon: User,          lbl: 'Mi Perfil' },
   ],
 };
 
@@ -38,7 +36,6 @@ const USERS = {
 };
 
 const SECTIONS = {
-  contratante: { split: 3, s1: 'Principal', s2: 'Análisis' },
 };
 
 export default function Sidebar({ active, role, onClose }) {
