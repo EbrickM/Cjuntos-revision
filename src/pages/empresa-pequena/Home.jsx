@@ -804,8 +804,13 @@ export default function EpHome() {
                   <div className="text-[14px] font-bold text-text-1">Proyectos por categoría</div>
                   <div className="text-[11px] text-text-4">Distribución por tipo de proyecto</div>
                 </div>
-                <div className="flex-1 min-h-[180px]">
-                  <VBarChart id="pyme-env" data={catBarData} h={170} />
+                {/* Desktop */}
+                <div className="hidden sm:block h-[220px] w-full">
+                  <VBarChart id="pyme-env" data={catBarData} h={210} />
+                </div>
+                {/* Móvil */}
+                <div className="block sm:hidden h-[240px] w-full">
+                  <VBarChart id="pyme-env-m" data={catBarData} h={200} />
                 </div>
               </div>
             </div>

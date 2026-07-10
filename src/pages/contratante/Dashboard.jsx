@@ -513,7 +513,9 @@ export default function EmpDash() {
               {/* Score Crediticio */}
               <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
-                <Gauge score={SCORE} size={220} />
+                <div className="flex justify-center w-full">
+                  <Gauge score={SCORE} size={200} />
+                </div>
               </div>
             </div>
 
@@ -603,8 +605,13 @@ export default function EmpDash() {
                     ))}
                   </div>
                 </div>
-                <div className="flex-1 min-h-[200px] w-full">
-                  <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={220} vbW={480} pl={48} />
+                {/* Desktop */}
+                <div className="hidden md:block h-[240px] w-full">
+                  <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={240} vbW={480} pl={48} />
+                </div>
+                {/* Móvil */}
+                <div className="block md:hidden h-[280px] w-full">
+                  <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
                 </div>
                 <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
                   Valores expresados en millones XAF
@@ -671,8 +678,13 @@ export default function EmpDash() {
                   <p className="text-[13px] font-bold text-text-1">Tipo de Financiaciones</p>
                   <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
                 </div>
-                <div className="flex-1 min-h-[180px]">
-                  <VBarChart id="ct-tipo" data={tipoBarData} h={170} unit="M" />
+                {/* Desktop */}
+                <div className="hidden sm:block h-[220px] w-full">
+                  <VBarChart id="ct-tipo" data={tipoBarData} h={210} unit="M" />
+                </div>
+                {/* Móvil */}
+                <div className="block sm:hidden h-[240px] w-full">
+                  <VBarChart id="ct-tipo-m" data={tipoBarData} h={200} unit="M" />
                 </div>
               </div>
             </div>
