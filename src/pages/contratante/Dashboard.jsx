@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   TrendingUp, TreePine, Download, ChevronRight, ArrowUpRight,
   CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield,
-  Clock, Calendar, Wind, Wallet
+  Clock, Calendar, Wind
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -310,14 +310,6 @@ const actividadCfg = {
   pago:      { bg: '#E3F4EA', color: GREEN },
   solicitud: { bg: '#FDF6E8', color: WARN  },
 };
-
-const bottomKpis = [
-  { label: 'Garantías Net',    value: new Intl.NumberFormat('de-DE').format(125_000_000), sub: 'XAF', Icon: Shield,     bg: '#FDF6E8', color: WARN     },
-  { label: 'No Proveedores',   value: '26',                                                sub: 'proveedores',            Icon: Users,      bg: '#ECEAE7', color: '#5B5B5F' },
-  { label: 'No Contratos',     value: '26',                                                sub: 'contratos',              Icon: FilePlus,   bg: '#FFF3E0', color: ORA      },
-  { label: 'Importe Neto',     value: new Intl.NumberFormat('de-DE').format(FONDO_USADO),  sub: 'XAF', Icon: TrendingUp, bg: '#FDEEEB', color: ERR      },
-  { label: 'Fondo Disponible', value: new Intl.NumberFormat('de-DE').format(FONDO_DISP),   sub: 'XAF', Icon: Wallet,     bg: '#E3F4EA', color: GREEN    },
-];
 
 // ── Medioambiental data ───────────────────────────────────────────────────────
 const envKpis = [
@@ -685,8 +677,10 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Próximos Vencimientos ─────────────────────────────────────── */}
-            <div className="card-lift card-enter bg-white rounded-[14px] border border-border flex flex-col">
+            {/* ── Próximos Vencimientos + Actividad Reciente ───────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+            <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border flex flex-col">
               <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                 <div>
                   <p className="text-[13px] font-bold text-text-1">Próximos Vencimientos</p>
@@ -698,7 +692,7 @@ export default function EmpDash() {
                   {vencimientos.length} próximos
                 </span>
               </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {vencimientos.map((v, i) => (
                   <div key={i} className={`flex items-center gap-3 p-3 rounded-[10px] border ${
                     v.urgente ? 'border-red-text/20' : 'border-border bg-page-bg'
@@ -733,8 +727,7 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Actividad Reciente ────────────────────────────────────────── */}
-            <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5">
+            <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <p className="text-[13px] font-bold text-text-1">Actividad Reciente</p>
@@ -765,20 +758,6 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Bottom KPI strip ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {bottomKpis.map(({ label, value, sub, Icon, bg, color }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: bg }}>
-                      <Icon className="w-4 h-4" style={{ color }} />
-                    </div>
-                    <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</p>
-                  </div>
-                  <p className="text-[14px] font-extrabold text-text-1 leading-none">{value}</p>
-                  <p className="text-[10px]" style={{ color: TEXT4 }}>{sub}</p>
-                </div>
-              ))}
             </div>
 
           </div>
