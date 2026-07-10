@@ -636,23 +636,23 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Estado de Operaciones + Próximos Vencimientos ─────────────── */}
+            {/* ── Estado de Solicitudes + Tipo de Financiaciones ────────────── */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
-                  <p className="text-[13px] font-bold text-text-1">Estado de las Operaciones</p>
+                  <p className="text-[13px] font-bold text-text-1">Estado de las Solicitudes</p>
                   <p className="text-[11px] text-text-4">Distribución por estado · {CONTRATOS_ACTIV} operaciones</p>
                 </div>
-                <div className="flex-1 flex flex-col sm:flex-row items-center gap-6 justify-center py-2">
+                <div className="flex-1 flex flex-col items-center gap-4 justify-center py-2">
                   <DonutChart
                     data={estadoOps}
                     centerLabel={String(CONTRATOS_ACTIV)}
-                    centerSub="operaciones"
-                    size={190}
-                    inner={62}
+                    centerSub="solicitudes"
+                    size={160}
+                    inner={52}
                   />
-                  <div className="flex flex-col gap-3 w-full max-w-[220px]">
+                  <div className="flex flex-col gap-2.5 w-full">
                     {estadoOps.map(d => (
                       <div key={d.tipo}>
                         <div className="flex justify-between items-center mb-1">
@@ -674,62 +674,62 @@ export default function EmpDash() {
                 </div>
               </div>
 
-              <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border flex flex-col">
-                <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                  <div>
-                    <p className="text-[13px] font-bold text-text-1">Próximos Vencimientos</p>
-                    <p className="text-[11px] text-text-4">Próximas 6 semanas</p>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: '#FDF6E8', color: WARN }}>
-                    <Calendar className="w-3 h-3" />
-                    {vencimientos.length} próximos
-                  </span>
+              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
+                <div className="mb-4">
+                  <p className="text-[13px] font-bold text-text-1">Tipo de Financiaciones</p>
+                  <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
                 </div>
-                <div className="flex-1 p-4 space-y-2">
-                  {vencimientos.map((v, i) => (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-[10px] border ${
-                      v.urgente ? 'border-red-text/20' : 'border-border bg-page-bg'
-                    }`} style={v.urgente ? { background: '#FFF5F5' } : {}}>
-                      <div className="w-10 h-10 rounded-[10px] flex flex-col items-center justify-center shrink-0"
-                           style={{ background: v.urgente ? '#FDEEEB' : '#FFF3E0' }}>
-                        <span className="text-[9px] font-semibold leading-none" style={{ color: v.urgente ? ERR : WARN }}>
-                          {v.fecha.split(' ')[1]}
-                        </span>
-                        <span className="text-[14px] font-extrabold leading-none mt-0.5" style={{ color: v.urgente ? ERR : WARN }}>
-                          {v.fecha.split(' ')[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-text-1 truncate">{v.nombre}</p>
-                        <p className="text-[11px]" style={{ color: TEXT4 }}>
-                          {new Intl.NumberFormat('de-DE').format(v.monto)} XAF
-                        </p>
-                      </div>
-                      {v.urgente && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                              style={{ background: '#FDEEEB', color: ERR }}>Urgente</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="px-4 pb-4">
-                  <button className="w-full text-center text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center justify-center gap-1"
-                          style={{ color: ORA }}>
-                    Ver todos los vencimientos <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                <div className="flex-1 min-h-[180px]">
+                  <VBarChart id="ct-tipo" data={tipoBarData} h={170} unit="M" />
                 </div>
               </div>
             </div>
 
-            {/* ── Tipo de Contratante y Financiaciones ─────────────────────── */}
-            <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
-              <div className="mb-4">
-                <p className="text-[13px] font-bold text-text-1">Tipo de Contratante y Financiaciones</p>
-                <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
+            {/* ── Próximos Vencimientos ─────────────────────────────────────── */}
+            <div className="card-lift card-enter bg-white rounded-[14px] border border-border flex flex-col">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div>
+                  <p className="text-[13px] font-bold text-text-1">Próximos Vencimientos</p>
+                  <p className="text-[11px] text-text-4">Próximas 6 semanas</p>
+                </div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: '#FDF6E8', color: WARN }}>
+                  <Calendar className="w-3 h-3" />
+                  {vencimientos.length} próximos
+                </span>
               </div>
-              <div className="flex-1 min-h-[180px]">
-                <VBarChart id="ct-tipo" data={tipoBarData} h={170} unit="M" />
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                {vencimientos.map((v, i) => (
+                  <div key={i} className={`flex items-center gap-3 p-3 rounded-[10px] border ${
+                    v.urgente ? 'border-red-text/20' : 'border-border bg-page-bg'
+                  }`} style={v.urgente ? { background: '#FFF5F5' } : {}}>
+                    <div className="w-10 h-10 rounded-[10px] flex flex-col items-center justify-center shrink-0"
+                         style={{ background: v.urgente ? '#FDEEEB' : '#FFF3E0' }}>
+                      <span className="text-[9px] font-semibold leading-none" style={{ color: v.urgente ? ERR : WARN }}>
+                        {v.fecha.split(' ')[1]}
+                      </span>
+                      <span className="text-[14px] font-extrabold leading-none mt-0.5" style={{ color: v.urgente ? ERR : WARN }}>
+                        {v.fecha.split(' ')[0]}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-text-1 truncate">{v.nombre}</p>
+                      <p className="text-[11px]" style={{ color: TEXT4 }}>
+                        {new Intl.NumberFormat('de-DE').format(v.monto)} XAF
+                      </p>
+                    </div>
+                    {v.urgente && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                            style={{ background: '#FDEEEB', color: ERR }}>Urgente</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="px-4 pb-4">
+                <button className="w-full text-center text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center justify-center gap-1"
+                        style={{ color: ORA }}>
+                  Ver todos los vencimientos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
 
