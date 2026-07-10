@@ -559,7 +559,7 @@ export default function EmpDash() {
               </div>
 
               <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Facturas Aprobadas</p>
+                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Facturas Verificadas</p>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
                     <FileCheck className="w-6 h-6" style={{ color: GREEN }} />
