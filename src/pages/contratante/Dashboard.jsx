@@ -188,8 +188,9 @@ function HBarChart({ data, fmtVal = v => `${v}M` }) {
 }
 
 // ── VBarChart ─────────────────────────────────────────────────────────────────
-function VBarChart({ id, data, h = 170, unit = '' }) {
-  const W = 420, H = h, PL = 32, PR = 12, PT = 28, PB = 32;
+function VBarChart({ id, data, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 10, rotateLabels = false, labelKey = 'label' }) {
+  const W = vbW, H = h, PL = 32, PR = 12, PT = 28;
+  const PB = rotateLabels ? 62 : 32;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.map(d => d.value)) * 1.12;
   const slot = cW / data.length, bW = slot * 0.52;
@@ -207,6 +208,8 @@ function VBarChart({ id, data, h = 170, unit = '' }) {
           stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
       ))}
       {data.map((d, i) => {
+        const lx = PL + slot * i + slot / 2;
+        const ly = PT + cH + (rotateLabels ? 32 : 14);
         const x = PL + slot * i + (slot - bW) / 2;
         const bH = (d.value / maxV) * cH;
         const y = PT + cH - bH;
@@ -214,10 +217,14 @@ function VBarChart({ id, data, h = 170, unit = '' }) {
         return (
           <g key={i}>
             <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />
-            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700"
+            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize={fvSz} fontWeight="700"
               fill={d.color ?? ORA} fontFamily="Poppins,sans-serif">{d.value}{unit}</text>
-            <text x={x + bW / 2} y={H - 10} textAnchor="middle" fontSize="9"
-              fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+            <text x={lx} y={ly}
+              textAnchor="middle"
+              fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif"
+              transform={rotateLabels ? `rotate(-40, ${lx}, ${ly})` : undefined}>
+              {d[labelKey]}
+            </text>
           </g>
         );
       })}
@@ -283,11 +290,11 @@ const estadoOps = [
 ];
 
 const tipoBarData = [
-  { label: 'Construcción',  value: 180, color: RED   },
-  { label: 'Agroindustria', value: 120, color: GREEN },
-  { label: 'Energía',       value: 90,  color: ORA   },
-  { label: 'Servicios',     value: 75,  color: WARN  },
-  { label: 'Logística',     value: 60,  color: TEXT4 },
+  { label: 'Construcción',  shortLabel: 'Construcc.', value: 180, color: RED   },
+  { label: 'Agroindustria', shortLabel: 'Agroindu.',  value: 120, color: GREEN },
+  { label: 'Energía',       shortLabel: 'Energía',    value: 90,  color: ORA   },
+  { label: 'Servicios',     shortLabel: 'Servicios',  value: 75,  color: WARN  },
+  { label: 'Logística',     shortLabel: 'Logística',  value: 60,  color: TEXT4 },
 ];
 
 const vencimientos = [
@@ -683,8 +690,8 @@ export default function EmpDash() {
                   <VBarChart id="ct-tipo" data={tipoBarData} h={210} unit="M" />
                 </div>
                 {/* Móvil */}
-                <div className="block sm:hidden h-[240px] w-full">
-                  <VBarChart id="ct-tipo-m" data={tipoBarData} h={200} unit="M" />
+                <div className="block sm:hidden h-[300px] w-full">
+                  <VBarChart id="ct-tipo-m" data={tipoBarData} h={260} vbW={300} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
                 </div>
               </div>
             </div>
