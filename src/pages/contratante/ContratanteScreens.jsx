@@ -69,12 +69,18 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
 
 // ── Datos ─────────────────────────────────────────────────────────────────────
 const contratos = [
-  { id: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  ini: 'CS', sector: 'Construcción',    asignado: 180_000_000, utilizado: 120_000_000, facturas: 14, estado: 'Activo'  },
-  { id: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', ini: 'TB', sector: 'Tecnología',      asignado: 120_000_000, utilizado: 75_000_000,  facturas: 8,  estado: 'Activo'  },
-  { id: 'CT-2026-0031', pyme: 'AgriEco PYME',       ini: 'AE', sector: 'Agroindustria',   asignado: 90_000_000,  utilizado: 60_000_000,  facturas: 6,  estado: 'Activo'  },
-  { id: 'CT-2026-0028', pyme: 'LogiGE S.A.',        ini: 'LG', sector: 'Logística',       asignado: 75_000_000,  utilizado: 45_000_000,  facturas: 5,  estado: 'Activo'  },
-  { id: 'CT-2026-0019', pyme: 'ServLog GE',         ini: 'SL', sector: 'Servicios',       asignado: 60_000_000,  utilizado: 27_000_000,  facturas: 4,  estado: 'Activo'  },
-  { id: 'CT-2025-0087', pyme: 'InfraBata S.L.',     ini: 'IB', sector: 'Infraestructura', asignado: 45_000_000,  utilizado: 45_000_000,  facturas: 5,  estado: 'Cerrado' },
+  { id: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  ini: 'CS', sector: 'Construcción',    asignado: 180_000_000, utilizado: 120_000_000, facturas: 14, estado: 'Activo',
+    objeto: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.', fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses' },
+  { id: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', ini: 'TB', sector: 'Tecnología',      asignado: 120_000_000, utilizado: 75_000_000,  facturas: 8,  estado: 'Activo',
+    objeto: 'Desarrollo e implementación de sistemas TI corporativos y mantenimiento de infraestructura digital.', fechaInicio: '01/04/2026', fechaFin: '31/03/2027', plazo: '12 meses' },
+  { id: 'CT-2026-0031', pyme: 'AgriEco PYME',       ini: 'AE', sector: 'Agroindustria',   asignado: 90_000_000,  utilizado: 60_000_000,  facturas: 6,  estado: 'Activo',
+    objeto: 'Suministro de productos agrícolas y servicios de agroindustria para operaciones de la empresa durante la campaña 2026.', fechaInicio: '01/02/2026', fechaFin: '31/01/2027', plazo: '12 meses' },
+  { id: 'CT-2026-0028', pyme: 'LogiGE S.A.',        ini: 'LG', sector: 'Logística',       asignado: 75_000_000,  utilizado: 45_000_000,  facturas: 5,  estado: 'Activo',
+    objeto: 'Gestión logística y transporte de materiales industriales entre Malabo y Bata, incluyendo almacenamiento y distribución.', fechaInicio: '01/01/2026', fechaFin: '31/12/2026', plazo: '12 meses' },
+  { id: 'CT-2026-0019', pyme: 'ServLog GE',         ini: 'SL', sector: 'Servicios',       asignado: 60_000_000,  utilizado: 27_000_000,  facturas: 4,  estado: 'Activo',
+    objeto: 'Prestación de servicios de mantenimiento preventivo y correctivo en instalaciones y equipos corporativos.', fechaInicio: '15/02/2026', fechaFin: '14/02/2027', plazo: '12 meses' },
+  { id: 'CT-2025-0087', pyme: 'InfraBata S.L.',     ini: 'IB', sector: 'Infraestructura', asignado: 45_000_000,  utilizado: 45_000_000,  facturas: 5,  estado: 'Cerrado',
+    objeto: 'Obras de infraestructura vial y civil en la zona sur de Bata — pavimentación y drenaje de 8 km de vía.', fechaInicio: '01/06/2025', fechaFin: '30/11/2025', plazo: '6 meses' },
 ];
 
 const facturas = [
@@ -114,6 +120,14 @@ const solicBadge   = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rec
 const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'yellow' : 'red';
 const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
 const scoreColor   = n => n >= 75 ? GREEN : n >= 55 ? WARN : ERR;
+
+// ── InfoRow (igual que en PYME) ───────────────────────────────────────────────
+const InfoRow = ({ label, value }) => (
+  <div>
+    <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-1">{label}</div>
+    <div className="text-[13px] text-text-1">{value || '—'}</div>
+  </div>
+);
 
 // ── Ini Avatar ────────────────────────────────────────────────────────────────
 const IniAvatar = ({ ini, size = 36 }) => (
@@ -591,9 +605,16 @@ export function EmpSolicitudes() {
 }
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
+const TABS_DETALLE = [
+  { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA  },
+  { id: 'pyme',     lbl: 'PYME',     Icon: Users,       iconBg: '#EFF6FF', iconColor: BLUE },
+  { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FDF6E8', iconColor: WARN },
+];
+
 export function EmpContratoDetalle() {
   const { go } = useApp();
-  const c = _selectedContrato;
+  const [tab, setTab] = useState('contrato');
+  const c    = _selectedContrato;
   const pct  = Math.round((c.utilizado / c.asignado) * 100);
   const bar  = pct > 90 ? ERR : pct > 70 ? WARN : GREEN;
   const disp = c.asignado - c.utilizado;
@@ -604,126 +625,237 @@ export function EmpContratoDetalle() {
     <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub={c.id}>
       <div className="fade-in space-y-5">
 
-        <button onClick={() => go('empContratos')} className="flex items-center gap-1.5 text-[12px] font-semibold hover:opacity-75 transition" style={{ color: ORA }}>
-          <ChevronRight className="w-4 h-4 rotate-180" /> Volver a Mis Contratos
+        {/* Breadcrumb */}
+        <button onClick={() => go('empContratos')} className="flex items-center gap-1.5 text-[12px] font-medium hover:opacity-75 transition px-3 py-2 rounded-[10px] hover:bg-page-bg w-fit" style={{ color: TEXT4 }}>
+          <ChevronRight className="w-4 h-4 rotate-180" style={{ color: ORA }} />
+          <span>Mis contratos</span>
+          <span className="mx-1" style={{ color: TEXT4 }}>/</span>
+          <span className="text-text-1 font-semibold">{c.id}</span>
         </button>
 
-        {/* Hero */}
+        {/* ── Cabecera de contrato ── */}
         <div className="card-enter bg-white rounded-[14px] border border-border p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-5">
+          <div className="flex items-center gap-4">
             <IniAvatar ini={c.ini} size={52} />
-            <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="text-[18px] font-bold text-text-1">{c.pyme}</h2>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-[17px] font-bold text-text-1 leading-snug">{c.pyme}</h2>
                 <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
               </div>
               <p className="text-[11px] font-mono mt-0.5" style={{ color: TEXT4 }}>{c.id}</p>
               <p className="text-[12px]" style={{ color: TEXT4 }}>{c.sector}</p>
             </div>
-            <Button variant="primary" size="sm" onClick={() => go('empNuevaSolicitud')}>
+            {/* Botón solo en desktop */}
+            <div className="hidden sm:block shrink-0">
+              <Button variant="primary" size="sm" onClick={() => go('empNuevaSolicitud')}>
+                <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Solicitar ampliación
+              </Button>
+            </div>
+          </div>
+          {/* Botón ancho completo en móvil */}
+          <div className="sm:hidden mt-4">
+            <Button variant="primary" size="sm" full onClick={() => go('empNuevaSolicitud')}>
               <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Solicitar ampliación
             </Button>
           </div>
-
-          {/* Cifras */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border mb-4">
-            {[
-              { lbl: 'Fondo Asignado', val: fmt(c.asignado),  iconBg: '#FDEEEB', iconColor: RED,   Icon: TrendingUp  },
-              { lbl: 'Utilizado',      val: fmt(c.utilizado), iconBg: '#FDF6E8', iconColor: WARN,  Icon: CreditCard  },
-              { lbl: 'Disponible',     val: fmt(disp),        iconBg: '#E3F4EA', iconColor: GREEN, Icon: CheckCircle },
-            ].map(({ lbl, val, iconBg, iconColor, Icon }) => (
-              <div key={lbl} className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                  <Icon className="w-5 h-5" style={{ color: iconColor }} />
-                </div>
-                <div>
-                  <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide">{lbl}</p>
-                  <p className="text-[14px] font-extrabold text-text-1 leading-tight">{val} <span className="text-[10px] font-normal" style={{ color: TEXT4 }}>XAF</span></p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Barra */}
-          <div>
-            <div className="flex justify-between text-[11px] mb-1.5">
-              <span className="font-semibold" style={{ color: TEXT4 }}>Utilización del fondo</span>
-              <span className="font-bold" style={{ color: bar }}>{pct}%</span>
-            </div>
-            <div className="h-3 rounded-full overflow-hidden" style={{ background: BORDER }}>
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bar }} />
-            </div>
-          </div>
         </div>
 
-        {/* Info PYME */}
-        {pyme && (
-          <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
-            <SectionHeader title="Información de la PYME" sub="Perfil crediticio y de riesgo" Icon={Users} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5" style={{ color: TEXT4 }} />
-                    <span className="text-[11px] font-semibold" style={{ color: TEXT4 }}>Score crediticio</span>
-                  </div>
-                  <span className="text-[13px] font-bold" style={{ color: scoreColor(pyme.score) }}>{pyme.score}/100</span>
-                </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                  <div className="h-full rounded-full" style={{ width: `${pyme.score}%`, background: scoreColor(pyme.score) }} />
-                </div>
+        {/* ── Resumen financiero (como en PYME) ── */}
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+          {[
+            { lbl: 'Fondo Asignado', val: `${fmt(c.asignado)} XAF`,  Icon: TrendingUp,   iconBg: '#FDEEEB', iconColor: RED   },
+            { lbl: 'Utilizado',      val: `${fmt(c.utilizado)} XAF`, Icon: CreditCard,   iconBg: '#FDF6E8', iconColor: WARN  },
+            { lbl: 'Disponible',     val: `${fmt(disp)} XAF`,        Icon: CheckCircle,  iconBg: '#E3F4EA', iconColor: GREEN },
+            { lbl: '% Utilización',  val: `${pct}%`,                 Icon: ClipboardList,iconBg: pct > 90 ? '#FDEEEB' : pct > 70 ? '#FDF6E8' : '#E3F4EA', iconColor: bar },
+          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
+            <div key={lbl} className="card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+                <Icon className="w-5 h-5" style={{ color: iconColor }} />
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                  <ShieldCheck className="w-5 h-5" style={{ color: GREEN }} />
+              <div className="min-w-0">
+                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
+                <p className="text-[13px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Tabs con iconos (como en PYME) ── */}
+        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] overflow-x-auto">
+          {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
+            const active = tab === id;
+            return (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-[8px] text-[12px] font-medium transition-all whitespace-nowrap cursor-pointer
+                  ${active ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-4 hover:text-text-2'}`}
+              >
+                <div className="w-5 h-5 rounded-[5px] flex items-center justify-center"
+                     style={{ background: active ? iconBg : 'transparent' }}>
+                  <Icon className="w-3 h-3" style={{ color: active ? iconColor : 'currentColor' }} />
                 </div>
-                <div>
-                  <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide">Semáforo de riesgo</p>
-                  <p className="text-[15px] font-bold" style={{ color: semColor(pyme.semaforo) }}>{pyme.semaforo}</p>
-                </div>
+                {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Tab: Contrato ── */}
+        {tab === 'contrato' && (
+          <div className="space-y-4">
+
+            {/* Objeto del trabajo */}
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+              <SectionHeader title="Objeto del Trabajo" sub="Descripción del alcance y servicios pactados en el contrato" Icon={FileText} />
+              <p className="text-[13px] text-text-1 leading-relaxed">{c.objeto || '—'}</p>
+            </div>
+
+            {/* Condiciones económicas y plazos */}
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
+              <SectionHeader title="Condiciones Económicas y Plazos" sub="Montos, fechas de vigencia y plazo de ejecución" Icon={Clock} />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                <InfoRow label="Monto global"       value={`${fmt(c.asignado)} XAF`} />
+                <InfoRow label="Fecha de inicio"    value={c.fechaInicio} />
+                <InfoRow label="Fecha de fin"       value={c.fechaFin} />
+                <InfoRow label="Plazo de ejecución" value={c.plazo} />
+              </div>
+            </div>
+
+            {/* Documento */}
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '120ms' }}>
+              <SectionHeader title="Documento del Contrato" sub="Archivo adjunto firmado entre las partes" Icon={FileText} />
+              <div className="flex items-center gap-2 text-[12px]" style={{ color: TEXT4 }}>
+                <FileText className="w-4 h-4 shrink-0" />
+                No se ha adjuntado documento al contrato.
               </div>
             </div>
           </div>
         )}
 
-        {/* Facturas del contrato */}
-        <div className="card-enter bg-white rounded-[14px] border border-border overflow-hidden" style={{ animationDelay: '120ms' }}>
-          <div className="px-5 py-4 border-b border-border">
-            <p className="text-[13px] font-bold text-text-1">Facturas del contrato</p>
-            <p className="text-[11px]" style={{ color: TEXT4 }}>{facturasContrato.length} facturas registradas en este contrato</p>
-          </div>
-          {facturasContrato.length === 0 ? (
-            <p className="text-[13px] text-center py-8" style={{ color: TEXT4 }}>No hay facturas en este contrato aún.</p>
-          ) : (
-            <div className="divide-y divide-border">
-              {facturasContrato.map(f => (
-                <div key={f.id} className="p-4 flex items-center justify-between gap-3 hover:bg-page-bg/60 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                      <Receipt className="w-4 h-4" style={{ color: GREEN }} />
+        {/* ── Tab: PYME ── */}
+        {tab === 'pyme' && pyme && (
+          <div className="space-y-4">
+
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+              <SectionHeader title="Perfil de la PYME" sub="Datos generales e identificación" Icon={Users} />
+              <div className="flex flex-col sm:flex-row gap-5">
+                <div className="flex items-center gap-4 flex-1">
+                  <IniAvatar ini={c.ini} size={56} />
+                  <div>
+                    <p className="text-[16px] font-bold text-text-1">{pyme.nombre}</p>
+                    <p className="text-[12px]" style={{ color: TEXT4 }}>{pyme.sector}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-1.5">
+                        <ClipboardList className="w-3.5 h-3.5" style={{ color: ORA }} />
+                        <span className="text-[11px] font-semibold text-text-2">{pyme.contratos} contrato{pyme.contratos !== 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <TrendingUp className="w-3.5 h-3.5" style={{ color: RED }} />
+                        <span className="text-[11px] font-semibold text-text-2">{fmt(pyme.montoTotal)} XAF total</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[12px] font-mono font-semibold text-text-1">{f.id}</p>
-                      <p className="text-[10px]" style={{ color: TEXT4 }}>{f.fecha}</p>
-                    </div>
-                  </div>
-                  <p className="text-[13px] font-bold text-text-1 hidden sm:block">
-                    {fmt(f.monto)} <span className="text-[10px] font-normal" style={{ color: TEXT4 }}>XAF</span>
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
-                    {f.estado === 'Recibida' && (
-                      <Button variant="primary" size="sm"><CheckCircle className="w-3.5 h-3.5 mr-1" />Validar</Button>
-                    )}
-                    {f.estado === 'Verificada' && (
-                      <Button variant="primary" size="sm"><Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI</Button>
-                    )}
                   </div>
                 </div>
-              ))}
+                <div className="flex items-center gap-3 sm:border-l sm:border-border sm:pl-5">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                       style={{ background: semColor(pyme.semaforo) + '20' }}>
+                    <ShieldCheck className="w-5 h-5" style={{ color: semColor(pyme.semaforo) }} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide">Semáforo de riesgo</p>
+                    <p className="text-[17px] font-extrabold" style={{ color: semColor(pyme.semaforo) }}>{pyme.semaforo}</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
+              <SectionHeader title="Score Crediticio" sub="Evaluación de riesgo financiero de la PYME" Icon={ShieldCheck} />
+              <div className="flex items-end gap-5 mb-3">
+                <p className="text-[48px] font-extrabold leading-none" style={{ color: scoreColor(pyme.score) }}>{pyme.score}</p>
+                <div className="pb-2">
+                  <p className="text-[12px] font-bold" style={{ color: scoreColor(pyme.score) }}>
+                    {pyme.score >= 75 ? 'Riesgo Bajo' : pyme.score >= 55 ? 'Riesgo Medio' : 'Riesgo Alto'}
+                  </p>
+                  <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 100 puntos</p>
+                </div>
+              </div>
+              <div className="h-3 rounded-full overflow-hidden" style={{ background: BORDER }}>
+                <div className="h-full rounded-full" style={{ width: `${pyme.score}%`, background: scoreColor(pyme.score) }} />
+              </div>
+              <div className="flex justify-between text-[10px] mt-1.5" style={{ color: TEXT4 }}>
+                <span>0 — Alto riesgo</span>
+                <span>100 — Bajo riesgo</span>
+              </div>
+            </div>
+
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '120ms' }}>
+              <SectionHeader title="Compliance & Documentos" sub="Estado regulatorio de la PYME" Icon={FileCheck} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ComplianceItem label="KYC"        value="Vigente"       sub="Vence 31/12/2026"           Icon={CheckCircle2} iconBg="#E3F4EA" iconColor={GREEN} />
+                <ComplianceItem label="AML"        value="Aprobado"      sub="Sin alertas"                 Icon={Shield}       iconBg="#E3F4EA" iconColor={GREEN} />
+                <ComplianceItem label="Documentos" value="4 / 4"         sub="Todos verificados"           Icon={FileCheck}    iconBg="#EFF6FF" iconColor={BLUE}  />
+                <ComplianceItem label="Nivel"      value="A"             sub="Calificación normativa"      Icon={Star}         iconBg="#EFF6FF" iconColor={BLUE}  />
+                <ComplianceItem label="Auditoría"  value="Mar 2026"      sub="Próxima revisión Sep 2026"  Icon={Clock}        iconBg="#FDF6E8" iconColor={WARN}  />
+                <ComplianceItem label="Semáforo"   value={pyme.semaforo} sub="Riesgo global asignado"     Icon={ShieldCheck}  iconBg={semColor(pyme.semaforo) + '20'} iconColor={semColor(pyme.semaforo)} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Tab: Facturas ── */}
+        {tab === 'facturas' && (
+          <div className="space-y-4">
+            {facturasContrato.length === 0 ? (
+              <div className="py-14 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
+                <Receipt className="w-8 h-8" />
+                <p className="text-[13px] font-semibold">Sin facturas en este contrato</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {facturasContrato.map(f => {
+                  const needsAction = f.estado === 'Recibida' || f.estado === 'Verificada';
+                  return (
+                    <div key={f.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>{f.fecha}</p>
+                        </div>
+                        <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
+                      </div>
+                      <div className="bg-page-bg rounded-[10px] p-3">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Monto</p>
+                        <div className="flex items-center gap-1.5">
+                          <Receipt className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
+                          <p className="text-[15px] font-extrabold leading-none" style={{ color: GREEN }}>
+                            {fmt(f.monto)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-auto pt-1">
+                        {f.estado === 'Recibida' && (
+                          <Button variant="primary" size="sm" className="w-full justify-center">
+                            <CheckCircle className="w-3.5 h-3.5 mr-1" />Validar factura
+                          </Button>
+                        )}
+                        {f.estado === 'Verificada' && (
+                          <Button variant="primary" size="sm" className="w-full justify-center">
+                            <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
+                          </Button>
+                        )}
+                        {!needsAction && (
+                          <button className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 transition" style={{ color: ORA }}>
+                            Ver detalle <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </AppShell>

@@ -441,14 +441,21 @@ export default function EpCreditos() {
             <div className="bg-white rounded-[14px] border border-border p-5">
 
               {/* Cabecera: título + buscador + botón */}
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-                <div>
-                  <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
-                  <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
+              <div className="mb-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
+                    <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
+                  </div>
+                  {/* Botón solo en desktop */}
+                  <div className="hidden sm:block shrink-0">
+                    <Button variant="primary">Solicitar Nuevo Contrato</Button>
+                  </div>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                  <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last">Solicitar Nuevo Contrato</Button>
-                  <div className="relative w-full sm:flex-none order-last sm:order-first">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Botón ancho completo en móvil */}
+                  <Button variant="primary" full className="sm:hidden">Solicitar Nuevo Contrato</Button>
+                  <div className="relative flex-1 sm:flex-none">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                     <input
                       type="text"
