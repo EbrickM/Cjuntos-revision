@@ -291,19 +291,18 @@ export function EmpFacturas() {
         {/* KPI cards — compactas, sin acción */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { lbl: 'Total facturas',     val: String(facturas.length),       sub: 'emitidas por PYMEs',      Icon: Receipt,    iconBg: '#FFF3E0', iconColor: ORA   },
-            { lbl: 'Pendientes validar', val: String(pendientes),             sub: 'requieren tu revisión',   Icon: Clock,      iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Listas para IPI',    val: String(verificadas),            sub: 'verificadas por Bonafide', Icon: FileCheck, iconBg: '#EFF6FF', iconColor: BLUE  },
-            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF`,       sub: 'acumulado',               Icon: TrendingUp, iconBg: '#E3F4EA', iconColor: GREEN },
-          ].map(({ lbl, val, sub, Icon, iconBg, iconColor }) => (
+            { lbl: 'Total facturas',     val: String(facturas.length),  Icon: Receipt,    iconBg: '#FFF3E0', iconColor: ORA   },
+            { lbl: 'Pendientes validar', val: String(pendientes),        Icon: Clock,      iconBg: '#FDF6E8', iconColor: WARN  },
+            { lbl: 'Listas para IPI',    val: String(verificadas),       Icon: FileCheck,  iconBg: '#EFF6FF', iconColor: BLUE  },
+            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF`,  Icon: TrendingUp, iconBg: '#E3F4EA', iconColor: GREEN },
+          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
             <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
                 <Icon className="w-5 h-5" style={{ color: iconColor }} />
               </div>
               <div className="min-w-0">
-                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide">{lbl}</p>
-                <p className="text-[12px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
-                <p className="text-[9px]" style={{ color: TEXT4 }}>{sub}</p>
+                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
+                <p className="text-[14px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
               </div>
             </div>
           ))}
@@ -350,14 +349,12 @@ export function EmpFacturas() {
                 </div>
 
                 {/* Monto */}
-                <div className="bg-page-bg rounded-[10px] p-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                    <Receipt className="w-4 h-4" style={{ color: GREEN }} />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide mb-0.5" style={{ color: TEXT4 }}>Monto</p>
-                    <p className="text-[18px] font-extrabold leading-none text-text-1">
-                      {fmt(f.monto)} <span className="text-[10px] font-normal" style={{ color: TEXT4 }}>XAF</span>
+                <div className="bg-page-bg rounded-[10px] p-3">
+                  <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Monto</p>
+                  <div className="flex items-center gap-1.5">
+                    <Receipt className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
+                    <p className="text-[15px] font-extrabold leading-none truncate" style={{ color: GREEN }}>
+                      {fmt(f.monto)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
                     </p>
                   </div>
                 </div>
