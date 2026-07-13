@@ -94,12 +94,24 @@ const facturas = [
 ];
 
 const pymes = [
-  { ini: 'CS', nombre: 'Const. Silva Ltd.',  sector: 'Construcción',    contratos: 3, montoTotal: 225_000_000, score: 87, semaforo: 'Verde'    },
-  { ini: 'TB', nombre: 'TechBata PYME S.L.', sector: 'Tecnología',      contratos: 2, montoTotal: 165_000_000, score: 82, semaforo: 'Verde'    },
-  { ini: 'AE', nombre: 'AgriEco PYME',       sector: 'Agroindustria',   contratos: 2, montoTotal: 118_000_000, score: 61, semaforo: 'Amarillo' },
-  { ini: 'LG', nombre: 'LogiGE S.A.',        sector: 'Logística',       contratos: 1, montoTotal: 75_000_000,  score: 79, semaforo: 'Verde'    },
-  { ini: 'SL', nombre: 'ServLog GE',         sector: 'Servicios',       contratos: 1, montoTotal: 60_000_000,  score: 32, semaforo: 'Rojo'     },
-  { ini: 'IB', nombre: 'InfraBata S.L.',     sector: 'Infraestructura', contratos: 1, montoTotal: 45_000_000,  score: 75, semaforo: 'Verde'    },
+  { ini: 'CS', nombre: 'Const. Silva Ltd.',  sector: 'Construcción',    contratos: 3, montoTotal: 225_000_000, score: 87, semaforo: 'Verde',
+    nombreComercial: 'Construsilva GE',    ruc: 'GE-2018-04512', telefono: '+240 222 301 458', correo: 'info@constsilva.gq',
+    repNombre: 'Carlos Silva Mba',         repTipoDoc: 'DNI', repId: 'GE-19820314-CS', repCargo: 'Gerente General',      repTel: '+240 551 120 001', repCorreo: 'c.silva@constsilva.gq'       },
+  { ini: 'TB', nombre: 'TechBata PYME S.L.', sector: 'Tecnología',      contratos: 2, montoTotal: 165_000_000, score: 82, semaforo: 'Verde',
+    nombreComercial: 'TechBata',           ruc: 'GE-2020-07834', telefono: '+240 333 215 099', correo: 'contacto@techbata.gq',
+    repNombre: 'Ana Nguema Ondo',          repTipoDoc: 'DNI', repId: 'GE-19900521-AN', repCargo: 'Directora Ejecutiva',  repTel: '+240 551 440 220', repCorreo: 'a.nguema@techbata.gq'        },
+  { ini: 'AE', nombre: 'AgriEco PYME',       sector: 'Agroindustria',   contratos: 2, montoTotal: 118_000_000, score: 61, semaforo: 'Amarillo',
+    nombreComercial: 'AgriEco',            ruc: 'GE-2019-03167', telefono: '+240 222 554 811', correo: 'admin@agriecopyme.gq',
+    repNombre: 'Jean Mbang Esono',         repTipoDoc: 'Pasaporte', repId: 'PA-20041198-JM', repCargo: 'Administrador',     repTel: '+240 551 302 774', repCorreo: 'j.mbang@agriecopyme.gq'    },
+  { ini: 'LG', nombre: 'LogiGE S.A.',        sector: 'Logística',       contratos: 1, montoTotal: 75_000_000,  score: 79, semaforo: 'Verde',
+    nombreComercial: 'LogiGE',             ruc: 'GE-2021-09245', telefono: '+240 222 678 334', correo: 'logige@logige.gq',
+    repNombre: 'Pablo Ondo Abeso',         repTipoDoc: 'DNI', repId: 'GE-19751128-PO', repCargo: 'Director de Logística', repTel: '+240 551 875 003', repCorreo: 'p.ondo@logige.gq'           },
+  { ini: 'SL', nombre: 'ServLog GE',         sector: 'Servicios',       contratos: 1, montoTotal: 60_000_000,  score: 32, semaforo: 'Rojo',
+    nombreComercial: 'ServLog',            ruc: 'GE-2022-01578', telefono: '+240 222 412 667', correo: 'info@servlogge.gq',
+    repNombre: 'Martín Nchama Edu',        repTipoDoc: 'DNI', repId: 'GE-19881005-MN', repCargo: 'Representante Legal',  repTel: '+240 551 010 558', repCorreo: 'm.nchama@servlogge.gq'     },
+  { ini: 'IB', nombre: 'InfraBata S.L.',     sector: 'Infraestructura', contratos: 1, montoTotal: 45_000_000,  score: 75, semaforo: 'Verde',
+    nombreComercial: 'InfraBata',          ruc: 'GE-2017-06341', telefono: '+240 333 890 123', correo: 'infrabata@infrabata.gq',
+    repNombre: 'Sofía Maye Eneida',        repTipoDoc: 'DNI', repId: 'GE-19930622-SM', repCargo: 'CEO',                   repTel: '+240 551 663 442', repCorreo: 's.maye@infrabata.gq'        },
 ];
 
 const misSolicitudes = [
@@ -622,7 +634,7 @@ export function EmpContratoDetalle() {
   const pyme = pymes.find(p => p.ini === c.ini);
 
   return (
-    <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub={c.id}>
+    <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub={`${c.pyme} · ${c.id}`}>
       <div className="fade-in space-y-5">
 
         {/* Breadcrumb */}
@@ -632,33 +644,6 @@ export function EmpContratoDetalle() {
           <span className="mx-1" style={{ color: TEXT4 }}>/</span>
           <span className="text-text-1 font-semibold">{c.id}</span>
         </button>
-
-        {/* ── Cabecera de contrato ── */}
-        <div className="card-enter bg-white rounded-[14px] border border-border p-5">
-          <div className="flex items-center gap-4">
-            <IniAvatar ini={c.ini} size={52} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-[17px] font-bold text-text-1 leading-snug">{c.pyme}</h2>
-                <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
-              </div>
-              <p className="text-[11px] font-mono mt-0.5" style={{ color: TEXT4 }}>{c.id}</p>
-              <p className="text-[12px]" style={{ color: TEXT4 }}>{c.sector}</p>
-            </div>
-            {/* Botón solo en desktop */}
-            <div className="hidden sm:block shrink-0">
-              <Button variant="primary" size="sm" onClick={() => go('empNuevaSolicitud')}>
-                <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Solicitar ampliación
-              </Button>
-            </div>
-          </div>
-          {/* Botón ancho completo en móvil */}
-          <div className="sm:hidden mt-4">
-            <Button variant="primary" size="sm" full onClick={() => go('empNuevaSolicitud')}>
-              <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Solicitar ampliación
-            </Button>
-          </div>
-        </div>
 
         {/* ── Resumen financiero (como en PYME) ── */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -735,68 +720,45 @@ export function EmpContratoDetalle() {
         {tab === 'pyme' && pyme && (
           <div className="space-y-4">
 
+            {/* Datos de Identidad */}
             <div className="card-enter bg-white rounded-[14px] border border-border p-5">
-              <SectionHeader title="Perfil de la PYME" sub="Datos generales e identificación" Icon={Users} />
-              <div className="flex flex-col sm:flex-row gap-5">
-                <div className="flex items-center gap-4 flex-1">
-                  <IniAvatar ini={c.ini} size={56} />
-                  <div>
-                    <p className="text-[16px] font-bold text-text-1">{pyme.nombre}</p>
-                    <p className="text-[12px]" style={{ color: TEXT4 }}>{pyme.sector}</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1.5">
-                        <ClipboardList className="w-3.5 h-3.5" style={{ color: ORA }} />
-                        <span className="text-[11px] font-semibold text-text-2">{pyme.contratos} contrato{pyme.contratos !== 1 ? 's' : ''}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <TrendingUp className="w-3.5 h-3.5" style={{ color: RED }} />
-                        <span className="text-[11px] font-semibold text-text-2">{fmt(pyme.montoTotal)} XAF total</span>
-                      </div>
+              <SectionHeader
+                title="Datos de Identidad"
+                sub="Información legal y fiscal de la PYME"
+                Icon={Building2}
+                right={
+                  <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: scoreColor(pyme.score) + '20' }}>
+                    <div className="hidden sm:flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score crediticio</span>
+                      <span className="text-[15px] font-extrabold" style={{ color: scoreColor(pyme.score) }}>{pyme.score}/100</span>
+                    </div>
+                    <div className="flex flex-col items-center sm:hidden">
+                      <span className="text-[10px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score</span>
+                      <span className="text-[18px] font-extrabold leading-none mt-0.5" style={{ color: scoreColor(pyme.score) }}>{pyme.score}</span>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 sm:border-l sm:border-border sm:pl-5">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                       style={{ background: semColor(pyme.semaforo) + '20' }}>
-                    <ShieldCheck className="w-5 h-5" style={{ color: semColor(pyme.semaforo) }} />
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide">Semáforo de riesgo</p>
-                    <p className="text-[17px] font-extrabold" style={{ color: semColor(pyme.semaforo) }}>{pyme.semaforo}</p>
-                  </div>
-                </div>
+                }
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <InfoRow label="Razón Social"      value={pyme.nombre} />
+                <InfoRow label="Nombre Comercial"  value={pyme.nombreComercial} />
+                <InfoRow label="RUC / NIF"         value={pyme.ruc} />
+                <InfoRow label="Sector Productivo" value={pyme.sector} />
+                <InfoRow label="Teléfono"          value={pyme.telefono} />
+                <InfoRow label="Correo"            value={pyme.correo} />
               </div>
             </div>
 
+            {/* Representante Legal */}
             <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
-              <SectionHeader title="Score Crediticio" sub="Evaluación de riesgo financiero de la PYME" Icon={ShieldCheck} />
-              <div className="flex items-end gap-5 mb-3">
-                <p className="text-[48px] font-extrabold leading-none" style={{ color: scoreColor(pyme.score) }}>{pyme.score}</p>
-                <div className="pb-2">
-                  <p className="text-[12px] font-bold" style={{ color: scoreColor(pyme.score) }}>
-                    {pyme.score >= 75 ? 'Riesgo Bajo' : pyme.score >= 55 ? 'Riesgo Medio' : 'Riesgo Alto'}
-                  </p>
-                  <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 100 puntos</p>
-                </div>
-              </div>
-              <div className="h-3 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                <div className="h-full rounded-full" style={{ width: `${pyme.score}%`, background: scoreColor(pyme.score) }} />
-              </div>
-              <div className="flex justify-between text-[10px] mt-1.5" style={{ color: TEXT4 }}>
-                <span>0 — Alto riesgo</span>
-                <span>100 — Bajo riesgo</span>
-              </div>
-            </div>
-
-            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '120ms' }}>
-              <SectionHeader title="Compliance & Documentos" sub="Estado regulatorio de la PYME" Icon={FileCheck} />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ComplianceItem label="KYC"        value="Vigente"       sub="Vence 31/12/2026"           Icon={CheckCircle2} iconBg="#E3F4EA" iconColor={GREEN} />
-                <ComplianceItem label="AML"        value="Aprobado"      sub="Sin alertas"                 Icon={Shield}       iconBg="#E3F4EA" iconColor={GREEN} />
-                <ComplianceItem label="Documentos" value="4 / 4"         sub="Todos verificados"           Icon={FileCheck}    iconBg="#EFF6FF" iconColor={BLUE}  />
-                <ComplianceItem label="Nivel"      value="A"             sub="Calificación normativa"      Icon={Star}         iconBg="#EFF6FF" iconColor={BLUE}  />
-                <ComplianceItem label="Auditoría"  value="Mar 2026"      sub="Próxima revisión Sep 2026"  Icon={Clock}        iconBg="#FDF6E8" iconColor={WARN}  />
-                <ComplianceItem label="Semáforo"   value={pyme.semaforo} sub="Riesgo global asignado"     Icon={ShieldCheck}  iconBg={semColor(pyme.semaforo) + '20'} iconColor={semColor(pyme.semaforo)} />
+              <SectionHeader title="Representante Legal" sub="Persona autorizada para firmar y representar a la PYME" Icon={User} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                <InfoRow label="Nombre y Apellido"    value={pyme.repNombre} />
+                <InfoRow label="Tipo de Documento"    value={pyme.repTipoDoc} />
+                <InfoRow label="Nº de Identificación" value={pyme.repId} />
+                <InfoRow label="Cargo"                value={pyme.repCargo} />
+                <InfoRow label="Teléfono"             value={pyme.repTel} />
+                <InfoRow label="Correo"               value={pyme.repCorreo} />
               </div>
             </div>
           </div>
