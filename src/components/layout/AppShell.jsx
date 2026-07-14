@@ -72,7 +72,7 @@ export default function AppShell({ active, role, title, sub, children }) {
             <div className="flex items-start gap-3 p-4 rounded-[12px]" style={{ background: '#F0FBF5', border: '1px solid #B6DFC9' }}>
               <Users className="w-5 h-5 shrink-0 mt-0.5" style={{ color: GREEN }} />
               <p className="text-[13px] leading-relaxed" style={{ color: GREEN }}>
-                Se enviará una invitación a esta PYME para que se una a la plataforma Bonafide como empresa proveedora e inicie su proceso de incorporación.
+                Se enviará una invitación para que se una a la plataforma Bonafide.
               </p>
             </div>
             <div>
