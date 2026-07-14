@@ -184,9 +184,16 @@ export function EmpContratos() {
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
                 <Icon className="w-5 h-5" style={{ color: iconColor }} />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                <p className="text-[14px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
+                {val.endsWith(' XAF') ? (
+                  <>
+                    <p className="text-[12px] sm:text-[14px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
+                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
+                  </>
+                ) : (
+                  <p className="text-[14px] font-extrabold text-text-1 leading-tight">{val}</p>
+                )}
               </div>
             </div>
           ))}
@@ -341,9 +348,16 @@ export function EmpFacturas() {
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
                 <Icon className="w-5 h-5" style={{ color: iconColor }} />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                <p className="text-[14px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
+                {val.endsWith(' XAF') ? (
+                  <>
+                    <p className="text-[12px] sm:text-[14px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
+                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
+                  </>
+                ) : (
+                  <p className="text-[14px] font-extrabold text-text-1 leading-tight">{val}</p>
+                )}
               </div>
             </div>
           ))}
@@ -1035,9 +1049,16 @@ export function EmpContratoDetalle() {
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
                 <Icon className="w-5 h-5" style={{ color: iconColor }} />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                <p className="text-[13px] font-extrabold text-text-1 leading-tight truncate">{val}</p>
+                {val.endsWith(' XAF') ? (
+                  <>
+                    <p className="text-[12px] sm:text-[13px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
+                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
+                  </>
+                ) : (
+                  <p className="text-[13px] font-extrabold text-text-1 leading-tight">{val}</p>
+                )}
               </div>
             </div>
           ))}
