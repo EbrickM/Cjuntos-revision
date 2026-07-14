@@ -264,9 +264,10 @@ export function EmpContratos() {
                     <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Disponible</p>
                     <div className="flex items-center gap-1.5">
                       <TrendingUp className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
-                      <p className="text-[15px] font-extrabold leading-none truncate" style={{ color: GREEN }}>
-                        {fmt(disp)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
-                      </p>
+                      <div>
+                        <p className="text-[13px] font-extrabold leading-tight" style={{ color: GREEN }}>{fmt(disp)}</p>
+                        <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
+                      </div>
                     </div>
                   </div>
                   <div className="bg-page-bg rounded-[10px] p-3">
@@ -553,14 +554,14 @@ export function EmpPymes() {
             { lbl: 'Riesgo medio', val: amarillo, Icon: AlertCircle, iconBg: '#FDF6E8', iconColor: WARN  },
             { lbl: 'Riesgo alto',  val: rojo,     Icon: AlertCircle, iconBg: '#FDEEEB', iconColor: ERR   },
           ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
-            <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
+            <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-2 sm:p-3 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-[8px] sm:rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: iconColor }} />
               </div>
-              <div className="min-w-0">
-                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                <p className="text-[14px] font-extrabold leading-tight" style={{ color: iconColor }}>
-                  {val} <span className="text-[10px] font-semibold">PYME{val !== 1 ? 's' : ''}</span>
+              <div className="min-w-0 text-center sm:text-left">
+                <p className="text-[8px] sm:text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
+                <p className="text-[13px] sm:text-[14px] font-extrabold leading-tight" style={{ color: iconColor }}>
+                  {val} <span className="text-[9px] sm:text-[10px] font-semibold">PYME{val !== 1 ? 's' : ''}</span>
                 </p>
               </div>
             </div>
@@ -611,9 +612,10 @@ export function EmpPymes() {
                   <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Fondo</p>
                   <div className="flex items-center gap-1.5">
                     <TrendingUp className="w-4 h-4 shrink-0" style={{ color: RED }} />
-                    <p className="text-[15px] font-extrabold leading-none truncate text-text-1">
-                      {fmt(p.montoTotal)} <span className="text-[10px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
-                    </p>
+                    <div>
+                      <p className="text-[13px] font-extrabold leading-tight text-text-1">{fmt(p.montoTotal)}</p>
+                      <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
+                    </div>
                   </div>
                 </div>
               </div>
