@@ -1388,12 +1388,13 @@ export default function SolicitarContrato() {
 
       {/* Sticky topbar */}
       <nav className="bg-white sticky top-0 z-50 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8" style={{ boxShadow: SHADOW }}>
-        <img src={logo} alt="Bonafide" className="h-14 w-auto object-contain" />
+        <img src={logo} alt="Bonafide" className="h-10 sm:h-14 w-auto object-contain" />
         <button onClick={() => setShowExitModal(true)}
-          className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-3 sm:px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
           style={{ background: ORA, boxShadow: '0 4px 12px rgba(239,122,44,0.28)' }}
         >
-          Salir <LogOut className="w-4 h-4" />
+          <span className="hidden sm:inline">Salir</span>
+          <LogOut className="w-4 h-4" />
         </button>
       </nav>
 
