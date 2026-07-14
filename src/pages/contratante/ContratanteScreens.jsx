@@ -1158,7 +1158,7 @@ export function EmpContratoDetalle() {
                   <div className="text-[12px] text-text-4">Emitidas por la PYME en este contrato</div>
                 </div>
               </div>
-              <div className="relative flex items-center self-start sm:self-auto">
+              <div className="relative flex items-center self-center sm:self-auto">
                 <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
                 <select
                   value={filtroFac}
