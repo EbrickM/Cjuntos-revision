@@ -272,13 +272,15 @@ export function EmpContratos() {
                 </div>
 
                 {/* Footer */}
-                <button
-                  onClick={() => { _selectedContrato = c; go('empContratoDetalle'); }}
-                  className="mt-auto text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 transition"
-                  style={{ color: ORA }}
-                >
-                  Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="mt-auto pt-1 flex justify-end">
+                  <button
+                    onClick={() => { _selectedContrato = c; go('empContratoDetalle'); }}
+                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
+                    style={{ color: ORA }}
+                  >
+                    Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -299,29 +301,41 @@ export function EmpContratos() {
 const FILTROS_FAC = ['Todas', 'Recibidas', 'Verificadas', 'Pagadas'];
 
 export function EmpFacturas() {
-  const [filtro, setFiltro] = useState('Todas');
+  const [filtro, setFiltro]             = useState('Todas');
+  const [facturaModal, setFacturaModal] = useState(null);
+  const [ipiStep, setIpiStep]           = useState(null);
+  const [ipiCode, setIpiCode]           = useState('');
+  const [estadoMap, setEstadoMap]       = useState({});
 
-  const filtered = filtro === 'Todas'      ? facturas
-    : filtro === 'Recibidas'               ? facturas.filter(f => f.estado === 'Recibida' || f.estado === 'En revisión')
-    : filtro === 'Verificadas'             ? facturas.filter(f => f.estado === 'Verificada' || f.estado === 'IPI emitido')
-    : facturas.filter(f => f.estado === 'Pagada');
+  const facturasVivas = facturas.map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
 
-  const pendientes  = facturas.filter(f => f.estado === 'Recibida').length;
-  const verificadas = facturas.filter(f => f.estado === 'Verificada').length;
-  const pagadas     = facturas.filter(f => f.estado === 'Pagada').length;
-  const totalMonto  = facturas.reduce((a, f) => a + f.monto, 0);
+  const filtered = filtro === 'Todas'      ? facturasVivas
+    : filtro === 'Recibidas'               ? facturasVivas.filter(f => f.estado === 'Recibida' || f.estado === 'En revisión')
+    : filtro === 'Verificadas'             ? facturasVivas.filter(f => f.estado === 'Verificada' || f.estado === 'IPI emitido')
+    : facturasVivas.filter(f => f.estado === 'Pagada');
+
+  const pendientes  = facturasVivas.filter(f => f.estado === 'Recibida').length;
+  const verificadas = facturasVivas.filter(f => f.estado === 'Verificada').length;
+  const totalMonto  = facturasVivas.reduce((a, f) => a + f.monto, 0);
+
+  const modalFac = facturaModal ? (facturasVivas.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
+
+  const closeModal         = () => { setFacturaModal(null); setIpiStep(null); setIpiCode(''); };
+  const handleVerificar    = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
+  const handleEnviarCodigo = () => { setIpiStep('codigo'); setIpiCode(''); };
+  const handleConfirmarIPI = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'IPI emitido' })); closeModal(); };
 
   return (
     <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas">
       <div className="fade-in space-y-5">
 
-        {/* KPI cards — compactas, sin acción */}
+        {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { lbl: 'Total facturas',     val: String(facturas.length),  Icon: Receipt,    iconBg: '#FFF3E0', iconColor: ORA   },
-            { lbl: 'Pendientes validar', val: String(pendientes),        Icon: Clock,      iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Listas para IPI',    val: String(verificadas),       Icon: FileCheck,  iconBg: '#EFF6FF', iconColor: BLUE  },
-            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF`,  Icon: TrendingUp, iconBg: '#E3F4EA', iconColor: GREEN },
+            { lbl: 'Total facturas',     val: String(facturasVivas.length), Icon: Receipt,    iconBg: '#FFF3E0', iconColor: ORA   },
+            { lbl: 'Pendientes validar', val: String(pendientes),           Icon: Clock,      iconBg: '#FDF6E8', iconColor: WARN  },
+            { lbl: 'Listas para IPI',    val: String(verificadas),          Icon: FileCheck,  iconBg: '#EFF6FF', iconColor: BLUE  },
+            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF`,     Icon: TrendingUp, iconBg: '#E3F4EA', iconColor: GREEN },
           ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
             <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
               <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
@@ -349,7 +363,7 @@ export function EmpFacturas() {
         {/* Cards de facturas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(f => {
-            const needsAction = f.estado === 'Recibida' || f.estado === 'Verificada';
+            const hasAction = f.estado === 'Recibida' || f.estado === 'Verificada';
             return (
               <div key={f.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
 
@@ -363,15 +377,13 @@ export function EmpFacturas() {
                 </div>
 
                 {/* PYME + Contrato */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                      <Users className="w-4 h-4" style={{ color: ORA }} />
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.pyme}</p>
-                      <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{f.contrato}</p>
-                    </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <Users className="w-4 h-4" style={{ color: ORA }} />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.pyme}</p>
+                    <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{f.contrato}</p>
                   </div>
                 </div>
 
@@ -386,42 +398,114 @@ export function EmpFacturas() {
                   </div>
                 </div>
 
-                {/* Acción */}
-                <div className="mt-auto pt-1">
-                  {f.estado === 'Recibida' && (
-                    <Button variant="primary" size="sm" className="w-full justify-center">
-                      <CheckCircle className="w-3.5 h-3.5 mr-1" />Validar factura
-                    </Button>
-                  )}
-                  {f.estado === 'Verificada' && (
-                    <Button variant="primary" size="sm" className="w-full justify-center">
-                      <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
-                    </Button>
-                  )}
-                  {!needsAction && (
-                    <button className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 transition" style={{ color: ORA }}>
-                      Ver detalle <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                {/* Footer */}
+                <div className="mt-auto pt-1 flex items-center justify-between">
+                  {hasAction ? (
+                    <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: WARN }}>
+                      <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: WARN }} />
+                      Acción requerida
+                    </span>
+                  ) : <span />}
+                  <button
+                    onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }}
+                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
+                    style={{ color: ORA }}
+                  >
+                    Ver detalle <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Leyenda */}
-        <div className="flex flex-wrap gap-5 px-1">
-          <div className="flex items-center gap-1.5 text-[11px]" style={{ color: TEXT4 }}>
-            <CheckCircle className="w-3.5 h-3.5" style={{ color: GREEN }} />
-            <span><strong className="text-text-2">Validar</strong> — Confirmar que la factura es correcta</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px]" style={{ color: TEXT4 }}>
-            <Zap className="w-3.5 h-3.5" style={{ color: ORA }} />
-            <span><strong className="text-text-2">Emitir IPI</strong> — Instrucción de Pago Inmediato a Bonafide</span>
-          </div>
-        </div>
-
       </div>
+
+      {/* ── Modal: Detalle de factura ── */}
+      {modalFac && (
+        <Modal
+          title={`Factura · ${modalFac.id}`}
+          onClose={closeModal}
+          footer={
+            ipiStep === 'codigo' ? (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setIpiStep(null)}>Cancelar</Button>
+                <Button variant="primary" size="sm" disabled={ipiCode.length < 4} onClick={handleConfirmarIPI}>
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" />Confirmar IPI
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
+                <div className="flex gap-2">
+                  {modalFac.estado === 'Recibida' && (
+                    <Button variant="primary" size="sm" onClick={handleVerificar}>
+                      <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
+                    </Button>
+                  )}
+                  {modalFac.estado === 'Verificada' && (
+                    <Button variant="primary" size="sm" onClick={handleEnviarCodigo}>
+                      <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
+                    </Button>
+                  )}
+                </div>
+              </>
+            )
+          }
+        >
+          <div className="space-y-5">
+
+            <div className="flex items-center justify-between">
+              <Badge variant={facturaBadge(modalFac.estado)}>{modalFac.estado}</Badge>
+              <span className="text-[12px]" style={{ color: TEXT4 }}>{modalFac.fecha}</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <InfoRow label="Nº Factura"  value={modalFac.id} />
+              <InfoRow label="PYME"        value={modalFac.pyme} />
+              <InfoRow label="Contrato"    value={modalFac.contrato} />
+              <InfoRow label="Monto"       value={`${fmt(modalFac.monto)} XAF`} />
+              <InfoRow label="Fecha"       value={modalFac.fecha} />
+              <InfoRow label="Concepto"    value={modalFac.concepto} />
+            </div>
+
+            <div>
+              <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Documento adjunto</div>
+              <div className="flex items-center gap-2.5 p-3 rounded-[10px] border border-border" style={{ color: TEXT4 }}>
+                <FileText className="w-4 h-4 shrink-0" />
+                <span className="text-[12px]">No se ha adjuntado documento a esta factura.</span>
+              </div>
+            </div>
+
+            {ipiStep === 'codigo' && (
+              <div className="rounded-[12px] border border-border p-4 space-y-3" style={{ background: '#F0FBF5' }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                    <Mail className="w-4 h-4" style={{ color: GREEN }} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-text-1">Verificación de seguridad</p>
+                    <p className="text-[11px]" style={{ color: TEXT4 }}>
+                      Código de 6 dígitos enviado a <strong className="text-text-2">info@totalenerge.gq</strong>
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="text" inputMode="numeric" maxLength={6}
+                  value={ipiCode}
+                  onChange={e => setIpiCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="· · · · · ·"
+                  className="w-full px-4 py-3 text-[20px] font-mono tracking-[0.5em] text-center rounded-[10px] border border-border focus:outline-none focus:border-orange transition"
+                />
+                <p className="text-[11px] text-center" style={{ color: TEXT4 }}>
+                  ¿No recibiste el código?{' '}
+                  <button className="font-semibold hover:opacity-75 transition" style={{ color: ORA }}>Reenviar</button>
+                </p>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }
