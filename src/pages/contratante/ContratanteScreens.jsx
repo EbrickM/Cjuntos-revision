@@ -3,13 +3,14 @@ import {
   ChevronRight, CheckCircle, CheckCircle2, Clock, Zap, Building2,
   Users, Receipt, User, Phone, Mail, MapPin, FileText, ShieldCheck,
   TrendingUp, FilePlus, CreditCard, FileCheck, Camera, Shield,
-  Leaf, AlertCircle, Star, ClipboardList, ArrowUpRight, Search,
+  Leaf, AlertCircle, Star, ClipboardList, ArrowUpRight, Search, ListFilter,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
+import Modal from '../../components/ui/Modal';
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
 const RED    = '#E0201C';
@@ -84,13 +85,13 @@ const contratos = [
 ];
 
 const facturas = [
-  { id: 'FAC-2026-0911', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  monto: 21_500_000, fecha: '28/06/2026', estado: 'Verificada'  },
-  { id: 'FAC-2026-0908', contrato: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', monto: 15_200_000, fecha: '25/06/2026', estado: 'Recibida'    },
-  { id: 'FAC-2026-0901', contrato: 'CT-2026-0031', pyme: 'AgriEco PYME',       monto: 8_750_000,  fecha: '20/06/2026', estado: 'IPI emitido' },
-  { id: 'FAC-2026-0897', contrato: 'CT-2026-0028', pyme: 'LogiGE S.A.',        monto: 12_300_000, fecha: '18/06/2026', estado: 'Pagada'      },
-  { id: 'FAC-2026-0892', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  monto: 28_700_000, fecha: '15/06/2026', estado: 'Pagada'      },
-  { id: 'FAC-2026-0885', contrato: 'CT-2026-0019', pyme: 'ServLog GE',         monto: 6_800_000,  fecha: '10/06/2026', estado: 'En revisión' },
-  { id: 'FAC-2026-0878', contrato: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', monto: 9_400_000,  fecha: '05/06/2026', estado: 'Pagada'      },
+  { id: 'FAC-2026-0911', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  monto: 21_500_000, fecha: '28/06/2026', estado: 'Verificada',  concepto: 'Obras de estructura fase 2 — planta baja y primer piso' },
+  { id: 'FAC-2026-0908', contrato: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', monto: 15_200_000, fecha: '25/06/2026', estado: 'Recibida',    concepto: 'Licencias de software y configuración de servidores' },
+  { id: 'FAC-2026-0901', contrato: 'CT-2026-0031', pyme: 'AgriEco PYME',       monto: 8_750_000,  fecha: '20/06/2026', estado: 'IPI emitido', concepto: 'Suministro de fertilizantes y semillas — lote junio' },
+  { id: 'FAC-2026-0897', contrato: 'CT-2026-0028', pyme: 'LogiGE S.A.',        monto: 12_300_000, fecha: '18/06/2026', estado: 'Pagada',      concepto: 'Transporte de materiales Malabo–Bata — semana 24' },
+  { id: 'FAC-2026-0892', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.',  monto: 28_700_000, fecha: '15/06/2026', estado: 'Pagada',      concepto: 'Obras de cimentación y estructura principal' },
+  { id: 'FAC-2026-0885', contrato: 'CT-2026-0019', pyme: 'ServLog GE',         monto: 6_800_000,  fecha: '10/06/2026', estado: 'En revisión', concepto: 'Mantenimiento preventivo instalaciones eléctricas' },
+  { id: 'FAC-2026-0878', contrato: 'CT-2026-0038', pyme: 'TechBata PYME S.L.', monto: 9_400_000,  fecha: '05/06/2026', estado: 'Pagada',      concepto: 'Soporte técnico y actualización de sistemas TI' },
 ];
 
 const pymes = [
@@ -626,12 +627,25 @@ const TABS_DETALLE = [
 export function EmpContratoDetalle() {
   const { go } = useApp();
   const [tab, setTab] = useState('contrato');
+  const [facturaModal, setFacturaModal] = useState(null);
+  const [ipiStep, setIpiStep]           = useState(null);
+  const [ipiCode, setIpiCode]           = useState('');
+  const [estadoMap, setEstadoMap]       = useState({});
+  const [filtroFac, setFiltroFac]       = useState('Todos');
   const c    = _selectedContrato;
   const pct  = Math.round((c.utilizado / c.asignado) * 100);
   const bar  = pct > 90 ? ERR : pct > 70 ? WARN : GREEN;
   const disp = c.asignado - c.utilizado;
-  const facturasContrato = facturas.filter(f => f.contrato === c.id);
-  const pyme = pymes.find(p => p.ini === c.ini);
+  const facturasContrato = facturas
+    .filter(f => f.contrato === c.id)
+    .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
+  const pyme    = pymes.find(p => p.ini === c.ini);
+  const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
+
+  const closeModal        = () => { setFacturaModal(null); setIpiStep(null); setIpiCode(''); };
+  const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
+  const handleEnviarCodigo= () => { setIpiStep('codigo'); setIpiCode(''); };
+  const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'IPI emitido' })); closeModal(); };
 
   return (
     <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub={`${c.pyme} · ${c.id}`}>
@@ -765,61 +779,167 @@ export function EmpContratoDetalle() {
         )}
 
         {/* ── Tab: Facturas ── */}
-        {tab === 'facturas' && (
-          <div className="space-y-4">
-            {facturasContrato.length === 0 ? (
-              <div className="py-14 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
+        {tab === 'facturas' && (() => {
+          const estadosDisponibles = ['Todos', ...Array.from(new Set(facturasContrato.map(f => f.estado)))];
+          return (
+          <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+            <div className="flex items-start justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+                     style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+                  <Receipt className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-[14px] font-bold text-text-1">Facturas ({facturasContrato.length})</div>
+                  <div className="text-[12px] text-text-4">Emitidas por la PYME en este contrato</div>
+                </div>
+              </div>
+              <div className="relative flex items-center">
+                <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
+                <select
+                  value={filtroFac}
+                  onChange={e => setFiltroFac(e.target.value)}
+                  className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+                >
+                  {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
+                </select>
+              </div>
+            </div>
+            {(() => {
+              const visibles = filtroFac === 'Todos' ? facturasContrato : facturasContrato.filter(f => f.estado === filtroFac);
+              return visibles.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
                 <Receipt className="w-8 h-8" />
-                <p className="text-[13px] font-semibold">Sin facturas en este contrato</p>
+                <p className="text-[13px] font-semibold">Sin facturas con estado "{filtroFac}"</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {facturasContrato.map(f => {
-                  const needsAction = f.estado === 'Recibida' || f.estado === 'Verificada';
-                  return (
-                    <div key={f.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
-                          <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>{f.fecha}</p>
-                        </div>
+              <div className="space-y-2">
+                {visibles.map(f => (
+                  <div
+                    key={f.id}
+                    onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }}
+                    className="flex items-center gap-4 p-4 rounded-[12px] border border-border hover:border-orange/30 cursor-pointer hover:bg-page-bg transition-all group"
+                  >
+                    <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                      <Receipt className="w-5 h-5" style={{ color: ORA }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-[13px] font-bold text-text-1 font-mono">{f.id}</span>
                         <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
                       </div>
-                      <div className="bg-page-bg rounded-[10px] p-3">
-                        <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Monto</p>
-                        <div className="flex items-center gap-1.5">
-                          <Receipt className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
-                          <p className="text-[15px] font-extrabold leading-none" style={{ color: GREEN }}>
-                            {fmt(f.monto)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-auto pt-1">
-                        {f.estado === 'Recibida' && (
-                          <Button variant="primary" size="sm" className="w-full justify-center">
-                            <CheckCircle className="w-3.5 h-3.5 mr-1" />Validar factura
-                          </Button>
-                        )}
-                        {f.estado === 'Verificada' && (
-                          <Button variant="primary" size="sm" className="w-full justify-center">
-                            <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
-                          </Button>
-                        )}
-                        {!needsAction && (
-                          <button className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 transition" style={{ color: ORA }}>
-                            Ver detalle <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
+                      <div className="text-[11px] truncate" style={{ color: TEXT4 }}>{f.fecha} · {f.concepto}</div>
                     </div>
-                  );
-                })}
+                    <div className="text-right shrink-0">
+                      <div className="text-[14px] font-extrabold text-text-1">{fmt(f.monto)}</div>
+                      <div className="text-[10px]" style={{ color: TEXT4 }}>XAF</div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 shrink-0 opacity-40 group-hover:opacity-100 transition" style={{ color: ORA }} />
+                  </div>
+                ))}
+              </div>
+            );
+            })()}
+          </div>
+          );
+        })()}
+
+      </div>
+
+      {/* ── Modal: Detalle de factura ── */}
+      {modalFac && (
+        <Modal
+          title={`Factura · ${modalFac.id}`}
+          onClose={closeModal}
+          footer={
+            ipiStep === 'codigo' ? (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setIpiStep(null)}>Cancelar</Button>
+                <Button variant="primary" size="sm" disabled={ipiCode.length < 4} onClick={handleConfirmarIPI}>
+                  <CheckCircle className="w-3.5 h-3.5 mr-1" />Confirmar IPI
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
+                <div className="flex gap-2">
+                  {modalFac.estado === 'Recibida' && (
+                    <Button variant="primary" size="sm" onClick={handleVerificar}>
+                      <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
+                    </Button>
+                  )}
+                  {modalFac.estado === 'Verificada' && (
+                    <Button variant="primary" size="sm" onClick={handleEnviarCodigo}>
+                      <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
+                    </Button>
+                  )}
+                </div>
+              </>
+            )
+          }
+        >
+          <div className="space-y-5">
+
+            {/* Estado + fecha */}
+            <div className="flex items-center justify-between">
+              <Badge variant={facturaBadge(modalFac.estado)}>{modalFac.estado}</Badge>
+              <span className="text-[12px]" style={{ color: TEXT4 }}>{modalFac.fecha}</span>
+            </div>
+
+            {/* Datos principales */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <InfoRow label="Nº Factura"  value={modalFac.id} />
+              <InfoRow label="PYME"        value={modalFac.pyme} />
+              <InfoRow label="Contrato"    value={modalFac.contrato} />
+              <InfoRow label="Monto"       value={`${fmt(modalFac.monto)} XAF`} />
+              <InfoRow label="Fecha"       value={modalFac.fecha} />
+              <InfoRow label="Concepto"    value={modalFac.concepto} />
+            </div>
+
+            {/* Documentos adjuntos */}
+            <div>
+              <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Documento adjunto</div>
+              <div className="flex items-center gap-2.5 p-3 rounded-[10px] border border-border" style={{ color: TEXT4 }}>
+                <FileText className="w-4 h-4 shrink-0" />
+                <span className="text-[12px]">No se ha adjuntado documento a esta factura.</span>
+              </div>
+            </div>
+
+            {/* Paso de verificación IPI */}
+            {ipiStep === 'codigo' && (
+              <div className="rounded-[12px] border border-border p-4 space-y-3" style={{ background: '#F0FBF5' }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
+                    <Mail className="w-4 h-4" style={{ color: GREEN }} />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-text-1">Verificación de seguridad</p>
+                    <p className="text-[11px]" style={{ color: TEXT4 }}>
+                      Código de 6 dígitos enviado a <strong className="text-text-2">info@totalenerge.gq</strong>
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={ipiCode}
+                  onChange={e => setIpiCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="· · · · · ·"
+                  className="w-full px-4 py-3 text-[20px] font-mono tracking-[0.5em] text-center rounded-[10px] border border-border focus:outline-none focus:border-orange transition"
+                />
+                <p className="text-[11px] text-center" style={{ color: TEXT4 }}>
+                  ¿No recibiste el código?{' '}
+                  <button className="font-semibold hover:opacity-75 transition" style={{ color: ORA }}>
+                    Reenviar
+                  </button>
+                </p>
               </div>
             )}
           </div>
-        )}
-
-      </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }
