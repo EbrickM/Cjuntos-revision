@@ -215,7 +215,7 @@ export function EmpContratos() {
         </div>
 
         {/* Cards de contratos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtrados.map(c => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);
             const bar  = pct > 90 ? ERR : pct > 70 ? WARN : GREEN;
@@ -350,7 +350,8 @@ export function EmpFacturas() {
         </div>
 
         {/* Filtros */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit">
+        <div className="overflow-x-auto max-w-full">
+        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit min-w-max">
           {FILTROS_FAC.map(f => (
             <button key={f} onClick={() => setFiltro(f)}
               className={`px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
@@ -359,9 +360,10 @@ export function EmpFacturas() {
             </button>
           ))}
         </div>
+        </div>
 
         {/* Cards de facturas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(f => {
             const hasAction = f.estado === 'Recibida' || f.estado === 'Verificada';
             return (
@@ -531,7 +533,7 @@ export function EmpPymes() {
       <div className="fade-in space-y-5">
 
         {/* KPIs de semáforo de riesgo */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {[
             { lbl: 'Riesgo bajo',  val: verde,    Icon: CheckCircle, iconBg: '#E3F4EA', iconColor: GREEN },
             { lbl: 'Riesgo medio', val: amarillo, Icon: AlertCircle, iconBg: '#FDF6E8', iconColor: WARN  },
@@ -1022,7 +1024,7 @@ export function EmpContratoDetalle() {
         </button>
 
         {/* ── Resumen financiero (como en PYME) ── */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { lbl: 'Fondo Asignado', val: `${fmt(c.asignado)} XAF`,  Icon: TrendingUp,   iconBg: '#FDEEEB', iconColor: RED   },
             { lbl: 'Utilizado',      val: `${fmt(c.utilizado)} XAF`, Icon: CreditCard,   iconBg: '#FDF6E8', iconColor: WARN  },
@@ -1073,7 +1075,7 @@ export function EmpContratoDetalle() {
             {/* Condiciones económicas y plazos */}
             <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
               <SectionHeader title="Condiciones Económicas y Plazos" sub="Montos, fechas de vigencia y plazo de ejecución" Icon={Clock} />
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <InfoRow label="Monto global"       value={`${fmt(c.asignado)} XAF`} />
                 <InfoRow label="Fecha de inicio"    value={c.fechaInicio} />
                 <InfoRow label="Fecha de fin"       value={c.fechaFin} />
@@ -1145,8 +1147,8 @@ export function EmpContratoDetalle() {
           const estadosDisponibles = ['Todos', ...Array.from(new Set(facturasContrato.map(f => f.estado)))];
           return (
           <div className="card-enter bg-white rounded-[14px] border border-border p-5">
-            <div className="flex items-start justify-between gap-3 mb-5">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+              <div className="flex items-center gap-3 flex-1">
                 <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
                      style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
                   <Receipt className="w-5 h-5 text-white" />
@@ -1156,7 +1158,7 @@ export function EmpContratoDetalle() {
                   <div className="text-[12px] text-text-4">Emitidas por la PYME en este contrato</div>
                 </div>
               </div>
-              <div className="relative flex items-center">
+              <div className="relative flex items-center self-start sm:self-auto">
                 <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
                 <select
                   value={filtroFac}
@@ -1178,26 +1180,54 @@ export function EmpContratoDetalle() {
             ) : (
               <div className="space-y-2">
                 {visibles.map(f => (
-                  <div
-                    key={f.id}
-                    onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }}
-                    className="flex items-center gap-4 p-4 rounded-[12px] border border-border hover:border-orange/30 cursor-pointer hover:bg-page-bg transition-all group"
-                  >
-                    <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                      <Receipt className="w-5 h-5" style={{ color: ORA }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <span className="text-[13px] font-bold text-text-1 font-mono">{f.id}</span>
+                  <div key={f.id} onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }} className="cursor-pointer">
+
+                    {/* ── Móvil: card igual que Mis Facturas ── */}
+                    <div className="sm:hidden bg-white rounded-[14px] border border-border p-4 flex flex-col gap-3 hover:bg-page-bg transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-[13px] font-bold font-mono text-text-1">{f.id}</p>
+                          <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>{f.fecha}</p>
+                        </div>
                         <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
                       </div>
-                      <div className="text-[11px] truncate" style={{ color: TEXT4 }}>{f.fecha} · {f.concepto}</div>
+                      <p className="text-[12px] leading-snug line-clamp-2" style={{ color: TEXT4 }}>{f.concepto}</p>
+                      <div className="bg-page-bg rounded-[10px] p-3">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Monto</p>
+                        <div className="flex items-center gap-1.5">
+                          <Receipt className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
+                          <p className="text-[15px] font-extrabold leading-none" style={{ color: GREEN }}>
+                            {fmt(f.monto)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end pt-1 border-t border-border">
+                        <span className="text-[11px] font-semibold flex items-center gap-0.5" style={{ color: ORA }}>
+                          Ver detalle <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-[14px] font-extrabold text-text-1">{fmt(f.monto)}</div>
-                      <div className="text-[10px]" style={{ color: TEXT4 }}>XAF</div>
+
+                    {/* ── Desktop: row ── */}
+                    <div className="hidden sm:flex items-start gap-4 p-4 rounded-[12px] border border-border hover:border-orange/30 hover:bg-page-bg transition-all group">
+                      <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FFF3E0' }}>
+                        <Receipt className="w-5 h-5" style={{ color: ORA }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[13px] font-bold text-text-1 font-mono block mb-1">{f.id}</span>
+                        <p className="text-[12px] leading-snug mb-2 line-clamp-2" style={{ color: TEXT4 }}>{f.concepto}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
+                          <span className="text-[10px]" style={{ color: TEXT4 }}>{f.fecha}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0 gap-0.5 pt-0.5">
+                        <div className="text-[14px] font-extrabold text-text-1">{fmt(f.monto)}</div>
+                        <div className="text-[10px]" style={{ color: TEXT4 }}>XAF</div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 shrink-0 opacity-40 group-hover:opacity-100 transition mt-1" style={{ color: ORA }} />
                     </div>
-                    <ChevronRight className="w-4 h-4 shrink-0 opacity-40 group-hover:opacity-100 transition" style={{ color: ORA }} />
+
                   </div>
                 ))}
               </div>
@@ -1346,7 +1376,7 @@ export function EmpNuevaSolicitud() {
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-1.5">Descripción del proyecto</p>
                 <p className="text-[13px] text-text-1 px-3 py-2.5 rounded-[8px] border border-border bg-page-bg">{sol.desc}</p>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-1.5">Monto solicitado</p>
                   <p className="text-[13px] font-extrabold text-text-1 px-3 py-2.5 rounded-[8px] border border-border bg-page-bg">

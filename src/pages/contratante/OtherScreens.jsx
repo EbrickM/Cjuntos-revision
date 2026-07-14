@@ -169,17 +169,17 @@ export function EmpProvPerfil() {
       <div className="fade-in">
         <Button variant="ghost" size="sm" className="mb-5" onClick={() => go('empProv')}>← Directorio</Button>
         <div className="bg-white rounded-[14px] border border-border p-7 mb-5">
-          <div className="flex items-center gap-5">
-            <div className="w-[60px] h-[60px] rounded-[14px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[20px]">CS</div>
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="w-[60px] h-[60px] rounded-[14px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[20px] shrink-0">CS</div>
+            <div className="flex-1 min-w-0">
               <div className="text-[22px] font-bold mb-1">Construcciones Silva Ltd.</div>
-              <div className="flex gap-4 text-[13px] text-text-4">
-                <span>RUC: GE-2021-00234</span><span>·</span><span>Construcción</span><span>·</span><span>Activo desde Ene 2025</span>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-text-4">
+                <span>RUC: GE-2021-00234</span><span className="hidden sm:inline">·</span><span>Construcción</span><span className="hidden sm:inline">·</span><span>Activo desde Ene 2025</span>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {[['🟢 Verde','Bajo Riesgo','bg-green-bg border-green-border'],['🌿 Verde B.','Etiqueta ESG','bg-green-bg border-green-border'],['87/100','Score financiero','bg-orange-tint border-orange-border']].map(([val,lbl,cls]) => (
-                <div key={lbl} className={`${cls} border rounded-[12px] p-3.5 text-center`}>
+                <div key={lbl} className={`${cls} border rounded-[12px] p-3.5 text-center min-w-[90px]`}>
                   <div className="text-[18px] font-bold mb-0.5">{val}</div>
                   <div className="text-[11px] text-text-4">{lbl}</div>
                 </div>
@@ -343,7 +343,7 @@ export function EmpESG() {
       <div className="fade-in space-y-5">
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {empKpis.map(({ value, label, cls, trend, tUp }) => (
             <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
               <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
