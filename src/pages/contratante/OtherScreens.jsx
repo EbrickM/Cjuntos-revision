@@ -482,7 +482,7 @@ export function EmpESG() {
 
         {/* Projects table */}
         <div className="bg-white rounded-[14px] border border-border p-5">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
             <div>
               <div className="text-[14px] font-bold text-text-1">Proyectos Registrados</div>
               <div className="text-[11px] text-text-4">Todos los proyectos medioambientales de TotalEnerGE</div>
@@ -492,7 +492,39 @@ export function EmpESG() {
               <span className="text-[11px] font-bold text-green-text">12 registrados</span>
             </div>
           </div>
-          <div className="overflow-x-auto">
+          {/* Móvil: cards */}
+          <div className="sm:hidden space-y-3">
+            {empProyectos.map((p, i) => (
+              <div key={i} className="rounded-[14px] border border-border p-4 flex flex-col gap-3">
+                {/* Nombre + estado */}
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[13px] font-bold text-text-1 leading-snug flex-1">{p.nombre}</p>
+                  <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
+                </div>
+                <div className="h-px bg-border" />
+                {/* Datos etiquetados */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Riesgo</p>
+                    <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Financiamiento</p>
+                    <p className="text-[13px] font-bold text-text-1">{p.fin}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Certificación</p>
+                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-green-bg text-green-text border border-green-border">
+                      {p.cert}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop: tabla */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-border">
