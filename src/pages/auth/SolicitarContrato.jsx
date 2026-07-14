@@ -107,21 +107,23 @@ function CompanyCard({ company, onConfirm, onReject, confirmLabel = 'Sí, contin
       <div className="relative overflow-hidden p-6" style={{ background: GRAD }}>
         <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
         <div className="absolute right-8 -bottom-6 w-24 h-24 rounded-full bg-white/10 pointer-events-none" />
-        <div className="relative flex items-center gap-5">
-          <div className="w-14 h-14 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
-            <Building2 className="w-7 h-7 text-white" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center shrink-0">
+              <Building2 className="w-7 h-7 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-white text-xl leading-tight">{company.razonSocial}</div>
+              <div className="text-white/70 text-sm mt-0.5">{company.nif}</div>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-bold text-white text-xl leading-tight truncate">{company.razonSocial}</div>
-            <div className="text-white/70 text-sm mt-0.5">{company.nif}</div>
-          </div>
-          <span className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/20 text-white border border-white/30">
+          <span className="self-start sm:self-auto sm:ml-auto text-xs font-semibold px-3 py-1.5 rounded-full bg-white/20 text-white border border-white/30">
             {company.estadoKyc ?? 'KYC Vigente'}
           </span>
         </div>
       </div>
       {/* Datos */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 divide-x divide-y divide-border bg-white">
+      <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-x sm:divide-y divide-border bg-white">
         {[
           ['Forma jurídica',        company.formaJuridica ?? 'S.A.'],
           ['País',                  company.pais          ?? 'Guinea Ecuatorial'],
@@ -137,9 +139,9 @@ function CompanyCard({ company, onConfirm, onReject, confirmLabel = 'Sí, contin
         ))}
       </div>
       {(onConfirm || onReject) && (
-        <div className="flex gap-3 p-5 border-t border-border bg-gray-50">
-          <BtnPrimary onClick={onConfirm}><Check className="w-4 h-4" /> {confirmLabel}</BtnPrimary>
-          <BtnSecondary onClick={onReject}>{rejectLabel}</BtnSecondary>
+        <div className="flex flex-col-reverse sm:flex-row gap-3 p-5 border-t border-border bg-gray-50">
+          <BtnSecondary onClick={onReject} className="w-full sm:w-auto justify-center">{rejectLabel}</BtnSecondary>
+          <BtnPrimary onClick={onConfirm} className="w-full sm:w-auto justify-center"><Check className="w-4 h-4" /> {confirmLabel}</BtnPrimary>
         </div>
       )}
     </div>
@@ -169,10 +171,10 @@ function BtnPrimary({ onClick, children, disabled, className = '' }) {
   );
 }
 
-function BtnSecondary({ onClick, children, disabled }) {
+function BtnSecondary({ onClick, children, disabled, className = '' }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer transition-all border border-border text-text-2 hover:bg-gray-50 disabled:opacity-40 shrink-0">
+      className={`h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer transition-all border border-border text-text-2 hover:bg-gray-50 disabled:opacity-40 shrink-0 ${className}`}>
       {children}
     </button>
   );
@@ -180,14 +182,14 @@ function BtnSecondary({ onClick, children, disabled }) {
 
 function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás', nextDisabled = false, hideNext = false }) {
   return (
-    <div className="pt-6 border-t border-border flex items-center justify-between gap-4 mt-10">
+    <div className="pt-6 border-t border-border flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-10">
       <button onClick={onBack} disabled={!onBack}
-        className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer transition-all border border-border text-text-2 hover:bg-gray-50 disabled:opacity-0 disabled:pointer-events-none">
+        className="h-11 px-6 flex items-center justify-center gap-2 text-sm font-semibold rounded-xl cursor-pointer transition-all border border-border text-text-2 hover:bg-gray-50 disabled:opacity-0 disabled:pointer-events-none">
         <ChevronLeft className="w-4 h-4" /> {backLabel}
       </button>
       {!hideNext && (
         <button onClick={onNext} disabled={nextDisabled}
-          className="h-11 px-8 flex items-center gap-2 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="h-11 px-8 w-full sm:w-auto flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           style={{ background: ORA, boxShadow: '0 4px 14px rgba(239,122,44,0.28)' }}>
           {nextLabel} <ChevronRight className="w-4 h-4" />
         </button>
@@ -474,9 +476,10 @@ export default function SolicitarContrato() {
                 placeholder="GQ-2024-00234"
                 onKeyDown={e => e.key === 'Enter' && nif.trim() && mockNifSearch(nif)} />
               <button onClick={() => mockNifSearch(nif)} disabled={!nif.trim()}
-                className="h-[42px] px-5 rounded-lg text-white flex items-center gap-2 text-sm font-semibold disabled:opacity-40 cursor-pointer shrink-0"
+                className="h-[42px] px-3 sm:px-5 rounded-lg text-white flex items-center gap-2 text-sm font-semibold disabled:opacity-40 cursor-pointer shrink-0"
                 style={{ background: ORA }}>
-                <Search className="w-4 h-4" /> Buscar
+                <Search className="w-4 h-4" />
+                <span className="hidden sm:inline">Buscar</span>
               </button>
             </div>
           </Field>
@@ -488,16 +491,16 @@ export default function SolicitarContrato() {
           )}
         </div>
         {foundCompany ? (
-          <div className="pt-6 border-t border-border flex items-center justify-between gap-4 mt-10">
+          <div className="pt-6 border-t border-border mt-10 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
             <button onClick={() => setPhase(returnPhase === 'inv_final' ? 'is_client' : 'who_initiates')}
-              className="h-11 px-6 flex items-center gap-2 text-sm font-semibold rounded-xl cursor-pointer border border-border text-text-2 hover:bg-gray-50 transition-all shrink-0">
+              className="h-11 px-6 w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold rounded-xl cursor-pointer border border-border text-text-2 hover:bg-gray-50 transition-all">
               <ChevronLeft className="w-4 h-4" /> Atrás
             </button>
-            <div className="flex gap-3">
-              <BtnSecondary onClick={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }}>
+            <div className="flex flex-col-reverse sm:flex-row gap-3">
+              <BtnSecondary onClick={() => { setNif(''); setFoundCompany(null); setNifSearched(false); }} className="w-full sm:w-auto justify-center">
                 No, intentar otro NIF
               </BtnSecondary>
-              <BtnPrimary onClick={() => setPhase(returnPhase || 'operation')}>
+              <BtnPrimary onClick={() => setPhase(returnPhase || 'operation')} className="w-full sm:w-auto justify-center">
                 <Check className="w-4 h-4" /> Sí, usar estos datos
               </BtnPrimary>
             </div>
@@ -1011,7 +1014,7 @@ export default function SolicitarContrato() {
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: GRAD }}>
             <Send className="w-9 h-9 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-text-1 mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-text-1 mb-2">
             {sentFromInv ? 'Confirmación enviada a Bonafide' : 'Solicitud enviada con éxito'}
           </h2>
           <p className="text-text-3 max-w-md mx-auto">
@@ -1400,20 +1403,20 @@ export default function SolicitarContrato() {
 
           {showStepper && <Stepper steps={steps} step={step} />}
 
-          <div className={`bg-white rounded-2xl shadow-sm border border-border p-8 lg:p-12 ${showStepper ? 'mt-6' : 'mt-2'}`}>
+          <div className={`bg-white rounded-2xl shadow-sm border border-border px-5 py-8 sm:p-8 lg:p-12 ${showStepper ? 'mt-6' : 'mt-2'}`}>
 
             {/* Step header */}
             <div className="mb-8">
-              <div className="flex items-center gap-4 mb-2">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: GRAD }}>
+              <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: GRAD }}>
                   <hdr.Icon className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-text-1 leading-tight">{hdr.title}</h2>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl sm:text-2xl font-bold text-text-1 leading-tight">{hdr.title}</h2>
                   <p className="text-sm text-text-3 mt-0.5">{hdr.sub}</p>
+                  <div className="h-1 w-16 rounded-full mt-3" style={{ background: GRAD }} />
                 </div>
               </div>
-              <div className="h-1 w-16 rounded-full mt-3" style={{ background: GRAD }} />
             </div>
 
             {content[phase] ?? null}

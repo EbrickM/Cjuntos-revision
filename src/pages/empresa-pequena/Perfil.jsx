@@ -25,12 +25,12 @@ const HeroBadge = ({ label, value, Icon, bg, color }) => (
 
 const SectionHeader = ({ title, sub, Icon, right }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
-    <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+    <div className="flex items-start gap-3">
+      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5"
            style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <div>
+      <div className="flex-1 min-w-0">
         <div className="text-[14px] font-bold text-text-1">{title}</div>
         {sub && <div className="text-[12px] text-text-4">{sub}</div>}
       </div>

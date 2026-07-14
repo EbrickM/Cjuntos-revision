@@ -39,12 +39,12 @@ const HeroBadge = ({ label, value, Icon, bg, color }) => (
 
 const SectionHeader = ({ title, sub, Icon, right }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
-    <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
+    <div className="flex items-start gap-3">
+      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5"
            style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <div>
+      <div className="flex-1 min-w-0">
         <div className="text-[14px] font-bold text-text-1">{title}</div>
         {sub && <div className="text-[12px] text-text-4">{sub}</div>}
       </div>
@@ -1520,7 +1520,7 @@ export function EmpNuevaSolicitud() {
             <ChevronRight className="w-4 h-4 rotate-180" /> Volver a solicitudes
           </button>
 
-          <div className="card-enter bg-white rounded-[14px] border border-border p-6 space-y-5">
+          <div className="card-enter bg-white rounded-[14px] border border-border p-4 sm:p-6 space-y-5">
             <SectionHeader title="Solicitud de PYME" sub="Revisa los datos y confirma tu participación" Icon={TrendingUp} />
 
             {/* PYME hero */}
@@ -1570,9 +1570,9 @@ export function EmpNuevaSolicitud() {
               />
             </FormGroup>
 
-            <div className="flex justify-end gap-3 pt-2 border-t border-border">
-              <Button variant="ghost" size="sm" onClick={() => go('empSolicitudes')}>Cancelar</Button>
-              <Button variant="primary" size="sm">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2 border-t border-border">
+              <Button variant="ghost" size="sm" className="justify-center" onClick={() => go('empSolicitudes')}>Cancelar</Button>
+              <Button variant="primary" size="sm" className="justify-center">
                 <CheckCircle2 className="w-3.5 h-3.5 mr-1" />Confirmar participación
               </Button>
             </div>
@@ -1592,14 +1592,14 @@ export function EmpNuevaSolicitud() {
           <ChevronRight className="w-4 h-4 rotate-180" /> Volver
         </button>
 
-        <div className="card-enter bg-white rounded-[14px] border border-border p-6 space-y-5">
+        <div className="card-enter bg-white rounded-[14px] border border-border p-4 sm:p-6 space-y-5">
           <SectionHeader title="Datos de la solicitud" sub="Completa los campos para iniciar el proceso con Bonafide" Icon={FilePlus} />
 
           <FormGroup label="Tipo de solicitud">
             <select
               value={tipo}
               onChange={e => setTipo(e.target.value)}
-              className="w-full px-3 py-2 text-[13px] rounded-[8px] border border-border bg-white text-text-1 focus:outline-none focus:border-orange"
+              className="w-full px-3 py-2.5 text-[13px] rounded-[8px] border border-border bg-white text-text-1 focus:outline-none focus:border-orange"
             >
               {['Nuevo contrato', 'Ampliación de fondo', 'Renovación'].map(t => (
                 <option key={t}>{t}</option>
@@ -1608,13 +1608,13 @@ export function EmpNuevaSolicitud() {
           </FormGroup>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormGroup label="PYME a contratar">
+            <FormGroup label="PYME a contratar" className="mb-0">
               <Input value={pymeName} onChange={e => setPymeName(e.target.value)} placeholder="Nombre o RUC de la PYME" />
             </FormGroup>
-            <FormGroup label="Monto solicitado (XAF)">
+            <FormGroup label="Monto solicitado (XAF)" className="mb-0">
               <Input value={monto} onChange={e => setMonto(e.target.value)} placeholder="Ej. 50.000.000" />
             </FormGroup>
-            <FormGroup label="Plazo (meses)">
+            <FormGroup label="Plazo (meses)" className="mb-0">
               <Input value={plazo} onChange={e => setPlazo(e.target.value)} placeholder="Ej. 12" />
             </FormGroup>
           </div>
@@ -1625,12 +1625,12 @@ export function EmpNuevaSolicitud() {
               onChange={e => setDesc(e.target.value)}
               rows={4}
               placeholder="Describe el objeto del contrato y la necesidad…"
-              className="w-full px-3 py-2 text-[13px] rounded-[8px] border border-border bg-white text-text-1 focus:outline-none focus:border-orange resize-none"
+              className="w-full px-3 py-2.5 text-[13px] rounded-[8px] border border-border bg-white text-text-1 focus:outline-none focus:border-orange resize-none"
             />
           </FormGroup>
 
           {/* Adjuntos */}
-          <div className="rounded-[10px] border-2 border-dashed border-border p-5 text-center">
+          <div className="rounded-[10px] border-2 border-dashed border-border p-4 sm:p-5 text-center">
             <FileText className="w-6 h-6 mx-auto mb-2 text-text-4" />
             <p className="text-[12px] font-semibold text-text-3">Adjuntar documentos</p>
             <p className="text-[11px] text-text-4">Contrato borrador, estados financieros, etc.</p>
@@ -1639,9 +1639,9 @@ export function EmpNuevaSolicitud() {
             </button>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2 border-t border-border">
-            <Button variant="ghost" size="sm" onClick={() => go('empContratos')}>Cancelar</Button>
-            <Button variant="primary" size="sm">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2 border-t border-border">
+            <Button variant="ghost" size="sm" className="justify-center" onClick={() => go('empContratos')}>Cancelar</Button>
+            <Button variant="primary" size="sm" className="w-full sm:w-auto justify-center">
               <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Enviar solicitud
             </Button>
           </div>
