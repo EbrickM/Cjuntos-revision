@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   ChevronRight, CheckCircle, CheckCircle2, Clock, Zap, Building2,
   Users, Receipt, User, Phone, Mail, MapPin, FileText, ShieldCheck,
   TrendingUp, FilePlus, CreditCard, FileCheck, Camera, Shield,
-  Leaf, AlertCircle, Star, ClipboardList, ArrowUpRight, Search, ListFilter,
+  Leaf, AlertCircle, Star, ClipboardList, ArrowUpRight, Search, ListFilter, X,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -67,6 +67,97 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
     <div className="text-[11px] text-text-4 leading-snug">{sub}</div>
   </div>
 );
+
+// ── Modal de verificación IPI (misma estética que OTPModal de login) ──────────
+const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
+  const [otp, setOtp]             = useState(['', '', '', '', '', '']);
+  const [timer, setTimer]         = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const refs = useRef([]);
+
+  useEffect(() => {
+    setTimer(60); setCanResend(false);
+    const iv = setInterval(() => setTimer(p => {
+      if (p <= 1) { clearInterval(iv); setCanResend(true); return 0; }
+      return p - 1;
+    }), 1000);
+    return () => clearInterval(iv);
+  }, []);
+
+  const handleChange = (i, val) => {
+    if (val.length > 1 || !/^\d*$/.test(val)) return;
+    const next = [...otp]; next[i] = val; setOtp(next);
+    if (val && i < 5) refs.current[i + 1]?.focus();
+  };
+  const handleKeyDown = (i, e) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) refs.current[i - 1]?.focus();
+  };
+  const handlePaste = e => {
+    e.preventDefault();
+    const p = e.clipboardData.getData('text').slice(0, 6);
+    if (!/^\d+$/.test(p)) return;
+    setOtp([...p.split(''), ...Array(6 - p.length).fill('')]);
+    refs.current[Math.min(p.length, 5)]?.focus();
+  };
+  const handleResend = () => {
+    if (!canResend) return;
+    setOtp(['', '', '', '', '', '']); setTimer(60); setCanResend(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+         onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="w-full max-w-md rounded-2xl p-[2px]"
+           style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+        <div className="bg-white rounded-2xl p-8 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
+            <X className="w-5 h-5 text-text-3" />
+          </button>
+          <div className="flex justify-center mb-5">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                 style={{ background: 'linear-gradient(135deg, #EF7A2C, #E0201C)' }}>
+              <Mail className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-text-1 mb-1">Código enviado</h2>
+            <p className="text-sm text-text-3">
+              Ingresa el código de 6 dígitos enviado a{' '}
+              <span className="font-semibold text-text-1">info@totalenerge.gq</span>
+            </p>
+            {factura && (
+              <p className="text-[11px] mt-1.5 font-mono" style={{ color: TEXT4 }}>
+                {factura.id} · {fmt(factura.monto)} XAF
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2 mb-6 justify-center">
+            {otp.map((digit, i) => (
+              <input key={i}
+                ref={el => (refs.current[i] = el)}
+                type="text" inputMode="numeric" maxLength={1}
+                value={digit}
+                onChange={e => handleChange(i, e.target.value)}
+                onKeyDown={e => handleKeyDown(i, e)}
+                onPaste={i === 0 ? handlePaste : undefined}
+                className="w-11 h-12 text-center text-xl font-bold border-2 border-input-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent transition"
+              />
+            ))}
+          </div>
+          <Button onClick={() => onConfirm(otp.join(''))} full disabled={otp.join('').length !== 6} className="mb-4 h-[48px]">
+            Verificar código
+          </Button>
+          <div className="flex justify-end">
+            <button onClick={handleResend} disabled={!canResend}
+              className={`text-sm font-medium transition-colors ${canResend ? 'text-orange cursor-pointer hover:underline' : 'text-text-4 cursor-not-allowed'}`}>
+              {canResend ? 'Reenviar código' : `Reenviar (${timer}s)`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ── Datos ─────────────────────────────────────────────────────────────────────
 const contratos = [
@@ -312,7 +403,6 @@ export function EmpFacturas() {
   const [filtro, setFiltro]             = useState('Todas');
   const [facturaModal, setFacturaModal] = useState(null);
   const [ipiStep, setIpiStep]           = useState(null);
-  const [ipiCode, setIpiCode]           = useState('');
   const [estadoMap, setEstadoMap]       = useState({});
 
   const facturasVivas = facturas.map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
@@ -328,9 +418,9 @@ export function EmpFacturas() {
 
   const modalFac = facturaModal ? (facturasVivas.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
-  const closeModal         = () => { setFacturaModal(null); setIpiStep(null); setIpiCode(''); };
+  const closeModal         = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar    = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
-  const handleEnviarCodigo = () => { setIpiStep('codigo'); setIpiCode(''); };
+  const handleEnviarCodigo = () => setIpiStep('codigo');
   const handleConfirmarIPI = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'IPI emitido' })); closeModal(); };
 
   return (
@@ -444,39 +534,28 @@ export function EmpFacturas() {
           title={`Factura · ${modalFac.id}`}
           onClose={closeModal}
           footer={
-            ipiStep === 'codigo' ? (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setIpiStep(null)}>Cancelar</Button>
-                <Button variant="primary" size="sm" disabled={ipiCode.length < 4} onClick={handleConfirmarIPI}>
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" />Confirmar IPI
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
-                <div className="flex gap-2">
-                  {modalFac.estado === 'Recibida' && (
-                    <Button variant="primary" size="sm" onClick={handleVerificar}>
-                      <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
-                    </Button>
-                  )}
-                  {modalFac.estado === 'Verificada' && (
-                    <Button variant="primary" size="sm" onClick={handleEnviarCodigo}>
-                      <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
-                    </Button>
-                  )}
-                </div>
-              </>
-            )
+            <>
+              <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
+              <div className="flex gap-2">
+                {modalFac.estado === 'Recibida' && (
+                  <Button variant="primary" size="sm" onClick={handleVerificar}>
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
+                  </Button>
+                )}
+                {modalFac.estado === 'Verificada' && (
+                  <Button variant="primary" size="sm" onClick={() => setIpiStep('confirm')}>
+                    <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
+                  </Button>
+                )}
+              </div>
+            </>
           }
         >
           <div className="space-y-5">
-
             <div className="flex items-center justify-between">
               <Badge variant={facturaBadge(modalFac.estado)}>{modalFac.estado}</Badge>
               <span className="text-[12px]" style={{ color: TEXT4 }}>{modalFac.fecha}</span>
             </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <InfoRow label="Nº Factura"  value={modalFac.id} />
               <InfoRow label="PYME"        value={modalFac.pyme} />
@@ -485,7 +564,6 @@ export function EmpFacturas() {
               <InfoRow label="Fecha"       value={modalFac.fecha} />
               <InfoRow label="Concepto"    value={modalFac.concepto} />
             </div>
-
             <div>
               <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Documento adjunto</div>
               <div className="flex items-center gap-2.5 p-3 rounded-[10px] border border-border" style={{ color: TEXT4 }}>
@@ -493,35 +571,75 @@ export function EmpFacturas() {
                 <span className="text-[12px]">No se ha adjuntado documento a esta factura.</span>
               </div>
             </div>
-
-            {ipiStep === 'codigo' && (
-              <div className="rounded-[12px] border border-border p-4 space-y-3" style={{ background: '#F0FBF5' }}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                    <Mail className="w-4 h-4" style={{ color: GREEN }} />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-text-1">Verificación de seguridad</p>
-                    <p className="text-[11px]" style={{ color: TEXT4 }}>
-                      Código de 6 dígitos enviado a <strong className="text-text-2">info@totalenerge.gq</strong>
-                    </p>
-                  </div>
-                </div>
-                <input
-                  type="text" inputMode="numeric" maxLength={6}
-                  value={ipiCode}
-                  onChange={e => setIpiCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="· · · · · ·"
-                  className="w-full px-4 py-3 text-[20px] font-mono tracking-[0.5em] text-center rounded-[10px] border border-border focus:outline-none focus:border-orange transition"
-                />
-                <p className="text-[11px] text-center" style={{ color: TEXT4 }}>
-                  ¿No recibiste el código?{' '}
-                  <button className="font-semibold hover:opacity-75 transition" style={{ color: ORA }}>Reenviar</button>
-                </p>
-              </div>
-            )}
           </div>
         </Modal>
+      )}
+
+      {/* ── Modal IPI paso 1: confirmación ── */}
+      {ipiStep === 'confirm' && modalFac && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+             onClick={e => e.target === e.currentTarget && setIpiStep(null)}>
+          <div className="w-full max-w-md rounded-2xl p-[2px]"
+               style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+            <div className="bg-white rounded-2xl p-8 relative">
+              <button onClick={() => setIpiStep(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
+                <X className="w-5 h-5 text-text-3" />
+              </button>
+
+              <div className="flex justify-center mb-5">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                     style={{ background: 'linear-gradient(135deg, #EF7A2C, #E0201C)' }}>
+                  <Zap className="w-8 h-8 text-white" />
+                </div>
+              </div>
+
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-text-1 mb-1">Autorizar pago IPI</h2>
+                <p className="text-sm text-text-3">Revisa los datos y confirma la autorización</p>
+              </div>
+
+              <div className="rounded-[14px] border border-border p-4 mb-4" style={{ background: '#F8F7F5' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Factura</span>
+                  <span className="text-[12px] font-bold font-mono text-text-1">{modalFac.id}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>PYME</span>
+                  <span className="text-[12px] font-medium text-text-1">{modalFac.pyme}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Monto</span>
+                  <span className="text-[16px] font-extrabold" style={{ color: GREEN }}>
+                    {fmt(modalFac.monto)} <span className="text-[10px] font-semibold">XAF</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-[12px] p-4 mb-6" style={{ background: '#FFF3E0', border: '1px solid #FDDDB8' }}>
+                <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: ORA }} />
+                <p className="text-[13px] text-text-1 leading-relaxed">
+                  Confirmo que esta factura ha sido validada y autorizo el pago en la fecha de vencimiento.
+                </p>
+              </div>
+
+              <Button onClick={handleEnviarCodigo} full className="h-[48px] mb-3">
+                Aceptar y continuar
+              </Button>
+              <button onClick={() => setIpiStep(null)} className="w-full text-sm text-center font-medium text-text-3 hover:text-text-1 transition-colors cursor-pointer">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal IPI paso 2: verificación con código ── */}
+      {ipiStep === 'codigo' && modalFac && (
+        <IpiVerificacionModal
+          factura={modalFac}
+          onClose={() => setIpiStep(null)}
+          onConfirm={handleConfirmarIPI}
+        />
       )}
     </AppShell>
   );
@@ -1009,7 +1127,6 @@ export function EmpContratoDetalle() {
   const [tab, setTab] = useState('contrato');
   const [facturaModal, setFacturaModal] = useState(null);
   const [ipiStep, setIpiStep]           = useState(null);
-  const [ipiCode, setIpiCode]           = useState('');
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
   const c    = _selectedContrato;
@@ -1022,9 +1139,9 @@ export function EmpContratoDetalle() {
   const pyme    = pymes.find(p => p.ini === c.ini);
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
-  const closeModal        = () => { setFacturaModal(null); setIpiStep(null); setIpiCode(''); };
+  const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
-  const handleEnviarCodigo= () => { setIpiStep('codigo'); setIpiCode(''); };
+  const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'IPI emitido' })); closeModal(); };
 
   return (
@@ -1268,40 +1385,29 @@ export function EmpContratoDetalle() {
           title={`Factura · ${modalFac.id}`}
           onClose={closeModal}
           footer={
-            ipiStep === 'codigo' ? (
-              <>
-                <Button variant="ghost" size="sm" onClick={() => setIpiStep(null)}>Cancelar</Button>
-                <Button variant="primary" size="sm" disabled={ipiCode.length < 4} onClick={handleConfirmarIPI}>
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" />Confirmar IPI
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
-                <div className="flex gap-2">
-                  {modalFac.estado === 'Recibida' && (
-                    <Button variant="primary" size="sm" onClick={handleVerificar}>
-                      <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
-                    </Button>
-                  )}
-                  {modalFac.estado === 'Verificada' && (
-                    <Button variant="primary" size="sm" onClick={handleEnviarCodigo}>
-                      <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
-                    </Button>
-                  )}
-                </div>
-              </>
-            )
+            <>
+              <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
+              <div className="flex gap-2">
+                {modalFac.estado === 'Recibida' && (
+                  <Button variant="primary" size="sm" onClick={handleVerificar}>
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" />Verificar factura
+                  </Button>
+                )}
+                {modalFac.estado === 'Verificada' && (
+                  <Button variant="primary" size="sm" onClick={() => setIpiStep('confirm')}>
+                    <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
+                  </Button>
+                )}
+              </div>
+            </>
           }
         >
           <div className="space-y-5">
-
             {/* Estado + fecha */}
             <div className="flex items-center justify-between">
               <Badge variant={facturaBadge(modalFac.estado)}>{modalFac.estado}</Badge>
               <span className="text-[12px]" style={{ color: TEXT4 }}>{modalFac.fecha}</span>
             </div>
-
             {/* Datos principales */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <InfoRow label="Nº Factura"  value={modalFac.id} />
@@ -1311,7 +1417,6 @@ export function EmpContratoDetalle() {
               <InfoRow label="Fecha"       value={modalFac.fecha} />
               <InfoRow label="Concepto"    value={modalFac.concepto} />
             </div>
-
             {/* Documentos adjuntos */}
             <div>
               <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Documento adjunto</div>
@@ -1320,40 +1425,75 @@ export function EmpContratoDetalle() {
                 <span className="text-[12px]">No se ha adjuntado documento a esta factura.</span>
               </div>
             </div>
-
-            {/* Paso de verificación IPI */}
-            {ipiStep === 'codigo' && (
-              <div className="rounded-[12px] border border-border p-4 space-y-3" style={{ background: '#F0FBF5' }}>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                    <Mail className="w-4 h-4" style={{ color: GREEN }} />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-text-1">Verificación de seguridad</p>
-                    <p className="text-[11px]" style={{ color: TEXT4 }}>
-                      Código de 6 dígitos enviado a <strong className="text-text-2">info@totalenerge.gq</strong>
-                    </p>
-                  </div>
-                </div>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  value={ipiCode}
-                  onChange={e => setIpiCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="· · · · · ·"
-                  className="w-full px-4 py-3 text-[20px] font-mono tracking-[0.5em] text-center rounded-[10px] border border-border focus:outline-none focus:border-orange transition"
-                />
-                <p className="text-[11px] text-center" style={{ color: TEXT4 }}>
-                  ¿No recibiste el código?{' '}
-                  <button className="font-semibold hover:opacity-75 transition" style={{ color: ORA }}>
-                    Reenviar
-                  </button>
-                </p>
-              </div>
-            )}
           </div>
         </Modal>
+      )}
+
+      {/* ── Modal IPI paso 1: confirmación ── */}
+      {ipiStep === 'confirm' && modalFac && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+             onClick={e => e.target === e.currentTarget && setIpiStep(null)}>
+          <div className="w-full max-w-md rounded-2xl p-[2px]"
+               style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+            <div className="bg-white rounded-2xl p-8 relative">
+              <button onClick={() => setIpiStep(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
+                <X className="w-5 h-5 text-text-3" />
+              </button>
+
+              <div className="flex justify-center mb-5">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                     style={{ background: 'linear-gradient(135deg, #EF7A2C, #E0201C)' }}>
+                  <Zap className="w-8 h-8 text-white" />
+                </div>
+              </div>
+
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-text-1 mb-1">Autorizar pago IPI</h2>
+                <p className="text-sm text-text-3">Revisa los datos y confirma la autorización</p>
+              </div>
+
+              <div className="rounded-[14px] border border-border p-4 mb-4" style={{ background: '#F8F7F5' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Factura</span>
+                  <span className="text-[12px] font-bold font-mono text-text-1">{modalFac.id}</span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>PYME</span>
+                  <span className="text-[12px] font-medium text-text-1">{modalFac.pyme}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 mt-1 border-t border-border">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Monto</span>
+                  <span className="text-[16px] font-extrabold" style={{ color: GREEN }}>
+                    {fmt(modalFac.monto)} <span className="text-[10px] font-semibold">XAF</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-[12px] p-4 mb-6" style={{ background: '#FFF3E0', border: '1px solid #FDDDB8' }}>
+                <CheckCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: ORA }} />
+                <p className="text-[13px] text-text-1 leading-relaxed">
+                  Confirmo que esta factura ha sido validada y autorizo el pago en la fecha de vencimiento.
+                </p>
+              </div>
+
+              <Button onClick={handleEnviarCodigo} full className="h-[48px] mb-3">
+                Aceptar y continuar
+              </Button>
+              <button onClick={() => setIpiStep(null)} className="w-full text-sm text-center font-medium text-text-3 hover:text-text-1 transition-colors cursor-pointer">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal IPI paso 2: verificación con código ── */}
+      {ipiStep === 'codigo' && modalFac && (
+        <IpiVerificacionModal
+          factura={modalFac}
+          onClose={() => setIpiStep(null)}
+          onConfirm={handleConfirmarIPI}
+        />
       )}
     </AppShell>
   );
