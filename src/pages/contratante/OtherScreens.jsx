@@ -122,6 +122,7 @@ export function EmpConfDet() {
 // ── PROVEEDORES ──
 export function EmpProv() {
   const { go } = useApp();
+
   const provs = [
     ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','87'],
     ['Tech Bata SL','TB','Tecnología','12 emp.','b-green','🟢 Verde','82'],
@@ -130,10 +131,9 @@ export function EmpProv() {
     ['Mader. Bata','MB','Maderería','23 emp.','b-green','🟢 Verde','75'],
     ['ServLog GE','SL','Logística','15 emp.','b-red','🔴 Rojo','32'],
   ];
+
   return (
-    <AppShell active="empProv" role="contratante" title="Proveedores" sub="Directorio"
-      extra={<Button variant="primary" size="sm">+ Invitar PYME</Button>}
-    >
+    <AppShell active="empProv" role="contratante" title="Proveedores" sub="Directorio">
       <div className="fade-in">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {provs.map(([name,ini,sec,emp,cls,sem,score]) => (

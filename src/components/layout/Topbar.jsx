@@ -52,7 +52,7 @@ const notifs = [
   },
 ];
 
-export default function Topbar({ role, onMenuClick }) {
+export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
   const { go } = useApp();
   const [notifOpen, setNotifOpen] = useState(false);
   const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
@@ -81,7 +81,7 @@ export default function Topbar({ role, onMenuClick }) {
 
         {/* Invitar PYME — solo contratante */}
         {(role === 'contratante' || role === 'empresa-pequena') && (
-          <Button variant="primary" size="sm" className="hidden sm:inline-flex shrink-0">
+          <Button variant="primary" size="sm" className="hidden sm:inline-flex shrink-0" onClick={onInvitarPyme}>
             <UserPlus className="w-3.5 h-3.5" />
             Invitar PYME
           </Button>
