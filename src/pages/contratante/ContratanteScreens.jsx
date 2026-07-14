@@ -946,7 +946,7 @@ export function EmpSolicitudes() {
           <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
             {[{ id: 'mis', lbl: 'Mis solicitudes' }, { id: 'pymes', lbl: 'Solicitudes de PYMEs' }].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex-1 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
+                className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
                   tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
                 }`}>{t.lbl}
               </button>
