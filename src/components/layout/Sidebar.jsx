@@ -32,7 +32,6 @@ const NAV = {
 };
 
 const USERS = {
-  contratante: { initials: 'TE', name: 'TotalEnerGE', role: 'Empresa Contratante', pill: null },
 };
 
 const SECTIONS = {
