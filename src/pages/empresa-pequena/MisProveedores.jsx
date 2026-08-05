@@ -159,7 +159,7 @@ export default function EpMisProveedores() {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
               <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={handleOpenNew}>Nuevo proveedor</Button>
-              <div className="relative w-full sm:flex-none order-last sm:order-first">
+              <div className="relative w-full sm:w-auto order-last sm:order-first">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                 <input
                   type="text"

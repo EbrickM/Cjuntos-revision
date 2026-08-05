@@ -222,7 +222,7 @@ export default function EpFacturacion() {
             action={
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>
-                <div className="relative w-full sm:flex-none order-last sm:order-first">
+                <div className="relative w-full sm:w-auto order-last sm:order-first">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                   <input type="text" placeholder="Buscar…" value={searchCT} onChange={e => setSearchCT(e.target.value)}
                     className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
@@ -308,7 +308,7 @@ export default function EpFacturacion() {
             action={
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}>Importar Factura</Button>
-                <div className="relative w-full sm:flex-none order-last sm:order-first">
+                <div className="relative w-full sm:w-auto order-last sm:order-first">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                   <input type="text" placeholder="Buscar…" value={searchPR} onChange={e => setSearchPR(e.target.value)}
                     className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />

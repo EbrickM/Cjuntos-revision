@@ -365,16 +365,6 @@ export default function EpHome() {
                 Bienvenido, Construcciones Silva
               </div>
             </div>
-            <div className="hidden sm:flex gap-2">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
-                Verde
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
-                <Leaf className="w-3.5 h-3.5" />
-                Verde Bonafide
-              </span>
-            </div>
           </div>
           <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
             {TABS.map(t => (
