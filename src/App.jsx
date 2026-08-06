@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useApp, AppProvider } from './state/AppContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 // Auth
 const Splash = lazy(() => import('./pages/auth/Splash'));
@@ -117,9 +118,11 @@ function Router() {
   };
 
   return (
-    <Suspense fallback={<RouteFallback />}>
-      {screens[screen] ?? <Splash />}
-    </Suspense>
+    <ErrorBoundary key={screen}>
+      <Suspense fallback={<RouteFallback />}>
+        {screens[screen] ?? <Splash />}
+      </Suspense>
+    </ErrorBoundary>
   );
 }
 

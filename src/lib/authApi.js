@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { loadConfig } from '../config';
 
 export class AuthApiError extends Error {
@@ -14,46 +15,48 @@ export class AuthApiError extends Error {
 // than tight.
 const REQUEST_TIMEOUT_MS = 20000;
 
-async function postJson(path, body) {
+// Kept separate from lib/apiClient.js: this hits authUrl (not apiUrl) and
+// never carries a Bearer token — it *is* the pre-auth flow the other client's
+// token interceptor depends on.
+const authClient = axios.create({ timeout: REQUEST_TIMEOUT_MS });
+
+authClient.interceptors.request.use(async (config) => {
   const { authUrl } = await loadConfig();
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  config.baseURL = authUrl;
+  return config;
+});
 
-  let res;
-  try {
-    res = await fetch(`${authUrl}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-  } catch (err) {
-    const timedOut = err instanceof DOMException && err.name === 'AbortError';
-    throw new AuthApiError(
-      timedOut ? 'El servidor tardó demasiado en responder.' : 'No se pudo conectar con el servidor.',
-      0,
-      'network'
-    );
-  } finally {
-    window.clearTimeout(timeout);
+authClient.interceptors.response.use(
+  (res) => {
+    // The auth service can 200 with a `{ success: false }` body, so a 2xx
+    // status alone doesn't mean the request actually succeeded.
+    const payload = res.data && typeof res.data === 'object' ? res.data : null;
+    if (!payload || payload.success !== true) {
+      throw new AuthApiError(
+        payload?.message || 'No se pudo completar la solicitud.',
+        res.status,
+        res.status >= 500 ? 'server' : 'client'
+      );
+    }
+    return payload.data;
+  },
+  (error) => {
+    if (!error.response) {
+      const timedOut = error.code === 'ECONNABORTED';
+      throw new AuthApiError(
+        timedOut ? 'El servidor tardó demasiado en responder.' : 'No se pudo conectar con el servidor.',
+        0,
+        'network'
+      );
+    }
+
+    const { status, data } = error.response;
+    throw new AuthApiError(data?.message || 'No se pudo completar la solicitud.', status, status >= 500 ? 'server' : 'client');
   }
+);
 
-  let payload;
-  try {
-    payload = await res.json();
-  } catch {
-    payload = null;
-  }
-
-  if (!res.ok || !payload || payload.success !== true) {
-    throw new AuthApiError(
-      payload?.message || 'No se pudo completar la solicitud.',
-      res.status,
-      res.status >= 500 ? 'server' : 'client'
-    );
-  }
-
-  return payload.data;
+function postJson(path, body) {
+  return authClient.post(path, body);
 }
 
 // Client (PYME / Contratante) OTP login — resolves against the shared
