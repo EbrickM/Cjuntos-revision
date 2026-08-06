@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useApp } from '../../state/AppContext';
-import isotipo   from '../../assets/isotipo-blanco.png';
-import logoTexto from '../../assets/logo-texto-blanco.png';
+import isotipo   from '../../assets/isotipo-blanco.webp';
+import logoTexto from '../../assets/logo-texto-blanco.webp';
 
 export default function Splash() {
   const { go } = useApp();
@@ -19,6 +19,7 @@ export default function Splash() {
       <img
         src={isotipo}
         alt=""
+        fetchPriority="high"
         className="w-32 h-32 sm:w-44 sm:h-44 object-contain"
         style={{ animation: 'spin 1.2s linear infinite' }}
       />

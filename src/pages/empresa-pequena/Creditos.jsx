@@ -631,7 +631,7 @@ export default function EpCreditos() {
                     {ct.documentoContrato ? (
                       <div className="rounded-[12px] border border-border overflow-hidden">
                         {ct.documentoContrato.type?.startsWith('image/')
-                          ? <img src={ct.documentoContrato.url} className="w-full max-h-52 object-contain bg-page-bg" alt="Vista previa" />
+                          ? <img src={ct.documentoContrato.url} loading="lazy" className="w-full max-h-52 object-contain bg-page-bg" alt="Vista previa" />
                           : <iframe src={ct.documentoContrato.url} className="w-full h-52" title="Vista previa del documento" />
                         }
                         <div className="flex items-center gap-2 px-3 py-2 bg-page-bg border-t border-border">
