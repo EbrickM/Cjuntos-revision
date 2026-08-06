@@ -441,7 +441,7 @@ export default function EpHome() {
                     {/* Bloque inferior — CTAs + indicadores, solo desktop */}
                     <div className="hidden md:block">
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <button onClick={() => go('epSolicitudes')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                        <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                                 style={{ background: ORA }}>
                           <ArrowUpRight className="w-3.5 h-3.5" />
                           Solicitar Nuevo Contrato
@@ -506,7 +506,7 @@ export default function EpHome() {
                 {/* Móvil: botones icono + indicadores al final */}
                 <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
                   <div className="flex gap-2">
-                    <button onClick={() => go('epSolicitudes')} className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
+                    <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
                             style={{ background: ORA }}>
                       <ArrowUpRight className="w-4 h-4" />
                     </button>

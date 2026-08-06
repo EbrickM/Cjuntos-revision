@@ -449,12 +449,12 @@ export default function EpCreditos() {
                   </div>
                   {/* Botón solo en desktop */}
                   <div className="hidden sm:block shrink-0">
-                    <Button variant="primary">Solicitar Nuevo Contrato</Button>
+                    <Button variant="primary" onClick={() => window.open('/solicitar-contrato', '_blank')}>Solicitar Nuevo Contrato</Button>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {/* Botón ancho completo en móvil */}
-                  <Button variant="primary" full className="sm:hidden">Solicitar Nuevo Contrato</Button>
+                  <Button variant="primary" full className="sm:hidden" onClick={() => window.open('/solicitar-contrato', '_blank')}>Solicitar Nuevo Contrato</Button>
                   <div className="relative flex-1 sm:flex-none">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                     <input
