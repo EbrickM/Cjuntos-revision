@@ -244,13 +244,14 @@ const FONDO_USADO     = 527_000_000;
 const FONDO_DISP      = 323_000_000;
 const PCT_USADO       = Math.round((FONDO_USADO / FONDO_TOTAL) * 100);
 const PCT_DISP        = 100 - PCT_USADO;
-const PYMES_FINANC    = 18;
-const CONTRATOS_ACTIV = 26;
-const SCORE           = 82;
-const FACTURAS_COUNT  = 42;
-const FACTURAS_MONTO  = 102_500_000;
-const PENDIENTE_COUNT = 7;
-const PENDIENTE_XAF   = 32_500_000;
+const PYMES_FINANC      = 6;
+const CONTRATOS_ACTIV   = 5;
+const SCORE             = 82;
+const FACTURAS_COUNT    = 7;
+const FACTURAS_MONTO    = 102_650_000;
+const PENDIENTE_COUNT   = 4;
+const PENDIENTE_XAF     = 52_250_000;
+const SOLICITUDES_TOTAL = 6;
 
 const fondoDona = [
   { pct: PCT_USADO, gradient: true, color: RED },
@@ -283,10 +284,10 @@ const pymeDist = [
 ];
 
 const estadoOps = [
-  { tipo: 'Aprobadas',   pct: 55, count: 14, color: GREEN },
-  { tipo: 'En revisión', pct: 23, count: 6,  color: ORA   },
-  { tipo: 'Rechazadas',  pct: 12, count: 3,  color: ERR   },
-  { tipo: 'Pendientes',  pct: 10, count: 3,  color: TEXT4 },
+  { tipo: 'Pendientes',  pct: 50, count: 3, color: TEXT4 },
+  { tipo: 'Aprobadas',   pct: 17, count: 1, color: GREEN },
+  { tipo: 'En revisión', pct: 17, count: 1, color: ORA   },
+  { tipo: 'Rechazadas',  pct: 16, count: 1, color: ERR   },
 ];
 
 const tipoBarData = [
@@ -298,10 +299,10 @@ const tipoBarData = [
 ];
 
 const vencimientos = [
-  { nombre: 'Const. Silva Ltd.',  fecha: '23 Abr', monto: 28_700_000, urgente: true  },
-  { nombre: 'AgriEco PYME',       fecha: '15 May', monto: 14_200_000, urgente: false },
-  { nombre: 'TechBata PYME S.L.', fecha: '28 May', monto: 21_500_000, urgente: false },
-  { nombre: 'LogiGE S.A.',        fecha: '03 Jun', monto: 8_800_000,  urgente: false },
+  { nombre: 'Const. Silva Ltd.',  fecha: '12 Ago', monto: 28_700_000, urgente: true  },
+  { nombre: 'AgriEco PYME',       fecha: '20 Ago', monto: 14_200_000, urgente: false },
+  { nombre: 'TechBata PYME S.L.', fecha: '03 Sep', monto: 21_500_000, urgente: false },
+  { nombre: 'LogiGE S.A.',        fecha: '15 Sep', monto: 8_800_000,  urgente: false },
 ];
 
 const actividad = [
@@ -321,17 +322,17 @@ const actividadCfg = {
 // ── Medioambiental data ───────────────────────────────────────────────────────
 const envKpis = [
   { value: '8',        label: 'Proyectos registrados', sub: 'Total registrado',          Icon: TreePine,    iconBg: '#E3F4EA', iconColor: GREEN, trend: '+2',      tUp: true  },
-  { value: '5',        label: 'Proyectos activos',     sub: 'En ejecución actualmente',  Icon: CheckCircle, iconBg: '#FFF3E0', iconColor: ORA,   trend: 'Estable', tUp: null  },
+  { value: '4',        label: 'Proyectos activos',     sub: 'En ejecución actualmente',  Icon: CheckCircle, iconBg: '#FFF3E0', iconColor: ORA,   trend: 'Estable', tUp: null  },
   { value: '3',        label: 'Proyectos financiados', sub: 'Con financiación aprobada', Icon: CreditCard,  iconBg: '#FDEEEB', iconColor: RED,   trend: '+1',      tUp: true  },
   { value: '12 450 t', label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  Icon: Wind,        iconBg: '#E3F4EA', iconColor: GREEN, trend: '+8%',     tUp: true  },
   { value: 'Medio',    label: 'Riesgo ambiental',      sub: 'Clasificación global',      Icon: Shield,      iconBg: '#FDF6E8', iconColor: WARN,  trend: 'Estable', tUp: null  },
 ];
 
 const proyectoDona = [
-  { tipo: 'En ejecución', pct: 45, color: GREEN },
-  { tipo: 'Planificado',  pct: 18, color: ORA   },
-  { tipo: 'Finalizado',   pct: 27, color: RED   },
-  { tipo: 'Suspendido',   pct: 10, color: TEXT4 },
+  { tipo: 'En ejecución', pct: 50, color: GREEN },
+  { tipo: 'Planificado',  pct: 25, color: ORA   },
+  { tipo: 'Finalizado',   pct: 13, color: RED   },
+  { tipo: 'Suspendido',   pct: 12, color: TEXT4 },
 ];
 
 const catBarData = [
@@ -342,11 +343,14 @@ const catBarData = [
 ];
 
 const proyectos = [
-  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  fin: '45 000 000 XAF' },
-  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', fin: '28 000 000 XAF' },
-  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  fin: '62 000 000 XAF' },
-  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18 000 000 XAF' },
-  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', fin: '35 000 000 XAF' },
+  { nombre: 'Reforestación Bata Norte',    estado: 'En ejecución', riesgo: 'Bajo',  fin: '45 000 000 XAF' },
+  { nombre: 'Agro Sierra Sur',             estado: 'En ejecución', riesgo: 'Medio', fin: '28 000 000 XAF' },
+  { nombre: 'Energía Solar Malabo',        estado: 'Planificado',  riesgo: 'Bajo',  fin: '62 000 000 XAF' },
+  { nombre: 'Gestión Residuos Bata',       estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18 000 000 XAF' },
+  { nombre: 'Reforestación Ebebiyín',      estado: 'Planificado',  riesgo: 'Medio', fin: '35 000 000 XAF' },
+  { nombre: 'Agricultura Sostenible Bata', estado: 'En ejecución', riesgo: 'Bajo',  fin: '18 000 000 XAF' },
+  { nombre: 'Energía Eólica Malabo',       estado: 'En ejecución', riesgo: 'Bajo',  fin: '32 000 000 XAF' },
+  { nombre: 'Reforestación Annobon',       estado: 'Suspendido',   riesgo: 'Medio', fin: '22 000 000 XAF' },
 ];
 
 const estadoBadge = e => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
@@ -356,6 +360,8 @@ const riesgoBadge = r => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 're
 export default function EmpDash() {
   const { go } = useApp();
   const [tab, setTab] = useState('fondos');
+  const [devToast, setDevToast] = useState(false);
+  const showDevToast = () => { setDevToast(true); setTimeout(() => setDevToast(false), 3500); };
 
   return (
     <AppShell active="empDash" role="contratante">
@@ -368,7 +374,7 @@ export default function EmpDash() {
             <div className="text-[20px] font-bold text-text-1 truncate">
               <span className="hidden sm:inline">Buenos días, </span>TotalEnerGE
             </div>
-            <div className="text-[13px] text-text-4">Gestión de fondo y cadena de suministro · Julio 2026</div>
+            <div className="text-[13px] text-text-4">Gestión de fondo y cadena de suministro · Agosto 2026</div>
           </div>
           <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
             {TABS.map(t => (
@@ -430,12 +436,14 @@ export default function EmpDash() {
                   </div>
                   <div className="hidden md:block">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                      <button onClick={() => go('empNuevaSolicitud')}
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                         Nueva Solicitud
                       </button>
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
+                      <button onClick={showDevToast}
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
                         <Download className="w-3.5 h-3.5" />
                         Descargar Estado de Cuenta
                       </button>
@@ -494,11 +502,13 @@ export default function EmpDash() {
               {/* Móvil: botones icono + badges */}
               <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
                 <div className="flex gap-2">
-                  <button className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
+                  <button onClick={() => go('empNuevaSolicitud')}
+                          className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
                           style={{ background: ORA }}>
                     <ArrowUpRight className="w-4 h-4" />
                   </button>
-                  <button className="w-9 h-9 rounded-[9px] flex items-center justify-center text-text-3 cursor-pointer border border-border hover:bg-page-bg">
+                  <button onClick={showDevToast}
+                          className="w-9 h-9 rounded-[9px] flex items-center justify-center text-text-3 cursor-pointer border border-border hover:bg-page-bg">
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
@@ -538,7 +548,8 @@ export default function EmpDash() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{PYMES_FINANC}</p>
                 </div>
                 <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>beneficiarias activas</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                <button onClick={() => go('empPymes')}
+                        className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver PYMEs <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -553,7 +564,8 @@ export default function EmpDash() {
                   <p className="text-[28px] font-extrabold leading-none text-text-1">{CONTRATOS_ACTIV}</p>
                 </div>
                 <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>en vigor actualmente</p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                <button onClick={() => go('empContratos')}
+                        className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver contratos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -570,7 +582,8 @@ export default function EmpDash() {
                 <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('de-DE').format(FACTURAS_MONTO)} XAF
                 </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                <button onClick={() => go('empFacturas')}
+                        className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver facturas <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -587,7 +600,8 @@ export default function EmpDash() {
                 <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
                   {new Intl.NumberFormat('de-DE').format(PENDIENTE_XAF)} XAF por liquidar
                 </p>
-                <button className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
+                <button onClick={showDevToast}
+                        className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
                         style={{ color: ORA }}>
                   Ver pagos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -648,12 +662,12 @@ export default function EmpDash() {
               <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
                 <div className="mb-4">
                   <p className="text-[13px] font-bold text-text-1">Estado de las Solicitudes</p>
-                  <p className="text-[11px] text-text-4">Distribución por estado · {CONTRATOS_ACTIV} operaciones</p>
+                  <p className="text-[11px] text-text-4">Distribución por estado · {SOLICITUDES_TOTAL} solicitudes</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center gap-4 justify-center py-2">
                   <DonutChart
                     data={estadoOps}
-                    centerLabel={String(CONTRATOS_ACTIV)}
+                    centerLabel={String(SOLICITUDES_TOTAL)}
                     centerSub="solicitudes"
                     size={160}
                     inner={52}
@@ -739,7 +753,8 @@ export default function EmpDash() {
                 ))}
               </div>
               <div className="px-4 pb-4">
-                <button className="w-full text-center text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center justify-center gap-1"
+                <button onClick={showDevToast}
+                        className="w-full text-center text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center justify-center gap-1"
                         style={{ color: ORA }}>
                   Ver todos los vencimientos <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -752,7 +767,8 @@ export default function EmpDash() {
                   <p className="text-[13px] font-bold text-text-1">Actividad Reciente</p>
                   <p className="text-[11px] text-text-4">Últimas acciones en tu cuenta</p>
                 </div>
-                <button className="text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center gap-0.5"
+                <button onClick={showDevToast}
+                        className="text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center gap-0.5"
                         style={{ color: ORA }}>
                   Ver todo <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -885,6 +901,17 @@ export default function EmpDash() {
           </div>
         )}
 
+      </div>
+
+      <div className={`fixed bottom-6 right-6 z-50 w-[320px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
+        ${devToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
+        <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FFF3E0' }}>
+          <Clock className="w-4 h-4" style={{ color: ORA }} />
+        </div>
+        <div>
+          <div className="text-[13px] font-semibold text-text-1 mb-0.5">Funcionalidad en desarrollo</div>
+          <div className="text-[12px] text-text-4 leading-snug">Esta sección estará disponible próximamente.</div>
+        </div>
       </div>
     </AppShell>
   );
