@@ -3,7 +3,6 @@ import {
   Camera, Shield, Leaf, CheckCircle2,
   Clock, FileCheck, AlertCircle, Building2, ShieldCheck, Star,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 
@@ -55,7 +54,6 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
 );
 
 export default function EpPerfil() {
-  const { go } = useApp();
   const [avatar, setAvatar] = useState(null);
 
   return (
@@ -72,7 +70,7 @@ export default function EpPerfil() {
             <div className="relative shrink-0 self-center sm:self-start">
               <div className="w-24 h-24 rounded-[20px] overflow-hidden">
                 {avatar
-                  ? <img src={avatar} alt="Logo empresa" className="w-full h-full object-cover" />
+                  ? <img src={avatar} alt="Logo empresa" loading="lazy" className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center text-white font-bold text-[28px]"
                          style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>CS</div>
                 }

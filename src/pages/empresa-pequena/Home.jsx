@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar, TreePine, Wind, Recycle } from 'lucide-react';
+import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -25,13 +25,10 @@ function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
   const cx = vb / 2, cy = vb / 2;
   const circ = 2 * Math.PI * inner;
   const scale = vb / 110;
-  let acc = 0;
-  const segs = data.map(d => {
+  const segs = data.reduce(({ segs, total }, d) => {
     const dash = (d.pct / 100) * circ;
-    const s = { ...d, dash, off: -acc };
-    acc += dash;
-    return s;
-  });
+    return { segs: [...segs, { ...d, dash, off: -total }], total: total + dash };
+  }, { segs: [], total: 0 }).segs;
   return (
     <svg viewBox={`0 0 ${vb} ${vb}`} style={{ width: size, height: size, flexShrink: 0 }}>
       <defs>
@@ -60,23 +57,6 @@ function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
           fontSize={Math.round(8 * scale)} fill={TEXT4}
           fontFamily="Poppins,sans-serif">{centerSub}</text>
       )}
-    </svg>
-  );
-}
-
-// ── Sparkline ─────────────────────────────────────────────────────────────────
-function Sparkline({ data, color, width = 72, height = 24 }) {
-  const max = Math.max(...data), min = Math.min(...data);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
-    return `${x},${y}`;
-  });
-  return (
-    <svg width={width} height={height} style={{ overflow: 'visible' }}>
-      <polyline points={pts.join(' ')} fill="none" stroke={color}
-        strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

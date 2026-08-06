@@ -1,7 +1,8 @@
 import { useApp } from '../../state/AppContext';
+import { logout } from '../../stores/authStore';
 import Logo from '../../components/layout/Logo';
 import Button from '../../components/ui/Button';
-import { Briefcase, Building2, CheckCircle2 } from 'lucide-react';
+import { Briefcase, Building2 } from 'lucide-react';
 
 const roles = [
   {
@@ -43,7 +44,7 @@ export default function RoleSelect() {
         <Logo size={18} />
         <div className="flex-1" />
         <button
-          onClick={() => go('login')}
+          onClick={() => { void logout(); go('login'); }}
           className="text-[13px] text-text-3 hover:text-orange transition-colors cursor-pointer font-medium"
         >
           ← Cerrar sesión

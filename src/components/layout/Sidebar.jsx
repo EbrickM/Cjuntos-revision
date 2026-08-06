@@ -1,9 +1,10 @@
 import {
-  Home, Building2, AlertTriangle,
-  Settings, ClipboardList, Users, Receipt,
-  Bell, User, LogOut, ShieldCheck, Leaf, CreditCard, X, Clock,
+  Home, Building2,
+  ClipboardList, Users, Receipt,
+  User, LogOut, Leaf, CreditCard, X, Clock,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
+import { logout } from '../../stores/authStore';
 
 const NAV = {
   admin: [
@@ -110,7 +111,7 @@ export default function Sidebar({ active, role, onClose }) {
             <span className="ml-auto text-text-5">⋯</span>
           </div>
           <div
-            onClick={() => go('login')}
+            onClick={() => { void logout(); go('login'); }}
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer text-red-text text-[13px] font-medium mt-1 hover:bg-red-bg"
           >
             <LogOut className="w-4 h-4 shrink-0" />

@@ -8,7 +8,7 @@ import Button from '../ui/Button';
 const GREEN = '#2E7D5B';
 const TEXT4 = '#A9A6A1';
 
-export default function AppShell({ active, role, title, sub, children }) {
+export default function AppShell({ active, role, children }) {
   const [sideOpen,    setSideOpen]    = useState(false);
   const [showInvite,  setShowInvite]  = useState(false);
   const [invNombre,   setInvNombre]   = useState('');

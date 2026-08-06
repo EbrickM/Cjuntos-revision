@@ -3,9 +3,9 @@ import { useApp } from '../../state/AppContext';
 import logo from '../../assets/logo-color.webp';
 import {
   ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Search, X, Check,
-  Building2, User, FileText, DollarSign, Clock,
+  Building2, User, FileText, DollarSign,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, MapPin, Send, LogOut, CheckCircle, CheckCircle2, Download,
+  Bell, AlertCircle, Send, LogOut, CheckCircle, CheckCircle2, Download,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -198,25 +198,6 @@ function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás',
   );
 }
 
-function ChoiceBtn({ selected, onClick, Icon, title, desc, tags }) {
-  return (
-    <button onClick={onClick}
-      className={`p-6 lg:px-8 rounded-2xl border-2 text-left transition-all cursor-pointer w-full
-        ${selected ? 'border-[#e0201c] bg-red-50' : 'border-border hover:border-[#e0201c] hover:bg-red-50/30'}`}>
-      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: GRAD }}>
-        <Icon className="w-6 h-6 text-white" />
-      </div>
-      <div className="font-bold text-text-1 text-base">{title}</div>
-      {desc && <div className="text-sm text-text-3 leading-relaxed mt-1.5">{desc}</div>}
-      {tags && (
-        <div className="flex flex-wrap gap-2 mt-4">
-          {tags.map(t => <span key={t} className="text-xs bg-white border border-border px-2.5 py-0.5 rounded-full text-text-3">{t}</span>)}
-        </div>
-      )}
-    </button>
-  );
-}
-
 function ChoiceBtnH({ selected, onClick, Icon, title }) {
   return (
     <button onClick={onClick}
@@ -276,16 +257,6 @@ function ContractUpload({ label = 'Subir contrato', hint = 'PDF, DOC · máx 10 
   );
 }
 
-// ── Summary box (reusable) ────────────────────────────────────────────────────
-function SummaryBox({ label, value, highlight = false }) {
-  return (
-    <div className={`rounded-xl border p-4 ${highlight ? 'border-[#e0201c]/20 bg-red-50' : 'border-border bg-gray-50'}`}>
-      <div className="text-[10px] text-text-4 uppercase tracking-wider mb-1">{label}</div>
-      <div className={`font-semibold text-sm ${highlight ? 'text-[#e0201c]' : 'text-text-1'}`}>{value || '—'}</div>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
@@ -303,7 +274,6 @@ export default function SolicitarContrato() {
   const [nif, setNif] = useState('');
   const [foundCompany, setFoundCompany] = useState(null);
   const [nifSearched, setNifSearched] = useState(false);
-  const [contactData, setContactData] = useState({ nombre: '', cargo: '', email: '', telefono: '' });
   const [regData, setRegData] = useState({
     razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '', numEmpleados: '',
     email: '', telefono: '', web: '',
@@ -315,14 +285,12 @@ export default function SolicitarContrato() {
 
   // ── Party selection state ───────────────────────────────────────────────────
   const [pymeData, setPymeData] = useState({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', contrato: '' });
-  const [pymeSearched, setPymeSearched] = useState(false);
+  const [, setPymeSearched] = useState(false);
   const [pymeFound, setPymeFound] = useState(null);   // null | 'found' | 'not_found'
 
   const [pymesInverso, setPymesInverso] = useState([{ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }]);
 
   const [contData, setContData] = useState({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '' });
-  const [contSearched, setContSearched] = useState(false);
-  const [contFound, setContFound] = useState(null);
 
   const [refNumber] = useState(() => Math.floor(10000 + Math.random() * 90000));
 
@@ -347,14 +315,6 @@ export default function SolicitarContrato() {
   const step   = PHASE_STEP[phase] ?? 0;
 
   // ── Identification helpers ──────────────────────────────────────────────────
-  const startFlow = (chosenActor) => {
-    setActor(chosenActor);
-    setReturnPhase('operation');
-    setIsClient(null);
-    setNif(''); setFoundCompany(null); setNifSearched(false);
-    setPhase('is_client');
-  };
-
   const startInvFlow = (chosenActor, landingPhase) => {
     setInviterCompany(foundCompany);
     setInvLandingPhase(landingPhase);
@@ -377,17 +337,6 @@ export default function SolicitarContrato() {
       telefono:      '+240 222 100 200',
     });
     setNifSearched(true);
-  };
-
-  const mockPymeVerify = () => {
-    setPymeSearched(true);
-    // 70% chance found for demo
-    setPymeFound(pymeData.nif ? 'found' : 'not_found');
-  };
-
-  const mockContVerify = () => {
-    setContSearched(true);
-    setContFound(contData.nif ? 'found' : 'not_found');
   };
 
   // ── Step header meta ────────────────────────────────────────────────────────
@@ -819,7 +768,6 @@ export default function SolicitarContrato() {
 
     /* ── CONFIRMATION ──────────────────────────────────────────────────────── */
     confirmation: (() => {
-      const solicitante = foundCompany?.razonSocial || regData.razonSocial || '—';
       const montoFmt = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
         : '—';
@@ -1169,7 +1117,6 @@ export default function SolicitarContrato() {
     /* ── INVITATION LANDING (Contratante receives from PYME) ───────────────── */
     inv_c_landing: (() => {
       const pyme       = foundCompany?.razonSocial || regData.razonSocial || 'Construcciones Silva S.R.L.';
-      const pymeNif    = foundCompany?.nif || regData.nif || 'GQ-2021-00234';
       const initials   = pyme.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
       const montoFmt   = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
@@ -1259,8 +1206,6 @@ export default function SolicitarContrato() {
 
     /* ── INVITATION FINAL (both parties) ───────────────────────────────────── */
     inv_final: (() => {
-      const miEmpresa  = foundCompany?.razonSocial || regData.razonSocial || '—';
-      const miNif      = foundCompany?.nif || regData.nif || '—';
       const contraparte = inviterCompany?.razonSocial || (isCont ? 'PYME solicitante' : 'Empresa Contratante');
       const montoFmt   = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`

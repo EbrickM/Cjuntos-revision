@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   ArrowLeft, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
   BarChart2, ScrollText, UserSquare, CalendarDays, Banknote, TrendingUp, Wallet,
   Upload, Paperclip,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
-import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 
@@ -28,12 +26,6 @@ const CONCEPTO_ICONS = {
   'Inversión en Equipos': Cpu,
   'Otros':                FolderOpen,
   'Otro':                 FolderOpen,
-};
-
-const KYC_BADGE = {
-  vigente:  { label: 'KYC Vigente',   bg: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE'             },
-  pendiente:{ label: 'KYC Pendiente', bg: '#FDF6E8', color: '#C68A1D', border: '1px solid rgba(198,138,29,.3)' },
-  vencido:  { label: 'KYC Vencido',   bg: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,.3)'  },
 };
 
 const scoreStyle = (score) => {
@@ -225,7 +217,7 @@ const TABS = [
 ];
 
 export default function EpCreditos() {
-  const { go } = useApp();
+  const nextDistribId = useRef(0);
   const [contracts, setContracts]                 = useState(initialContracts);
   const [providers, setProviders]                 = useState(initialProviders);
   const [detailId, setDetailId]                   = useState(null);
@@ -278,7 +270,7 @@ export default function EpCreditos() {
       ? providers.find(p => p.id === distribModal.providerId)
       : null;
     const item = {
-      id: distribModal.editId || `dist-${Date.now()}`,
+      id: distribModal.editId || `dist-${nextDistribId.current++}`,
       concepto: distribModal.concepto,
       monto: amount,
       providerId:     provider?.id          || null,
@@ -631,7 +623,7 @@ export default function EpCreditos() {
                     {ct.documentoContrato ? (
                       <div className="rounded-[12px] border border-border overflow-hidden">
                         {ct.documentoContrato.type?.startsWith('image/')
-                          ? <img src={ct.documentoContrato.url} className="w-full max-h-52 object-contain bg-page-bg" alt="Vista previa" />
+                          ? <img src={ct.documentoContrato.url} loading="lazy" className="w-full max-h-52 object-contain bg-page-bg" alt="Vista previa" />
                           : <iframe src={ct.documentoContrato.url} className="w-full h-52" title="Vista previa del documento" />
                         }
                         <div className="flex items-center gap-2 px-3 py-2 bg-page-bg border-t border-border">
@@ -978,7 +970,6 @@ export default function EpCreditos() {
             {/* ── TAB: Pagos ── */}
             {activeTab === 'pagos' && (() => {
               const contractPagos     = pagos.filter(p => p.contrato === detailContract.id);
-              const proveedorInvoices = invoices.filter(inv => inv.contrato === detailContract.id && inv.tipo === 'proveedor');
               return (
                 <div className="space-y-5">
                   <div className="bg-white rounded-[14px] border border-border p-5">

@@ -145,17 +145,19 @@ export default function Login() {
       </div>
       </div>
 
-      <OTPModal
-        isOpen={showOTP}
-        onClose={() => setShowOTP(false)}
-        onVerify={handleVerified}
-      />
+      {showOTP && (
+        <OTPModal
+          onClose={() => setShowOTP(false)}
+          onVerify={handleVerified}
+        />
+      )}
 
-      <AdminLoginModal
-        isOpen={showAdmin}
-        onClose={() => setShowAdmin(false)}
-        onVerify={() => { setShowAdmin(false); go('adminDash'); }}
-      />
+      {showAdmin && (
+        <AdminLoginModal
+          onClose={() => setShowAdmin(false)}
+          onVerify={() => { setShowAdmin(false); go('adminDash'); }}
+        />
+      )}
     </div>
   );
 }

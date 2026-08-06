@@ -3,7 +3,6 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import Modal from '../../components/ui/Modal';
 import Stepper from '../../components/ui/Stepper';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import UploadZone from '../../components/ui/UploadZone';

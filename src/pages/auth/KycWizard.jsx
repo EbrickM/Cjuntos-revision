@@ -3,7 +3,7 @@ import { EmojiIcon } from '../../components/ui/IconHelper';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
-import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 
 const STEPS = ['Empresa', 'Documentos', 'Verificación', 'Listo'];
 

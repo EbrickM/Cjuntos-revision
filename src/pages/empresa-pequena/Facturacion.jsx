@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Pencil, Trash2, Building2, Truck, Receipt, BarChart2, Upload, Paperclip, Search,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -107,7 +106,6 @@ const initialInvoices = [
 ];
 
 export default function EpFacturacion() {
-  const { go } = useApp();
   const [invoices, setInvoices]     = useState(initialInvoices);
   const [providers]                 = useState(initialProviders);
   const [invCtModal, setInvCtModal] = useState(INV_CT_EMPTY);

@@ -2,7 +2,6 @@ import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { EmojiIcon } from '../../components/ui/IconHelper';
-import { renderEmojiText } from '../../components/ui/IconHelperUtils';
 
 const docs = [
   { cat:'Préstamos', items:[

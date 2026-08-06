@@ -3,7 +3,6 @@ import {
   Pencil, Trash2, Building2, Package, Truck, Cpu, Wrench, Zap, HardHat,
   Leaf, ShoppingCart, Settings, ShieldCheck, Star, FileText, Search,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -65,7 +64,6 @@ const initialProviders = [
 
 
 export default function EpMisProveedores() {
-  const { go } = useApp();
   const [providers, setProviders] = useState(initialProviders);
   const [modal, setModal]         = useState(MODAL_EMPTY);
   const [search, setSearch]       = useState('');

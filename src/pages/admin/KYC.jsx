@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -50,6 +51,10 @@ const INITIAL_ROWS = [
 
 // modalMode: null | 'reevaluar' | 'desestimar' | 'rechazar'
 export default function AdminKYC() {
+  const [selected, setSelected] = useState(null);
+  const [aprobados, setAprobados] = useState({});
+
+  const e = empresas.find(x => x.id === selected);
   const { go } = useApp();
   const [rows,         setRows]         = useState(INITIAL_ROWS);
   const [selected,     setSelected]     = useState(null);

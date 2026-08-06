@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local environment variables (see .env.example)
+.env
+
 # Claude Code internals
 .claude/
 
