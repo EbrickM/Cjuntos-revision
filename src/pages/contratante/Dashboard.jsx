@@ -700,11 +700,11 @@ export default function EmpDash() {
                   <p className="text-[11px] text-text-4">Por sector de actividad · millones XAF</p>
                 </div>
                 {/* Desktop */}
-                <div className="hidden sm:block h-[300px] w-full">
+                <div className="hidden sm:block flex-1 min-h-0 w-full">
                   <VBarChart id="ct-tipo" data={tipoBarData} h={280} unit="M" />
                 </div>
                 {/* Móvil */}
-                <div className="block sm:hidden h-[300px] w-full">
+                <div className="block sm:hidden flex-1 min-h-0 w-full">
                   <VBarChart id="ct-tipo-m" data={tipoBarData} h={260} vbW={300} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
                 </div>
               </div>
