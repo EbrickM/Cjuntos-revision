@@ -6,7 +6,8 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { ORA, GREEN, WARN, BLUE, TEXT4, fmt, facturas, facturaBadge, InfoRow, IpiVerificacionModal } from './contratanteShared';
+import { InfoRow, IpiVerificacionModal } from './contratanteShared';
+import { ORA, GREEN, WARN, BLUE, TEXT4, fmt, facturas, facturaBadge } from './contratanteData';
 
 // ── MIS FACTURAS ──────────────────────────────────────────────────────────────
 const FILTROS_FAC = ['Todas', 'Recibidas', 'Verificadas', 'Pagadas'];

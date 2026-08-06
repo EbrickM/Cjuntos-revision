@@ -4,7 +4,8 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
-import { GREEN, HeroBadge, SectionHeader, ComplianceItem } from './contratanteShared';
+import { HeroBadge, SectionHeader, ComplianceItem } from './contratanteShared';
+import { GREEN } from './contratanteData';
 
 // ── MI PERFIL — idéntico al estilo de PYME ────────────────────────────────────
 const SCORE_CT       = 820;

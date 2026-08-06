@@ -7,7 +7,8 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, BLUE, fmt, contratos, pymes, semBadge, semColor, scoreColor, InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
+import { InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
+import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, BLUE, fmt, contratos, pymes, semBadge, semColor, scoreColor } from './contratanteData';
 
 // ── PYMEs ─────────────────────────────────────────────────────────────────────
 export default function EmpPymes() {

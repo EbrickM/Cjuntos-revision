@@ -7,7 +7,8 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { RED, ORA, GREEN, ERR, BLUE, BORDER, TEXT4, fmt, misSolicitudes, solicitudesPymes, solicBadge, IniAvatar, InfoRow } from './contratanteShared';
+import { IniAvatar, InfoRow } from './contratanteShared';
+import { RED, ORA, GREEN, ERR, BLUE, BORDER, TEXT4, fmt, misSolicitudes, solicitudesPymes, solicBadge } from './contratanteData';
 
 // ── SOLICITUDES ───────────────────────────────────────────────────────────────
 const solicIconCfg = {

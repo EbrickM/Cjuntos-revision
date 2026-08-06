@@ -6,7 +6,8 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, IniAvatar, contratos, contratanteState } from './contratanteShared';
+import { IniAvatar } from './contratanteShared';
+import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, contratanteState } from './contratanteData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 

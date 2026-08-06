@@ -6,7 +6,8 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
-import { ORA, TEXT4, fmt, IniAvatar, SectionHeader, contratanteState } from './contratanteShared';
+import { IniAvatar, SectionHeader } from './contratanteShared';
+import { ORA, TEXT4, fmt, contratanteState } from './contratanteData';
 
 // ── NUEVA SOLICITUD ───────────────────────────────────────────────────────────
 export default function EmpNuevaSolicitud() {

@@ -8,7 +8,8 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BLUE, fmt, facturas, pymes, facturaBadge, scoreColor, InfoRow, SectionHeader, IpiVerificacionModal, contratanteState } from './contratanteShared';
+import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
+import { RED, ORA, GREEN, WARN, ERR, TEXT4, BLUE, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState } from './contratanteData';
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
