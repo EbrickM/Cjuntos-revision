@@ -24,7 +24,7 @@ import EpCreditos from './pages/empresa-pequena/Creditos';
 import EpPerfil from './pages/empresa-pequena/Perfil';
 import EpDocumentos from './pages/empresa-pequena/Documentos';
 import EpProyectosAmbientales from './pages/empresa-pequena/ProyectosAmbientales';
-import EpSolicitudes, { EpNuevaSolicitud } from './pages/empresa-pequena/Solicitudes';
+import EpSolicitudes from './pages/empresa-pequena/Solicitudes';
 
 // Contratante
 import EmpDash from './pages/contratante/Dashboard';
@@ -32,7 +32,7 @@ import EmpConf from './pages/contratante/Confirming';
 import EmpFactEP from './pages/contratante/FacturasEmpresaPequena';
 import EmpVerifContr from './pages/contratante/VerifContratos';
 import { EmpConfDet, EmpProv, EmpProvPerfil, EmpRisk, EmpESG, EmpNotif, EmpSettings } from './pages/contratante/OtherScreens';
-import { EmpContratos, EmpFacturas, EmpPymes, EmpSolicitudes, EmpPerfil, EmpContratoDetalle, EmpNuevaSolicitud } from './pages/contratante/ContratanteScreens';
+import { EmpContratos, EmpFacturas, EmpPymes, EmpSolicitudes, EmpPerfil, EmpContratoDetalle } from './pages/contratante/ContratanteScreens';
 
 const R = ROUTES;
 
@@ -68,14 +68,12 @@ export default function App() {
         <Route path={R.epPerfil}          element={<EpPerfil />} />
         <Route path={R.epDocs}            element={<EpDocumentos />} />
         <Route path={R.epESG}             element={<EpProyectosAmbientales />} />
-        <Route path={R.epNuevaSolicitud}  element={<EpNuevaSolicitud />} />
         <Route path={R.epSolicitudes}     element={<EpSolicitudes />} />
 
         {/* Contratante */}
         <Route path={R.empDash}            element={<EmpDash />} />
         <Route path={R.empContratos}       element={<EmpContratos />} />
         <Route path={R.empContratoDetalle} element={<EmpContratoDetalle />} />
-        <Route path={R.empNuevaSolicitud}  element={<EmpNuevaSolicitud />} />
         <Route path={R.empFacturas}        element={<EmpFacturas />} />
         <Route path={R.empPymes}           element={<EmpPymes />} />
         <Route path={R.empSolicitudes}     element={<EmpSolicitudes />} />

@@ -32,13 +32,11 @@ export const ROUTES = {
   epDocs:             '/pyme/documentos',
   epESG:              '/pyme/huella-verde',
   epSolicitudes:      '/pyme/solicitudes',
-  epNuevaSolicitud:   '/pyme/solicitudes/nueva',
 
   // Contratante
   empDash:            '/contratante',
   empContratos:       '/contratante/contratos',
   empContratoDetalle: '/contratante/contratos/detalle',
-  empNuevaSolicitud:  '/contratante/solicitudes/nueva',
   empFacturas:        '/contratante/facturas',
   empPymes:           '/contratante/pymes',
   empSolicitudes:     '/contratante/solicitudes',

@@ -27,11 +27,10 @@ export default function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center gap-[7px] font-medium rounded-lg cursor-pointer
-        transition-all duration-200 select-none
+      className={`bona-btn inline-flex items-center gap-[7px] font-medium rounded-lg select-none
         ${variants[variant]} ${sizes[size]}
         ${full ? 'w-full justify-center' : ''}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        ${disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}
         ${className}`}
     >
       {children}
