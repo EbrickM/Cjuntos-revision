@@ -436,7 +436,7 @@ export default function EmpDash() {
                   </div>
                   <div className="hidden md:block">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <button onClick={() => go('empNuevaSolicitud')}
+                      <button onClick={() => window.open('/solicitar-contrato', '_blank')}
                               className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
@@ -502,7 +502,7 @@ export default function EmpDash() {
               {/* Móvil: botones icono + badges */}
               <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
                 <div className="flex gap-2">
-                  <button onClick={() => go('empNuevaSolicitud')}
+                  <button onClick={() => window.open('/solicitar-contrato', '_blank')}
                           className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
                           style={{ background: ORA }}>
                     <ArrowUpRight className="w-4 h-4" />
@@ -627,7 +627,7 @@ export default function EmpDash() {
                   </div>
                 </div>
                 {/* Desktop */}
-                <div className="hidden md:block h-[240px] w-full">
+                <div className="hidden md:block flex-1 min-h-0 w-full">
                   <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={240} vbW={480} pl={48} />
                 </div>
                 {/* Móvil */}
