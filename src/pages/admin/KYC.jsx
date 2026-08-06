@@ -51,17 +51,13 @@ const INITIAL_ROWS = [
 
 // modalMode: null | 'reevaluar' | 'desestimar' | 'rechazar'
 export default function AdminKYC() {
-  const [selected, setSelected] = useState(null);
-  const [aprobados, setAprobados] = useState({});
-
-  const e = empresas.find(x => x.id === selected);
   const { go } = useApp();
-  const [rows,         setRows]         = useState(INITIAL_ROWS);
-  const [selected,     setSelected]     = useState(null);
-  const [modalMode,    setModalMode]    = useState(null);
-  const [observaciones,setObservaciones]= useState('');
-  const [loading,      setLoading]      = useState(false);
-  const [toast,        setToast]        = useState(null);
+  const [rows,          setRows]          = useState(INITIAL_ROWS);
+  const [selected,      setSelected]      = useState(null);
+  const [modalMode,     setModalMode]     = useState(null);
+  const [observaciones, setObservaciones] = useState('');
+  const [loading,       setLoading]       = useState(false);
+  const [toast,         setToast]         = useState(null);
 
   const e = rows.find(x => x.id === selected);
 
