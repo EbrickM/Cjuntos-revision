@@ -61,10 +61,10 @@ function LineChart({ id, data, color = '#C62828', xKey = 'mes', yKey = 'monto', 
 
 function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
   const r = 40, cx = 55, cy = 55, circ = 2 * Math.PI * r;
-  let acc = 0;
-  const segs = data.map(d => {
-    const dash = (d.pct / 100) * circ; const s = { ...d, dash, off: -acc }; acc += dash; return s;
-  });
+  const segs = data.reduce(({ segs, total }, d) => {
+    const dash = (d.pct / 100) * circ;
+    return { segs: [...segs, { ...d, dash, off: -total }], total: total + dash };
+  }, { segs: [], total: 0 }).segs;
   return (
     <svg viewBox="0 0 110 110" style={{ width: size, height: size, flexShrink: 0 }}>
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F0F0F0" strokeWidth="13" />

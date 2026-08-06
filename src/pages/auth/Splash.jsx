@@ -1,15 +1,21 @@
 import { useEffect } from 'react';
 import { useApp } from '../../state/AppContext';
+import { useAuthStore } from '../../stores/authStore';
 import isotipo   from '../../assets/isotipo-blanco.webp';
 import logoTexto from '../../assets/logo-texto-blanco.webp';
 
 export default function Splash() {
   const { go } = useApp();
+  const authorized = useAuthStore((s) => s.authorized);
+  const isAdmin = useAuthStore((s) => s.isAdmin);
 
   useEffect(() => {
-    const timer = setTimeout(() => go('login'), 4500);
+    // Session persists across reloads (sessionStorage, see authStore) — skip
+    // straight past the login screen when one is already active.
+    const next = !authorized ? 'login' : isAdmin ? 'adminDash' : 'roleSelect';
+    const timer = setTimeout(() => go(next), 4500);
     return () => clearTimeout(timer);
-  }, [go]);
+  }, [go, authorized, isAdmin]);
 
   return (
     <div

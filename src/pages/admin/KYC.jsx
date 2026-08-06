@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -35,7 +34,6 @@ const empresas = [
 const DOCS_REQUIRED = ['DNI Rep. Legal','RUC Registro','Estados Financieros 2025','Escritura social'];
 
 export default function AdminKYC() {
-  const { go } = useApp();
   const [selected, setSelected] = useState(null);
   const [aprobados, setAprobados] = useState({});
 

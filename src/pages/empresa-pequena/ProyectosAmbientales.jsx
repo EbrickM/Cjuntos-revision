@@ -4,7 +4,6 @@ import {
   Plus, FolderOpen, Activity, Banknote, ShieldAlert, Target,
   Upload, X as XIcon, FileText,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Bell, LogOut, X, Menu, UserPlus, FileCheck, Banknote, AlertCircle } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
+import { logout } from '../../stores/authStore';
 import Logo from './Logo';
 import Button from '../ui/Button';
 
@@ -118,7 +119,7 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
 
         {/* Cerrar sesión */}
         <button
-          onClick={() => go('login')}
+          onClick={() => { void logout(); go('login'); }}
           className="p-2 rounded-lg hover:bg-red-bg transition-colors cursor-pointer text-text-3 hover:text-red-text"
         >
           <LogOut className="w-5 h-5" />

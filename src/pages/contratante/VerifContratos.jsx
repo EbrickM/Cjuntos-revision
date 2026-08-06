@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -25,7 +24,6 @@ const contratos = [
 ];
 
 export default function EmpVerifContr() {
-  const { go } = useApp();
   const [selected, setSelected] = useState(null);
   const [verificados, setVerificados] = useState({});
 

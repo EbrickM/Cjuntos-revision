@@ -20,6 +20,10 @@ export function AppProvider({ children }) {
   );
 }
 
+// Co-located with AppProvider deliberately; splitting into a separate file
+// would mean touching every one of this hook's ~40 call sites for no
+// functional gain.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useApp() {
   return useContext(AppContext);
 }

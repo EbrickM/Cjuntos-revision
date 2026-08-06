@@ -130,6 +130,14 @@
   to   { width: 100%; }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(7px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(4px); }
+}
+
 /* Animación de entrada estilo reparto de cartas */
 @keyframes cardDeal {
   from {

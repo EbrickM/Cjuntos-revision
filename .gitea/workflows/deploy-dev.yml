@@ -11,11 +11,11 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.js'
-      - 'vite.config.ts'
       - 'eslint.config.js'
       - 'Dockerfile'
       - '.dockerignore'
       - 'nginx.conf'
+      - 'docker-entrypoint.sh'
       - '.gitea/workflows/**'
       - 'docker-compose.yml'
 
@@ -34,10 +34,49 @@ env:
   REGISTRY: ${{ vars.DOCKER_REGISTRY }}
   APP: ${{ vars.APP }}
   SERVICE: ${{ vars.SERVICE }}
+  # Nombre del servicio tal como está declarado en docker-compose.yml (distinto de SERVICE,
+  # que solo se usa para componer el nombre/repositorio de la imagen)
+  COMPOSE_SERVICE: bmori
 
 jobs:
+  lint:
+    name: Lint code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Determinar registro npm y exportar variable con $GITHUB_ENV
+      - name: Determine npm registry
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+
+          # limpiar posibles \r o saltos de línea
+          REGISTRY=$(echo "$REGISTRY" | tr -d '\r' | tr -d '\n')
+
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 >/dev/null 2>&1; then
+              echo "Using Verdaccio: $REGISTRY"
+              echo "registry_url=$REGISTRY" >> "$GITHUB_ENV"
+          else
+              echo "Using default npm registry"
+              echo "registry_url=https://registry.npmjs.org/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install dependencies
+        run: npm ci --registry="${{ env.registry_url }}"
+
+      - name: Lint
+        run: npm run lint
+
   build:
-    runs-on: ubuntu-22.04
+    name: Build and Publish Image
+    needs: lint
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     outputs:
@@ -68,7 +107,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ env.REGISTRY }}/${{ env.ENV }}/${{ env.APP }}/${{ env.SERVICE }}
@@ -109,9 +148,9 @@ jobs:
       name: Deploy (Dev)
       needs: build
       if: github.event_name == 'push'
-      runs-on: ubuntu-22.04
+      runs-on: ubuntu-24.04
       timeout-minutes: 30
-  
+
       steps:
         - name: Checkout minimal files
           uses: actions/checkout@v6
@@ -119,32 +158,66 @@ jobs:
             sparse-checkout: |
               docker-compose.yml
             sparse-checkout-cone-mode: true
-  
+
         - name: Create .env
           run: |
             cat > .env <<EOF
             ENV=${{ env.ENV }}
-  
+
             DOCKER_REGISTRY=${{ env.REGISTRY }}
             APP=${{ env.APP }}
             SERVICE=${{ env.SERVICE }}
 
             PORT=8081
+
+            # Consumidas por docker-entrypoint.sh al arrancar el contenedor
+            # para generar /config.json (ver src/config.ts)
+            AUTH_URL=${{ vars.AUTH_URL }}
+            API_URL=${{ vars.API_URL }}
+            IDENTITY_API_URL=${{ vars.IDENTITY_API_URL }}
             EOF
-  
+
         - name: Login to registry
           uses: docker/login-action@v4
           with:
             registry: ${{ env.REGISTRY }}
             username: ${{ vars.CI_BOT_USER }}
             password: ${{ secrets.CI_BOT_PASSWORD }}
-  
+
         - name: Pull images
           run: docker compose pull
-  
+
         - name: Deploy containers
           run: docker compose up -d
-  
-        - name: Cleanup images
+
+        - name: Cleanup old service images
+          if: always()
+          run: |
+            # Repositorio completo de la imagen del servicio
+            REPO="${{ env.REGISTRY }}/${{ env.ENV }}/${{ env.APP }}/${{ env.SERVICE }}"
+
+            # ID del contenedor en ejecución (solo la primera línea, por si hay réplicas)
+            # El "|| true" evita que el step aborte (bash -e -o pipefail) si el servicio
+            # no existe o el contenedor todavía no está levantado.
+            CONTAINER_ID="$(docker compose ps -q ${{ env.COMPOSE_SERVICE }} 2>/dev/null | head -n1 || true)"
+            CURRENT_IMG=""
+            if [ -n "$CONTAINER_ID" ]; then
+              CURRENT_IMG="$(docker inspect --format='{{.Image}}' "$CONTAINER_ID" 2>/dev/null || true)"
+            fi
+
+            if [ -n "$CURRENT_IMG" ]; then
+              echo "Imagen actual en uso: $CURRENT_IMG"
+              # --no-trunc para que el ID listado coincida en formato con el de "docker inspect"
+              docker images --no-trunc --format "{{.ID}} {{.Repository}}" \
+                | grep -F "$REPO" \
+                | grep -v -F "$CURRENT_IMG" \
+                | awk '{print $1}' \
+                | sort -u \
+                | xargs -r docker rmi || true
+            else
+              echo "No se pudo determinar la imagen en uso, limpieza por repositorio omitida para no borrar accidentalmente."
+            fi
+
+        - name: Cleanup dangling images
           if: always()
           run: docker image prune -f

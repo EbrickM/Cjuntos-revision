@@ -1,5 +1,5 @@
 services:
-  identity:
+  bmori:
     image: ${DOCKER_REGISTRY}/${ENV}/${APP}/${SERVICE}:latest
     container_name: ${APP}-${SERVICE}-${ENV}
 

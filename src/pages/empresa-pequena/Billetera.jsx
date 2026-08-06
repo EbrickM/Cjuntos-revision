@@ -1,4 +1,3 @@
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 
@@ -17,7 +16,6 @@ const cats = [
 ];
 
 export default function EpBilletera() {
-  const { go } = useApp();
   return (
     <AppShell active="epBilletera" role="empresa-pequena" title="Mi Billetera" sub="Saldo y movimientos">
       <div className="fade-in grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-5 items-start">

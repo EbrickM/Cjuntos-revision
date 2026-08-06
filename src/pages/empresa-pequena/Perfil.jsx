@@ -3,7 +3,6 @@ import {
   Camera, Shield, Leaf, CheckCircle2,
   Clock, FileCheck, AlertCircle, Building2, ShieldCheck, Star,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 
@@ -55,7 +54,6 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
 );
 
 export default function EpPerfil() {
-  const { go } = useApp();
   const [avatar, setAvatar] = useState(null);
 
   return (

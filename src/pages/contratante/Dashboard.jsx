@@ -26,13 +26,10 @@ function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
   const cx = vb / 2, cy = vb / 2;
   const circ = 2 * Math.PI * inner;
   const scale = vb / 110;
-  let acc = 0;
-  const segs = data.map(d => {
+  const segs = data.reduce(({ segs, total }, d) => {
     const dash = (d.pct / 100) * circ;
-    const s = { ...d, dash, off: -acc };
-    acc += dash;
-    return s;
-  });
+    return { segs: [...segs, { ...d, dash, off: -total }], total: total + dash };
+  }, { segs: [], total: 0 }).segs;
   return (
     <svg viewBox={`0 0 ${vb} ${vb}`} style={{ width: size, height: size, flexShrink: 0 }}>
       <defs>

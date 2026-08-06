@@ -1,4 +1,3 @@
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import { Building2, Zap, HardHat, Leaf, Truck, Cpu, Wrench, Settings, ShoppingCart, Package } from 'lucide-react';
 
@@ -60,7 +59,6 @@ const empresas = [
 ];
 
 export default function AdminEmpresas() {
-  const { go } = useApp();
 
   const conContratosActivos = empresas.filter(e => e.contratos.length > 0).length;
   const sinContratosActivos = empresas.filter(e => e.contratos.length === 0).length;
