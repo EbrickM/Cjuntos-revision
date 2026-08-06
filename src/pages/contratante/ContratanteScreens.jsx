@@ -1015,7 +1015,7 @@ export function EmpSolicitudes() {
                       <p className="text-[18px] font-extrabold text-text-1 leading-none">{fmt(s.monto)}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>XAF solicitados</p>
                     </div>
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" onClick={() => { _solicitudPyme = s; go('empNuevaSolicitud'); }}>
                       <TrendingUp className="w-3.5 h-3.5 mr-1" />Participar
                     </Button>
                   </div>
