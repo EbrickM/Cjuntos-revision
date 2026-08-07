@@ -7,8 +7,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Toast from '../../components/ui/Toast';
-
-const API = import.meta.env.VITE_IDENTITY_API_BASE_URL;
+import { adminService } from '../../services';
 
 const DOCS_REQUIRED = ['DNI Rep. Legal', 'RUC Registro', 'Estados Financieros 2025', 'Escritura social'];
 
@@ -79,15 +78,10 @@ export default function AdminKYC() {
     setObservaciones('');
   }
 
-  async function callApi(path, opts = {}) {
-    const res  = await fetch(`${API}${path}`, opts);
-    return res.json();
-  }
-
   async function handleAprobar(id, fromModal = false) {
     setLoading(true);
     try {
-      const json = await callApi(`admins/clientes/${id}/aprobar`, { method: 'POST' });
+      const json = await adminService.aprobarKyc(id);
       if (json.success) updateEstado(id, json.data?.estado ?? 'Aprobado');
       if (fromModal) closeModal();
       showToast(json.success ? 'success' : 'error', json.message ?? (json.success ? 'KYC aprobado correctamente.' : 'Ocurrió un error.'));
@@ -103,11 +97,7 @@ export default function AdminKYC() {
     if (!observaciones.trim()) return;
     setLoading(true);
     try {
-      const json = await callApi(`admins/clientes/${e.id}/reevaluar`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ observaciones }),
-      });
+      const json = await adminService.reevaluarKyc(e.id, observaciones);
       if (json.success) updateEstado(e.id, json.data?.estado);
       closeModal();
       showToast(json.success ? 'success' : 'error', json.message ?? (json.success ? 'Reevaluación enviada.' : 'Ocurrió un error.'));
@@ -122,7 +112,7 @@ export default function AdminKYC() {
   async function handleDesestimar() {
     setLoading(true);
     try {
-      const json = await callApi(`admins/clientes/${e.id}/desestimar`, { method: 'POST' });
+      const json = await adminService.desestimarKyc(e.id);
       if (json.success) updateEstado(e.id, json.data?.estado ?? 'Desestimado');
       closeModal();
       showToast(json.success ? 'success' : 'error', json.message ?? (json.success ? 'Cliente desestimado.' : 'Ocurrió un error.'));

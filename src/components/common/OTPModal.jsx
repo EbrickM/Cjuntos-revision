@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Mail, ArrowRight, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
-import { requestOtp, verifyOtp, AuthApiError } from '../../lib/authApi';
+import { authService, AuthApiError } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,7 +73,7 @@ export default function OTPModal({ onClose, onVerify }) {
     setEmailError('');
     setSending(true);
     try {
-      await requestOtp(email);
+      await authService.requestOtp(email);
       setOtp(['', '', '', '', '', '']);
       clearCodeError();
       setTimer(RESEND_SECONDS);
@@ -125,7 +125,7 @@ export default function OTPModal({ onClose, onVerify }) {
     clearCodeError();
     setVerifying(true);
     try {
-      const result = await verifyOtp(contact.trim(), code);
+      const result = await authService.verifyOtp(contact.trim(), code);
       setSession(result);
       onVerify();
     } catch (err) {

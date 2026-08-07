@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
-import { requestAdminOtp, verifyAdminOtp, AuthApiError } from '../../lib/authApi';
+import { authService, AuthApiError } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -77,7 +77,7 @@ export default function AdminLoginModal({ onClose, onVerify }) {
     setEmailError('');
     setSending(true);
     try {
-      await requestAdminOtp(email);
+      await authService.requestAdminOtp(email);
       setOtp(['', '', '', '', '', '']);
       clearCodeError();
       setTimer(RESEND_SECONDS);
@@ -129,7 +129,7 @@ export default function AdminLoginModal({ onClose, onVerify }) {
     clearCodeError();
     setVerifying(true);
     try {
-      const result = await verifyAdminOtp(contact.trim(), code);
+      const result = await authService.verifyAdminOtp(contact.trim(), code);
       setAdminSession(result);
       onVerify();
     } catch (err) {
