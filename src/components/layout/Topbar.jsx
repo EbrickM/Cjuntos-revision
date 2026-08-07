@@ -1,30 +1,22 @@
 import { useState } from 'react';
 import { Bell, LogOut, X, Menu, UserPlus, FileCheck, Banknote, AlertCircle } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
-import { logout } from '../../stores/authStore';
+import { useAuthStore, logout } from '../../stores/authStore';
 import Logo from './Logo';
 import Button from '../ui/Button';
 
-const USERS = {
-  'empresa-pequena': {
-    initials: 'CE',
-    name: 'Construcciones Silva',
-    role: 'Empresa PYME',
-    pill: { lbl: 'PYME', cls: 'bg-green-bg text-green-text border-green-border' },
-  },
-  admin: {
-    initials: 'AM',
-    name: 'Ana Martínez',
-    role: 'Ops. Bonafide',
-    pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' },
-  },
-  contratante: {
-    initials: 'TE',
-    name: 'TotalEnerGE',
-    role: 'Empresa Contratante',
-    pill: null,
-  },
+const ROLE_META = {
+  'empresa-pequena': { roleLabel: 'Empresa PYME',       pill: { lbl: 'PYME',  cls: 'bg-green-bg text-green-text border-green-border'    } },
+  contratante:       { roleLabel: 'Empresa Contratante', pill: null },
+  admin:             { roleLabel: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
 };
+
+function getInitials(fullName = '') {
+  const words = fullName.trim().split(/\s+/).filter(w => w.length > 1);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 const notifs = [
   {
@@ -55,10 +47,13 @@ const notifs = [
 
 export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
   const { go } = useApp();
+  const session      = useAuthStore(s => s.session);
+  const adminSession = useAuthStore(s => s.adminSession);
   const [notifOpen, setNotifOpen] = useState(false);
   const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
 
-  const user       = USERS[role] ?? USERS['empresa-pequena'];
+  const fullName   = session?.user?.fullName ?? adminSession?.admin?.fullName ?? '';
+  const meta       = ROLE_META[role] ?? ROLE_META['empresa-pequena'];
   const pendientes = notifs.filter(n => !leidas.has(n.id)).length;
 
   return (
@@ -91,15 +86,15 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
         {/* Usuario */}
         <div className="flex items-center gap-2 sm:gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C62828] to-[#F57C00] flex items-center justify-center text-white font-bold text-[12px] shrink-0">
-            {user.initials}
+            {getInitials(fullName)}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium text-text-1 leading-tight">{user.name}</p>
-            <p className="text-xs text-text-4 leading-tight">{user.role}</p>
+            <p className="text-sm font-medium text-text-1 leading-tight truncate max-w-[160px]">{fullName || '—'}</p>
+            <p className="text-xs text-text-4 leading-tight">{meta.roleLabel}</p>
           </div>
-          {user.pill && (
-            <span className={`hidden sm:inline text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${user.pill.cls}`}>
-              {user.pill.lbl}
+          {meta.pill && (
+            <span className={`hidden sm:inline text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${meta.pill.cls}`}>
+              {meta.pill.lbl}
             </span>
           )}
         </div>
