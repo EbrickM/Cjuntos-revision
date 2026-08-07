@@ -51,7 +51,6 @@ const EmpPymes          = lazy(() => import('./pages/contratante/EmpPymes'));
 const EmpSolicitudes    = lazy(() => import('./pages/contratante/EmpSolicitudes'));
 const EmpPerfil         = lazy(() => import('./pages/contratante/EmpPerfil'));
 const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDetalle'));
-const EmpNuevaSolicitud = lazy(() => import('./pages/contratante/EmpNuevaSolicitud'));
 
 const R = ROUTES;
 

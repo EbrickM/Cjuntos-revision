@@ -1,7 +1,6 @@
 
 import { useState, useCallback } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -50,7 +49,6 @@ const INITIAL_ROWS = [
 
 // modalMode: null | 'reevaluar' | 'desestimar' | 'rechazar'
 export default function AdminKYC() {
-  const { go } = useApp();
   const [rows,          setRows]          = useState(INITIAL_ROWS);
   const [selected,      setSelected]      = useState(null);
   const [modalMode,     setModalMode]     = useState(null);

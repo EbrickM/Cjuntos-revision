@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // ── Mapa screenId → path URL ──────────────────────────────────────────────────
+// eslint-disable-next-line react-refresh/only-export-components
 export const ROUTES = {
   // Auth
   splash:             '/',

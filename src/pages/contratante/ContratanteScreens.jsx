@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   ChevronRight, CheckCircle, CheckCircle2, Clock, Zap, Building2,
-  Users, Receipt, User, Phone, Mail, MapPin, FileText, ShieldCheck,
+  Users, Receipt, User, Mail, FileText, ShieldCheck,
   TrendingUp, FilePlus, CreditCard, FileCheck, Camera, Shield,
   Leaf, AlertCircle, Star, ClipboardList, ArrowUpRight, Search, ListFilter, X,
 } from 'lucide-react';
@@ -76,7 +76,6 @@ const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
   const refs = useRef([]);
 
   useEffect(() => {
-    setTimer(60); setCanResend(false);
     const iv = setInterval(() => setTimer(p => {
       if (p <= 1) { clearInterval(iv); setCanResend(true); return 0; }
       return p - 1;
@@ -514,7 +513,7 @@ export function EmpFacturas() {
                     </span>
                   ) : <span />}
                   <button
-                    onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }}
+                    onClick={() => { setFacturaModal(f); setIpiStep(null);}}
                     className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
                     style={{ color: ORA }}
                   >
@@ -916,7 +915,6 @@ const solicIconCfg = {
 
 
 export function EmpSolicitudes() {
-  const { go } = useApp();
   const [tab, setTab]         = useState('mis');
   const [solModal, setSolModal] = useState(null);
 
@@ -1319,7 +1317,7 @@ export function EmpContratoDetalle() {
             ) : (
               <div className="space-y-2">
                 {visibles.map(f => (
-                  <div key={f.id} onClick={() => { setFacturaModal(f); setIpiStep(null); setIpiCode(''); }} className="cursor-pointer">
+                  <div key={f.id} onClick={() => { setFacturaModal(f); setIpiStep(null);}} className="cursor-pointer">
 
                     {/* ── Móvil: card igual que Mis Facturas ── */}
                     <div className="sm:hidden bg-white rounded-[14px] border border-border p-4 flex flex-col gap-3 hover:bg-page-bg transition-colors">
