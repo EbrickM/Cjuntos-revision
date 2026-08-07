@@ -42,9 +42,9 @@ async function fetchConfigJson(): Promise<ConfigJson> {
 export function loadConfig(): Promise<RuntimeConfig> {
   if (!configPromise) {
     configPromise = fetchConfigJson().then((runtime) => {
-      const authUrl = runtime.AUTH_URL || import.meta.env.VITE_AUTH_URL || import.meta.env.VITE_AUTH_API_BASE_URL;
+      const authUrl = runtime.AUTH_URL || import.meta.env.VITE_AUTH_URL;
       const apiUrl = runtime.API_URL || import.meta.env.VITE_API_URL;
-      const identityUrl = runtime.IDENTITY_API_URL || import.meta.env.VITE_IDENTITY_API_URL || import.meta.env.VITE_IDENTITY_API_BASE_URL;
+      const identityUrl = runtime.IDENTITY_API_URL || import.meta.env.VITE_IDENTITY_API_URL;
 
       if (!authUrl) {
         throw new Error(
