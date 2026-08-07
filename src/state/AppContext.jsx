@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // ── Mapa screenId → path URL ──────────────────────────────────────────────────
@@ -79,17 +79,16 @@ export function AppProvider({ children }) {
   })();
   const effectiveRole = role ?? derivedRole;
 
-  function go(screenId, newOpts = {}) {
+  const go = useCallback((screenId, newOpts = {}) => {
     setOpts(newOpts);
     const path = ROUTES[screenId] ?? '/';
-    // Auto-set role al navegar
-    if (screenId.startsWith('ep'))    setRole('empresa-pequena');
-    else if (screenId.startsWith('emp'))  setRole('contratante');
+    if (screenId.startsWith('ep'))         setRole('empresa-pequena');
+    else if (screenId.startsWith('emp'))   setRole('contratante');
     else if (screenId.startsWith('admin')) setRole('admin');
     else if (screenId === 'splash' || screenId === 'login') setRole(null);
     navigate(path);
     window.scrollTo(0, 0);
-  }
+  }, [navigate]);
 
   return (
     <AppContext.Provider value={{ screen, role: effectiveRole, setRole, opts, go }}>

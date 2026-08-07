@@ -2,9 +2,9 @@ import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { AppProvider, ROUTES } from './state/AppContext';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import Splash from './pages/auth/Splash';
 
 // Auth
-const Splash            = lazy(() => import('./pages/auth/Splash'));
 const Login             = lazy(() => import('./pages/auth/Login'));
 const RoleSelect        = lazy(() => import('./pages/auth/RoleSelect'));
 const SolicitarContrato = lazy(() => import('./pages/auth/SolicitarContrato'));
