@@ -15,8 +15,8 @@ const GRAD = `linear-gradient(135deg, ${RED} 0%, ${ORA} 100%)`;
 const SHADOW = '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)';
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
-const STEPS_CONT = ['Identificación', 'Operación', 'PYME(s)',              'Confirmación'];
-const STEPS_PYME = ['Identificación', 'Operación', 'Empresa Contratante',  'Confirmación'];
+const STEPS_CONT = ['Identificación', 'Operación', 'Beneficiario(s)',  'Confirmación'];
+const STEPS_PYME = ['Identificación', 'Operación', 'Empresa ancla',    'Confirmación'];
 
 // step index: -1 = stepper hidden
 const PHASE_STEP = {
@@ -198,7 +198,7 @@ function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás',
   );
 }
 
-function ChoiceBtnH({ selected, onClick, Icon, title }) {
+function ChoiceBtnH({ selected, onClick, Icon, title, subtitle }) {
   return (
     <button onClick={onClick}
       className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all cursor-pointer w-full
@@ -206,7 +206,10 @@ function ChoiceBtnH({ selected, onClick, Icon, title }) {
       <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: GRAD }}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <span className={`font-semibold text-sm ${selected ? 'text-[#e0201c]' : 'text-text-1'}`}>{title}</span>
+      <div className="flex flex-col gap-0.5">
+        <span className={`font-semibold text-sm ${selected ? 'text-[#e0201c]' : 'text-text-1'}`}>{title}</span>
+        {subtitle && <span className="text-xs text-text-4 leading-snug">{subtitle}</span>}
+      </div>
     </button>
   );
 }
@@ -341,7 +344,7 @@ export default function SolicitarContrato() {
 
   // ── Step header meta ────────────────────────────────────────────────────────
   const HEADER = {
-    who_initiates:   { Icon: FileText,    title: 'Nueva Solicitud de Contrato',         sub: 'Seleccione quién inicia el proceso' },
+    who_initiates:   { Icon: FileText,    title: 'Nueva Solicitud de Contrato',         sub: 'Indíquenos el tipo de empresa para orientar correctamente su solicitud' },
     is_client:       { Icon: Building2,   title: 'Identificación',                      sub: `¿${isCont ? 'Tu empresa' : 'Tu empresa'} ya tiene relación comercial con Bonafide?` },
     nif_search:      { Icon: Search,      title: 'Identificación',                      sub: 'Localiza tu empresa en nuestra base de datos' },
     confirm_company: { Icon: Building2,   title: 'Confirmar empresa',                   sub: 'Verifica que los datos corresponden a tu empresa' },
@@ -349,11 +352,11 @@ export default function SolicitarContrato() {
     register:        { Icon: Building2,   title: 'Registro de empresa',                 sub: 'Completa los datos de tu empresa' },
     contact:         { Icon: User,        title: 'Contacto responsable',                sub: '¿Quién gestiona esta solicitud?' },
     operation:       { Icon: Briefcase,   title: 'Información de la operación',         sub: 'Monto y plazo son una propuesta — las condiciones definitivas las establece Bonafide' },
-    select_parties:  { Icon: User,        title: isCont ? (operation.tipo === 'factoring_inverso' ? 'PYMEs beneficiarias' : 'Empresa PYME') : 'Empresa Contratante', sub: isCont ? 'Datos de la PYME con la que deseas operar' : 'Identifica la empresa contratante' },
+    select_parties:  { Icon: User,        title: isCont ? (operation.tipo === 'factoring_inverso' ? 'Empresas beneficiarias' : 'Empresa beneficiaria') : 'Empresa ancla', sub: isCont ? 'Datos de la empresa con la que deseas operar' : 'Identifica la empresa que aportará el financiamiento' },
     confirmation:    { Icon: CheckSquare, title: 'Confirmación de solicitud',           sub: 'Revisa el resumen antes de enviar' },
     sent:            { Icon: Send,        title: 'Solicitud enviada',                   sub: 'En espera de respuesta de la otra parte' },
     inv_p_landing:   { Icon: Bell,        title: 'Solicitud recibida',                  sub: 'Una empresa contratante desea realizar una operación contigo' },
-    inv_c_landing:   { Icon: Bell,        title: 'Solicitud recibida',                  sub: 'Una PYME desea realizar una operación con tu empresa' },
+    inv_c_landing:   { Icon: Bell,        title: 'Solicitud recibida',                  sub: 'Una empresa solicita operar contigo como empresa ancla' },
     inv_final:       { Icon: CheckSquare, title: 'Confirmación de participación',       sub: 'Revisa la operación y decide si deseas participar' },
   };
   const hdr = HEADER[phase] ?? HEADER.is_client;
@@ -368,10 +371,22 @@ export default function SolicitarContrato() {
       <>
         <div className="space-y-8 mb-10">
           <div>
-            <SectionLabel>¿Quién solicita el contrato?</SectionLabel>
+            <SectionLabel>¿Cuál describe mejor a su empresa?</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <ChoiceBtnH selected={actor === 'contratante'} onClick={() => setActor('contratante')} Icon={Building2} title="Empresa Contratante" />
-              <ChoiceBtnH selected={actor === 'pyme'}        onClick={() => setActor('pyme')}        Icon={User}      title="Empresa PYME" />
+              <ChoiceBtnH
+                selected={actor === 'contratante'}
+                onClick={() => setActor('contratante')}
+                Icon={Building2}
+                title="Contratante"
+                subtitle="Empresa que solicita o encarga los bienes o servicios"
+              />
+              <ChoiceBtnH
+                selected={actor === 'pyme'}
+                onClick={() => setActor('pyme')}
+                Icon={User}
+                title="Contratada"
+                subtitle="Empresa que asume la prestación de los bienes o servicios acordados"
+              />
             </div>
           </div>
           <div>
@@ -624,7 +639,7 @@ export default function SolicitarContrato() {
             <div className="space-y-6 mb-10">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Field label="Razón social" className="md:col-span-2">
-                  <input className={iCls} value={pymeData.razonSocial} onChange={e => setPymeData(p => ({ ...p, razonSocial: e.target.value }))} placeholder="Nombre legal de la PYME" />
+                  <input className={iCls} value={pymeData.razonSocial} onChange={e => setPymeData(p => ({ ...p, razonSocial: e.target.value }))} placeholder="Nombre legal de la empresa beneficiaria" />
                 </Field>
                 <Field label="NIF / RUC" required>
                   <input className={iCls + ' uppercase'} value={pymeData.nif} onChange={e => { setPymeData(p => ({ ...p, nif: e.target.value })); setPymeSearched(false); setPymeFound(null); }} placeholder="GQ-2024-00XXX" />
@@ -638,7 +653,7 @@ export default function SolicitarContrato() {
                 <Field label="Teléfono" required>
                   <input className={iCls} type="tel" value={pymeData.tel} onChange={e => setPymeData(p => ({ ...p, tel: e.target.value }))} placeholder="+240 222 000 000" />
                 </Field>
-                <Field label="Contrato con esta PYME" required className="md:col-span-3">
+                <Field label="Contrato con esta empresa" required className="md:col-span-3">
                   <ContractUpload />
                 </Field>
               </div>
@@ -659,7 +674,7 @@ export default function SolicitarContrato() {
               {pymesInverso.map((p, i) => (
                 <div key={i} className="border border-border rounded-xl overflow-hidden">
                   <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-border">
-                    <span className="text-sm font-semibold text-text-1">PYME {i + 1}</span>
+                    <span className="text-sm font-semibold text-text-1">Empresa {i + 1}</span>
                     {pymesInverso.length > 1 && (
                       <button onClick={() => setPymesInverso(ps => ps.filter((_, j) => j !== i))}
                         className="text-text-4 hover:text-red-500 cursor-pointer p-1">
@@ -671,7 +686,7 @@ export default function SolicitarContrato() {
                     <Field label="Razón social">
                       <input className={iCls} value={p.razonSocial}
                         onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, razonSocial: e.target.value } : x))}
-                        placeholder="Nombre legal de la PYME" />
+                        placeholder="Nombre legal de la empresa beneficiaria" />
                     </Field>
                     <Field label="Nombre comercial">
                       <input className={iCls} value={p.nombreComercial}
@@ -705,7 +720,7 @@ export default function SolicitarContrato() {
                         onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, tel: e.target.value } : x))}
                         placeholder="+240 222 000 000" />
                     </Field>
-                    <Field label="Contrato con esta PYME" required className="md:col-span-3">
+                    <Field label="Contrato con esta empresa" required className="md:col-span-3">
                       <ContractUpload />
                     </Field>
                   </div>
@@ -714,7 +729,7 @@ export default function SolicitarContrato() {
               <button onClick={() => setPymesInverso(p => [...p, { razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', monto: '' }])}
                 className="flex items-center gap-2 text-sm font-semibold cursor-pointer transition-colors hover:opacity-75"
                 style={{ color: RED }}>
-                <Plus className="w-4 h-4" /> Agregar otra PYME
+                <Plus className="w-4 h-4" /> Agregar otra empresa beneficiaria
               </button>
             </div>
             <NavRow onBack={() => setPhase('operation')} onNext={() => setPhase('confirmation')} />
@@ -729,7 +744,7 @@ export default function SolicitarContrato() {
                 <Field label="Razón social" className="md:col-span-2">
                   <input className={iCls} value={contData.razonSocial}
                     onChange={e => setContData(p => ({ ...p, razonSocial: e.target.value }))}
-                    placeholder="Nombre legal de la empresa" />
+                    placeholder="Nombre legal de la empresa ancla" />
                 </Field>
                 <Field label="NIF / RUC" required>
                   <input className={iCls + ' uppercase'} value={contData.nif}
@@ -751,7 +766,7 @@ export default function SolicitarContrato() {
                     onChange={e => setContData(p => ({ ...p, tel: e.target.value }))}
                     placeholder="+240 222 000 000" />
                 </Field>
-                <Field label="Contrato con la Empresa Contratante" required className="md:col-span-3">
+                <Field label="Contrato con la empresa ancla" required className="md:col-span-3">
                   <ContractUpload />
                 </Field>
               </div>
@@ -773,8 +788,8 @@ export default function SolicitarContrato() {
         : '—';
 
       const contraparteTitle = isCont && operation.tipo === 'factoring_inverso'
-        ? `${pymesInverso.length} PYME${pymesInverso.length > 1 ? 's' : ''} beneficiaria${pymesInverso.length > 1 ? 's' : ''}`
-        : isCont ? 'PYME beneficiaria' : 'Empresa Contratante';
+        ? `${pymesInverso.length} empresa${pymesInverso.length > 1 ? 's' : ''} beneficiaria${pymesInverso.length > 1 ? 's' : ''}`
+        : isCont ? 'Empresa beneficiaria' : 'Empresa ancla';
 
       const empresaItems = foundCompany ? [
         { label: 'Razón social',          value: foundCompany.razonSocial },
@@ -805,7 +820,7 @@ export default function SolicitarContrato() {
       const sections = [
         {
           id: 'empresa',
-          title: isCont ? 'Empresa Contratante' : 'PYME',
+          title: 'Mi empresa',
           items: empresaItems,
         },
         {
@@ -900,7 +915,7 @@ export default function SolicitarContrato() {
                         <div key={i} className={i > 0 ? 'pt-4 border-t border-border' : ''}>
                           <div className="flex items-center gap-2 mb-3">
                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ background: GRAD }}>{i + 1}</span>
-                            <span className="text-[12px] font-semibold text-text-2">{p.razonSocial || p.nombreComercial || `PYME ${i + 1}`}</span>
+                            <span className="text-[12px] font-semibold text-text-2">{p.razonSocial || p.nombreComercial || `Empresa ${i + 1}`}</span>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
@@ -969,8 +984,8 @@ export default function SolicitarContrato() {
             {sentFromInv
               ? 'Tu confirmación de participación ha sido enviada a Bonafide. No es necesario realizar ninguna acción adicional hasta recibir respuesta.'
               : isCont
-                ? 'Hemos enviado una invitación a la PYME para que confirme su participación en la operación.'
-                : 'Hemos enviado una invitación a la Empresa Contratante para que confirme la operación.'}
+                ? 'Hemos enviado una invitación a la empresa beneficiaria para que confirme su participación en la operación.'
+                : 'Hemos enviado una invitación a la empresa ancla para que confirme la operación.'}
           </p>
           <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gray-100 rounded-full">
             <span className="text-xs text-text-4">Referencia</span>
@@ -992,7 +1007,7 @@ export default function SolicitarContrato() {
             <p className="text-sm text-text-3 leading-relaxed">
               {sentFromInv
                 ? 'Bonafide revisará tu confirmación y te notificará cuando haya novedades sobre la operación.'
-                : `En espera de que la ${isCont ? 'PYME' : 'Empresa Contratante'} confirme su participación.`}
+                : `En espera de que la ${isCont ? 'empresa beneficiaria' : 'empresa ancla'} confirme su participación.`}
             </p>
           </div>
         </div>
@@ -1006,7 +1021,7 @@ export default function SolicitarContrato() {
               className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-white border border-blue-text/20 rounded-lg cursor-pointer hover:border-blue-text transition-colors"
               style={{ color: '#3B82F6' }}>
               <Bell className="w-4 h-4" />
-              Ver pantalla de invitación {isCont ? 'PYME' : 'Empresa Contratante'}
+              Ver pantalla de invitación {isCont ? 'empresa beneficiaria' : 'empresa ancla'}
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -1090,7 +1105,7 @@ export default function SolicitarContrato() {
                   <p className="text-[13px] font-semibold text-green-text truncate">
                     {contratante ? `Contrato_${contratante.replace(/\s+/g, '_')}.pdf` : 'Contrato_adjunto.pdf'}
                   </p>
-                  <p className="text-[11px] text-text-4">Contrato con la Empresa Contratante</p>
+                  <p className="text-[11px] text-text-4">Contrato con la empresa ancla</p>
                 </div>
                 <Download className="w-4 h-4 text-text-4 shrink-0 cursor-pointer" />
               </div>
@@ -1180,7 +1195,7 @@ export default function SolicitarContrato() {
                   <p className="text-[13px] font-semibold text-green-text truncate">
                     {contData.razonSocial ? `Contrato_${contData.razonSocial.replace(/\s+/g, '_')}.pdf` : 'Contrato_adjunto.pdf'}
                   </p>
-                  <p className="text-[11px] text-text-4">Contrato con la Empresa Contratante</p>
+                  <p className="text-[11px] text-text-4">Contrato adjunto</p>
                 </div>
                 <Download className="w-4 h-4 text-text-4 shrink-0 cursor-pointer" />
               </div>
@@ -1206,7 +1221,7 @@ export default function SolicitarContrato() {
 
     /* ── INVITATION FINAL (both parties) ───────────────────────────────────── */
     inv_final: (() => {
-      const contraparte = inviterCompany?.razonSocial || (isCont ? 'PYME solicitante' : 'Empresa Contratante');
+      const contraparte = inviterCompany?.razonSocial || (isCont ? 'Empresa solicitante' : 'Empresa ancla');
       const montoFmt   = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
         : '—';
@@ -1214,7 +1229,7 @@ export default function SolicitarContrato() {
       const invSections = [
         {
           id: 'empresa',
-          title: isCont ? 'Empresa Contratante (mi empresa)' : 'PYME (mi empresa)',
+          title: 'Mi empresa',
           items: foundCompany ? [
             { label: 'Razón social',       value: foundCompany.razonSocial },
             { label: 'NIF',                value: foundCompany.nif },
@@ -1241,7 +1256,7 @@ export default function SolicitarContrato() {
         },
         {
           id: 'contraparte',
-          title: isCont ? 'PYME solicitante' : 'Empresa Contratante',
+          title: isCont ? 'Empresa solicitante' : 'Empresa ancla',
           items: [
             { label: 'Razón social', value: inviterCompany?.razonSocial || contraparte },
             { label: 'NIF',          value: inviterCompany?.nif || '—' },
