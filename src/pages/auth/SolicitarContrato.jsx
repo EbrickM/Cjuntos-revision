@@ -81,17 +81,22 @@ function Stepper({ steps, step }) {
 }
 
 // ── Atoms ─────────────────────────────────────────────────────────────────────
-const iCls = 'w-full px-4 py-2.5 text-sm bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e0201c] focus:border-transparent transition-all';
+const iCls    = 'w-full px-4 py-2.5 text-sm bg-gray-50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#e0201c] focus:border-transparent transition-all';
+const iClsErr = 'w-full px-4 py-2.5 text-sm bg-gray-50 border border-red-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-transparent transition-all';
 const sCls = iCls + ' cursor-pointer';
 
-function Field({ label, required, hint, children, className = '' }) {
+const filterPhone      = (v) => v.replace(/[^\d\s+().-]/g, '');
+const isEmailInvalid   = (v) => v.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+function Field({ label, required, hint, error, children, className = '' }) {
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-text-1 mb-1.5">
         {label}{required && <span className="text-[#e0201c] ml-1">*</span>}
       </label>
       {children}
-      {hint && <p className="text-xs text-text-4 mt-1">{hint}</p>}
+      {error && <p className="text-xs text-[#e0201c] mt-1">{error}</p>}
+      {hint && !error && <p className="text-xs text-text-4 mt-1">{hint}</p>}
     </div>
   );
 }
@@ -514,11 +519,11 @@ export default function SolicitarContrato() {
           <div>
             <SectionLabel>Datos de contacto</SectionLabel>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Field label="Correo electrónico corporativo" required>
-                <input className={iCls} type="email" value={regData.email} onChange={e => setRegData(p => ({ ...p, email: e.target.value }))} placeholder="contacto@empresa.gq" />
+              <Field label="Correo electrónico corporativo" required error={isEmailInvalid(regData.email) ? 'Ingrese un correo electrónico válido' : null}>
+                <input className={isEmailInvalid(regData.email) ? iClsErr : iCls} type="email" value={regData.email} onChange={e => setRegData(p => ({ ...p, email: e.target.value }))} placeholder="contacto@empresa.gq" />
               </Field>
               <Field label="Teléfono corporativo" required>
-                <input className={iCls} type="tel" value={regData.telefono} onChange={e => setRegData(p => ({ ...p, telefono: e.target.value }))} placeholder="+240 222 000 000" />
+                <input className={iCls} type="tel" value={regData.telefono} onChange={e => setRegData(p => ({ ...p, telefono: filterPhone(e.target.value) }))} placeholder="+240 222 000 000" />
               </Field>
               <Field label="Página web">
                 <input className={iCls} type="url" value={regData.web} onChange={e => setRegData(p => ({ ...p, web: e.target.value }))} placeholder="www.empresa.gq" />
@@ -647,11 +652,11 @@ export default function SolicitarContrato() {
                 <Field label="Nombre comercial">
                   <input className={iCls} value={pymeData.nombreComercial} onChange={e => setPymeData(p => ({ ...p, nombreComercial: e.target.value }))} placeholder="Nombre comercial" />
                 </Field>
-                <Field label="Correo electrónico" required>
-                  <input className={iCls} type="email" value={pymeData.email} onChange={e => setPymeData(p => ({ ...p, email: e.target.value }))} placeholder="pyme@empresa.com" />
+                <Field label="Correo electrónico" required error={isEmailInvalid(pymeData.email) ? 'Ingrese un correo electrónico válido' : null}>
+                  <input className={isEmailInvalid(pymeData.email) ? iClsErr : iCls} type="email" value={pymeData.email} onChange={e => setPymeData(p => ({ ...p, email: e.target.value }))} placeholder="pyme@empresa.com" />
                 </Field>
                 <Field label="Teléfono" required>
-                  <input className={iCls} type="tel" value={pymeData.tel} onChange={e => setPymeData(p => ({ ...p, tel: e.target.value }))} placeholder="+240 222 000 000" />
+                  <input className={iCls} type="tel" value={pymeData.tel} onChange={e => setPymeData(p => ({ ...p, tel: filterPhone(e.target.value) }))} placeholder="+240 222 000 000" />
                 </Field>
                 <Field label="Contrato con esta empresa" required className="md:col-span-3">
                   <ContractUpload />
@@ -710,14 +715,14 @@ export default function SolicitarContrato() {
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-text-4">XAF</span>
                       </div>
                     </Field>
-                    <Field label="Correo electrónico" required>
-                      <input className={iCls} type="email" value={p.email}
+                    <Field label="Correo electrónico" required error={isEmailInvalid(p.email) ? 'Ingrese un correo electrónico válido' : null}>
+                      <input className={isEmailInvalid(p.email) ? iClsErr : iCls} type="email" value={p.email}
                         onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, email: e.target.value } : x))}
                         placeholder="pyme@empresa.com" />
                     </Field>
                     <Field label="Teléfono">
                       <input className={iCls} type="tel" value={p.tel}
-                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, tel: e.target.value } : x))}
+                        onChange={e => setPymesInverso(ps => ps.map((x, j) => j === i ? { ...x, tel: filterPhone(e.target.value) } : x))}
                         placeholder="+240 222 000 000" />
                     </Field>
                     <Field label="Contrato con esta empresa" required className="md:col-span-3">
@@ -756,14 +761,14 @@ export default function SolicitarContrato() {
                     onChange={e => setContData(p => ({ ...p, nombreComercial: e.target.value }))}
                     placeholder="Nombre comercial" />
                 </Field>
-                <Field label="Correo electrónico" required>
-                  <input className={iCls} type="email" value={contData.email}
+                <Field label="Correo electrónico" required error={isEmailInvalid(contData.email) ? 'Ingrese un correo electrónico válido' : null}>
+                  <input className={isEmailInvalid(contData.email) ? iClsErr : iCls} type="email" value={contData.email}
                     onChange={e => setContData(p => ({ ...p, email: e.target.value }))}
                     placeholder="contacto@empresa.gq" />
                 </Field>
                 <Field label="Teléfono" required>
                   <input className={iCls} type="tel" value={contData.tel}
-                    onChange={e => setContData(p => ({ ...p, tel: e.target.value }))}
+                    onChange={e => setContData(p => ({ ...p, tel: filterPhone(e.target.value) }))}
                     placeholder="+240 222 000 000" />
                 </Field>
                 <Field label="Contrato con la empresa ancla" required className="md:col-span-3">
