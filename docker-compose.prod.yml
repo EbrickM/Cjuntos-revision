@@ -1,0 +1,14 @@
+services:
+  bmori:
+    container_name: ${APP}-${SERVICE}-prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+
+      - 'traefik.http.routers.b-mori.rule=HostRegexp(`^cjuntos\..+$`)'
+      - "traefik.http.routers.b-mori.entrypoints=web"
+      - "traefik.http.routers.b-mori.middlewares=secure-chain@file"
+      - "traefik.http.routers.b-mori.service=bmori"
+      - "traefik.http.routers.b-mori.priority=200"
+
+      - "traefik.http.services.bmori.loadbalancer.server.port=80"

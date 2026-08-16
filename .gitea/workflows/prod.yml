@@ -1,9 +1,9 @@
-name: Deploy Dev
+name: Deploy Prod
 
 on:
   push:
     branches:
-      - develop
+      - main
     paths:
       - 'src/**'
       - 'public/**'
@@ -16,8 +16,9 @@ on:
       - '.dockerignore'
       - 'nginx.conf'
       - 'docker-entrypoint.sh'
-      - '.gitea/workflows/**'
+      - '.gitea/workflows/prod.yml'
       - 'docker-compose.yml'
+      - 'docker-compose.prod.yml'
 
   workflow_dispatch:
 
@@ -26,17 +27,19 @@ permissions:
   packages: write
 
 concurrency:
-  group: build-dev
+  group: build-prod
   cancel-in-progress: true
 
 env:
-  ENV: dev
-  REGISTRY: ${{ vars.DOCKER_REGISTRY }}
+  ENV: prod
+  REGISTRY: ${{ vars.PROD_DOCKER_REGISTRY }}
   APP: ${{ vars.APP }}
   SERVICE: ${{ vars.SERVICE }}
-  # Nombre del servicio tal como está declarado en docker-compose.yml (distinto de SERVICE,
-  # que solo se usa para componer el nombre/repositorio de la imagen)
   COMPOSE_SERVICE: bmori
+  DIR: ${{ vars.PROD_DEPLOY_DIR }}
+  HOST: ${{ vars.PROD_DEPLOY_HOST }}
+  DEPLOY_USER: ${{ vars.PROD_DEPLOY_USER }}
+  SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_PRIVATE_KEY }}
 
 jobs:
   lint:
@@ -48,17 +51,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # Determinar registro npm y exportar variable con $GITHUB_ENV
       - name: Determine npm registry
         shell: bash
         run: |
           set -euo pipefail
-
           REGISTRY="${{ vars.NPM_REGISTRY }}"
-
-          # limpiar posibles \r o saltos de línea
           REGISTRY=$(echo "$REGISTRY" | tr -d '\r' | tr -d '\n')
-
           if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 >/dev/null 2>&1; then
               echo "Using Verdaccio: $REGISTRY"
               echo "registry_url=$REGISTRY" >> "$GITHUB_ENV"
@@ -86,17 +84,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      # 2. Determinar registro npm y exportar variable con $GITHUB_ENV
       - name: Determine npm registry
         shell: bash
         run: |
           set -euo pipefail
-
           REGISTRY="${{ vars.NPM_REGISTRY }}"
-
-          # limpiar posibles \r o saltos de línea
           REGISTRY=$(echo "$REGISTRY" | tr -d '\r' | tr -d '\n')
-
           if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 >/dev/null 2>&1; then
               echo "Using Verdaccio: $REGISTRY"
               echo "registry_url=$REGISTRY" >> "$GITHUB_ENV"
@@ -114,7 +107,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=ref,event=branch
-            type=sha,prefix=dev-
+            type=sha,prefix=prod-
           labels: |
             org.opencontainers.image.title=${{ env.APP }}-${{ env.SERVICE }}
             org.opencontainers.image.description=${{ vars.DESCRIPTION }}
@@ -123,8 +116,6 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-
-      # 4. Login en el registro Docker
       - name: Login to registry
         uses: docker/login-action@v4
         with:
@@ -132,7 +123,6 @@ jobs:
           username: ${{ vars.CI_BOT_USER }}
           password: ${{ secrets.CI_BOT_PASSWORD }}
 
-      # 5. Construir y subir imagen (con load:true para tenerla localmente)
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
@@ -145,79 +135,87 @@ jobs:
             NPM_REGISTRY=${{ env.registry_url }}
 
   deploy:
-      name: Deploy (Dev)
-      needs: build
-      if: github.event_name == 'push'
-      runs-on: ubuntu-24.04
-      timeout-minutes: 30
+    name: Deploy (Prod)
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
-      steps:
-        - name: Checkout minimal files
-          uses: actions/checkout@v6
-          with:
+    steps:
+      - name: Checkout minimal files
+        uses: actions/checkout@v6
+        with:
             sparse-checkout: |
               docker-compose.yml
+              docker-compose.prod.yml
             sparse-checkout-cone-mode: true
 
-        - name: Create .env
-          run: |
-            cat > .env <<EOF
-            ENV=${{ env.ENV }}
+      - name: Generate .env file locally
+        run: |
+          cat > .env <<EOT
+          ENV=${{ env.ENV }}
+          DOCKER_REGISTRY=${{ env.REGISTRY }}
+          APP=${{ env.APP }}
+          SERVICE=${{ env.SERVICE }}
 
-            DOCKER_REGISTRY=${{ env.REGISTRY }}
-            APP=${{ env.APP }}
-            SERVICE=${{ env.SERVICE }}
+          # Consumidas por docker-entrypoint.sh al arrancar el contenedor
+          # para generar /config.json (ver src/config.ts)
+          AUTH_URL=${{ vars.PROD_AUTH_URL }}
+          API_URL=${{ vars.PROD_API_URL }}
+          IDENTITY_API_URL=${{ vars.PROD_IDENTITY_API_URL }}
+          EOT
 
-            PORT=8081
+      - name: Deploy to Remote via SSH & rsync
+        run: |
+          set -euo pipefail
 
-            # Consumidas por docker-entrypoint.sh al arrancar el contenedor
-            # para generar /config.json (ver src/config.ts)
-            AUTH_URL=${{ vars.AUTH_URL }}
-            API_URL=${{ vars.API_URL }}
-            IDENTITY_API_URL=${{ vars.IDENTITY_API_URL }}
-            EOF
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
 
-        - name: Login to registry
-          uses: docker/login-action@v4
-          with:
-            registry: ${{ env.REGISTRY }}
-            username: ${{ vars.CI_BOT_USER }}
-            password: ${{ secrets.CI_BOT_PASSWORD }}
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
 
-        - name: Pull images
-          run: docker compose pull
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$HOST" \
+            "sudo mkdir -p '$DIR' && sudo chown -R '$DEPLOY_USER:$DEPLOY_USER' '$DIR'"
 
-        - name: Deploy containers
-          run: docker compose up -d
+          echo "==> Sync compose and .env"
+          rsync -az \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            docker-compose.yml docker-compose.prod.yml .env \
+            "$DEPLOY_USER@$HOST:$DIR/"
 
-        - name: Cleanup old service images
-          if: always()
-          run: |
-            # Repositorio completo de la imagen del servicio
+          echo "==> Remote deploy"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$HOST" <<EOF
+            set -e
+            cd "$DIR"
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+            echo "==> Cleaning up old images"
             REPO="${{ env.REGISTRY }}/${{ env.ENV }}/${{ env.APP }}/${{ env.SERVICE }}"
-
-            # ID del contenedor en ejecución (solo la primera línea, por si hay réplicas)
-            # El "|| true" evita que el step aborte (bash -e -o pipefail) si el servicio
-            # no existe o el contenedor todavía no está levantado.
-            CONTAINER_ID="$(docker compose ps -q ${{ env.COMPOSE_SERVICE }} 2>/dev/null | head -n1 || true)"
+            CONTAINER_ID="\$(docker compose -f docker-compose.yml -f docker-compose.prod.yml ps -q ${{ env.COMPOSE_SERVICE }} 2>/dev/null | head -n1 || true)"
             CURRENT_IMG=""
-            if [ -n "$CONTAINER_ID" ]; then
-              CURRENT_IMG="$(docker inspect --format='{{.Image}}' "$CONTAINER_ID" 2>/dev/null || true)"
+            if [ -n "\$CONTAINER_ID" ]; then
+              CURRENT_IMG="\$(docker inspect --format='{{.Image}}' "\$CONTAINER_ID" 2>/dev/null || true)"
             fi
 
-            if [ -n "$CURRENT_IMG" ]; then
-              echo "Imagen actual en uso: $CURRENT_IMG"
-              # --no-trunc para que el ID listado coincida en formato con el de "docker inspect"
-              docker images --no-trunc --format "{{.ID}} {{.Repository}}" \
-                | grep -F "$REPO" \
-                | grep -v -F "$CURRENT_IMG" \
-                | awk '{print $1}' \
-                | sort -u \
+            if [ -n "\$CURRENT_IMG" ]; then
+              echo "Imagen actual en uso: \$CURRENT_IMG"
+              docker images --no-trunc --format "{{.ID}} {{.Repository}}" \\
+                | grep -F "\$REPO" \\
+                | grep -v -F "\$CURRENT_IMG" \\
+                | awk '{print \$1}' \\
+                | sort -u \\
                 | xargs -r docker rmi || true
             else
-              echo "No se pudo determinar la imagen en uso, limpieza por repositorio omitida para no borrar accidentalmente."
+              echo "No se pudo determinar la imagen en uso, limpieza por repositorio omitida."
             fi
 
-        - name: Cleanup dangling images
-          if: always()
-          run: docker image prune -f
+            docker image prune -f
+          EOF
+
+      - name: Clean up local .env (optional)
+        if: always()
+        run: rm -f .env

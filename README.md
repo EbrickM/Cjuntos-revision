@@ -91,15 +91,18 @@ docker run -p 8080:80 \
 
 La imagen construye el bundle estático con Node y lo sirve con `nginx`. Al arrancar el contenedor, `docker-entrypoint.sh` regenera `config.json` a partir de las variables de entorno antes de levantar `nginx`. Incluye healthcheck en `/health`.
 
-`docker-compose.yml` despliega el contenedor detrás de Traefik (routing por host, TLS, healthcheck) para los entornos de stage/producción.
+`docker-compose.yml` (imagen, `.env`, red `traefik-public`) es la base común; `docker-compose.dev.yml` y `docker-compose.prod.yml` la extienden con `container_name`, labels de Traefik (routing por host, TLS) y, en dev, el mapeo de puerto. Se combinan con `docker compose -f docker-compose.yml -f docker-compose.<env>.yml ...`.
 
 ### CI
 
-`.gitea/workflows/deploy-dev.yml` corre en cada push a `develop`:
+- `.gitea/workflows/dev.yml` corre en cada push a `develop`:
+  1. **lint** (`npm run lint`) — debe pasar antes de continuar
+  2. **build** — construye y publica la imagen Docker en el registry
+  3. **deploy** — `docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d` en el runner de Gitea (mismo host)
 
-1. **lint** (`npm run lint`) — debe pasar antes de continuar
-2. **build** — construye y publica la imagen Docker en el registry
-3. **deploy** — `docker compose up` en el host de desarrollo
+- `.gitea/workflows/prod.yml` corre en cada push a `main`:
+  1. **lint** / **build** — igual que dev, pero contra las vars/secrets de `PROD_*`
+  2. **deploy** — sincroniza `docker-compose.yml` + `docker-compose.prod.yml` + `.env` por SSH/rsync a un host remoto (`PROD_DEPLOY_HOST`/`PROD_DEPLOY_DIR`/`PROD_DEPLOY_USER` + secret `PROD_DEPLOY_SSH_PRIVATE_KEY`) y ahí ejecuta `docker compose up -d`
 
 ## Estructura del proyecto
 
