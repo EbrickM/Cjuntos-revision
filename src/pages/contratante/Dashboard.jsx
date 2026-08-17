@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   TrendingUp, TreePine, Download, ChevronRight, ArrowUpRight,
   CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield,
-  Clock, Calendar, Wind
+  Wind
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -17,7 +17,6 @@ const ERR         = '#B8352A';
 const BORDER      = '#ECEAE7';
 const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
-const BLUE        = '#3B82F6';
 
 // ── DonutChart ────────────────────────────────────────────────────────────────
 function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
@@ -246,8 +245,6 @@ const CONTRATOS_ACTIV   = 1;
 const SCORE             = 720;
 const FACTURAS_COUNT    = 2;
 const FACTURAS_MONTO    = 47_500_000;
-const PENDIENTE_COUNT   = 2;
-const PENDIENTE_XAF     = 47_500_000;
 const SOLICITUDES_TOTAL = 6;
 
 const fondoDona = [
@@ -285,25 +282,6 @@ const estadoOps = [
 const tipoBarData = [
   { label: 'Construcción', shortLabel: 'Construcc.', value: 180, color: RED },
 ];
-
-const vencimientos = [
-  { nombre: 'Const. Silva Ltd.', fecha: '28 Ago', monto: 21_500_000, urgente: true  },
-  { nombre: 'Const. Silva Ltd.', fecha: '05 Sep', monto: 26_000_000, urgente: false },
-];
-
-const actividad = [
-  { tipo: 'contrato',  Icon: FilePlus,  text: 'Nuevo contrato firmado',         sub: 'CT-2026-0041 · Const. Silva Ltd.',               time: 'Hace 2h' },
-  { tipo: 'factura',   Icon: FileCheck, text: 'Factura FAC-2026-0911 recibida', sub: 'Const. Silva Ltd. · 21.500.000 XAF',             time: 'Hace 4h' },
-  { tipo: 'factura',   Icon: FileCheck, text: 'Factura FAC-2026-0918 recibida', sub: 'Const. Silva Ltd. · 26.000.000 XAF',             time: 'Ayer'    },
-  { tipo: 'solicitud', Icon: Clock,     text: 'Nueva solicitud recibida',        sub: 'ConstCentro PYME · 50.000.000 XAF solicitados', time: 'Ayer'    },
-];
-
-const actividadCfg = {
-  contrato:  { bg: '#E3F4EA', color: GREEN },
-  factura:   { bg: '#EFF6FF', color: BLUE  },
-  pago:      { bg: '#E3F4EA', color: GREEN },
-  solicitud: { bg: '#FDF6E8', color: WARN  },
-};
 
 // ── Medioambiental data ───────────────────────────────────────────────────────
 const envKpis = [
@@ -523,7 +501,7 @@ export default function EmpDash() {
             </div>
 
             {/* ── Fila 2: KPIs ──────────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
 
               <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
                 <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">PYMEs Financiadas</p>
@@ -575,23 +553,6 @@ export default function EmpDash() {
                 </button>
               </div>
 
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Pendiente de Liquidar</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
-                    <CreditCard className="w-6 h-6" style={{ color: ERR }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_COUNT}</p>
-                </div>
-                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('de-DE').format(PENDIENTE_XAF)} XAF por liquidar
-                </p>
-                <button onClick={showDevToast}
-                        className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
-                        style={{ color: ORA }}>
-                  Ver pagos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
 
             {/* ── Evolución + Distribución por PYME ────────────────────────── */}
@@ -696,90 +657,6 @@ export default function EmpDash() {
               </div>
             </div>
 
-            {/* ── Próximos Vencimientos + Actividad Reciente ───────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-            <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border flex flex-col">
-              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-                <div>
-                  <p className="text-[13px] font-bold text-text-1">Próximos Vencimientos</p>
-                  <p className="text-[11px] text-text-4">Próximas 6 semanas</p>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: '#FDF6E8', color: WARN }}>
-                  <Calendar className="w-3 h-3" />
-                  {vencimientos.length} próximos
-                </span>
-              </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {vencimientos.map((v, i) => (
-                  <div key={i} className={`flex items-center gap-3 p-3 rounded-[10px] border ${
-                    v.urgente ? 'border-red-text/20' : 'border-border bg-page-bg'
-                  }`} style={v.urgente ? { background: '#FFF5F5' } : {}}>
-                    <div className="w-10 h-10 rounded-[10px] flex flex-col items-center justify-center shrink-0"
-                         style={{ background: v.urgente ? '#FDEEEB' : '#FFF3E0' }}>
-                      <span className="text-[9px] font-semibold leading-none" style={{ color: v.urgente ? ERR : WARN }}>
-                        {v.fecha.split(' ')[1]}
-                      </span>
-                      <span className="text-[14px] font-extrabold leading-none mt-0.5" style={{ color: v.urgente ? ERR : WARN }}>
-                        {v.fecha.split(' ')[0]}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-text-1 truncate">{v.nombre}</p>
-                      <p className="text-[11px]" style={{ color: TEXT4 }}>
-                        {new Intl.NumberFormat('de-DE').format(v.monto)} XAF
-                      </p>
-                    </div>
-                    {v.urgente && (
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                            style={{ background: '#FDEEEB', color: ERR }}>Urgente</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="px-4 pb-4">
-                <button onClick={showDevToast}
-                        className="w-full text-center text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center justify-center gap-1"
-                        style={{ color: ORA }}>
-                  Ver todos los vencimientos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <p className="text-[13px] font-bold text-text-1">Actividad Reciente</p>
-                  <p className="text-[11px] text-text-4">Últimas acciones en tu cuenta</p>
-                </div>
-                <button onClick={showDevToast}
-                        className="text-[12px] font-semibold cursor-pointer hover:opacity-75 transition flex items-center gap-0.5"
-                        style={{ color: ORA }}>
-                  Ver todo <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {actividad.map((a, i) => {
-                  const cfg = actividadCfg[a.tipo];
-                  return (
-                    <div key={i} className="flex items-start gap-3 p-3 rounded-[10px] border border-border hover:bg-page-bg/60 transition-colors cursor-pointer">
-                      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                           style={{ background: cfg.bg }}>
-                        <a.Icon className="w-4 h-4" style={{ color: cfg.color }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-semibold text-text-1 leading-snug">{a.text}</p>
-                        <p className="text-[11px] text-text-3 truncate">{a.sub}</p>
-                      </div>
-                      <span className="text-[10px] text-text-4 whitespace-nowrap shrink-0">{a.time}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            </div>
 
           </div>
         )}
@@ -892,7 +769,7 @@ export default function EmpDash() {
       <div className={`fixed bottom-6 right-6 z-50 w-[320px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
         ${devToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
         <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FFF3E0' }}>
-          <Clock className="w-4 h-4" style={{ color: ORA }} />
+          <ArrowUpRight className="w-4 h-4" style={{ color: ORA }} />
         </div>
         <div>
           <div className="text-[13px] font-semibold text-text-1 mb-0.5">Funcionalidad en desarrollo</div>

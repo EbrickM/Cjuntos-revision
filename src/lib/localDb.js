@@ -32,7 +32,7 @@ export const localDb = {
   set(key, data) {
     try {
       localStorage.setItem(PREFIX + key, JSON.stringify(data));
-    } catch {}
+    } catch (e) { void e; }
   },
 
   reset(key) {

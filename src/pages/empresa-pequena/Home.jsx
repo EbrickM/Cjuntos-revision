@@ -327,14 +327,8 @@ const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : '
 export default function EpHome() {
   const { go } = useApp();
   const [tab, setTab]         = useState('financiacion');
-  const [devToast, setDevToast] = useState(false);
   const pctUsado      = Math.round((USADO  / LIMITE) * 100);
   const pctDisponible = 100 - pctUsado;
-
-  const showDevToast = () => {
-    setDevToast(true);
-    setTimeout(() => setDevToast(false), 3500);
-  };
 
   return (
     <AppShell active="epHome" role="empresa-pequena" title="Inicio" sub="Mi Panel">
@@ -789,17 +783,6 @@ export default function EpHome() {
 
       </div>
 
-      {/* Toast: funcionalidad en desarrollo */}
-      <div className={`fixed bottom-6 right-6 z-50 w-[320px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
-        ${devToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
-        <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FFF3E0' }}>
-          <Clock className="w-4 h-4" style={{ color: ORA }} />
-        </div>
-        <div>
-          <div className="text-[13px] font-semibold text-text-1 mb-0.5">Funcionalidad en desarrollo</div>
-          <div className="text-[12px] text-text-4 leading-snug">Esta sección estará disponible próximamente.</div>
-        </div>
-      </div>
     </AppShell>
   );
 }
