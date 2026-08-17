@@ -22,7 +22,7 @@ const ULTIMA_AUD = '15/03/2026';
 export default function EmpPerfil() {
   const session  = useAuthStore(s => s.session);
   const user     = session?.user ?? {};
-  const fullName = user.fullName ?? 'Usuario';
+  const fullName = user.fullName ?? '';
   const email    = user.email    ?? '';
   const initials = getInitials(fullName);
 
@@ -57,8 +57,8 @@ export default function EmpPerfil() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold text-text-1 leading-tight">Constructora Malabo S.A.</div>
-              <div className="text-[13px] text-text-3 mt-0.5">{fullName} · Director General</div>
+              <div className="text-[20px] font-bold text-text-1 leading-tight">{fullName}</div>
+              {email && <div className="text-[13px] text-text-3 mt-0.5">{email}</div>}
               <div className="text-[12px] font-mono text-text-5 mt-0.5">GE-2023-00156</div>
               <div className="text-[11px] text-text-4 mt-1">Construcción · 50–150 empleados</div>
             </div>
@@ -93,7 +93,7 @@ export default function EmpPerfil() {
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormGroup label="Razón Social">
-                <Input value="Constructora Malabo S.A." disabled />
+                <Input value={fullName} disabled />
               </FormGroup>
               <FormGroup label="RUC / NIF">
                 <Input value="GE-2023-00156" disabled />
@@ -108,7 +108,7 @@ export default function EmpPerfil() {
                 <Input value="+240 222 100 200" disabled />
               </FormGroup>
               <FormGroup label="Correo corporativo">
-                <Input value={email || 'admin@conmalabo.gq'} disabled />
+                <Input value={email} disabled />
               </FormGroup>
             </div>
           </div>

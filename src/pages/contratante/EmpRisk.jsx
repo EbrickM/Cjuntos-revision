@@ -57,7 +57,7 @@ export default function EmpRisk() {
           <table className="w-full border-collapse">
             <thead><tr>{['Proveedor','Semáforo','Score','Facturas','Alertas','Acciones'].map(h=><th key={h} className="text-left px-4 py-2 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
             <tbody>
-              {[['Const. Silva','green','🟢 Verde',870,3,'Ninguna'],['Tech Bata SL','green','🟢 Verde',820,1,'Ninguna'],['AgriEco PYME','yellow','⚠ Amarillo',610,2,'Docs por vencer'],['ServLog GE','red','🔴 Rojo',320,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
+              {[['Const. Silva','green','🟢 Verde',820,3,'Ninguna'],['Tech Bata SL','green','🟢 Verde',820,1,'Ninguna'],['AgriEco PYME','yellow','⚠ Amarillo',610,2,'Docs por vencer'],['ServLog GE','red','🔴 Rojo',320,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
                 <tr key={name} onClick={() => go('empProvPerfil')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
                   <td className="px-4 py-3 font-semibold">{name}</td>
                   <td className="px-4 py-3"><Badge variant={cls}>{sem}</Badge></td>

@@ -37,11 +37,11 @@ const ESG_METAS = [
 
 // ── KPIs ──────────────────────────────────────────────────────────────────────
 const kpis = [
-  { value: '8',        label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text',  trend: '+2',      tUp: true,  Icon: FolderOpen  },
-  { value: '5',        label: 'Proyectos activos',                               cls: 'text-blue-text',   trend: 'Estable', tUp: null,  Icon: Activity    },
-  { value: '3',        label: 'Proyectos financiados',                           cls: 'text-orange',      trend: '+1',      tUp: true,  Icon: Banknote    },
-  { value: '12,450 t', label: 'Captura CO₂ potencial',                           cls: 'text-green-text',  trend: '+8%',     tUp: true,  Icon: Wind        },
-  { value: 'Medio',    label: 'Riesgo ambiental',                                cls: 'text-yellow-text', trend: 'Estable', tUp: null,  Icon: ShieldAlert },
+  { value: '5',       label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text', trend: '+2',      tUp: true, Icon: FolderOpen  },
+  { value: '2',       label: 'Proyectos activos',                               cls: 'text-blue-text',  trend: 'Estable', tUp: null, Icon: Activity    },
+  { value: '2',       label: 'Proyectos financiados',                           cls: 'text-orange',     trend: '+1',      tUp: true, Icon: Banknote    },
+  { value: '7,800 t', label: 'Captura CO₂ potencial',                           cls: 'text-green-text', trend: '+8%',     tUp: true, Icon: Wind        },
+  { value: 'Bajo',    label: 'Riesgo ambiental',                                cls: 'text-green-text', trend: 'Estable', tUp: true, Icon: ShieldAlert },
 ];
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ export default function EpProyectosAmbientales() {
 
           {/* Certification Journey — 2/5 */}
           <div className="card-enter lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
-            <CardHeader title="Camino de Certificación" sub="Progresión de Construcciones Silva" Icon={Leaf} />
+            <CardHeader title="Camino de Certificación" sub="Progresión de tu empresa" Icon={Leaf} />
 
             <div className="relative">
               {CERT_PATH.map((cert, i) => {
@@ -263,7 +263,7 @@ export default function EpProyectosAmbientales() {
               <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-1.5">
                   <Leaf className="w-4 h-4 text-green-text" />
-                  <span className="text-[11px] font-bold text-green-text whitespace-nowrap">8 registrados</span>
+                  <span className="text-[11px] font-bold text-green-text whitespace-nowrap">5 registrados</span>
                 </div>
                 <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
                   <Plus className="w-3.5 h-3.5" />

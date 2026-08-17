@@ -20,7 +20,7 @@ export default function EmpProvPerfil() {
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              {[['🟢 Verde','Bajo Riesgo','bg-green-bg border-green-border'],['🌿 Verde B.','Etiqueta ESG','bg-green-bg border-green-border'],['870/1000','Score financiero','bg-orange-tint border-orange-border']].map(([val,lbl,cls]) => (
+              {[['🟢 Verde','Bajo Riesgo','bg-green-bg border-green-border'],['🌿 Verde B.','Etiqueta ESG','bg-green-bg border-green-border'],['820/1000','Score financiero','bg-orange-tint border-orange-border']].map(([val,lbl,cls]) => (
                 <div key={lbl} className={`${cls} border rounded-[12px] p-3.5 text-center min-w-[90px]`}>
                   <div className="text-[18px] font-bold mb-0.5">{val}</div>
                   <div className="text-[11px] text-text-4">{lbl}</div>

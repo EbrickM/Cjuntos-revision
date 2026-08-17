@@ -64,7 +64,7 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
 export default function EpPerfil() {
   const session  = useAuthStore(s => s.session);
   const user     = session?.user ?? {};
-  const fullName = user.fullName ?? 'Usuario';
+  const fullName = user.fullName ?? '';
   const email    = user.email    ?? '';
   const initials = getInitials(fullName);
 
@@ -101,8 +101,8 @@ export default function EpPerfil() {
 
             {/* Info empresa */}
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold text-text-1 leading-tight">Construcciones Silva Ltd.</div>
-              <div className="text-[13px] text-text-3 mt-0.5">{fullName} · Director General</div>
+              <div className="text-[20px] font-bold text-text-1 leading-tight">{fullName}</div>
+              {email && <div className="text-[13px] text-text-3 mt-0.5">{email}</div>}
               <div className="text-[12px] font-mono text-text-5 mt-0.5">GE-2021-00234</div>
               <div className="text-[11px] text-text-4 mt-1">Construcción · 11–25 empleados</div>
             </div>
@@ -137,7 +137,7 @@ export default function EpPerfil() {
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormGroup label="Razón Social">
-                <Input value="Construcciones Silva Ltd." disabled />
+                <Input value={fullName} disabled />
               </FormGroup>
               <FormGroup label="RUC / NIF">
                 <Input value="GE-2021-00234" disabled />
@@ -152,7 +152,7 @@ export default function EpPerfil() {
                 <Input value="+240 222 456 789" disabled />
               </FormGroup>
               <FormGroup label="Correo corporativo">
-                <Input value={email || 'carlos@construccionessilva.gq'} disabled />
+                <Input value={email} disabled />
               </FormGroup>
             </div>
           </div>

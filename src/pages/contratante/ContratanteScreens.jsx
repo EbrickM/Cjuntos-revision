@@ -171,15 +171,13 @@ const facturas = [
 ];
 
 const pymes = [
-  { ini: 'CS', nombre: 'Const. Silva Ltd.', sector: 'Construcción', contratos: 1, montoTotal: 180_000_000, score: 870, semaforo: 'Verde',
+  { ini: 'CS', nombre: 'Const. Silva Ltd.', sector: 'Construcción', contratos: 1, montoTotal: 180_000_000, score: 820, semaforo: 'Verde',
     nombreComercial: 'Construsilva GE', ruc: 'GE-2018-04512', telefono: '+240 222 301 458', correo: 'info@constsilva.gq',
     repNombre: 'Carlos Silva Mba',      repTipoDoc: 'DNI', repId: 'GE-19820314-CS', repCargo: 'Gerente General', repTel: '+240 551 120 001', repCorreo: 'c.silva@constsilva.gq' },
 ];
 
 const misSolicitudes = [
   { id: 'SOL-2026-0142', tipo: 'Nuevo contrato', desc: 'Contrato con ConstCentro PYME · Construcción', monto: 50_000_000, fecha: '01/07/2026', estado: 'En revisión' },
-  { id: 'SOL-2026-0138', tipo: 'Nuevo contrato', desc: 'Contrato con MaderGE PYME S.L.',               monto: 80_000_000, fecha: '25/06/2026', estado: 'Aprobada'    },
-  { id: 'SOL-2026-0119', tipo: 'Nuevo contrato', desc: 'Contrato con InfraBata S.L.',                   monto: 45_000_000, fecha: '10/06/2026', estado: 'Rechazada'   },
 ];
 
 const solicitudesPymes = [
@@ -1468,7 +1466,7 @@ export function EmpContratoDetalle() {
 }
 
 // ── MI PERFIL — idéntico al estilo de PYME ────────────────────────────────────
-const SCORE_CT       = 820;
+const SCORE_CT       = 720;
 const KYC_VENC       = '31/12/2026';
 const ULTIMA_AUD     = '15/03/2026';
 

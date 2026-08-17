@@ -8,7 +8,7 @@ export default function EmpProv() {
   const { go } = useApp();
 
   const provs = [
-    ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','870'],
+    ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','820'],
     ['Tech Bata SL','TB','Tecnología','12 emp.','b-green','🟢 Verde','820'],
     ['LogiGE S.A.','LG','Transporte','28 emp.','b-green','🟢 Verde','790'],
     ['AgriEco PYME','AE','Agricultura','8 emp.','b-yellow','⚠ Amarillo','610'],

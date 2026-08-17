@@ -25,9 +25,7 @@ const solicIconCfg = {
 };
 
 const misSolicitudes = [
-  { id: 'SOL-EP-2026-0021', tipo: 'Solicitud de crédito',   desc: 'Financiamiento capital de trabajo — Q3 2026',                monto: 25_000_000, fecha: '08/07/2026', estado: 'En revisión' },
-  { id: 'SOL-EP-2026-0018', tipo: 'Propuesta de contrato',  desc: 'Contrato de suministro con Bonafide Industrial S.A.',        monto: 48_000_000, fecha: '01/07/2026', estado: 'Aprobada'    },
-  { id: 'SOL-EP-2026-0009', tipo: 'Solicitud de crédito',   desc: 'Financiamiento adquisición de equipos logísticos',           monto: 30_000_000, fecha: '12/06/2026', estado: 'Rechazada'   },
+  { id: 'SOL-EP-2026-0021', tipo: 'Solicitud de crédito', desc: 'Financiamiento capital de trabajo — Q3 2026', monto: 25_000_000, fecha: '08/07/2026', estado: 'En revisión' },
 ];
 
 const invitaciones = [

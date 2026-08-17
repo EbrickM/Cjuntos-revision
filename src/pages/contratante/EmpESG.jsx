@@ -62,19 +62,15 @@ const CERT_PATH = [
 
 // ── ESG / PROYECTOS AMBIENTALES ──────────────────────────────────────────────
 const empKpis = [
-  { value: '12',       label: 'Proyectos registrados', cls: 'text-green-text',  trend: '+3',      tUp: true  },
-  { value: '7',        label: 'Proyectos activos',     cls: 'text-blue-text',   trend: 'estable', tUp: null  },
-  { value: '5',        label: 'Proyectos financiados', cls: 'text-orange',      trend: '+2',      tUp: true  },
-  { value: '28,700 t', label: 'Captura CO₂ potencial', cls: 'text-green-text', trend: '+12%',    tUp: true  },
-  { value: 'Bajo',     label: 'Riesgo ambiental',      cls: 'text-green-text',  trend: 'Óptimo',  tUp: true  },
+  { value: '5',        label: 'Proyectos registrados', cls: 'text-green-text', trend: '+2',     tUp: true },
+  { value: '3',        label: 'Proyectos activos',     cls: 'text-blue-text',  trend: 'Estable', tUp: null },
+  { value: '3',        label: 'Proyectos financiados', cls: 'text-orange',     trend: '+1',     tUp: true },
+  { value: '12,400 t', label: 'Captura CO₂ potencial', cls: 'text-green-text', trend: '+12%',  tUp: true },
+  { value: 'Bajo',     label: 'Riesgo ambiental',      cls: 'text-green-text', trend: 'Óptimo', tUp: true },
 ];
 
 const pymeCerts = [
-  { nombre: 'Const. Silva Ltd.',  cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
-  { nombre: 'TechBata PYME S.L.', cert: 'Verde',          Icon: Leaf,       color: '#059669' },
-  { nombre: 'AgriEco PYME',       cert: 'Eco en Proceso', Icon: Sprout,     color: '#D97706' },
-  { nombre: 'LogiGE S.A.',         cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
-  { nombre: 'ServLog GE',         cert: 'Sin certif.',    Icon: CircleDashed, color: '#9CA3AF' },
+  { nombre: 'Const. Silva Ltd.', cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
 ];
 
 const empProyectos = [
@@ -94,7 +90,7 @@ export default function EmpESG() {
   const nextCert   = CERT_PATH[activeIdx + 1];
 
   return (
-    <AppShell active="empESG" role="contratante" title="Proyectos Ambientales" sub="Certificación y proyectos de TotalEnerGE">
+    <AppShell active="empESG" role="contratante" title="Proyectos Ambientales" sub="Certificación y proyectos medioambientales">
       <div className="fade-in space-y-5">
 
         {/* KPIs */}
@@ -120,7 +116,7 @@ export default function EmpESG() {
                 <Leaf className="w-4 h-4 text-green-text" />
                 <div className="text-[14px] font-bold text-text-1">Camino de Certificación</div>
               </div>
-              <div className="text-[11px] text-text-4">Progresión de TotalEnerGE</div>
+              <div className="text-[11px] text-text-4">Progresión de tu empresa</div>
             </div>
 
             <div className="relative">
@@ -240,11 +236,11 @@ export default function EmpESG() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
             <div>
               <div className="text-[14px] font-bold text-text-1">Proyectos Registrados</div>
-              <div className="text-[11px] text-text-4">Todos los proyectos medioambientales de TotalEnerGE</div>
+              <div className="text-[11px] text-text-4">Todos los proyectos medioambientales registrados</div>
             </div>
             <div className="flex items-center gap-1.5">
               <Leaf className="w-4 h-4 text-green-text" />
-              <span className="text-[11px] font-bold text-green-text">12 registrados</span>
+              <span className="text-[11px] font-bold text-green-text">5 registrados</span>
             </div>
           </div>
           {/* Móvil: cards */}
