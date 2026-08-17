@@ -18,9 +18,16 @@ export default function Login() {
   const [showOTP,   setShowOTP]   = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
 
-  const handleVerified = () => {
+  const ROLE_BY_EMAIL = {
+    'soporte@soportetecnico.org': 'epHome',
+    'informatica@lidershore.com': 'empDash',
+    'lily.construcciones@gmail.com': 'epHome',
+    'lilycg99@icloud.com': 'empDash',
+  };
+
+  const handleVerified = (email) => {
     setShowOTP(false);
-    go('roleSelect');
+    go(ROLE_BY_EMAIL[email?.toLowerCase()] ?? 'roleSelect');
   };
 
   return (

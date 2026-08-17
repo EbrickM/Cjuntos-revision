@@ -127,7 +127,7 @@ export default function OTPModal({ onClose, onVerify }) {
     try {
       const result = await authService.verifyOtp(contact.trim(), code);
       setSession(result);
-      onVerify();
+      onVerify(contact.trim());
     } catch (err) {
       if (err instanceof AuthApiError && err.reason === 'network') {
         setCodeError('No se pudo conectar con el servidor.');

@@ -5,10 +5,8 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 
 const facturas = [
-  { id: 'FAC-2026-0933', empresa: 'Construcciones Silva Ltd.', contrato: 'CTR-2026-001', monto: '18,000,000', fecha: '10/05/2026', vence: '10/06/2026', estado: 'Pendiente pago', estadoCls: 'yellow', concepto: 'Avance obra fase 2' },
-  { id: 'FAC-2026-0892', empresa: 'Construcciones Silva Ltd.', contrato: 'CTR-2026-001', monto: '12,500,000', fecha: '01/05/2026', vence: '01/06/2026', estado: 'Pagada',         estadoCls: 'green',  concepto: 'Fase 1 obra CTR-2026-001' },
-  { id: 'FAC-2026-0971', empresa: 'Pinturas Bata SL',          contrato: 'CTR-2026-004', monto: '10,000,000', fecha: '18/05/2026', vence: '18/06/2026', estado: 'Pendiente pago', estadoCls: 'yellow', concepto: 'Suministros materiales' },
-  { id: 'FAC-2026-0850', empresa: 'LogiRapid GE',              contrato: 'CTR-2026-007', monto: '8,500,000',  fecha: '28/04/2026', vence: '28/05/2026', estado: 'Pagada',         estadoCls: 'green',  concepto: 'Transporte fase 1' },
+  { id: 'FAC-2026-0911', empresa: 'Const. Silva Ltd.', contrato: 'CT-2026-0041', monto: '21,500,000', fecha: '28/06/2026', vence: '28/07/2026', estado: 'Recibida', estadoCls: 'yellow', concepto: 'Obras de estructura fase 2 — planta baja y primer piso' },
+  { id: 'FAC-2026-0918', empresa: 'Const. Silva Ltd.', contrato: 'CT-2026-0041', monto: '26,000,000', fecha: '05/07/2026', vence: '05/08/2026', estado: 'Recibida', estadoCls: 'yellow', concepto: 'Acabados interiores y carpintería — módulos A y B' },
 ];
 
 export default function EmpFactEP() {

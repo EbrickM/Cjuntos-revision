@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Pencil, Trash2, Building2, Package, Truck, Cpu, Wrench, Zap, HardHat,
   Leaf, ShoppingCart, Settings, ShieldCheck, Star, FileText, Search,
 } from 'lucide-react';
+import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -48,12 +49,12 @@ const initialProviders = [
   {
     id: 'p1', razonSocial: 'Cemex GE', nombreComercial: 'Cemex GE',
     ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq', telefono: '+240 222 111 222',
-    contratos: 0, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 780,
+    contratos: 1, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 780,
   },
   {
     id: 'p2', razonSocial: 'TransGE S.L.', nombreComercial: 'TransGE',
     ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq', telefono: '+240 222 333 444',
-    contratos: 1, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 645,
+    contratos: 0, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 645,
   },
   {
     id: 'p3', razonSocial: 'ServTec GE', nombreComercial: 'ServTec GE',
@@ -64,10 +65,12 @@ const initialProviders = [
 
 
 export default function EpMisProveedores() {
-  const [providers, setProviders] = useState(initialProviders);
+  const [providers, setProviders] = useState(() => localDb.get('ep_providers', initialProviders, 2));
   const [modal, setModal]         = useState(MODAL_EMPTY);
   const [search, setSearch]       = useState('');
   const [toast, setToast]         = useState({ visible: false, message: '' });
+
+  useEffect(() => { localDb.set('ep_providers', providers); }, [providers]);
 
   const filteredProviders = search.trim()
     ? providers.filter(p =>

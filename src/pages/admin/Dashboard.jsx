@@ -140,76 +140,58 @@ const TABS = [
 
 // ── General tab data ──────────────────────────────────────────────────────────
 const generalKpis = [
-  { value: 'XAF 4.2B', label: 'Monto total financiado', sub: 'Total acumulado 2026',     cls: 'text-orange',     trend: '+18%',    tUp: true  },
-  { value: '89',        label: 'Operaciones activas',    sub: 'Operaciones vigentes',      cls: 'text-green-text', trend: '+7',      tUp: true  },
-  { value: '12',        label: 'Empresas contratantes', sub: 'Contratantes activos',       cls: 'text-blue-text',  trend: '+2',      tUp: true  },
-  { value: '22',        label: 'PYMEs activas',          sub: 'PYMEs con financiación',    cls: 'text-green-text', trend: '+5',      tUp: true  },
-  { value: 'XAF 1.47B', label: 'Fondos Fact. Inverso', sub: 'Capital en factoring inv.',  cls: 'text-orange',     trend: 'Estable', tUp: null  },
-  { value: '72/100',   label: 'Riesgo promedio',        sub: 'Score global cartera',       cls: 'text-yellow-text', trend: 'Aceptable', tUp: null },
+  { value: 'XAF 180M',  label: 'Monto total financiado', sub: 'Total acumulado 2026',    cls: 'text-orange',      trend: 'Activo',   tUp: null },
+  { value: '1',          label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-green-text',  trend: 'Estable',  tUp: null },
+  { value: '1',          label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable',  tUp: null },
+  { value: '1',          label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-green-text',  trend: 'Estable',  tUp: null },
+  { value: 'XAF 47.5M', label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange',     trend: 'Estable',  tUp: null },
+  { value: '870/1000',  label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-green-text',  trend: 'Bajo',     tUp: null },
 ];
 
 const generalLineData = [
-  { mes: 'Ene', monto: 120 },
-  { mes: 'Feb', monto: 140 },
-  { mes: 'Mar', monto: 180 },
-  { mes: 'Abr', monto: 240 },
-  { mes: 'May', monto: 310 },
-  { mes: 'Jun', monto: 380 },
+  { mes: 'Mar', monto: 0  },
+  { mes: 'Abr', monto: 0  },
+  { mes: 'May', monto: 0  },
+  { mes: 'Jun', monto: 22 },
+  { mes: 'Jul', monto: 48 },
+  { mes: 'Ago', monto: 48 },
 ];
 
 const carteraDona = [
-  { tipo: 'Factoring',         pct: 65, color: '#C62828' },
-  { tipo: 'Factoring Inverso', pct: 35, color: '#F57C00' },
+  { tipo: 'Factoring Directo', pct: 100, color: '#C62828' },
 ];
 
 const opsBarData = [
-  { label: 'Solicitadas', value: 15,  color: '#9CA3AF' },
-  { label: 'En revisión', value: 8,   color: '#F57C00' },
-  { label: 'Aprobadas',  value: 22,  color: '#3B82F6' },
-  { label: 'Activas',    value: 89,  color: '#059669' },
-  { label: 'Liquidadas', value: 142, color: '#C62828' },
+  { label: 'Solicitadas', value: 3, color: '#9CA3AF' },
+  { label: 'En revisión', value: 1, color: '#F57C00' },
+  { label: 'Aprobadas',  value: 1, color: '#3B82F6' },
+  { label: 'Activas',    value: 1, color: '#059669' },
+  { label: 'Rechazadas', value: 1, color: '#C62828' },
 ];
 
 const ultimasOps = [
-  { empresa: 'TechBata PYME S.L.',  tipo: 'Factoring',     estado: 'Activa',    monto: 48000000 },
-  { empresa: 'Const. Silva Ltd.',   tipo: 'Fact. Inverso', estado: 'Activa',    monto: 42000000 },
-  { empresa: 'LogiGE S.A.',          tipo: 'Factoring',     estado: 'Activa',    monto: 25000000 },
-  { empresa: 'AgriEco PYME',        tipo: 'Fact. Inverso', estado: 'Pendiente', monto: 31000000 },
-  { empresa: 'Min. Obras Públicas', tipo: 'Fact. Inverso', estado: 'Pendiente', monto: 75000000 },
-  { empresa: 'AgroGE Holdings',     tipo: 'Fact. Inverso', estado: 'Pendiente', monto: 12000000 },
+  { empresa: 'Const. Silva Ltd.', tipo: 'Fact. Directo', estado: 'Activa', monto: 180_000_000 },
 ];
 
 // ── Riesgo tab data ───────────────────────────────────────────────────────────
 const riesgoKpis = [
-  { value: '3',        label: 'Empresas alto riesgo',  sub: 'Requieren atención',     cls: 'text-red-text',   trend: '-1',    tUp: true  },
-  { value: '7',        label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',         cls: 'text-red-text',   trend: '+2',    tUp: false },
-  { value: '5',        label: 'Documentos vencidos',  sub: 'Necesitan renovación',    cls: 'text-yellow-text', trend: '-2',   tUp: true  },
-  { value: '8',        label: 'KYC pendientes',        sub: 'Verificación requerida',  cls: 'text-yellow-text', trend: '+1',   tUp: false },
-  { value: '12',       label: 'Alertas abiertas',      sub: 'Sin resolver',            cls: 'text-orange',     trend: '-3',    tUp: true  },
-  { value: 'XAF 420M', label: 'Exposición total',     sub: 'Capital en riesgo',       cls: 'text-red-text',   trend: '-8%',   tUp: true  },
+  { value: '0',      label: 'Empresas alto riesgo',  sub: 'Requieren atención',     cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
+  { value: '0',      label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',         cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
+  { value: '0',      label: 'Documentos vencidos',   sub: 'Necesitan renovación',    cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
+  { value: '0',      label: 'KYC pendientes',         sub: 'Verificación requerida',  cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
+  { value: '0',      label: 'Alertas abiertas',       sub: 'Sin resolver',            cls: 'text-orange',      trend: 'Ninguna', tUp: null },
+  { value: 'XAF 0', label: 'Exposición total',        sub: 'Capital en riesgo',       cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
 ];
 
 const riesgoDona = [
-  { tipo: 'Bajo riesgo',  pct: 65, color: '#00C853' },
-  { tipo: 'Riesgo medio', pct: 25, color: '#FFB300' },
-  { tipo: 'Alto riesgo',  pct: 10, color: '#E53935' },
+  { tipo: 'Bajo riesgo', pct: 100, color: '#00C853' },
 ];
 
 const exposicionBars = [
-  { label: 'Const. Silva Ltd.',  value: 180, color: '#E53935' },
-  { label: 'AgriEco PYME',       value: 120, color: '#FFB300' },
-  { label: 'ServLog GE',         value: 75,  color: '#FFB300' },
-  { label: 'TechBata PYME S.L.', value: 45,  color: '#059669' },
+  { label: 'Const. Silva Ltd.', value: 48, color: '#059669' },
 ];
 
-const alertasAbiertas = [
-  { empresa: 'Const. Silva Ltd.',   alerta: 'KYC vencido',        prioridad: 'Alta'  },
-  { empresa: 'AgriEco PYME',        alerta: 'Doc. faltante',      prioridad: 'Alta'  },
-  { empresa: 'ServLog GE',          alerta: 'AML pendiente',       prioridad: 'Media' },
-  { empresa: 'LogiGE S.A.',          alerta: 'Revisión periódica', prioridad: 'Media' },
-  { empresa: 'TechBata PYME S.L.', alerta: 'Actualización KYC',  prioridad: 'Baja'  },
-  { empresa: 'Min. Obras Públicas', alerta: 'Contrato expirado',  prioridad: 'Alta'  },
-];
+const alertasAbiertas = [];
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function AdminDash() {
@@ -223,7 +205,7 @@ export default function AdminDash() {
         {/* Header */}
         <div>
           <div className="text-[20px] font-bold text-text-1">Bienvenida, Ana 👋</div>
-          <div className="text-[13px] text-text-4">Panel de dirección Bonafide Microbank · Junio 2026</div>
+          <div className="text-[13px] text-text-4">Panel de dirección Bonafide Microbank · Agosto 2026</div>
         </div>
 
         {/* Tab nav */}
@@ -423,8 +405,8 @@ export default function AdminDash() {
                   <div className="text-[11px] text-text-4">Requieren acción inmediata</div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-red-text" />
-                  <span className="text-[11px] font-bold text-red-text">12 sin resolver</span>
+                  <AlertTriangle className="w-4 h-4 text-green-text" />
+                  <span className="text-[11px] font-bold text-green-text">Sin alertas abiertas</span>
                 </div>
               </div>
               <table className="w-full">
@@ -436,6 +418,9 @@ export default function AdminDash() {
                   </tr>
                 </thead>
                 <tbody>
+                  {alertasAbiertas.length === 0 && (
+                    <tr><td colSpan={3} className="py-4 text-center text-[12px] text-text-4">No hay alertas abiertas</td></tr>
+                  )}
                   {alertasAbiertas.map((a, i) => (
                     <tr key={i} onClick={() => go('adminKYC')}
                       className="border-b border-border last:border-0 hover:bg-page-bg/60 cursor-pointer transition-colors">

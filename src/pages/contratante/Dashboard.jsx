@@ -63,27 +63,27 @@ function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
 }
 
 // ── Gauge — Score Crediticio ──────────────────────────────────────────────────
-function Gauge({ score = 82, size = 190 }) {
+function Gauge({ score = 870, size = 190 }) {
   const W = 200, H = 165;
   const cx = 100, cy = 100, r = 80, sw = 16;
   const deg2rad = d => d * Math.PI / 180;
-  const scoreToAngle = s => 180 - (s / 100) * 180;
+  const scoreToAngle = s => 180 - (s / 1000) * 180;
   const pt = a => {
     const rad = deg2rad(a);
     return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
   };
   const zones = [
-    [0,  40,  ERR  ],
-    [40, 60,  ORA  ],
-    [60, 75,  WARN ],
-    [75, 100, GREEN],
+    [0,   400,  ERR  ],
+    [400, 600,  ORA  ],
+    [600, 750,  WARN ],
+    [750, 1000, GREEN],
   ];
   const needleAngle = scoreToAngle(score);
   const needleRad = deg2rad(needleAngle);
   const nx = cx + (r - sw - 2) * Math.cos(needleRad);
   const ny = cy - (r - sw - 2) * Math.sin(needleRad);
-  const zoneLabel = score < 40 ? 'Crítico' : score < 60 ? 'Alto' : score < 75 ? 'Medio' : 'Bajo';
-  const zoneColor = score < 40 ? ERR : score < 60 ? ORA : score < 75 ? WARN : GREEN;
+  const zoneLabel = score < 400 ? 'Crítico' : score < 600 ? 'Alto' : score < 750 ? 'Medio' : 'Bajo';
+  const zoneColor = score < 400 ? ERR : score < 600 ? ORA : score < 750 ? WARN : GREEN;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: size, height: Math.round(size * H / W) }}>
       <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`}
@@ -107,7 +107,7 @@ function Gauge({ score = 82, size = 190 }) {
       <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
         fill={TEXT4} fontFamily="Poppins,sans-serif">0</text>
       <text x={cx + r - 2} y={cy + 15} textAnchor="end" fontSize="9"
-        fill={TEXT4} fontFamily="Poppins,sans-serif">100</text>
+        fill={TEXT4} fontFamily="Poppins,sans-serif">1000</text>
     </svg>
   );
 }
@@ -236,18 +236,18 @@ const TABS = [
 ];
 
 // ── Datos Fondos ──────────────────────────────────────────────────────────────
-const FONDO_TOTAL     = 850_000_000;
-const FONDO_USADO     = 527_000_000;
-const FONDO_DISP      = 323_000_000;
+const FONDO_TOTAL     = 180_000_000;
+const FONDO_USADO     = 47_500_000;
+const FONDO_DISP      = 132_500_000;
 const PCT_USADO       = Math.round((FONDO_USADO / FONDO_TOTAL) * 100);
 const PCT_DISP        = 100 - PCT_USADO;
-const PYMES_FINANC      = 6;
-const CONTRATOS_ACTIV   = 5;
-const SCORE             = 82;
-const FACTURAS_COUNT    = 7;
-const FACTURAS_MONTO    = 102_650_000;
-const PENDIENTE_COUNT   = 4;
-const PENDIENTE_XAF     = 52_250_000;
+const PYMES_FINANC      = 1;
+const CONTRATOS_ACTIV   = 1;
+const SCORE             = 870;
+const FACTURAS_COUNT    = 2;
+const FACTURAS_MONTO    = 47_500_000;
+const PENDIENTE_COUNT   = 2;
+const PENDIENTE_XAF     = 47_500_000;
 const SOLICITUDES_TOTAL = 6;
 
 const fondoDona = [
@@ -256,13 +256,13 @@ const fondoDona = [
 ];
 
 const evolucionFondoData = [
-  { label: 'Ene', asignado: 200, disponible: 100, ejecucion: 50  },
-  { label: 'Feb', asignado: 380, disponible: 180, ejecucion: 100 },
-  { label: 'Mar', asignado: 520, disponible: 240, ejecucion: 160 },
-  { label: 'Abr', asignado: 660, disponible: 290, ejecucion: 210 },
-  { label: 'May', asignado: 750, disponible: 340, ejecucion: 240 },
-  { label: 'Jun', asignado: 810, disponible: 360, ejecucion: 270 },
-  { label: 'Jul', asignado: 850, disponible: 323, ejecucion: 290 },
+  { label: 'Ene', asignado:  50, disponible:  50, ejecucion:  0  },
+  { label: 'Feb', asignado:  80, disponible:  72, ejecucion:  8  },
+  { label: 'Mar', asignado: 110, disponible:  96, ejecucion: 20  },
+  { label: 'Abr', asignado: 130, disponible: 105, ejecucion: 28  },
+  { label: 'May', asignado: 155, disponible: 118, ejecucion: 38  },
+  { label: 'Jun', asignado: 170, disponible: 126, ejecucion: 44  },
+  { label: 'Jul', asignado: 180, disponible: 132, ejecucion: 48  },
 ];
 
 const evolucionFondoSeries = [
@@ -272,12 +272,7 @@ const evolucionFondoSeries = [
 ];
 
 const pymeDist = [
-  { label: 'Const. Silva Ltd.',  value: 90, color: RED   },
-  { label: 'TechBata PYME S.L.', value: 75, color: ORA   },
-  { label: 'AgriEco PYME',       value: 65, color: WARN  },
-  { label: 'LogiGE S.A.',        value: 45, color: GREEN },
-  { label: 'ServLog GE',         value: 35, color: BLUE  },
-  { label: 'InfraBata S.L.',     value: 25, color: TEXT4 },
+  { label: 'Const. Silva Ltd.', value: 180, color: RED },
 ];
 
 const estadoOps = [
@@ -288,25 +283,19 @@ const estadoOps = [
 ];
 
 const tipoBarData = [
-  { label: 'Construcción',  shortLabel: 'Construcc.', value: 180, color: RED   },
-  { label: 'Agroindustria', shortLabel: 'Agroindu.',  value: 120, color: GREEN },
-  { label: 'Energía',       shortLabel: 'Energía',    value: 90,  color: ORA   },
-  { label: 'Servicios',     shortLabel: 'Servicios',  value: 75,  color: WARN  },
-  { label: 'Logística',     shortLabel: 'Logística',  value: 60,  color: TEXT4 },
+  { label: 'Construcción', shortLabel: 'Construcc.', value: 180, color: RED },
 ];
 
 const vencimientos = [
-  { nombre: 'Const. Silva Ltd.',  fecha: '12 Ago', monto: 28_700_000, urgente: true  },
-  { nombre: 'AgriEco PYME',       fecha: '20 Ago', monto: 14_200_000, urgente: false },
-  { nombre: 'TechBata PYME S.L.', fecha: '03 Sep', monto: 21_500_000, urgente: false },
-  { nombre: 'LogiGE S.A.',        fecha: '15 Sep', monto: 8_800_000,  urgente: false },
+  { nombre: 'Const. Silva Ltd.', fecha: '28 Ago', monto: 21_500_000, urgente: true  },
+  { nombre: 'Const. Silva Ltd.', fecha: '05 Sep', monto: 26_000_000, urgente: false },
 ];
 
 const actividad = [
-  { tipo: 'contrato',  Icon: FilePlus,   text: 'Nuevo contrato firmado',         sub: 'CT-2026-0041 · Const. Silva Ltd.',          time: 'Hace 2h' },
-  { tipo: 'factura',   Icon: FileCheck,  text: 'Factura FAC-2026-0911 aprobada', sub: 'TechBata PYME · 21.500.000 XAF',            time: 'Hace 4h' },
-  { tipo: 'pago',      Icon: CreditCard, text: 'Pago liquidado',                 sub: 'PAG-0284 · AgriEco PYME · 14.200.000 XAF',  time: 'Ayer'    },
-  { tipo: 'solicitud', Icon: Clock,      text: 'Nueva solicitud recibida',       sub: 'ServLog GE · 35.000.000 XAF solicitados',   time: 'Ayer'    },
+  { tipo: 'contrato',  Icon: FilePlus,  text: 'Nuevo contrato firmado',         sub: 'CT-2026-0041 · Const. Silva Ltd.',               time: 'Hace 2h' },
+  { tipo: 'factura',   Icon: FileCheck, text: 'Factura FAC-2026-0911 recibida', sub: 'Const. Silva Ltd. · 21.500.000 XAF',             time: 'Hace 4h' },
+  { tipo: 'factura',   Icon: FileCheck, text: 'Factura FAC-2026-0918 recibida', sub: 'Const. Silva Ltd. · 26.000.000 XAF',             time: 'Ayer'    },
+  { tipo: 'solicitud', Icon: Clock,     text: 'Nueva solicitud recibida',        sub: 'ConstCentro PYME · 50.000.000 XAF solicitados', time: 'Ayer'    },
 ];
 
 const actividadCfg = {

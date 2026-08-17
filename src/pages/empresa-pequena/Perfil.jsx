@@ -5,6 +5,14 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
+import { useAuthStore } from '../../stores/authStore';
+
+function getInitials(name = '') {
+  const words = name.trim().split(/\s+/).filter(w => w.length > 1);
+  if (!words.length) return 'EP';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 const SCORE            = 820;
 const KYC_VENCIMIENTO  = '31/12/2026';
@@ -54,6 +62,12 @@ const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
 );
 
 export default function EpPerfil() {
+  const session  = useAuthStore(s => s.session);
+  const user     = session?.user ?? {};
+  const fullName = user.fullName ?? 'Usuario';
+  const email    = user.email    ?? '';
+  const initials = getInitials(fullName);
+
   const [avatar, setAvatar] = useState(null);
 
   return (
@@ -72,7 +86,7 @@ export default function EpPerfil() {
                 {avatar
                   ? <img src={avatar} alt="Logo empresa" loading="lazy" className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center text-white font-bold text-[28px]"
-                         style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>CS</div>
+                         style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>{initials}</div>
                 }
               </div>
               <label className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-white border border-border shadow-sm flex items-center justify-center cursor-pointer hover:bg-page-bg transition"
@@ -88,7 +102,7 @@ export default function EpPerfil() {
             {/* Info empresa */}
             <div className="flex-1 min-w-0">
               <div className="text-[20px] font-bold text-text-1 leading-tight">Construcciones Silva Ltd.</div>
-              <div className="text-[13px] text-text-3 mt-0.5">Carlos Esono Mbá · Director General</div>
+              <div className="text-[13px] text-text-3 mt-0.5">{fullName} · Director General</div>
               <div className="text-[12px] font-mono text-text-5 mt-0.5">GE-2021-00234</div>
               <div className="text-[11px] text-text-4 mt-1">Construcción · 11–25 empleados</div>
             </div>
@@ -138,7 +152,7 @@ export default function EpPerfil() {
                 <Input value="+240 222 456 789" disabled />
               </FormGroup>
               <FormGroup label="Correo corporativo">
-                <Input value="carlos@construccionessilva.gq" disabled />
+                <Input value={email || 'carlos@construccionessilva.gq'} disabled />
               </FormGroup>
             </div>
           </div>

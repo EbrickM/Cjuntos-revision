@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, Download, ChevronRight, ArrowUpRight, Bell, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, Calendar, TreePine, Wind } from 'lucide-react';
+import { TrendingUp, Leaf, ChevronRight, ArrowUpRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -68,23 +68,23 @@ function Gauge({ score = 82, size = 190 }) {
   const cx = 100, cy = 100, r = 80, sw = 16;
   const deg2rad = d => d * Math.PI / 180;
   // Ángulo en convención matemática: 180°=izq, 90°=arriba, 0°=der
-  const scoreToAngle = s => 180 - (s / 100) * 180;
+  const scoreToAngle = s => 180 - (s / 1000) * 180;
   const pt = a => {
     const rad = deg2rad(a);
     return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
   };
   const zones = [
-    [0,  40,  ERR  ],
-    [40, 60,  ORA  ],
-    [60, 75,  WARN ],
-    [75, 100, GREEN],
+    [0,   400,  ERR  ],
+    [400, 600,  ORA  ],
+    [600, 750,  WARN ],
+    [750, 1000, GREEN],
   ];
   const needleAngle = scoreToAngle(score);
   const needleRad = deg2rad(needleAngle);
   const nx = cx + (r - sw - 2) * Math.cos(needleRad);
   const ny = cy - (r - sw - 2) * Math.sin(needleRad);
-  const zoneLabel = score < 40 ? 'Crítico' : score < 60 ? 'Alto' : score < 75 ? 'Medio' : 'Bajo';
-  const zoneColor = score < 40 ? ERR : score < 60 ? ORA : score < 75 ? WARN : GREEN;
+  const zoneLabel = score < 400 ? 'Crítico' : score < 600 ? 'Alto' : score < 750 ? 'Medio' : 'Bajo';
+  const zoneColor = score < 400 ? ERR : score < 600 ? ORA : score < 750 ? WARN : GREEN;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: size, height: Math.round(size * H / W) }}>
       {/* Pista de fondo — semicírculo superior: sweep=1 (horario SVG) */}
@@ -114,7 +114,7 @@ function Gauge({ score = 82, size = 190 }) {
       <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
         fill={TEXT4} fontFamily="Poppins,sans-serif">0</text>
       <text x={cx + r - 2} y={cy + 15} textAnchor="end" fontSize="9"
-        fill={TEXT4} fontFamily="Poppins,sans-serif">100</text>
+        fill={TEXT4} fontFamily="Poppins,sans-serif">1000</text>
     </svg>
   );
 }
@@ -242,32 +242,26 @@ const TABS = [
 ];
 
 // ── Datos Financiación ────────────────────────────────────────────────────────
-const DISPONIBLE           = 81_000_000;
-const LIMITE               = 231_000_000;
-const USADO                = 150_000_000;
-const CONTRATOS_ACTIVOS    = 5;
-const TREND_DIA            = '4.12%';
-const SCORE                = 82;
-const ALERTAS_COUNT        = 1;
-const FACTURAS_TOTAL_COUNT = 5;
-const FACTURAS_TOTAL_MONTO = 48_500_000;
-const VENCIMIENTOS_COUNT   = 2;
-const PROXIMO_MONTO        = 31_000_000;
-const NUEVOS_CONTRATOS     = 5;
+const DISPONIBLE           = 132_500_000;
+const LIMITE               = 180_000_000;
+const USADO                = 47_500_000;
+const CONTRATOS_ACTIVOS    = 1;
+const SCORE                = 820;
+const FACTURAS_TOTAL_COUNT = 2;
+const FACTURAS_TOTAL_MONTO = 47_500_000;
+const NUEVOS_CONTRATOS     = 1;
 const NUEVOS_PROVEEDORES   = 3;
-const PENDIENTE_PAGO_COUNT = 3;
-const PENDIENTE_PAGO_XAF   = 18_500_000;
 const SOLICITUDES_PEND     = 1;
-const SOLICITUDES_XAF      = 25_000_000;
+const SOLICITUDES_XAF      = 50_000_000;
 
 
 const evolucionData = [
-  { label: 'Feb', aprobada: 185, utilizado:  82, disponible: 128 },
-  { label: 'Mar', aprobada: 202, utilizado: 158, disponible:  62 },
-  { label: 'Abr', aprobada: 218, utilizado: 112, disponible: 118 },
-  { label: 'May', aprobada: 208, utilizado: 170, disponible:  52 },
-  { label: 'Jun', aprobada: 226, utilizado: 138, disponible:  98 },
-  { label: 'Jul', aprobada: 231, utilizado: 150, disponible:  81 },
+  { label: 'Feb', aprobada: 120, utilizado:  10, disponible: 110 },
+  { label: 'Mar', aprobada: 140, utilizado:  18, disponible: 122 },
+  { label: 'Abr', aprobada: 155, utilizado:  25, disponible: 130 },
+  { label: 'May', aprobada: 165, utilizado:  33, disponible: 132 },
+  { label: 'Jun', aprobada: 175, utilizado:  42, disponible: 133 },
+  { label: 'Jul', aprobada: 180, utilizado:  48, disponible: 132 },
 ];
 
 const evolucionSeries = [
@@ -426,19 +420,12 @@ export default function EpHome() {
                           <ArrowUpRight className="w-3.5 h-3.5" />
                           Solicitar Nuevo Contrato
                         </button>
-                        <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                          <Download className="w-3.5 h-3.5" />
-                          Descargar Estado de Cuenta
-                        </button>
                       </div>
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                           <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                           {CONTRATOS_ACTIVOS} contratos activos
-                        </span>
-                        <span className="text-[11px] font-semibold" style={{ color: ORA }}>
-                          ▲ {TREND_DIA} al día anterior
                         </span>
                       </div>
                     </div>
@@ -490,18 +477,12 @@ export default function EpHome() {
                             style={{ background: ORA }}>
                       <ArrowUpRight className="w-4 h-4" />
                     </button>
-                    <button className="w-9 h-9 rounded-[9px] flex items-center justify-center text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                      <Download className="w-4 h-4" />
-                    </button>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-[5px]"
-                          style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                      <div className="w-1 h-1 rounded-full" style={{ background: ORA }} />
-                      {CONTRATOS_ACTIVOS} activos
-                    </span>
-                    <span className="text-[10px] font-semibold" style={{ color: ORA }}>▲ {TREND_DIA}</span>
-                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-[5px]"
+                        style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                    <div className="w-1 h-1 rounded-full" style={{ background: ORA }} />
+                    {CONTRATOS_ACTIVOS} activos
+                  </span>
                 </div>
               </div>
 
@@ -512,8 +493,8 @@ export default function EpHome() {
               </div>
             </div>
 
-            {/* ── Fila 2: Nuevos Contratos + Nuevos Proveedores + Facturas Finalizadas + Pendiente de Pago ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* ── Fila 2: Contratos + Proveedores + Facturas ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
 
               {/* Contratos en Cartera — naranja marca */}
               <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
@@ -566,23 +547,6 @@ export default function EpHome() {
                 </button>
               </div>
 
-              {/* Pendiente de Pago — rojo error */}
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Pendiente de Pago</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDEEEB' }}>
-                    <CreditCard className="w-6 h-6" style={{ color: ERR }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{PENDIENTE_PAGO_COUNT}</p>
-                </div>
-                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('de-DE').format(PENDIENTE_PAGO_XAF)} XAF por liquidar
-                </p>
-                <button onClick={showDevToast} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
-                        style={{ color: ORA }}>
-                  Ver pagos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
 
             {/* ── Evolución Financiera + Flujo Financiero — 50/50 ── */}
@@ -650,8 +614,8 @@ export default function EpHome() {
 
             </div>
 
-            {/* ── Fila 3: Riesgo (2 cols) + Solicitudes + Próximos + Alertas ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* ── Fila 3: Riesgo + Solicitudes ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
 
               {/* Riesgo de Operaciones — col-span-2, amarillo advertencia */}
               <div className="col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
@@ -695,39 +659,6 @@ export default function EpHome() {
                 </button>
               </div>
 
-              {/* Próximos Vencimientos — amarillo proceso */}
-              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Próximos Vencimientos</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
-                    <Calendar className="w-6 h-6" style={{ color: WARN }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{VENCIMIENTOS_COUNT}</p>
-                </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  próximo en {new Intl.NumberFormat('de-DE').format(PROXIMO_MONTO)} XAF
-                </p>
-                <button onClick={showDevToast} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
-                        style={{ color: ORA }}>
-                  Ver vencimientos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Alertas — naranja marca con badge */}
-              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Alertas</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                    <Bell className="w-6 h-6" style={{ color: ORA }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{ALERTAS_COUNT}</p>
-                </div>
-                <p className="text-[11px] text-text-4 mb-3">Operaciones requieren atención</p>
-                <button onClick={showDevToast} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
-                        style={{ color: ORA }}>
-                  Ver alertas <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
 
           </div>

@@ -144,7 +144,7 @@ export default function EmpContratoDetalle() {
                   <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: scoreColor(pyme.score) + '20' }}>
                     <div className="hidden sm:flex items-center gap-1.5">
                       <span className="text-[11px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score crediticio</span>
-                      <span className="text-[15px] font-extrabold" style={{ color: scoreColor(pyme.score) }}>{pyme.score}/100</span>
+                      <span className="text-[15px] font-extrabold" style={{ color: scoreColor(pyme.score) }}>{pyme.score}/1000</span>
                     </div>
                     <div className="flex flex-col items-center sm:hidden">
                       <span className="text-[10px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score</span>

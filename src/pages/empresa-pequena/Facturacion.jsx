@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Pencil, Trash2, Building2, Truck, Receipt, BarChart2, Upload, Paperclip, Search,
 } from 'lucide-react';
+import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -64,54 +65,35 @@ const INV_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', con
 const INV_PR_EMPTY = { open: false, editId: null, contratoId: '', proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 
 const activeContracts = [
-  { id: 'CTR-2026-001', tipoFactoring: 'inverso', contratante: 'Constructora Malabo S.A.' },
-  { id: 'CTR-2026-002', tipoFactoring: 'inverso', contratante: 'Evans Construction & Engineering S.A.' },
-  { id: 'CTR-2026-003', tipoFactoring: 'directo', contratante: 'Petro Guinea S.A.' },
-  { id: 'CTR-2026-004', tipoFactoring: 'inverso', contratante: 'Ministerio de Obras Públicas e Infraestructuras' },
-  { id: 'CTR-2026-005', tipoFactoring: 'directo', contratante: 'Autoridad Portuaria de Bata S.A.' },
+  { id: 'CT-2026-0041', tipoFactoring: 'directo', contratante: 'Constructora Malabo' },
 ];
 
 const initialProviders = [
-  { id: 'p1', razonSocial: 'Cemex GE',      sector: 'Materiales' },
-  { id: 'p2', razonSocial: 'TransGE S.L.',  sector: 'Transporte' },
-  { id: 'p3', razonSocial: 'ServTec GE',    sector: 'Tecnología' },
+  { id: 'p1', razonSocial: 'Cemex GE',     sector: 'Materiales' },
+  { id: 'p2', razonSocial: 'TransGE S.L.', sector: 'Transporte' },
+  { id: 'p3', razonSocial: 'ServTec GE',   sector: 'Tecnología' },
 ];
 
+// Facturas sobre CT-2026-0041 · suma: 47 500 000 XAF
+// Estado EP → estado Contratante: Validada=Verificada, Enviada=Recibida
 const initialInvoices = [
-  {
-    id: 'FAC-2026-1025', tipo: 'proveedor', contrato: 'CTR-2026-002',
-    proveedorId: 'p2', proveedorNombre: 'TransGE S.L.', monto: 4500000, estado: 'Pendiente',
-    concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026', fechaVencimiento: '01/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 18000000, estado: 'Validada', concepto: 'Avance de obra fase 1 – Cimentación y estructura',
-    fecha: '10/05/2026', fechaVencimiento: '10/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1036', tipo: 'contratante', contrato: 'CTR-2026-005',
-    monto: 6500000, estado: 'Enviada', concepto: 'Mantenimiento preventivo instalaciones portuarias – Abril 2026',
-    fecha: '02/05/2026', fechaVencimiento: '02/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1038', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 7500000, estado: 'Enviada', concepto: 'Suministro e instalación de carpintería metálica – Fase 2',
-    fecha: '28/05/2026', fechaVencimiento: '28/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1044', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 12000000, estado: 'Pagada', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
-    fecha: '02/06/2026', fechaVencimiento: '02/07/2026', documento: null,
-  },
+  { id: 'FAC-2026-0911', tipo: 'contratante', contrato: 'CT-2026-0041',
+    monto: 21_500_000, estado: 'Enviada', concepto: 'Obras de estructura fase 2 — planta baja y primer piso',
+    fecha: '28/06/2026', fechaVencimiento: '28/07/2026', documento: null },
+  { id: 'FAC-2026-0918', tipo: 'contratante', contrato: 'CT-2026-0041',
+    monto: 26_000_000, estado: 'Enviada', concepto: 'Acabados interiores y carpintería — módulos A y B',
+    fecha: '05/07/2026', fechaVencimiento: '05/08/2026', documento: null },
 ];
 
 export default function EpFacturacion() {
-  const [invoices, setInvoices]     = useState(initialInvoices);
+  const [invoices, setInvoices]     = useState(() => localDb.get('ep_invoices', initialInvoices, 3));
   const [providers]                 = useState(initialProviders);
   const [invCtModal, setInvCtModal] = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal] = useState(INV_PR_EMPTY);
   const [searchCT, setSearchCT]     = useState('');
   const [searchPR, setSearchPR]     = useState('');
+
+  useEffect(() => { localDb.set('ep_invoices', invoices); }, [invoices]);
 
   const contratanteInvoices = invoices.filter(inv => inv.tipo === 'contratante');
   const proveedorInvoices   = invoices.filter(inv => inv.tipo === 'proveedor');

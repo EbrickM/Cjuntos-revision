@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -7,6 +7,7 @@ import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Toast from '../../components/ui/Toast';
 import { adminService } from '../../services';
+import { localDb } from '../../lib/localDb';
 
 const DOCS_REQUIRED = ['DNI Rep. Legal', 'RUC Registro', 'Estados Financieros 2025', 'Escritura social'];
 
@@ -49,12 +50,14 @@ const INITIAL_ROWS = [
 
 // modalMode: null | 'reevaluar' | 'desestimar' | 'rechazar'
 export default function AdminKYC() {
-  const [rows,          setRows]          = useState(INITIAL_ROWS);
+  const [rows,          setRows]          = useState(() => localDb.get('admin_kyc', INITIAL_ROWS));
   const [selected,      setSelected]      = useState(null);
   const [modalMode,     setModalMode]     = useState(null);
   const [observaciones, setObservaciones] = useState('');
   const [loading,       setLoading]       = useState(false);
   const [toast,         setToast]         = useState(null);
+
+  useEffect(() => { localDb.set('admin_kyc', rows); }, [rows]);
 
   const e = rows.find(x => x.id === selected);
 

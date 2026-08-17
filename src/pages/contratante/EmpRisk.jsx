@@ -57,11 +57,11 @@ export default function EmpRisk() {
           <table className="w-full border-collapse">
             <thead><tr>{['Proveedor','Semáforo','Score','Facturas','Alertas','Acciones'].map(h=><th key={h} className="text-left px-4 py-2 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
             <tbody>
-              {[['Const. Silva','green','🟢 Verde',87,3,'Ninguna'],['Tech Bata SL','green','🟢 Verde',82,1,'Ninguna'],['AgriEco PYME','yellow','⚠ Amarillo',61,2,'Docs por vencer'],['ServLog GE','red','🔴 Rojo',32,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
+              {[['Const. Silva','green','🟢 Verde',870,3,'Ninguna'],['Tech Bata SL','green','🟢 Verde',820,1,'Ninguna'],['AgriEco PYME','yellow','⚠ Amarillo',610,2,'Docs por vencer'],['ServLog GE','red','🔴 Rojo',320,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
                 <tr key={name} onClick={() => go('empProvPerfil')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
                   <td className="px-4 py-3 font-semibold">{name}</td>
                   <td className="px-4 py-3"><Badge variant={cls}>{sem}</Badge></td>
-                  <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="font-bold">{score}</span><div className="w-20 h-1.5 bg-border rounded-full overflow-hidden"><div className="h-full bg-orange rounded-full" style={{width:`${score}%`}}/></div></div></td>
+                  <td className="px-4 py-3"><div className="flex items-center gap-2"><span className="font-bold">{score}</span><div className="w-20 h-1.5 bg-border rounded-full overflow-hidden"><div className="h-full bg-orange rounded-full" style={{width:`${score/10}%`}}/></div></div></td>
                   <td className="px-4 py-3">{fac}</td>
                   <td className="px-4 py-3 text-[12px]" style={{color:alert==='Ninguna'?'#059669':'#D97706'}}>{alert}</td>
                   <td className="px-4 py-3"><Button variant="ghost" size="sm">Ver →</Button></td>

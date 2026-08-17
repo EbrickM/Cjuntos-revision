@@ -8,12 +8,12 @@ export default function EmpProv() {
   const { go } = useApp();
 
   const provs = [
-    ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','87'],
-    ['Tech Bata SL','TB','Tecnología','12 emp.','b-green','🟢 Verde','82'],
-    ['LogiGE S.A.','LG','Transporte','28 emp.','b-green','🟢 Verde','79'],
-    ['AgriEco PYME','AE','Agricultura','8 emp.','b-yellow','⚠ Amarillo','61'],
-    ['Mader. Bata','MB','Maderería','23 emp.','b-green','🟢 Verde','75'],
-    ['ServLog GE','SL','Logística','15 emp.','b-red','🔴 Rojo','32'],
+    ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','870'],
+    ['Tech Bata SL','TB','Tecnología','12 emp.','b-green','🟢 Verde','820'],
+    ['LogiGE S.A.','LG','Transporte','28 emp.','b-green','🟢 Verde','790'],
+    ['AgriEco PYME','AE','Agricultura','8 emp.','b-yellow','⚠ Amarillo','610'],
+    ['Mader. Bata','MB','Maderería','23 emp.','b-green','🟢 Verde','750'],
+    ['ServLog GE','SL','Logística','15 emp.','b-red','🔴 Rojo','320'],
   ];
 
   return (
@@ -31,10 +31,10 @@ export default function EmpProv() {
               </div>
               <div className="text-[12px] text-text-4 mb-3">{sec} · {emp}</div>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-[11px] font-semibold text-text-4">Score {score}/100</span>
+                <span className="text-[11px] font-semibold text-text-4">Score {score}/1000</span>
               </div>
               <div className="h-1.5 bg-border rounded-full overflow-hidden">
-                <div className="h-full rounded-full" style={{width:`${score}%`, background: parseInt(score)<50?'#E53935':parseInt(score)<70?'#FFB300':'#C62828'}} />
+                <div className="h-full rounded-full" style={{width:`${parseInt(score)/10}%`, background: parseInt(score)<500?'#E53935':parseInt(score)<700?'#FFB300':'#2E7D5B'}} />
               </div>
               <Button variant="ghost" size="sm" full className="mt-3">Ver perfil →</Button>
             </div>

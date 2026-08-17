@@ -105,108 +105,30 @@ const initialProviders = [
 
 const initialContracts = [
   {
-    id: 'CTR-2026-001', kyc: 'vigente', tipoFactoring: 'inverso',
-    monto: 58000000, asignado: 0, disponible: 58000000,
+    id: 'CT-2026-0041', kyc: 'vigente', tipoFactoring: 'directo',
+    monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000,
     contratante: {
       razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
-      objetoTrabajo: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.', documentoContrato: null, montoGlobal: '58000000',
-      fechaInicio: '2026-05-01', fechaFin: '2027-04-30', plazosEjecucion: '12 meses',
+      objetoTrabajo: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.',
+      documentoContrato: null, montoGlobal: '180000000',
+      fechaInicio: '2026-03-01', fechaFin: '2027-02-28', plazosEjecucion: '12 meses',
       repNombre: 'Pedro Ondo Mangue', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1978-00231',
       repCargo: 'Director General', repTelefono: '+240 222 100 201', repCorreo: 'pondo@conmalabo.gq',
     },
-    distribucion: [],
-  },
-  {
-    id: 'CTR-2026-003', kyc: 'vigente', tipoFactoring: 'directo',
-    monto: 31000000, asignado: 0, disponible: 31000000,
-    contratante: {
-      razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía', scoreCredito: 815,
-      telefonoCorporativo: '+240 222 456 789', correoCorporativo: 'contratos@petroguinea.gq',
-      objetoTrabajo: 'Suministro de combustible y lubricantes industriales para operaciones en tierra y plataformas offshore.',
-      documentoContrato: null, montoGlobal: '31000000',
-      fechaInicio: '2026-03-01', fechaFin: '2026-12-31', plazosEjecucion: '10 meses',
-      repNombre: 'Carlos Obiang Mba', repTipoDoc: 'Pasaporte', repIdentificacion: 'GE-1985-00234',
-      repCargo: 'Director Comercial', repTelefono: '+240 222 456 780', repCorreo: 'cobiang@petroguinea.gq',
-    },
-    distribucion: [],
-  },
-  {
-    id: 'CTR-2026-004', kyc: 'vencido', tipoFactoring: 'inverso',
-    monto: 75000000, asignado: 0, disponible: 75000000,
-    contratante: {
-      razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción', scoreCredito: 680,
-      telefonoCorporativo: '+240 222 001 002', correoCorporativo: 'adm@obras.gob.gq',
-      objetoTrabajo: 'Construcción y pavimentación de 12 km de infraestructura vial en la zona norte de Malabo, incluyendo drenajes y señalización.',
-      documentoContrato: null, montoGlobal: '75000000',
-      fechaInicio: '2026-01-15', fechaFin: '2027-01-15', plazosEjecucion: '12 meses',
-      repNombre: 'Eugenio Ndong Esono', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1972-00089',
-      repCargo: 'Secretario General', repTelefono: '+240 222 001 003', repCorreo: 'endong@obras.gob.gq',
-    },
-    distribucion: [],
-  },
-  {
-    id: 'CTR-2026-002', kyc: 'vigente', tipoFactoring: 'inverso',
-    monto: 42000000, asignado: 9000000, disponible: 33000000,
-    contratante: {
-      razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción', scoreCredito: 758,
-      telefonoCorporativo: '+240 222 909 111', correoCorporativo: 'admin@evans.gq',
-      objetoTrabajo: 'Obras de edificación, remodelación integral y adecuación de oficinas corporativas en el complejo empresarial de Sipopo.',
-      documentoContrato: null, montoGlobal: '42000000',
-      fechaInicio: '2026-02-01', fechaFin: '2026-08-01', plazosEjecucion: '6 meses',
-      repNombre: 'John Evans Jr.', repTipoDoc: 'Pasaporte', repIdentificacion: 'GE-1980-00145',
-      repCargo: 'CEO & Representante Legal', repTelefono: '+240 222 909 112', repCorreo: 'jevans@evans.gq',
-    },
     distribucion: [
-      { id: 'dist-001', concepto: 'Pago a Proveedor', monto: 9000000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
+      { id: 'dist-001', concepto: 'Compra de Materiales', monto: 21_500_000, providerId: '',   providerName: '',            providerSector: '' },
+      { id: 'dist-002', concepto: 'Pago a Proveedor',     monto: 26_000_000, providerId: 'p1', providerName: 'Cemex GE',    providerSector: 'Materiales' },
     ],
-  },
-  {
-    id: 'CTR-2026-005', kyc: 'pendiente', tipoFactoring: 'directo',
-    monto: 25000000, asignado: 0, disponible: 25000000,
-    contratante: {
-      razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte', scoreCredito: 630,
-      telefonoCorporativo: '+240 222 654 321', correoCorporativo: 'admin@bataporto.gq',
-      objetoTrabajo: 'Gestión operativa, mantenimiento preventivo y correctivo de instalaciones y equipos en el Puerto de Bata.',
-      documentoContrato: null, montoGlobal: '25000000',
-      fechaInicio: '2026-04-01', fechaFin: '2027-03-31', plazosEjecucion: '12 meses',
-      repNombre: 'María Esono Nguema', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1979-00312',
-      repCargo: 'Directora General', repTelefono: '+240 222 654 322', repCorreo: 'mesono@bataporto.gq',
-    },
-    distribucion: [],
   },
 ];
 
 const initialInvoices = [
-  {
-    id: 'FAC-2026-1025', tipo: 'proveedor', contrato: 'CTR-2026-002',
-    proveedorId: 'p2', proveedorNombre: 'TransGE S.L.', monto: 4500000, estado: 'Pendiente',
-    concepto: 'Transporte de materiales al sitio de obra', fecha: '01/05/2026', fechaVencimiento: '01/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1031', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 18000000, estado: 'Validada', concepto: 'Avance de obra fase 1 – Cimentación y estructura',
-    fecha: '10/05/2026', fechaVencimiento: '10/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1038', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 7500000, estado: 'Enviada', concepto: 'Suministro e instalación de carpintería metálica – Fase 2',
-    fecha: '28/05/2026', fechaVencimiento: '28/06/2026', documento: null,
-  },
-  {
-    id: 'FAC-2026-1044', tipo: 'contratante', contrato: 'CTR-2026-002',
-    monto: 12000000, estado: 'Pagada', concepto: 'Obras de impermeabilización y cubierta – Azotea principal',
-    fecha: '02/06/2026', fechaVencimiento: '02/07/2026', documento: null,
-  },
+  { id: 'FAC-2026-0911', tipo: 'contratante', contrato: 'CT-2026-0041', monto: 21_500_000, estado: 'Enviada', concepto: 'Obras de estructura fase 2 — planta baja y primer piso', fecha: '28/06/2026', fechaVencimiento: '28/07/2026', documento: null },
+  { id: 'FAC-2026-0918', tipo: 'contratante', contrato: 'CT-2026-0041', monto: 26_000_000, estado: 'Enviada', concepto: 'Acabados interiores y carpintería — módulos A y B',      fecha: '05/07/2026', fechaVencimiento: '05/08/2026', documento: null },
 ];
 
-const initialPagos = [
-  {
-    id: 'PAG-2026-001', contrato: 'CTR-2026-002',
-    monto: 2500000, concepto: 'Anticipo por servicios de transporte — Fase 2',
-    fecha: '15/05/2026', estado: 'Procesado', facturaProvId: 'FAC-2026-1025', proveedorNombre: 'TransGE S.L.', documento: null,
-  },
-];
+const initialPagos = [];
 
 const TABS = [
   { id: 'contrato',     label: 'Contrato',     Icon: ScrollText,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },

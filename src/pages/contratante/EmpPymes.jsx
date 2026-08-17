@@ -108,10 +108,10 @@ export default function EmpPymes() {
                   <ShieldCheck className="w-3.5 h-3.5" style={{ color: TEXT4 }} />
                   <span className="text-[10px] font-semibold" style={{ color: TEXT4 }}>Score crediticio</span>
                 </div>
-                <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/100</span>
+                <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
               </div>
               <div className="h-2 rounded-full overflow-hidden mb-4" style={{ background: BORDER }}>
-                <div className="h-full rounded-full" style={{ width: `${p.score}%`, background: scoreColor(p.score) }} />
+                <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
               </div>
 
               <div className="mt-auto pt-1 flex justify-end">
@@ -182,16 +182,16 @@ export default function EmpPymes() {
                   <span className="text-[42px] font-extrabold leading-none" style={{ color: scoreColor(p.score) }}>{p.score}</span>
                   <div className="pb-1">
                     <p className="text-[13px] font-bold" style={{ color: scoreColor(p.score) }}>
-                      {p.score >= 75 ? 'Riesgo Bajo' : p.score >= 55 ? 'Riesgo Medio' : 'Riesgo Alto'}
+                      {p.score >= 750 ? 'Riesgo Bajo' : p.score >= 500 ? 'Riesgo Medio' : 'Riesgo Alto'}
                     </p>
-                    <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 100 puntos</p>
+                    <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 1000 puntos</p>
                   </div>
                 </div>
                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                  <div className="h-full rounded-full" style={{ width: `${p.score}%`, background: scoreColor(p.score) }} />
+                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
                 </div>
                 <div className="flex justify-between text-[10px] mt-1.5" style={{ color: TEXT4 }}>
-                  <span>0 — Alto riesgo</span><span>100 — Bajo riesgo</span>
+                  <span>0 — Alto riesgo</span><span>1000 — Bajo riesgo</span>
                 </div>
               </div>
 
