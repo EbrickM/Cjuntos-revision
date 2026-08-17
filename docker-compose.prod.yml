@@ -5,7 +5,7 @@ services:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
 
-      - 'traefik.http.routers.b-mori.rule=HostRegexp(`^cjuntos\..+$`)'
+      - 'traefik.http.routers.b-mori.rule=HostRegexp(`^creciendojuntos\..+$`)'
       - "traefik.http.routers.b-mori.entrypoints=web"
       - "traefik.http.routers.b-mori.middlewares=secure-chain@file"
       - "traefik.http.routers.b-mori.service=bmori"
