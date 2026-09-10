@@ -28,9 +28,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # assets estáticos
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# entrypoint: genera config.json desde AUTH_URL / API_URL / IDENTITY_API_URL
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# AUTH_URL/API_URL/IDENTITY_API_URL son prefijos de ruta fijos
+# hardcodeados en src/config.ts; Traefik (labels en el repo del backend)
+# los enruta por dominio según el Host de la petición — no hace falta
+# inyectar nada al arrancar el contenedor.
 
 # Healthcheck usando wget
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -38,5 +39,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 EXPOSE 80
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

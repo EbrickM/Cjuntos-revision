@@ -15,7 +15,6 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - 'nginx.conf'
-      - 'docker-entrypoint.sh'
       - '.gitea/workflows/prod.yml'
       - 'docker-compose.yml'
       - 'docker-compose.prod.yml'
@@ -157,12 +156,6 @@ jobs:
           DOCKER_REGISTRY=${{ env.REGISTRY }}
           APP=${{ env.APP }}
           SERVICE=${{ env.SERVICE }}
-
-          # Consumidas por docker-entrypoint.sh al arrancar el contenedor
-          # para generar /config.json (ver src/config.ts)
-          AUTH_URL=${{ vars.PROD_AUTH_URL }}
-          API_URL=${{ vars.PROD_API_URL }}
-          IDENTITY_API_URL=${{ vars.PROD_IDENTITY_API_URL }}
           EOT
 
       - name: Deploy to Remote via SSH & rsync

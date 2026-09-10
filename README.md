@@ -19,7 +19,7 @@ Portal web de B-Mori: plataforma de financiamiento para PYMEs, empresas contrata
 
 ```bash
 npm install
-cp .env.example .env   # completar VITE_AUTH_URL, VITE_API_URL, VITE_IDENTITY_API_URL
+cp .env.example .env   # completar VITE_DEV_BACKEND_URL
 npm run dev             # http://localhost:5173 con HMR
 ```
 
@@ -34,14 +34,24 @@ npm run dev             # http://localhost:5173 con HMR
 
 No hay corredor de tests configurado (no existe script `test`, ni Vitest/Jest) — no asumir que existe uno.
 
-## Configuración: variables de entorno en runtime, no en build
+## Configuración de entorno
 
-Este proyecto **no** hornea las URLs de backend en el bundle en tiempo de build. `src/config.ts` (`loadConfig()`) hace fetch a `/config.json` al arrancar la app (lanzado sin `await` desde `main.jsx`, en paralelo con la pantalla de splash) para obtener `AUTH_URL`, `API_URL` e `IDENTITY_API_URL`.
+Los backends se resuelven en runtime mediante `src/config.ts` (`loadConfig()`, lanzado sin `await` desde `main.jsx` en paralelo con la pantalla de splash), no en tiempo de build — la misma imagen Docker sirve para cualquier dominio sin recompilar.
 
-- **Desarrollo local**: si `/config.json` no está disponible, se usan las variables `VITE_*` de `.env` (ver `.env.example`).
-- **Stage/producción (Docker)**: `docker-entrypoint.sh` genera `public/config.json` a partir de las variables de entorno del contenedor (`AUTH_URL`, `API_URL`, `IDENTITY_API_URL`) al iniciar `nginx`. Esto permite reutilizar **una misma imagen Docker** en distintos entornos sin reconstruirla.
+`authUrl` e `identityUrl` son constantes de ruta relativa, iguales en todo entorno:
 
-Si se añade una nueva URL de backend, debe propagarse por los tres lugares: `config.json` / `docker-entrypoint.sh` / `.env.example` — no alcanza con `import.meta.env`.
+| Constante | Prefijo |
+| --- | --- |
+| `authUrl` | `/auth-service` |
+| `identityUrl` (catálogo) | `/identity/api/v1` |
+
+`apiUrl` no tiene prefijo asignado todavía: b-mori no tiene backend propio, así que queda `undefined` — los callers que lo necesiten deben chequearlo explícitamente.
+
+En stage/producción, Traefik enruta cada prefijo al backend correspondiente según el `Host` de la petición (los labels que definen ese ruteo viven en el repo de cada backend) — el navegador nunca hace una llamada cross-origin.
+
+En desarrollo local, `vite.config.js` declara un `server.proxy` que reenvía esos mismos prefijos, sin reescribirlos, a un único host destino (`VITE_DEV_BACKEND_URL`, ver `.env.example`) — ese host debe ser uno ya fronteado por el mismo Traefik, para que el comportamiento sea idéntico al de producción.
+
+> **Nota para quien configure los labels de Traefik del backend**: el router de este frontend (`docker-compose.dev.yml`/`docker-compose.prod.yml`) usa `HostRegexp` sin restricción de path y `priority=200`. El router `PathPrefix(/identity/api/v1)` (o `/auth-service`) del backend debe declarar una `priority` explícita mayor a `200` para ganarle a ese router en el mismo dominio — de lo contrario Traefik puede seguir enviando esas peticiones al contenedor del frontend en vez del backend.
 
 ## Arquitectura
 
@@ -82,14 +92,10 @@ Todos los assets rasterizados en `src/assets/` están en formato **WebP** para r
 
 ```bash
 docker build -t bmori-frontend .
-docker run -p 8080:80 \
-  -e AUTH_URL=https://auth.example.com \
-  -e API_URL=https://api.b-mori.example.com \
-  -e IDENTITY_API_URL=https://identity.example.com \
-  bmori-frontend
+docker run -p 8080:80 bmori-frontend
 ```
 
-La imagen construye el bundle estático con Node y lo sirve con `nginx`. Al arrancar el contenedor, `docker-entrypoint.sh` regenera `config.json` a partir de las variables de entorno antes de levantar `nginx`. Incluye healthcheck en `/health`.
+La imagen construye el bundle estático con Node y lo sirve con `nginx` directamente — no requiere variables de entorno al arrancar el contenedor, ya que los prefijos de backend son constantes de `src/config.ts` y el ruteo por dominio lo resuelve Traefik. Incluye healthcheck en `/health`.
 
 `docker-compose.yml` (imagen, `.env`, red `traefik-public`) es la base común; `docker-compose.dev.yml` y `docker-compose.prod.yml` la extienden con `container_name`, labels de Traefik (routing por host, TLS) y, en dev, el mapeo de puerto. Se combinan con `docker compose -f docker-compose.yml -f docker-compose.<env>.yml ...`.
 
@@ -119,7 +125,7 @@ src/
 ├── state/           # AppContext (navegación por screen)
 ├── stores/          # authStore (zustand)
 ├── styles/          # fonts.css y otros estilos globales
-├── config.ts        # loadConfig() — runtime config vía /config.json
+├── config.ts        # loadConfig() — prefijos de ruta fijos, resueltos en runtime
 ├── App.jsx          # mapa de screens y Suspense
 └── main.jsx         # entry point
 ```

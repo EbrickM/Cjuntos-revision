@@ -15,7 +15,6 @@ on:
       - 'Dockerfile'
       - '.dockerignore'
       - 'nginx.conf'
-      - 'docker-entrypoint.sh'
       - '.gitea/workflows/dev.yml'
       - 'docker-compose.yml'
       - 'docker-compose.dev.yml'
@@ -171,12 +170,6 @@ jobs:
             SERVICE=${{ env.SERVICE }}
 
             PORT=8081
-
-            # Consumidas por docker-entrypoint.sh al arrancar el contenedor
-            # para generar /config.json (ver src/config.ts)
-            AUTH_URL=${{ vars.AUTH_URL }}
-            API_URL=${{ vars.API_URL }}
-            IDENTITY_API_URL=${{ vars.IDENTITY_API_URL }}
             EOF
 
         - name: Login to registry
