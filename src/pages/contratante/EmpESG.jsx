@@ -1,5 +1,6 @@
 import { Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 
 // ── Shared certification path ─────────────────────────────────────────────────
@@ -92,6 +93,8 @@ export default function EmpESG() {
   return (
     <AppShell active="empESG" role="contratante" title="Proyectos Ambientales" sub="Certificación y proyectos medioambientales">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

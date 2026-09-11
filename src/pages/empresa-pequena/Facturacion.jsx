@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
+import { StatCard } from './empresaPequenaShared';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -12,8 +14,8 @@ const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0
 
 const ctBadgeStyle = (estado) =>
   estado === 'Pagada'      ? { background: '#E3F4EA', color: '#2E7D5B' } :
-  estado === 'Validada'    ? { background: '#EFF6FF', color: '#3B82F6' } :
-  estado === 'IPI Emitido' ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'Validada'    ? { background: '#FFF3E0', color: '#EF7A2C' } :
+  estado === 'IPI Emitido' ? { background: '#FFF3E0', color: '#EF7A2C' } :
   estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
                              { background: '#F6F5F3', color: '#9CA3AF' };
 
@@ -174,29 +176,23 @@ export default function EpFacturacion() {
     <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos">
       <div className="fade-in space-y-5">
 
+        <BackButton to="roleSelect" />
+
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label: 'Total facturas',  value: invoices.length,                                    Icon: Receipt,   iconBg: '#FFF3E0', color: '#EF7A2C' },
-            { label: 'Al contratante',  value: contratanteInvoices.length,                         Icon: Building2, iconBg: '#EFF6FF', color: '#3B82F6' },
-            { label: 'De proveedores',  value: proveedorInvoices.length,                           Icon: Truck,     iconBg: '#FDF6E8', color: '#C68A1D' },
-            { label: 'Pagadas',         value: invoices.filter(i => i.estado === 'Pagada').length, Icon: BarChart2, iconBg: '#E3F4EA', color: '#2E7D5B' },
-          ].map(({ label, value, Icon, iconBg, color }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color }} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
-                <div className="text-[22px] font-extrabold leading-none" style={{ color }}>{value}</div>
-              </div>
-            </div>
+            { label: 'Total facturas', value: invoices.length,                                    Icon: Receipt },
+            { label: 'Al contratante', value: contratanteInvoices.length,                         Icon: Building2 },
+            { label: 'De proveedores', value: proveedorInvoices.length,                           Icon: Truck },
+            { label: 'Pagadas',        value: invoices.filter(i => i.estado === 'Pagada').length, Icon: BarChart2 },
+          ].map(({ label, value, Icon }) => (
+            <StatCard key={label} label={label} value={value} Icon={Icon} />
           ))}
         </div>
 
         {/* Facturas al Contratante */}
         <div className="bg-white rounded-[14px] border border-border p-5">
-          <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
+          <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas al Contratante"
             subtitle="Facturas emitidas por la PYME al contratante."
             action={
@@ -219,8 +215,8 @@ export default function EpFacturacion() {
                   {/* Mobile */}
                   <div className="sm:hidden">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                        <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                      <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                        <Building2 className="w-4 h-4" style={{ color: '#EF7A2C' }} />
                       </div>
                       <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
                       {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
@@ -228,7 +224,7 @@ export default function EpFacturacion() {
                     <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
                     {contract && (
                       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>
                         <span className="text-[11px] text-text-3 truncate">{contract.contratante}</span>
                       </div>
                     )}
@@ -243,8 +239,8 @@ export default function EpFacturacion() {
                   </div>
                   {/* Desktop */}
                   <div className="hidden sm:flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                      <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                    <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                      <Building2 className="w-5 h-5" style={{ color: '#EF7A2C' }} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -254,7 +250,7 @@ export default function EpFacturacion() {
                       <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
                       {contract && (
                         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>
                           <span className="text-[12px] font-semibold text-text-2 truncate">{contract.contratante}</span>
                         </div>
                       )}
@@ -318,7 +314,7 @@ export default function EpFacturacion() {
                     </div>
                     <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                      {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                      {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>}
                       {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
                     </div>
                     {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}
@@ -343,7 +339,7 @@ export default function EpFacturacion() {
                       </div>
                       <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                        {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>}
                         {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
                       </div>
                       {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}

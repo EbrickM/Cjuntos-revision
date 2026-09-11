@@ -3,6 +3,7 @@ import {
   Camera, Shield, Leaf, CheckCircle2, Building2, ShieldCheck, FileCheck, Star, Clock, AlertCircle,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 import { HeroBadge, SectionHeader, ComplianceItem } from './contratanteShared';
 import { GREEN } from './contratanteData';
@@ -31,6 +32,8 @@ export default function EmpPerfil() {
   return (
     <AppShell active="empPerfil" role="contratante" title="Mi Perfil" sub="Información de cuenta">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* ── Hero card ── */}
         <div className="card-enter bg-white rounded-[14px] border border-border p-6">

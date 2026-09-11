@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 
 // ── MIC Brand tokens ──────────────────────────────────────────────────────────
@@ -331,6 +332,8 @@ export default function EmpDash() {
     <AppShell active="empDash" role="contratante">
       <div className="fade-in space-y-4">
 
+        <BackButton to="roleSelect" />
+
         {/* ── Header ──────────────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="min-w-0">
@@ -400,7 +403,7 @@ export default function EmpDash() {
                   </div>
                   <div className="hidden md:block">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <button onClick={() => window.open('/solicitar-contrato', '_blank')}
+                      <button onClick={() => go('empSolicitarContrato', { returnTo: 'empDash' })}
                               className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
@@ -466,7 +469,7 @@ export default function EmpDash() {
               {/* Móvil: botones icono + badges */}
               <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
                 <div className="flex gap-2">
-                  <button onClick={() => window.open('/solicitar-contrato', '_blank')}
+                  <button onClick={() => go('empSolicitarContrato', { returnTo: 'empDash' })}
                           className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
                           style={{ background: ORA }}>
                     <ArrowUpRight className="w-4 h-4" />

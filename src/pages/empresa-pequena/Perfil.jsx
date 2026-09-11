@@ -4,6 +4,7 @@ import {
   Clock, FileCheck, AlertCircle, Building2, ShieldCheck, Star,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -72,6 +73,8 @@ export default function EpPerfil() {
   return (
     <AppShell active="epPerfil" role="empresa-pequena" title="Mi Perfil" sub="Información de cuenta">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* ── Hero card ── */}
         <div className="card-enter bg-white rounded-[14px] border border-border p-6">
@@ -183,22 +186,22 @@ export default function EpPerfil() {
               <ComplianceItem
                 label="Documentos" value="4 / 4"
                 sub="Todos los documentos verificados"
-                Icon={FileCheck} iconBg="#EFF6FF" iconColor="#3B82F6"
+                Icon={FileCheck} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Nivel Compliance" value="AA"
                 sub="Calificación de cumplimiento normativo"
-                Icon={Star} iconBg="#EFF6FF" iconColor="#3B82F6"
+                Icon={Star} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Última Auditoría" value={ULTIMA_AUDITORIA}
                 sub={<>Próxima revisión en <span className="font-semibold text-text-2">Sep 2026</span></>}
-                Icon={Clock} iconBg="#FDF6E8" iconColor="#C68A1D"
+                Icon={Clock} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Firma Digital" value="Pendiente"
                 sub="Renovación de firma digital requerida"
-                Icon={AlertCircle} iconBg="#FDF6E8" iconColor="#C68A1D"
+                Icon={AlertCircle} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
             </div>
           </div>

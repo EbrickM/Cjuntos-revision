@@ -5,6 +5,8 @@ import {
   Upload, X as XIcon, FileText,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
+import { StatCard } from './empresaPequenaShared';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -36,12 +38,14 @@ const ESG_METAS = [
 ];
 
 // ── KPIs ──────────────────────────────────────────────────────────────────────
+// Verde reservado a las dos métricas ambientales (captura CO₂, riesgo); el
+// resto usa el acento naranja, igual que el resto del dashboard PYME.
 const kpis = [
-  { value: '5',       label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text', trend: '+2',      tUp: true, Icon: FolderOpen  },
-  { value: '2',       label: 'Proyectos activos',                               cls: 'text-blue-text',  trend: 'Estable', tUp: null, Icon: Activity    },
-  { value: '2',       label: 'Proyectos financiados',                           cls: 'text-orange',     trend: '+1',      tUp: true, Icon: Banknote    },
-  { value: '7,800 t', label: 'Captura CO₂ potencial',                           cls: 'text-green-text', trend: '+8%',     tUp: true, Icon: Wind        },
-  { value: 'Bajo',    label: 'Riesgo ambiental',                                cls: 'text-green-text', trend: 'Estable', tUp: true, Icon: ShieldAlert },
+  { value: '5',       label: 'Proyectos registrados', tone: 'orange', Icon: FolderOpen  },
+  { value: '2',       label: 'Proyectos activos',     tone: 'orange', Icon: Activity    },
+  { value: '2',       label: 'Proyectos financiados', tone: 'orange', Icon: Banknote    },
+  { value: '7,800 t', label: 'Captura CO₂ potencial', tone: 'green',  Icon: Wind        },
+  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green',  Icon: ShieldAlert },
 ];
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -104,23 +108,12 @@ export default function EpProyectosAmbientales() {
     <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales">
       <div className="fade-in space-y-5">
 
+        <BackButton to="roleSelect" />
+
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {kpis.map(({ value, label, mobileLabel, cls, trend, tUp, Icon }, idx) => (
-            <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5"
-                 style={{ animationDelay: `${idx * 70}ms` }}>
-              <div className="flex items-center gap-1.5">
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${cls}`} />
-                <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">
-                  <span className="sm:hidden">{mobileLabel ?? label}</span>
-                  <span className="hidden sm:inline">{label}</span>
-                </div>
-              </div>
-              <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
-              <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                tUp === true ? 'bg-green-bg text-green-text' : 'bg-orange-tint text-orange'
-              }`}>{trend}</span>
-            </div>
+          {kpis.map(({ value, label, tone, Icon }) => (
+            <StatCard key={label} label={label} value={value} Icon={Icon} tone={tone} />
           ))}
         </div>
 

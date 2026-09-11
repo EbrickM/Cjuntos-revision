@@ -4,6 +4,7 @@ import {
   User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -29,6 +30,8 @@ export default function EmpPymes() {
   return (
     <AppShell active="empPymes" role="contratante" title="PYMEs" sub="Empresas con contrato activo">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* KPIs de semáforo de riesgo */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">

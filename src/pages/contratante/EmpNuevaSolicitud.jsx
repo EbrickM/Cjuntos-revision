@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
-  ChevronRight, TrendingUp, CheckCircle2, FileText, ArrowUpRight, FilePlus,
+  TrendingUp, CheckCircle2, FileText, ArrowUpRight, FilePlus,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Button from '../../components/ui/Button';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 import { IniAvatar, SectionHeader } from './contratanteShared';
@@ -26,9 +27,7 @@ export default function EmpNuevaSolicitud() {
       <AppShell active="empSolicitudes" role="contratante" title="Confirmar participación" sub={`${sol.pyme} · ${sol.id}`}>
         <div className="fade-in space-y-5 max-w-2xl">
 
-          <button onClick={() => go('empSolicitudes')} className="flex items-center gap-1.5 text-[12px] font-semibold hover:opacity-75 transition cursor-pointer" style={{ color: ORA }}>
-            <ChevronRight className="w-4 h-4 rotate-180" /> Volver a solicitudes
-          </button>
+          <BackButton to="empSolicitudes" label="Volver a solicitudes" />
 
           <div className="card-enter bg-white rounded-[14px] border border-border p-4 sm:p-6 space-y-5">
             <SectionHeader title="Solicitud de PYME" sub="Revisa los datos y confirma tu participación" Icon={TrendingUp} />
@@ -98,9 +97,7 @@ export default function EmpNuevaSolicitud() {
     <AppShell active="empSolicitudes" role="contratante" title="Nueva Solicitud" sub="Empresa Contratante · TotalEnerGE S.A.">
       <div className="fade-in space-y-5 max-w-2xl">
 
-        <button onClick={() => go('empContratos')} className="flex items-center gap-1.5 text-[12px] font-semibold hover:opacity-75 transition cursor-pointer" style={{ color: ORA }}>
-          <ChevronRight className="w-4 h-4 rotate-180" /> Volver
-        </button>
+        <BackButton to="empContratos" />
 
         <div className="card-enter bg-white rounded-[14px] border border-border p-4 sm:p-6 space-y-5">
           <SectionHeader title="Datos de la solicitud" sub="Completa los campos para iniciar el proceso con Bonafide" Icon={FilePlus} />

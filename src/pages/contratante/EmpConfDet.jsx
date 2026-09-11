@@ -1,12 +1,11 @@
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Timeline from '../../components/ui/Timeline';
 
 // ── CONFIRMING DETALLE ──
 export default function EmpConfDet() {
-  const { go } = useApp();
   const timeline = [
     { icon: '✓', title: 'Enviada', timestamp: '12/05/2026 11:00', sub: 'Solicitud creada por TotalEnerGE', done: true },
     { icon: '✓', title: 'Recibida', timestamp: '12/05/2026 14:20', sub: 'Documentos verificados', done: true },
@@ -18,7 +17,7 @@ export default function EmpConfDet() {
     <AppShell active="empConf" role="contratante" title="Solicitud CONF-2026-04821">
       <div className="fade-in">
         <div className="flex items-center gap-3 mb-5">
-          <Button variant="ghost" size="sm" onClick={() => go('empConf')}>← Volver</Button>
+          <BackButton to="empConf" />
           <Badge variant="green">Aprobada</Badge>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

@@ -1,11 +1,12 @@
 import { Fragment, useState, useRef } from 'react';
 import { useApp } from '../../state/AppContext';
-import logo from '../../assets/logo-color.webp';
+import Topbar from '../../components/layout/Topbar';
+import BackButton from '../../components/common/BackButton';
 import {
   ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Search, X, Check,
   Building2, User, FileText, DollarSign,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, Send, LogOut, CheckCircle, CheckCircle2, Download,
+  Bell, AlertCircle, Send, CheckCircle, CheckCircle2, Download,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
@@ -269,13 +270,13 @@ function ContractUpload({ label = 'Subir contrato', hint = 'PDF, DOC · máx 10 
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
 export default function SolicitarContrato() {
-  const { go } = useApp();
+  const { go, opts, role } = useApp();
+  const exitTarget = opts?.returnTo ?? 'login';
 
   // ── Navigation state ────────────────────────────────────────────────────────
   const [phase, setPhase] = useState('who_initiates');
   const [actor, setActor] = useState(null);       // 'contratante' | 'pyme'
   const [returnPhase, setReturnPhase] = useState('operation');
-  const [showExitModal, setShowExitModal] = useState(false);
 
   // ── Identification state ────────────────────────────────────────────────────
   const [isClient, setIsClient] = useState(null);
@@ -1321,51 +1322,17 @@ export default function SolicitarContrato() {
     })(),
   };
 
-  // ── TOPBAR ─────────────────────────────────────────────────────────────────
   const showStepper = step >= 0 && !['who_initiates', 'sent', 'inv_p_landing', 'inv_c_landing', 'inv_final', 'is_client'].includes(phase);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-
-      {/* Exit confirmation modal */}
-      {showExitModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: GRAD }}>
-              <LogOut className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-bold text-text-1 text-center mb-2">¿Abandonar el proceso?</h3>
-            <p className="text-sm text-text-3 text-center mb-6">Perderás el progreso de tu solicitud. Esta acción no se puede deshacer.</p>
-            <div className="flex gap-3">
-              <button onClick={() => go('login')}
-                className="flex-1 h-11 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
-                style={{ background: ORA }}>
-                <LogOut className="w-4 h-4" /> Salir
-              </button>
-              <button onClick={() => setShowExitModal(false)}
-                className="flex-1 h-11 flex items-center justify-center text-sm font-semibold rounded-xl border border-border text-text-2 hover:bg-gray-50 cursor-pointer">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sticky topbar */}
-      <nav className="bg-white sticky top-0 z-50 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8" style={{ boxShadow: SHADOW }}>
-        <img src={logo} alt="Bonafide" className="h-10 sm:h-14 w-auto object-contain" />
-        <button onClick={() => setShowExitModal(true)}
-          className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-3 sm:px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
-          style={{ background: ORA, boxShadow: '0 4px 12px rgba(239,122,44,0.28)' }}
-        >
-          <span className="hidden sm:inline">Salir</span>
-          <LogOut className="w-4 h-4" />
-        </button>
-      </nav>
+      <Topbar role={role} />
 
       {/* Content */}
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
+
+          <BackButton onClick={() => go(exitTarget)} />
 
           {showStepper && <Stepper steps={steps} step={step} />}
 

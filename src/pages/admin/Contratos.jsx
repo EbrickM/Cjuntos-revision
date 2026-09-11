@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
-  ArrowLeft, FileText, CheckCircle2, Trash2, Building2, Truck,
+  FileText, CheckCircle2, Trash2, Building2, Truck,
   Users, Package, Wrench, Receipt, Cpu, FolderOpen,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -315,13 +316,7 @@ export default function AdminContratos() {
           <>
             {/* Breadcrumb + acciones */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <button
-                onClick={() => setDetailId(null)}
-                className="flex items-center gap-1.5 text-[13px] font-medium text-text-3 hover:text-orange transition px-3 py-2 rounded-[10px] hover:bg-orange-tint"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Contratos
-              </button>
+              <BackButton onClick={() => setDetailId(null)} label="Contratos" className="mb-0" />
               <span className="text-text-5">/</span>
               <span className="text-[14px] font-bold text-text-1">{detailContract.id}</span>
               <Badge variant={contractBadge(detailContract.paso).variant}>

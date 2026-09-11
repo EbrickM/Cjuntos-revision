@@ -3,6 +3,7 @@ import {
   Receipt, Clock, FileCheck, TrendingUp, Users, ChevronRight, CheckCircle, Zap, FileText, X,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -39,6 +40,8 @@ export default function EmpFacturas() {
   return (
     <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

@@ -3,7 +3,9 @@ import {
   FilePlus, CreditCard, ClipboardList, ChevronRight,
   CheckCircle2, AlertCircle, Building2, ArrowUpRight, ShieldCheck,
 } from 'lucide-react';
+import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -19,7 +21,7 @@ const fmt = n => `${new Intl.NumberFormat('de-DE').format(n)} XAF`;
 const solicBadge = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
 
 const solicIconCfg = {
-  'Solicitud de crédito':   { Icon: CreditCard,    iconBg: '#EFF6FF', iconColor: '#3B82F6' },
+  'Solicitud de crédito':   { Icon: CreditCard,    iconBg: '#FFF3E0', iconColor: ORA       },
   'Propuesta de contrato':  { Icon: FilePlus,       iconBg: '#FFF3E0', iconColor: ORA       },
   'Renovación de contrato': { Icon: ClipboardList,  iconBg: '#FDEEEB', iconColor: ERR       },
 };
@@ -48,6 +50,7 @@ const InfoRow = ({ label, value }) => (
 );
 
 export default function EpSolicitudes() {
+  const { go } = useApp();
   const [tab, setTab]         = useState('mis');
   const [solModal, setSolModal] = useState(null);
 
@@ -66,9 +69,11 @@ export default function EpSolicitudes() {
     <AppShell active="epSolicitudes" role="empresa-pequena" title="Solicitudes" sub="Mis solicitudes e invitaciones de empresas contratantes">
       <div className="fade-in space-y-4">
 
+        <BackButton to="roleSelect" />
+
         {/* Tabs + acción */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <Button variant="primary" size="sm" className="w-full sm:w-auto sm:order-last justify-center" onClick={() => window.open('/solicitar-contrato', '_blank')}>
+          <Button variant="primary" size="sm" className="w-full sm:w-auto sm:order-last justify-center" onClick={() => go('epSolicitarContrato', { returnTo: 'epSolicitudes' })}>
             <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Nueva solicitud
           </Button>
           <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
@@ -143,7 +148,7 @@ export default function EpSolicitudes() {
                       <p className="text-[18px] font-extrabold text-text-1 leading-none">{fmt(s.monto)}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>XAF estimados</p>
                     </div>
-                    <Button variant="primary" size="sm" onClick={() => window.open('/solicitar-contrato', '_blank')}>
+                    <Button variant="primary" size="sm" onClick={() => go('epSolicitarContrato', { returnTo: 'epSolicitudes' })}>
                       <Building2 className="w-3.5 h-3.5 mr-1" />Participar
                     </Button>
                   </div>

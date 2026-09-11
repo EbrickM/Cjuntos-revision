@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
+import { StatCard } from './empresaPequenaShared';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
@@ -131,23 +133,17 @@ export default function EpMisProveedores() {
     <AppShell active="epProveedores" role="empresa-pequena" title="Mis Proveedores" sub="Directorio de proveedores">
       <div className="fade-in space-y-5">
 
+        <BackButton to="roleSelect" />
+
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { value: providers.length, label: 'Proveedores registrados', Icon: Building2,    iconBg: '#FFF3E0', color: '#EF7A2C' },
-            { value: clientesBonafide, label: 'Clientes Bonafide',        Icon: Star,         iconBg: '#FDEEEB', color: '#E0201C' },
-            { value: kycVigentes,      label: 'KYC Vigentes',             Icon: ShieldCheck,  iconBg: '#E3F4EA', color: '#2E7D5B' },
-            { value: conContratos,     label: 'Con contratos activos',     Icon: Package,      iconBg: '#EFF6FF', color: '#3B82F6' },
-          ].map(({ value, label, Icon, iconBg, color }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color }} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
-                <div className="text-[22px] font-extrabold leading-none" style={{ color }}>{value}</div>
-              </div>
-            </div>
+            { value: providers.length, label: 'Proveedores registrados', Icon: Building2 },
+            { value: clientesBonafide, label: 'Clientes Bonafide',       Icon: Star },
+            { value: kycVigentes,      label: 'KYC Vigentes',            Icon: ShieldCheck },
+            { value: conContratos,     label: 'Con contratos activos',   Icon: Package },
+          ].map(({ value, label, Icon }) => (
+            <StatCard key={label} label={label} value={value} Icon={Icon} />
           ))}
         </div>
 

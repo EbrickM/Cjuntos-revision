@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TrendingUp, Leaf, ChevronRight, ArrowUpRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 
 // ── MIC Brand tokens ─────────────────────────────────────────────────────────
@@ -178,6 +179,8 @@ export default function EpHome() {
     <AppShell active="epHome" role="empresa-pequena" title="Inicio" sub="Mi Panel">
       <div className="fade-in space-y-4">
 
+        <BackButton to="roleSelect" />
+
         {/* Header + Tab nav ─────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 self-center">
@@ -245,7 +248,7 @@ export default function EpHome() {
                       <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                      <button onClick={() => go('epSolicitarContrato', { returnTo: 'epHome' })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
                               style={{ background: ORA }}>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                         Solicitar Nuevo Contrato

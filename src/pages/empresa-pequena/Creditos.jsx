@@ -1,11 +1,14 @@
 import { useState, useRef } from 'react';
 import {
-  ArrowLeft, FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
+  FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
   BarChart2, ScrollText, UserSquare, CalendarDays, Banknote, TrendingUp, Wallet,
   Upload, Paperclip,
 } from 'lucide-react';
+import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
+import { StatCard } from './empresaPequenaShared';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -139,6 +142,7 @@ const TABS = [
 ];
 
 export default function EpCreditos() {
+  const { go } = useApp();
   const nextDistribId = useRef(0);
   const [contracts, setContracts]                 = useState(initialContracts);
   const [providers, setProviders]                 = useState(initialProviders);
@@ -331,23 +335,17 @@ export default function EpCreditos() {
         {detailId === null ? (
           <div className="space-y-5">
 
+            <BackButton to="roleSelect" />
+
             {/* Resumen */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {[
-                { label: 'Contratos',        value: totalContratos,                    display: totalContratos,             Icon: FileText,  iconBg: '#FFF3E0', color: '#EF7A2C' },
-                { label: 'Monto total',      value: montoTotal,                        display: formatXaf(montoTotal),      Icon: Banknote,  iconBg: '#FFF3E0', color: '#EF7A2C' },
-                { label: 'Total disponible', value: disponibleTotal,                   display: formatXaf(disponibleTotal), Icon: Wallet,    iconBg: '#E3F4EA', color: '#2E7D5B' },
-                { label: 'KYC Vigentes',     value: kycVigentes,                       display: kycVigentes,                Icon: TrendingUp,iconBg: '#EFF6FF', color: '#3B82F6' },
-              ].map(({ label, display, Icon, iconBg, color }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                    <Icon className="w-5 h-5" style={{ color }} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
-                    <div className="text-[15px] font-extrabold leading-tight truncate" style={{ color }}>{display}</div>
-                  </div>
-                </div>
+                { label: 'Contratos',        display: totalContratos,             Icon: FileText },
+                { label: 'Monto total',      display: formatXaf(montoTotal),      Icon: Banknote },
+                { label: 'Total disponible', display: formatXaf(disponibleTotal), Icon: Wallet },
+                { label: 'KYC Vigentes',     display: kycVigentes,                Icon: TrendingUp },
+              ].map(({ label, display, Icon }) => (
+                <StatCard key={label} label={label} value={display} Icon={Icon} />
               ))}
             </div>
 
@@ -363,12 +361,12 @@ export default function EpCreditos() {
                   </div>
                   {/* Botón solo en desktop */}
                   <div className="hidden sm:block shrink-0">
-                    <Button variant="primary" onClick={() => window.open('/solicitar-contrato', '_blank')}>Solicitar Nuevo Contrato</Button>
+                    <Button variant="primary" onClick={() => go('epSolicitarContrato', { returnTo: 'epCreditos' })}>Solicitar Nuevo Contrato</Button>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {/* Botón ancho completo en móvil */}
-                  <Button variant="primary" full className="sm:hidden" onClick={() => window.open('/solicitar-contrato', '_blank')}>Solicitar Nuevo Contrato</Button>
+                  <Button variant="primary" full className="sm:hidden" onClick={() => go('epSolicitarContrato', { returnTo: 'epCreditos' })}>Solicitar Nuevo Contrato</Button>
                   <div className="relative flex-1 sm:flex-none">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                     <input
@@ -462,13 +460,7 @@ export default function EpCreditos() {
           <>
             {/* Breadcrumb */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <button
-                onClick={() => setDetailId(null)}
-                className="flex items-center gap-1.5 text-[13px] font-medium text-text-3 hover:text-orange transition px-3 py-2 rounded-[10px] hover:bg-orange-tint"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Mis contratos
-              </button>
+              <BackButton onClick={() => setDetailId(null)} label="Mis contratos" className="mb-0" />
               <span className="text-text-5">/</span>
               <span className="text-[13px] text-text-4">{detailContract.id}</span>
             </div>

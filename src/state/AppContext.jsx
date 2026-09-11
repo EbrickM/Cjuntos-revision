@@ -33,6 +33,7 @@ export const ROUTES = {
   epDocs:             '/pyme/documentos',
   epESG:              '/pyme/huella-verde',
   epSolicitudes:      '/pyme/solicitudes',
+  epSolicitarContrato: '/pyme/solicitar-contrato',
 
   // Contratante
   empDash:            '/contratante',
@@ -43,6 +44,7 @@ export const ROUTES = {
   empSolicitudes:     '/contratante/solicitudes',
   empESG:             '/contratante/huella-verde',
   empPerfil:          '/contratante/perfil',
+  empSolicitarContrato: '/contratante/solicitar-contrato',
   // legacy
   empConf:            '/contratante/confirming',
   empConfDet:         '/contratante/confirming/detalle',

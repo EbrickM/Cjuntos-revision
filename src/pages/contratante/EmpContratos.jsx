@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { IniAvatar } from './contratanteShared';
@@ -30,6 +31,8 @@ export default function EmpContratos() {
   return (
     <AppShell active="empContratos" role="contratante" title="Mis Contratos" sub="Contratos activos con Bonafide">
       <div className="fade-in space-y-5">
+
+        <BackButton to="roleSelect" />
 
         {/* KPI cards — compactas, sin acción */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

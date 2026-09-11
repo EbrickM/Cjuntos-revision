@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, LogOut, X, Menu, UserPlus, FileCheck, Banknote, AlertCircle } from 'lucide-react';
+import { Bell, LogOut, X, Menu, UserPlus, CheckCheck, Trash2 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useAuthStore, logout } from '../../stores/authStore';
 import Logo from './Logo';
@@ -21,25 +21,19 @@ function getInitials(fullName = '') {
 
 const notifs = [
   {
-    id: 1, Icon: FileCheck,
-    iconBg: '#E3F4EA', iconColor: '#2E7D5B',
-    cardCls: 'bg-green-bg border-green-border',
+    id: 1,
     titulo: 'TotalEnerGE ha verificado tu contrato',
     cuerpo: 'El contratante TotalEnerGE confirmó los datos del contrato CTR-2026-001.',
     dt: 'Hoy, 14:30', leida: false,
   },
   {
-    id: 2, Icon: Banknote,
-    iconBg: '#EFF6FF', iconColor: '#3B82F6',
-    cardCls: 'bg-blue-bg border-blue-text/20',
+    id: 2,
     titulo: 'Pago recibido de TotalEnerGE',
     cuerpo: 'Has recibido XAF 10,000,000 correspondiente al anticipo del contrato CTR-2026-001.',
     dt: 'Ayer, 11:20', leida: false,
   },
   {
-    id: 3, Icon: AlertCircle,
-    iconBg: '#FDF6E8', iconColor: '#C68A1D',
-    cardCls: 'bg-yellow-bg border-yellow-text/20',
+    id: 3,
     titulo: 'Nueva factura pendiente de pago',
     cuerpo: 'La factura FAC-2026-0971 de XAF 10,000,000 emitida a TotalEnerGE está pendiente.',
     dt: '18/05/26', leida: true,
@@ -52,11 +46,13 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
   const adminSession = useAuthStore(s => s.adminSession);
   const [notifOpen, setNotifOpen] = useState(false);
   const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
+  const [ocultas,   setOcultas]   = useState(new Set());
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const fullName   = session?.user?.fullName ?? adminSession?.admin?.fullName ?? '';
-  const meta       = ROLE_META[role] ?? { roleLabel: 'Bonafide', pill: null };
-  const pendientes = notifs.filter(n => !leidas.has(n.id)).length;
+  const fullName    = session?.user?.fullName ?? adminSession?.admin?.fullName ?? '';
+  const meta        = ROLE_META[role] ?? { roleLabel: 'Bonafide', pill: null };
+  const visibles    = notifs.filter(n => !ocultas.has(n.id));
+  const pendientes  = visibles.filter(n => !leidas.has(n.id)).length;
 
   return (
     <>
@@ -72,7 +68,9 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <span className="hidden sm:block"><Logo /></span>
+        <button onClick={() => go('splash')} className="hidden sm:block cursor-pointer" type="button">
+          <Logo />
+        </button>
 
         <div className="flex-1" />
 
@@ -131,82 +129,72 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
       {/* ── Panel de notificaciones ─────────────────────────────────────────── */}
       {notifOpen && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-          <div
-            className="fixed top-0 right-0 h-full w-full sm:w-[360px] bg-white z-50 flex flex-col"
-            style={{ borderLeft: '1px solid rgba(0,0,0,0.08)', boxShadow: '-4px 0 24px rgba(0,0,0,0.08)' }}
-          >
+          <div className="fixed inset-0 bg-black/30 z-40" onClick={() => setNotifOpen(false)} />
+          <div className="fixed top-0 right-0 h-full w-full sm:w-96 max-w-full bg-white shadow-2xl z-50 flex flex-col">
             {/* Cabecera del panel */}
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between shrink-0" style={{ height: 64 }}>
-              <div className="flex items-center gap-2.5">
-                <div className="bona-gradient-bg w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0">
-                  <Bell className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-bold text-text-1">Notificaciones</div>
-                  {pendientes > 0
-                    ? <div className="text-[10px] text-text-4">{pendientes} sin leer</div>
-                    : <div className="text-[10px] text-text-4">Todo al día</div>
-                  }
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between p-4 border-b border-border gap-2 shrink-0">
+              <h2 className="text-lg font-bold text-text-1">Notificaciones</h2>
+              <div className="flex items-center gap-1">
                 {pendientes > 0 && (
                   <button
                     onClick={() => setLeidas(new Set(notifs.map(n => n.id)))}
-                    className="text-[11px] text-orange font-semibold hover:opacity-75 transition"
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-orange-dark hover:bg-orange-tint rounded-lg transition-colors cursor-pointer"
+                    title="Marcar todas como leídas"
                   >
-                    Marcar todas
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Marcar todas</span>
                   </button>
                 )}
                 <button
                   onClick={() => setNotifOpen(false)}
-                  className="w-8 h-8 bg-page-bg border border-border rounded-[8px] flex items-center justify-center cursor-pointer hover:bg-red-bg transition-colors"
+                  className="p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer"
                 >
-                  <X className="w-4 h-4 text-text-3" />
+                  <X className="w-5 h-5 text-text-3" />
                 </button>
               </div>
             </div>
 
             {/* Lista de notificaciones */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3" style={{ background: '#F6F5F3' }}>
-              {notifs.map(n => {
-                const leida = leidas.has(n.id);
-                return (
-                  <div
-                    key={n.id}
-                    onClick={() => setLeidas(prev => new Set([...prev, n.id]))}
-                    className={`rounded-[12px] border p-4 cursor-pointer transition-all
-                      ${leida ? 'bg-white border-border opacity-55' : `${n.cardCls}`}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {/* Icono */}
+            <div className="overflow-y-auto flex-1 min-h-0">
+              {visibles.length > 0 ? (
+                <div className="p-4 space-y-3">
+                  {visibles.map(n => {
+                    const leida = leidas.has(n.id);
+                    return (
                       <div
-                        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                        style={{ background: leida ? '#ECEAE7' : n.iconBg }}
+                        key={n.id}
+                        onClick={() => setLeidas(prev => new Set(prev).add(n.id))}
+                        className={`p-4 rounded-lg border cursor-pointer hover:bg-page-bg transition-colors ${
+                          leida ? 'bg-white border-border' : 'bg-blue-bg border-blue-text/20'
+                        }`}
                       >
-                        <n.Icon className="w-[18px] h-[18px]" style={{ color: leida ? '#A9A6A1' : n.iconColor }} />
-                      </div>
-
-                      {/* Contenido */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className={`text-[12px] font-bold leading-snug ${leida ? 'text-text-3' : 'text-text-1'}`}>
-                            {n.titulo}
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--bonafide-gradient)' }}>
+                            <Bell className="w-5 h-5 text-white" />
                           </div>
-                          {!leida && (
-                            <div className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ background: n.iconColor }} />
-                          )}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-text-1 text-sm mb-1">{n.titulo}</h3>
+                            <p className="text-sm text-text-3 mb-2">{n.cuerpo}</p>
+                            <p className="text-xs text-text-4">{n.dt}</p>
+                          </div>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setOcultas(prev => new Set(prev).add(n.id)); }}
+                            title="Ocultar"
+                            className="p-1.5 rounded-md hover:bg-gray-200/60 text-text-4 hover:text-text-2 transition-colors cursor-pointer shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                        <div className={`text-[11px] leading-relaxed ${leida ? 'text-text-4' : 'text-text-3'}`}>
-                          {n.cuerpo}
-                        </div>
-                        <div className="text-[10px] text-text-5 mt-2">{n.dt}</div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <Bell className="w-16 h-16 text-gray-300 mb-4" />
+                  <p className="text-text-3">No hay notificaciones</p>
+                </div>
+              )}
             </div>
           </div>
         </>
