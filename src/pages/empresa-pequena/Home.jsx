@@ -1,0 +1,558 @@
+import { useState } from 'react';
+import { TrendingUp, Leaf, ChevronRight, ArrowUpRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
+import { useApp } from '../../state/AppContext';
+import AppShell from '../../components/layout/AppShell';
+import Badge from '../../components/ui/Badge';
+
+// ── MIC Brand tokens ─────────────────────────────────────────────────────────
+const RED         = '#E0201C';
+const ORA         = '#EF7A2C';
+const GREEN       = '#2E7D5B';
+const WARN        = '#C68A1D';
+const ERR         = '#B8352A';
+const BORDER      = '#ECEAE7';
+const TEXT4       = '#A9A6A1';
+const DONUT_EMPTY = '#C4C1BC';
+
+// ── LineChart — Evolución Financiera ─────────────────────────────────────────
+function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+  const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const maxV = 250;
+  const yTicks = [50, 100, 150, 200, 250];
+  const xPos = i => PL + (i / (data.length - 1)) * cW;
+  const yPos = v => PT + cH - (v / maxV) * cH;
+  const fmtM = v => compact ? `${v}M` : new Intl.NumberFormat('de-DE').format(v * 1_000_000);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+      {yTicks.map(t => (
+        <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
+          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
+      ))}
+      {series.map((s, si) => {
+        const pts = data.map((d, i) => `${xPos(i)},${yPos(d[s.key])}`).join(' ');
+        return (
+          <polyline key={si} points={pts} fill="none" stroke={s.color}
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        );
+      })}
+      {data.map((d, i) => (
+        <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
+          fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+      ))}
+      {yTicks.map(t => (
+        <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
+          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
+      ))}
+    </svg>
+  );
+}
+
+// ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
+function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+  const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
+  const cW = W - PL - PR, cH = H - PT - PB;
+  const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
+  const slot = cW / data.length;
+  const innerGap = slot * 0.08;
+  const outerGap = slot * 0.14;
+  const bW = (slot - outerGap * 2 - innerGap) / 2;
+  const base = PT + cH;
+  const fmt = v => compact
+    ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
+    : new Intl.NumberFormat('de-DE').format(Math.round(v));
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+      {[0, 0.33, 0.67, 1].map(p => (
+        <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
+          stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
+      ))}
+      {data.map((d, i) => {
+        const slotX = PL + slot * i;
+        const xIn  = slotX + outerGap;
+        const xOut = slotX + outerGap + bW + innerGap;
+        const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
+        const outH = maxV ? (d.outflow / maxV) * cH : 0;
+        return (
+          <g key={i}>
+            {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
+            {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
+            <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
+              fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+          </g>
+        );
+      })}
+      {[0, 0.33, 0.67, 1].map(p => (
+        <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
+          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">
+          {fmt(maxV * p)}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+// ── Tab config ────────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: TreePine,   iconBg: '#E3F4EA', iconColor: GREEN },
+];
+
+// ── Datos Financiación ────────────────────────────────────────────────────────
+const DISPONIBLE           = 132_500_000;
+const LIMITE               = 180_000_000;
+const USADO                = 47_500_000;
+const CONTRATOS_ACTIVOS    = 1;
+const SCORE                = 820;
+const FACTURAS_TOTAL_COUNT = 2;
+const FACTURAS_TOTAL_MONTO = 47_500_000;
+const NUEVOS_CONTRATOS     = 1;
+const NUEVOS_PROVEEDORES   = 3;
+const SOLICITUDES_PEND     = 1;
+const SOLICITUDES_XAF      = 50_000_000;
+
+
+const evolucionData = [
+  { label: 'Feb', aprobada: 120, utilizado:  10, disponible: 110 },
+  { label: 'Mar', aprobada: 140, utilizado:  18, disponible: 122 },
+  { label: 'Abr', aprobada: 155, utilizado:  25, disponible: 130 },
+  { label: 'May', aprobada: 165, utilizado:  33, disponible: 132 },
+  { label: 'Jun', aprobada: 175, utilizado:  42, disponible: 133 },
+  { label: 'Jul', aprobada: 180, utilizado:  48, disponible: 132 },
+];
+
+const evolucionSeries = [
+  { key: 'aprobada',   color: RED,   label: 'Financiación Aprobada' },
+  { key: 'utilizado',  color: ORA,   label: 'Crédito Utilizado'     },
+  { key: 'disponible', color: GREEN, label: 'Disponible'            },
+];
+
+const flujoData = [
+  { label: 'Sem 1', inflow: 42_000_000, outflow: 18_000_000 },
+  { label: 'Sem 2', inflow: 25_000_000, outflow: 33_000_000 },
+  { label: 'Sem 3', inflow: 38_000_000, outflow: 14_000_000 },
+  { label: 'Sem 4', inflow: 16_000_000, outflow: 29_000_000 },
+  { label: 'Sem 5', inflow: 48_000_000, outflow: 21_000_000 },
+  { label: 'Sem 6', inflow: 35_000_000, outflow: 12_000_000 },
+];
+
+const riesgoOps = [
+  { label: 'Bajo',    pct: 64, color: GREEN },
+  { label: 'Medio',   pct: 23, color: WARN  },
+  { label: 'Alto',    pct: 10, color: ORA   },
+  { label: 'Crítico', pct:  3, color: ERR   },
+];
+
+// ── Datos Medioambiental ──────────────────────────────────────────────────────
+const envKpis = [
+  { value: '8',         label: 'Proyectos registrados', sub: 'Total registrado',          Icon: TreePine,    iconBg: '#E3F4EA', iconColor: GREEN, trend: '+2',      tUp: true  },
+  { value: '4',         label: 'Proyectos activos',     sub: 'En ejecución actualmente',  Icon: CheckCircle, iconBg: '#FFF3E0', iconColor: ORA,   trend: 'Estable', tUp: null  },
+  { value: '3',         label: 'Proyectos financiados', sub: 'Con financiación aprobada', Icon: CreditCard,  iconBg: '#FDEEEB', iconColor: RED,   trend: '+1',      tUp: true  },
+  { value: '12.450 t',  label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  Icon: Wind,        iconBg: '#E3F4EA', iconColor: GREEN, trend: '+8%',     tUp: true  },
+  { value: 'Medio',     label: 'Riesgo ambiental',      sub: 'Clasificación global',      Icon: Shield,      iconBg: '#FDF6E8', iconColor: WARN,  trend: 'Estable', tUp: null  },
+];
+
+const proyectos = [
+  { nombre: 'Reforestación Bata Norte',     estado: 'En ejecución', riesgo: 'Bajo',  fin: '45.000.000 XAF' },
+  { nombre: 'Agro Sierra Sur',              estado: 'En ejecución', riesgo: 'Medio', fin: '28.000.000 XAF' },
+  { nombre: 'Agricultura Sostenible Bata',  estado: 'En ejecución', riesgo: 'Bajo',  fin: '18.000.000 XAF' },
+  { nombre: 'Energía Eólica Malabo',        estado: 'En ejecución', riesgo: 'Bajo',  fin: '32.000.000 XAF' },
+  { nombre: 'Energía Solar Malabo',         estado: 'Planificado',  riesgo: 'Bajo',  fin: '62.000.000 XAF' },
+  { nombre: 'Reforestación Ebebiyín',       estado: 'Planificado',  riesgo: 'Medio', fin: '35.000.000 XAF' },
+  { nombre: 'Gestión Residuos Bata',        estado: 'Finalizado',   riesgo: 'Bajo',  fin: '18.000.000 XAF' },
+  { nombre: 'Reforestación Annobon',        estado: 'Suspendido',   riesgo: 'Medio', fin: '22.000.000 XAF' },
+];
+
+const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
+const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
+
+// ── Componente principal ──────────────────────────────────────────────────────
+export default function EpHome() {
+  const { go } = useApp();
+  const [tab, setTab]                 = useState('financiacion');
+  const [activityView, setActivityView] = useState('evolucion');
+  const pctUsado      = Math.round((USADO  / LIMITE) * 100);
+  const pctDisponible = 100 - pctUsado;
+
+  return (
+    <AppShell active="epHome" role="empresa-pequena" title="Inicio" sub="Mi Panel">
+      <div className="fade-in space-y-4">
+
+        {/* Header + Tab nav ─────────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 self-center">
+            <div className="min-w-0">
+              <div className="text-[20px] font-bold text-text-1 truncate">
+                Bienvenido, Construcciones Silva
+              </div>
+            </div>
+          </div>
+          <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                }`}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-opacity"
+                     style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                  <t.Icon className="w-4 h-4" style={{ color: t.iconColor }} />
+                </div>
+                {t.line1} {t.line2}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Tab nav móvil */}
+        <div className="flex sm:hidden gap-1 bg-page-bg p-1 rounded-xl w-full">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
+                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              }`}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity"
+                   style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                <t.Icon className="w-5 h-5" style={{ color: t.iconColor }} />
+              </div>
+              <span className="leading-[1.25]">
+                <span className="block">{t.line1}</span>
+                <span className="block">{t.line2}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+
+        {/* ══ PESTAÑA FINANCIACIÓN ══════════════════════════════════════════════ */}
+        {tab === 'financiacion' && (
+          <div key="financiacion" className="fade-in space-y-4">
+
+            {/* ── Panel 1: Resumen financiero — billetera + score + KPIs integrados ── */}
+            <div className="card-lift card-enter bg-white rounded-[18px] border border-border p-5 sm:p-6">
+              <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+
+                {/* Billetera */}
+                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
+                      MI BILLETERA
+                    </p>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <span className="font-extrabold text-text-1 leading-none"
+                            style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
+                        {new Intl.NumberFormat('de-DE').format(LIMITE)}
+                      </span>
+                      <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                              style={{ background: ORA }}>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                        Solicitar Nuevo Contrato
+                      </button>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
+                        {CONTRATOS_ACTIVOS} contratos activos
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Leyenda Utilizado/Disponible — sin gráfico */}
+                  <div className="flex flex-col gap-3.5 shrink-0 self-center sm:self-auto">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
+                      </div>
+                      <p className="text-lg font-extrabold text-text-1">
+                        {new Intl.NumberFormat('de-DE').format(USADO)} XAF
+                      </p>
+                      <p className="text-xs" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                    </div>
+                    <div className="h-px w-full bg-border" />
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
+                      </div>
+                      <p className="text-lg font-extrabold" style={{ color: ORA }}>
+                        {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
+                      </p>
+                      <p className="text-xs" style={{ color: TEXT4 }}>{pctDisponible}%</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Divisor */}
+                <div className="hidden md:block w-px bg-border" />
+                <div className="md:hidden h-px bg-border" />
+
+                {/* Score Crediticio — mismo formato prominente que en Mi Perfil */}
+                <div className="md:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
+                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: GREEN }}>{SCORE}</p>
+                  <p className="text-[12px] text-text-4">
+                    / 1000 · <span className="font-semibold" style={{ color: GREEN }}>Riesgo Bajo</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* KPIs integrados — tiles subrayadas, sin card propia */}
+              <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
+                <button onClick={() => go('epCreditos')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
+                  <div className="flex items-center gap-1.5">
+                    <FilePlus className="w-3.5 h-3.5" style={{ color: ORA }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_CONTRATOS}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Contratos en cartera</div>
+                </button>
+                <button onClick={() => go('epProveedores')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: '#5B5B5F' }}>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" style={{ color: '#5B5B5F' }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_PROVEEDORES}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Mis proveedores</div>
+                </button>
+                <button onClick={() => go('epFacturacion')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
+                  <div className="flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5" style={{ color: GREEN }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>
+                    Facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Panel 2: Actividad financiera + Riesgo y solicitudes, en una sola card ── */}
+            <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden">
+
+            {/* Sección: Actividad financiera */}
+            <div className="pb-3">
+              <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
+                <div>
+                  <p className="text-[13px] font-bold text-text-1">
+                    {activityView === 'evolucion' ? 'Evolución Financiera' : 'Flujo Financiero'}
+                  </p>
+                  <p className="text-[11px] text-text-4">
+                    {activityView === 'evolucion' ? 'Últimos 6 meses' : 'Últimas 4 semanas'}
+                    <span className="hidden md:inline"> · XAF</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="hidden lg:flex items-center gap-4">
+                    {activityView === 'evolucion' ? (
+                      evolucionSeries.map(s => (
+                        <div key={s.key} className="flex items-center gap-1.5">
+                          <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
+                          <span className="text-[10px] text-text-4">{s.label}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-sm" style={{ background: ORA }} />
+                          <span className="text-[10px] text-text-4">Entradas</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-sm" style={{ background: RED, opacity: 0.82 }} />
+                          <span className="text-[10px] text-text-4">Salidas</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex gap-1 bg-page-bg p-1 rounded-[8px] shrink-0">
+                    <button onClick={() => setActivityView('evolucion')}
+                      className={`px-3 py-1.5 rounded-[6px] text-[11px] font-semibold transition-all cursor-pointer ${
+                        activityView === 'evolucion' ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                      }`}>
+                      Evolución
+                    </button>
+                    <button onClick={() => setActivityView('flujo')}
+                      className={`px-3 py-1.5 rounded-[6px] text-[11px] font-semibold transition-all cursor-pointer ${
+                        activityView === 'flujo' ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                      }`}>
+                      Flujo
+                    </button>
+                  </div>
+                </div>
+              </div>
+              {activityView === 'evolucion' ? (
+                <>
+                  {/* Desktop */}
+                  <div className="hidden md:block h-[240px] w-full">
+                    <LineChart data={evolucionData} series={evolucionSeries} h={240} />
+                  </div>
+                  {/* Móvil */}
+                  <div className="block md:hidden h-[300px] w-full">
+                    <LineChart data={evolucionData} series={evolucionSeries} h={300}
+                      vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Desktop */}
+                  <div className="hidden md:block h-[240px] w-full">
+                    <GroupedBarChart data={flujoData} h={240} />
+                  </div>
+                  {/* Móvil */}
+                  <div className="block md:hidden h-[300px] w-full">
+                    <GroupedBarChart data={flujoData} h={300}
+                      vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  </div>
+                </>
+              )}
+              <p className="block md:hidden text-[10px] text-center pb-2 pt-1 px-4" style={{ color: TEXT4 }}>
+                Valores expresados en millones XAF
+              </p>
+            </div>
+
+            {/* Divisor */}
+            <div className="h-px w-full bg-border" />
+
+            {/* Sección: Riesgo y solicitudes */}
+            <div className="p-4 sm:p-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {/* Riesgo de Operaciones */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
+                      <Shield className="w-6 h-6" style={{ color: WARN }} />
+                    </div>
+                    <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                    {riesgoOps.map(r => (
+                      <div key={r.label}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-medium text-text-2">{r.label}</span>
+                          <span className="text-[10px] font-bold tabular-nums" style={{ color: r.color }}>{r.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
+                          <div className="h-full rounded-full transition-all"
+                               style={{ background: r.color, width: `${r.pct}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Solicitudes Pendientes */}
+                <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
+                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                      <Clock className="w-6 h-6" style={{ color: ORA }} />
+                    </div>
+                    <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
+                  </div>
+                  <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                    {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
+                  </p>
+                  <button onClick={() => go('epSolicitudes')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                          style={{ color: ORA }}>
+                    Ver solicitudes <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            </div>
+
+          </div>
+        )}
+
+
+        {/* ══ PESTAÑA MEDIOAMBIENTAL ════════════════════════════════════════════ */}
+        {tab === 'medioambiental' && (
+          <div key="medioambiental" className="fade-in space-y-5">
+
+            {/* KPIs — tiles subrayadas estilo panel admin de kappa, sin card ni gráficos */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-7">
+              {envKpis.map(({ value, label, Icon, iconColor }) => (
+                <div key={label} className="text-left pb-2.5 border-b-2" style={{ borderColor: iconColor }}>
+                  <div className="flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{value}</span>
+                  </div>
+                  <div className="text-xs text-text-4 mt-1.5">{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Proyectos — misma estructura de tabla que el panel admin de kappa */}
+            <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <div className="text-[14px] font-bold text-text-1">Proyectos</div>
+                  <div className="text-[11px] text-text-4">Todos tus proyectos medioambientales</div>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
+                     style={{ background: '#E3F4EA', color: GREEN }}>
+                  <TreePine className="w-3.5 h-3.5" />
+                  8 registrados
+                </div>
+              </div>
+              <div className="sm:hidden space-y-2">
+                {proyectos.map((p, i) => (
+                  <div key={i} className="rounded-[12px] border border-border p-3">
+                    <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
+                      <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-[12px]">
+                      <span className="text-text-4">Financiamiento</span>
+                      <span className="font-bold text-text-1">{p.fin}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h) => (
+                        <th key={h} className="text-center whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider bg-page-bg border-b border-border">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proyectos.map((p, i) => (
+                      <tr key={i} className="hover:bg-orange-50/30 transition-colors">
+                        <td className="px-4 py-3 text-sm font-semibold text-text-1 text-center whitespace-nowrap">{p.nombre}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
+                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap">{p.fin}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Badges móvil */}
+        <div className="flex sm:hidden gap-2 justify-center pt-2">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
+            Verde
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+            <Leaf className="w-3.5 h-3.5" />
+            Verde Bonafide
+          </span>
+        </div>
+
+      </div>
+
+    </AppShell>
+  );
+}

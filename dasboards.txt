@@ -1,0 +1,230 @@
+El objetivo es que B-Morï sea utilizada por empresarios, directivos de PYMEs y personal de Bonafide, los dashboards deben responder preguntas simples y directas.
+
+Además, como actualmente solo tendremos:
+
+Factoring
+Factoring Inverso
+Proyectos Medioambientales
+
+eliminaría cualquier referencia a Confirming.
+
+Dashboard Bonafide
+Pregunta principal
+
+¿Cómo está funcionando el negocio?
+
+KPIs
+Monto total financiado
+Operaciones activas
+Empresas contratantes activas
+PYMEs activas
+Fondos de factoring inverso administrados
+Riesgo promedio de cartera
+Gráfico 1: Evolución de financiación
+
+Tipo: Línea
+
+Muestra:
+
+Mes       Monto financiado
+Enero     120M
+Febrero   140M
+Marzo     180M
+
+Permite ver si el negocio crece.
+
+Gráfico 2: Distribución del dinero financiado
+
+Tipo: Dona
+
+Factoring           65%
+Factoring Inverso   35%
+
+Permite saber dónde está el negocio.
+
+Gráfico 3: Estado de operaciones
+
+Tipo: Barras
+
+Solicitadas
+En revisión
+Aprobadas
+Activas
+Liquidadas
+
+Permite detectar cuellos de botella.
+
+Tabla
+Operaciones recientes
+Empresa	Tipo	Estado	Monto
+Dashboard Empresa Contratante
+Pregunta principal
+
+¿Qué está pasando con el dinero que he puesto a disposición de las PYMEs?
+
+KPIs
+Fondo aportado
+Fondo disponible
+Fondo utilizado
+PYMEs beneficiarias
+Operaciones activas
+Proyectos ambientales asociados
+Gráfico 1: Uso del fondo
+
+Tipo: Dona
+
+Disponible
+Utilizado
+
+Ejemplo:
+
+Disponible 40%
+Utilizado 60%
+
+Muy fácil de entender.
+
+Gráfico 2: Distribución por PYME
+
+Tipo: Barras horizontales
+
+PYME A  30M
+PYME B  20M
+PYME C  15M
+
+Muestra quién utiliza los fondos.
+
+Gráfico 3: Evolución del consumo
+
+Tipo: Línea
+
+Mes vs dinero utilizado
+
+Permite entender la velocidad de uso del fondo.
+
+Tabla
+PYMEs beneficiarias
+PYME	Asignado	Utilizado	Disponible
+Dashboard PYME
+Pregunta principal
+
+¿Cuánto dinero tengo disponible y cuál es el estado de mis operaciones?
+
+KPIs
+Línea aprobada
+Disponible
+Utilizado
+Pendiente de pago
+Facturas financiadas
+Nivel de riesgo
+Gráfico 1: Estado de la línea
+
+Tipo: Dona
+
+Disponible
+Utilizado
+
+Ejemplo:
+
+Disponible 35%
+Utilizado 65%
+Gráfico 2: Evolución de financiación
+
+Tipo: Línea
+
+Mes vs dinero recibido
+
+Permite visualizar crecimiento.
+
+Gráfico 3: Uso de los fondos
+
+Tipo: Barras
+
+Pago a proveedores
+Pago directo
+
+Permite saber cómo se está utilizando la financiación.
+
+Tabla
+Operaciones activas
+Operación	Estado	Monto	Vencimiento
+Dashboard Riesgo (Bonafide)
+
+Este no lo verían las empresas.
+
+Pregunta principal
+
+¿Dónde están los riesgos del negocio?
+
+KPIs
+Empresas alto riesgo
+Operaciones en riesgo
+Documentos vencidos
+KYC pendientes
+Alertas abiertas
+Exposición total
+Gráfico 1: Riesgo de cartera
+
+Tipo: Dona
+
+Bajo
+Medio
+Alto
+Gráfico 2: Exposición por empresa
+
+Tipo: Barras
+
+Empresa A
+Empresa B
+Empresa C
+
+Ordenadas de mayor a menor exposición.
+
+Tabla
+Alertas
+Empresa	Tipo	Prioridad
+Dashboard Medioambiental
+
+Visible para Bonafide, Contratantes y PYMEs.
+
+Pregunta principal
+
+¿Cuál es el impacto ambiental de los proyectos?
+
+KPIs
+Proyectos registrados
+Proyectos activos
+Proyectos financiados
+Captura potencial de CO₂
+Riesgo ambiental promedio
+Gráfico 1: Estado de proyectos
+
+Tipo: Dona
+
+Planificado
+En ejecución
+Finalizado
+Suspendido
+Gráfico 2: Proyectos por categoría
+
+Tipo: Barras
+
+Reforestación
+Agricultura
+Energía
+Residuos
+Tabla
+Proyectos
+Proyecto	Estado	Riesgo	Financiamiento
+Mi recomendación final
+
+Para una V1 de B-Morï:
+
+Bonafide
+Dashboard General
+Dashboard de Riesgo
+Empresa Contratante
+Dashboard de Fondos y PYMEs
+PYME
+Dashboard de Financiación
+Todos
+Dashboard Medioambiental

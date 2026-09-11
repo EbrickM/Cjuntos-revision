@@ -1,0 +1,221 @@
+name: Deploy Prod
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.js'
+      - 'eslint.config.js'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'nginx.conf'
+      - 'docker-entrypoint.sh'
+      - '.gitea/workflows/prod.yml'
+      - 'docker-compose.yml'
+      - 'docker-compose.prod.yml'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-prod
+  cancel-in-progress: true
+
+env:
+  ENV: prod
+  REGISTRY: ${{ vars.PROD_DOCKER_REGISTRY }}
+  APP: ${{ vars.APP }}
+  SERVICE: ${{ vars.SERVICE }}
+  COMPOSE_SERVICE: bmori
+  DIR: ${{ vars.PROD_DEPLOY_DIR }}
+  HOST: ${{ vars.PROD_DEPLOY_HOST }}
+  DEPLOY_USER: ${{ vars.PROD_DEPLOY_USER }}
+  SSH_KEY: ${{ secrets.PROD_DEPLOY_SSH_PRIVATE_KEY }}
+
+jobs:
+  lint:
+    name: Lint code
+    runs-on: debian-lxc
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Determine npm registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+          REGISTRY=$(echo "$REGISTRY" | tr -d '\r' | tr -d '\n')
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 >/dev/null 2>&1; then
+              echo "Using Verdaccio: $REGISTRY"
+              echo "registry_url=$REGISTRY" >> "$GITHUB_ENV"
+          else
+              echo "Using default npm registry"
+              echo "registry_url=https://registry.npmjs.org/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install dependencies
+        run: npm ci --registry="${{ env.registry_url }}"
+
+      - name: Lint
+        run: npm run lint
+
+  build:
+    name: Build and Publish Image
+    needs: lint
+    runs-on: debian-lxc
+    timeout-minutes: 30
+
+    outputs:
+      image_tags: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Determine npm registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          REGISTRY="${{ vars.NPM_REGISTRY }}"
+          REGISTRY=$(echo "$REGISTRY" | tr -d '\r' | tr -d '\n')
+          if [ -n "$REGISTRY" ] && npm ping --registry="$REGISTRY" --timeout=5000 >/dev/null 2>&1; then
+              echo "Using Verdaccio: $REGISTRY"
+              echo "registry_url=$REGISTRY" >> "$GITHUB_ENV"
+          else
+              echo "Using default npm registry"
+              echo "registry_url=https://registry.npmjs.org/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ env.REGISTRY }}/${{ env.ENV }}/${{ env.APP }}/${{ env.SERVICE }}
+          tags: |
+            type=raw,value=latest
+            type=ref,event=branch
+            type=sha,prefix=prod-
+          labels: |
+            org.opencontainers.image.title=${{ env.APP }}-${{ env.SERVICE }}
+            org.opencontainers.image.description=${{ vars.DESCRIPTION }}
+            org.opencontainers.image.vendor=${{ vars.VENDOR }}
+            org.opencontainers.image.authors=${{ vars.MAINTAINER }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Login to registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ vars.CI_BOT_USER }}
+          password: ${{ secrets.CI_BOT_PASSWORD }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NPM_REGISTRY=${{ env.registry_url }}
+
+  deploy:
+    name: Deploy (Prod)
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: debian-lxc
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout minimal files
+        uses: actions/checkout@v6
+        with:
+            sparse-checkout: |
+              docker-compose.yml
+              docker-compose.prod.yml
+            sparse-checkout-cone-mode: true
+
+      - name: Generate .env file locally
+        run: |
+          cat > .env <<EOT
+          ENV=${{ env.ENV }}
+          DOCKER_REGISTRY=${{ env.REGISTRY }}
+          APP=${{ env.APP }}
+          SERVICE=${{ env.SERVICE }}
+
+          # Consumidas por docker-entrypoint.sh al arrancar el contenedor
+          # para generar /config.json (ver src/config.ts)
+          AUTH_URL=${{ vars.PROD_AUTH_URL }}
+          API_URL=${{ vars.PROD_API_URL }}
+          IDENTITY_API_URL=${{ vars.PROD_IDENTITY_API_URL }}
+          EOT
+
+      - name: Deploy to Remote via SSH & rsync
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
+
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$HOST" \
+            "sudo mkdir -p '$DIR' && sudo chown -R '$DEPLOY_USER:$DEPLOY_USER' '$DIR'"
+
+          echo "==> Sync compose and .env"
+          rsync -az \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            docker-compose.yml docker-compose.prod.yml .env \
+            "$DEPLOY_USER@$HOST:$DIR/"
+
+          echo "==> Remote deploy"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$HOST" <<EOF
+            set -e
+            cd "$DIR"
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+            echo "==> Cleaning up old images"
+            REPO="${{ env.REGISTRY }}/${{ env.ENV }}/${{ env.APP }}/${{ env.SERVICE }}"
+            CONTAINER_ID="\$(docker compose -f docker-compose.yml -f docker-compose.prod.yml ps -q ${{ env.COMPOSE_SERVICE }} 2>/dev/null | head -n1 || true)"
+            CURRENT_IMG=""
+            if [ -n "\$CONTAINER_ID" ]; then
+              CURRENT_IMG="\$(docker inspect --format='{{.Image}}' "\$CONTAINER_ID" 2>/dev/null || true)"
+            fi
+
+            if [ -n "\$CURRENT_IMG" ]; then
+              echo "Imagen actual en uso: \$CURRENT_IMG"
+              docker images --no-trunc --format "{{.ID}} {{.Repository}}" \\
+                | grep -F "\$REPO" \\
+                | grep -v -F "\$CURRENT_IMG" \\
+                | awk '{print \$1}' \\
+                | sort -u \\
+                | xargs -r docker rmi || true
+            else
+              echo "No se pudo determinar la imagen en uso, limpieza por repositorio omitida."
+            fi
+
+            docker image prune -f
+          EOF
+
+      - name: Clean up local .env (optional)
+        if: always()
+        run: rm -f .env

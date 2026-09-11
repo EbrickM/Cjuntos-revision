@@ -1,0 +1,12 @@
+services:
+  bmori:
+    image: ${DOCKER_REGISTRY}/${ENV}/${APP}/${SERVICE}:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
