@@ -7,8 +7,8 @@ Portal web de B-Mori: plataforma de financiamiento para PYMEs, empresas contrata
 - **React 19** + **Vite** (dev server con HMR, build a `dist/`)
 - **Tailwind CSS v4** vía `@tailwindcss/vite` (sin `tailwind.config.js`; los tokens de diseño viven en `src/index.css`)
 - **Zustand** para el estado de sesión/autenticación (`src/stores/authStore.js`), persistido en `sessionStorage`
+- **React Router** (`react-router-dom` v7) para la URL real; el `screen` de contexto es solo la clave simbólica que se traduce a una ruta
 - **ESLint** como gate de CI (no hay corredor de tests configurado en este repo)
-- Navegación **sin react-router**: un único string `screen` en contexto (`src/state/AppContext.jsx`) decide qué pantalla se renderiza
 
 ## Requisitos
 
@@ -51,15 +51,31 @@ En stage/producción, Traefik enruta cada prefijo al backend correspondiente seg
 
 En desarrollo local, `vite.config.js` declara un `server.proxy` que reenvía esos mismos prefijos, sin reescribirlos, a un único host destino (`VITE_DEV_BACKEND_URL`, ver `.env.example`) — ese host debe ser uno ya fronteado por el mismo Traefik, para que el comportamiento sea idéntico al de producción.
 
+### Variables de entorno
+
+La única variable que consume el repo es **`VITE_DEV_BACKEND_URL`**, y la lee `vite.config.js` con `loadEnv` — **no** `import.meta.env` (no hay ninguna referencia a `import.meta.env` en `src/`). Sirve solo para el dev server y no tiene efecto en el bundle de producción.
+
+No existen variables de stage/producción: los prefijos de backend son constantes de `src/config.ts` y el ruteo por dominio lo resuelve Traefik. La misma imagen Docker sirve en todos los entornos, sin inyección de env vars al arrancar el contenedor.
+
+### Parche temporal del proxy de Vite (WAF)
+
+`vite.config.js` aplica hoy un `stripBlockedHeaders` a las dos reglas del proxy: borra `Origin` y `Referer` en las peticiones **salientes** hacia el backend.
+
+Motivo: entre la máquina de dev y Traefik hay un WAF que descarta silenciosamente (`DROP`, no `REJECT`) las peticiones con `Origin: http://localhost:5173`, agotando los reintentos TCP (~136 s) hasta que el proxy devuelve un 502. El navegador siempre añade esa cabecera en los POST con `Content-Type: application/json` o `Authorization`, así que no se puede evitar desde el cliente. Se usa `proxyReq.removeHeader()` y no `headers: { Origin: undefined }` porque esto último no borra la cabecera en varias versiones de http-proxy.
+
+**Condición para quitarlo** (marcada con TODO en el archivo): el WAF ya permite `http://localhost:5173`, `http://localhost:5174` y `http://127.0.0.1:5173` en su allowlist, **y** su política cambió de DROP a REJECT para orígenes no permitidos. Una vez cumplida: eliminar la constante, su comentario TODO y los spreads `...stripBlockedHeaders` de cada regla, dejándolas como `{ target: devBackendUrl, changeOrigin: true }`.
+
 > **Nota para quien configure los labels de Traefik del backend**: el router de este frontend (`docker-compose.dev.yml`/`docker-compose.prod.yml`) usa `HostRegexp` sin restricción de path y `priority=200`. El router `PathPrefix(/identity/api/v1)` (o `/auth-service`) del backend debe declarar una `priority` explícita mayor a `200` para ganarle a ese router en el mismo dominio — de lo contrario Traefik puede seguir enviando esas peticiones al contenedor del frontend en vez del backend.
 
 ## Arquitectura
 
-### Navegación por `screen`, no por rutas
+### Navegación: React Router con un mapa `screenId → path`
 
-No hay librería de enrutamiento. `src/state/AppContext.jsx` mantiene un único estado `screen` (string, p. ej. `'epHome'`, `'empContratos'`, `'adminDash'`), junto con `role` y `opts` libres. La navegación se hace con `const { go } = useApp(); go('claveDePantalla', optsOpcionales)`.
+Sí hay librería de enrutamiento: `react-router-dom` (`BrowserRouter` en `src/main.jsx`, `<Routes>` en `src/App.jsx`). Lo que no hay es un archivo de rutas con JSX por pantalla.
 
-`src/App.jsx` mapea cada clave de pantalla a un componente cargado de forma perezosa (`lazy`) dentro de un objeto `screens`, envuelto en un único `<Suspense>`. Al agregar una pantalla nueva: crear el archivo de página, agregar el `lazy(() => import(...))` en `App.jsx` y añadir la entrada `claveDePantalla: <Componente />` al mapa `screens` — no existe un archivo de rutas separado.
+`src/state/AppContext.jsx` exporta `ROUTES`, un mapa `screenId → path` (p. ej. `epHome: '/pyme'`, `empContratos: '/contratante/contratos'`, `adminDash: '/admin'`), y deriva el inverso `PATH_TO_SCREEN`. El contexto mantiene el estado `screen` (string, p. ej. `'epHome'`), `role` y `opts` libres, y los sincroniza con la URL: navegar con `const { go } = useApp(); go('claveDePantalla', optsOpcionales)` empuja el path correspondiente, y entrar por URL directa (o con atrás/adelante del navegador) resuelve el `screen` desde el path. Un `screen` sin entrada en `ROUTES` cae a `/`.
+
+`src/App.jsx` declara un `<Route>` por pantalla, con cada componente cargado de forma perezosa (`lazy`) y envuelto en un único `<Suspense>`. Al agregar una pantalla nueva: crear el archivo de página, añadir su entrada al mapa `ROUTES` en `AppContext.jsx`, y agregar el `lazy(() => import(...))` + su `<Route>` en `App.jsx`.
 
 El prefijo de la clave indica el rol/sección:
 
@@ -122,10 +138,10 @@ src/
 │   ├── admin/                # panel de administración del banco
 │   ├── empresa-pequena/      # portal PYME (prefijo ep*)
 │   └── contratante/          # portal empresa contratante / ancla (prefijo emp*)
-├── state/           # AppContext (navegación por screen)
+├── state/           # AppContext (mapa ROUTES screenId → path, go())
 ├── stores/          # authStore (zustand)
 ├── styles/          # fonts.css y otros estilos globales
 ├── config.ts        # loadConfig() — prefijos de ruta fijos, resueltos en runtime
-├── App.jsx          # mapa de screens y Suspense
-└── main.jsx         # entry point
+├── App.jsx          # <Routes> + Suspense, un lazy por pantalla
+└── main.jsx         # entry point (BrowserRouter + loadConfig())
 ```

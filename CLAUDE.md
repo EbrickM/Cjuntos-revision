@@ -13,15 +13,17 @@ npm run lint      # eslint . — CI runs this as a gate before build/deploy
 
 There is no test runner configured in this repo (no test script, no Vitest/Jest). Don't assume one exists.
 
-CI (`.gitea/workflows/deploy-dev.yml`) on push to `develop`: `lint` job must pass before `build` (Docker image push to the registry) and `deploy` (docker compose up on the dev host) run.
+CI (`.gitea/workflows/dev.yml`) on push to `develop`: `lint` job must pass before `build` (Docker image push to the registry) and `deploy` (docker compose up on the dev host) run. A push to `main` runs `.gitea/workflows/prod.yml` (same lint/build, deploy over SSH/rsync to the prod host).
 
 ## Architecture
 
-### Not react-router — a single `screen` string in context
+### Routing: React Router, with a `screenId → path` map as the indirection
 
-There is no router library. `src/state/AppContext.jsx` holds one piece of state, `screen` (a string key like `'epHome'`, `'empContratos'`, `'adminDash'`), plus `role` and free-form `opts`. Navigation is `const { go } = useApp(); go('someScreenKey', optionalOpts)`.
+`react-router-dom` is installed and is the real router: `BrowserRouter` in `src/main.jsx`, `<Routes>` in `src/App.jsx`. There is still no JSX route-config file — instead `src/state/AppContext.jsx` exports `ROUTES`, a `screenId → path` map (`epHome: '/pyme'`, `empContratos: '/contratante/contratos'`, `adminDash: '/admin'`, …) and derives the reverse `PATH_TO_SCREEN`.
 
-`src/App.jsx` maps every screen key to a lazy-loaded page component in one big `screens` object and renders `screens[screen]`, wrapped in a single `<Suspense>`. **When adding a new screen: add the page file, add a `const X = lazy(() => import(...))` line in `App.jsx`, and add the `screenKey: <X />` entry to the `screens` map — there is no separate route config.**
+The context holds `screen` (a string key), `role`, and free-form `opts`, kept in sync with the URL: `const { go } = useApp(); go('someScreenKey', optionalOpts)` pushes the mapped path, and landing on a URL directly (or browser back/forward) resolves the `screen` back from the path. A `screen` with no `ROUTES` entry falls back to `/`.
+
+**When adding a new screen: add the page file, add its entry to `ROUTES` in `AppContext.jsx`, and add the `lazy(() => import(...))` + `<Route>` in `App.jsx`.**
 
 Screen-key prefixes tell you which role/section a page belongs to:
 - `splash`, `login`, `roleSelect`, `solicitarContrato`, `kyc*` — pre-auth / onboarding (`src/pages/auth/`)
@@ -58,6 +60,16 @@ identically to prod. `apiUrl` has no prefix assigned — b-mori has no backend o
 environment with no env-var injection at container start. If you add a new backend prefix, thread it
 through `src/config.ts` and the matching `vite.config.js` `server.proxy` entry, not `import.meta.env`
 alone.
+
+`VITE_DEV_BACKEND_URL` is the only env var this repo reads, and `vite.config.js` reads it via `loadEnv` — nothing in `src/` touches `import.meta.env`.
+
+#### Temporary dev-proxy patch (WAF), marked TODO
+
+`vite.config.js` spreads a `stripBlockedHeaders` option into both proxy rules (`/auth-service`, `/identity/api/v1`), removing `Origin` and `Referer` from outgoing requests via `proxyReq.removeHeader()` (`headers: { Origin: undefined }` does not delete the header in several http-proxy versions).
+
+Why: a WAF between the local dev machine and Traefik silently DROPs requests carrying `Origin: http://localhost:5173`, exhausting TCP retries (~136 s) until Vite's proxy 502s. Browsers always send that header on POSTs with `Content-Type: application/json` or `Authorization`, so it cannot be fixed client-side.
+
+Revert only once infra confirms the WAF allowlists `http://localhost:5173`, `http://localhost:5174` and `http://127.0.0.1:5173`, **and** switched DROP to REJECT for disallowed origins. The same patch exists in the sibling `bonafide-kappa-frontend` repo (commit `a3503b2`) — revert it there too. Do not remove it while the condition is unverified: dev requests will hang ~136 s and 502.
 
 ### Styling
 
