@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
@@ -66,10 +65,8 @@ export default function EpSolicitudes() {
   };
 
   return (
-    <AppShell active="epSolicitudes" role="empresa-pequena" title="Solicitudes" sub="Mis solicitudes e invitaciones de empresas contratantes">
+    <AppShell active="epSolicitudes" role="empresa-pequena" title="Solicitudes" sub="Mis solicitudes e invitaciones de empresas contratantes" back>
       <div className="fade-in space-y-4">
-
-        <BackButton to="roleSelect" />
 
         {/* Tabs + acción */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

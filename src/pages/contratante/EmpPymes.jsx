@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import {
-  CheckCircle, AlertCircle, ChevronRight, ShieldCheck, ClipboardList, TrendingUp, Leaf, Building2,
+  ChevronRight, ShieldCheck, ClipboardList, Leaf, Building2,
   User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
+import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, BLUE, fmt, contratos, pymes, semBadge, semColor, scoreColor } from './contratanteData';
+import { GREEN, WARN, ERR, TEXT4, BORDER, BLUE, fmt, contratos, pymes, semBadge, semColor, scoreColor } from './contratanteData';
 
 // ── PYMEs ─────────────────────────────────────────────────────────────────────
 export default function EmpPymes() {
@@ -28,29 +28,17 @@ export default function EmpPymes() {
     : pymes;
 
   return (
-    <AppShell active="empPymes" role="contratante" title="PYMEs" sub="Empresas con contrato activo">
+    <AppShell active="empPymes" role="contratante" title="PYMEs" sub="Empresas con contrato activo" back>
       <div className="fade-in space-y-5">
 
-        <BackButton to="roleSelect" />
-
         {/* KPIs de semáforo de riesgo */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {[
-            { lbl: 'Riesgo bajo',  val: verde,    Icon: CheckCircle, iconBg: '#E3F4EA', iconColor: GREEN },
-            { lbl: 'Riesgo medio', val: amarillo, Icon: AlertCircle, iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Riesgo alto',  val: rojo,     Icon: AlertCircle, iconBg: '#FDEEEB', iconColor: ERR   },
-          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
-            <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-2 sm:p-3 flex flex-col sm:flex-row items-center sm:items-center gap-1.5 sm:gap-3">
-              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-[8px] sm:rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: iconColor }} />
-              </div>
-              <div className="min-w-0 text-center sm:text-left">
-                <p className="text-[8px] sm:text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                <p className="text-[13px] sm:text-[14px] font-extrabold leading-tight" style={{ color: iconColor }}>
-                  {val} <span className="text-[9px] sm:text-[10px] font-semibold">PYME{val !== 1 ? 's' : ''}</span>
-                </p>
-              </div>
-            </div>
+            { lbl: 'Riesgo bajo',  val: `${verde} PYME${verde !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo medio', val: `${amarillo} PYME${amarillo !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo alto',  val: `${rojo} PYME${rojo !== 1 ? 's' : ''}` },
+          ].map(({ lbl, val }) => (
+            <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
         </div>
 
@@ -73,65 +61,53 @@ export default function EmpPymes() {
 
         {/* Grid de PYMEs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtradas.map(p => (
-            <div key={p.nombre} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <IniAvatar ini={p.ini} size={44} />
-                  <div>
-                    <p className="text-[13px] font-bold text-text-1 leading-snug">{p.nombre}</p>
-                    <p className="text-[11px]" style={{ color: TEXT4 }}>{p.sector}</p>
-                  </div>
+          {filtradas.map((p, idx) => (
+            <div
+              key={p.nombre}
+              onClick={() => setPymeModal(p)}
+              className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+              style={{ animationDelay: `${idx * 70}ms` }}
+            >
+              <div className="min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
+                  <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
                 </div>
-                <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
+                <div className="text-[11px] text-text-4">{p.sector}</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="bg-page-bg rounded-[10px] p-3">
-                  <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Contratos</p>
-                  <div className="flex items-center gap-1.5">
-                    <ClipboardList className="w-4 h-4 shrink-0" style={{ color: ORA }} />
-                    <p className="text-[15px] font-extrabold leading-none" style={{ color: ORA }}>{p.contratos}</p>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Contratos</div>
+                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{p.contratos}</div>
                 </div>
-                <div className="bg-page-bg rounded-[10px] p-3">
-                  <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Fondo</p>
-                  <div className="flex items-center gap-1.5">
-                    <TrendingUp className="w-4 h-4 shrink-0" style={{ color: RED }} />
-                    <div>
-                      <p className="text-[13px] font-extrabold leading-tight text-text-1">{fmt(p.montoTotal)}</p>
-                      <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
-                    </div>
-                  </div>
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo</div>
+                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{fmt(p.montoTotal)} XAF</div>
                 </div>
               </div>
 
-              <div className="mb-1 flex justify-between items-center">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5" style={{ color: TEXT4 }} />
-                  <span className="text-[10px] font-semibold" style={{ color: TEXT4 }}>Score crediticio</span>
+              <div className="mt-auto space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] text-text-4">Score crediticio</span>
+                  <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
                 </div>
-                <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
-              </div>
-              <div className="h-2 rounded-full overflow-hidden mb-4" style={{ background: BORDER }}>
-                <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                </div>
               </div>
 
-              <div className="mt-auto pt-1 flex justify-end">
-                <button
-                  onClick={() => setPymeModal(p)}
-                  className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
-                  style={{ color: ORA }}
-                >
-                  Ver detalles <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                onClick={e => { e.stopPropagation(); setPymeModal(p); }}
+                className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange-dark hover:opacity-75 transition cursor-pointer"
+              >
+                Ver detalles <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           ))}
           {filtradas.length === 0 && (
-            <div className="col-span-full py-12 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
-              <Search className="w-8 h-8" />
-              <p className="text-[13px] font-semibold">Sin resultados para "{busqueda}"</p>
+            <div className="col-span-full text-[13px] text-text-4 text-center py-12">
+              Sin resultados para "{busqueda}".
             </div>
           )}
         </div>

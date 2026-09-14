@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import {
-  Receipt, Clock, FileCheck, TrendingUp, Users, ChevronRight, CheckCircle, Zap, FileText, X,
+  ChevronRight, CheckCircle, Zap, FileText, X,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
+import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, IpiVerificacionModal } from './contratanteShared';
-import { ORA, GREEN, WARN, BLUE, TEXT4, fmt, facturas, facturaBadge } from './contratanteData';
+import { ORA, GREEN, WARN, TEXT4, fmt, facturas, facturaBadge } from './contratanteData';
 
 // ── MIS FACTURAS ──────────────────────────────────────────────────────────────
 const FILTROS_FAC = ['Todas', 'Recibidas', 'Verificadas', 'Pagadas'];
@@ -38,35 +38,18 @@ export default function EmpFacturas() {
   const handleConfirmarIPI = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'IPI emitido' })); closeModal(); };
 
   return (
-    <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas">
+    <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas" back>
       <div className="fade-in space-y-5">
 
-        <BackButton to="roleSelect" />
-
         {/* KPI cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { lbl: 'Total facturas',     val: String(facturasVivas.length), Icon: Receipt,    iconBg: '#FFF3E0', iconColor: ORA   },
-            { lbl: 'Pendientes validar', val: String(pendientes),           Icon: Clock,      iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Listas para IPI',    val: String(verificadas),          Icon: FileCheck,  iconBg: '#EFF6FF', iconColor: BLUE  },
-            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF`,     Icon: TrendingUp, iconBg: '#E3F4EA', iconColor: GREEN },
-          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
-            <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                {val.endsWith(' XAF') ? (
-                  <>
-                    <p className="text-[12px] sm:text-[14px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
-                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
-                  </>
-                ) : (
-                  <p className="text-[14px] font-extrabold text-text-1 leading-tight">{val}</p>
-                )}
-              </div>
-            </div>
+            { lbl: 'Total facturas',     val: String(facturasVivas.length) },
+            { lbl: 'Pendientes validar', val: String(pendientes) },
+            { lbl: 'Listas para IPI',    val: String(verificadas) },
+            { lbl: 'Monto total',        val: `${fmt(totalMonto)} XAF` },
+          ].map(({ lbl, val }) => (
+            <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
         </div>
 
@@ -85,11 +68,15 @@ export default function EmpFacturas() {
 
         {/* Cards de facturas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(f => {
+          {filtered.map((f, idx) => {
             const hasAction = f.estado === 'Recibida' || f.estado === 'Verificada';
             return (
-              <div key={f.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
-
+              <div
+                key={f.id}
+                onClick={() => { setFacturaModal(f); setIpiStep(null); }}
+                className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                style={{ animationDelay: `${idx * 70}ms` }}
+              >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -99,26 +86,16 @@ export default function EmpFacturas() {
                   <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
                 </div>
 
-                {/* PYME + Contrato */}
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                    <Users className="w-4 h-4" style={{ color: ORA }} />
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.pyme}</p>
-                    <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{f.contrato}</p>
-                  </div>
+                {/* PYME + Contrato — sin icono */}
+                <div>
+                  <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.pyme}</p>
+                  <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{f.contrato}</p>
                 </div>
 
                 {/* Monto */}
-                <div className="bg-page-bg rounded-[10px] p-3">
-                  <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Monto</p>
-                  <div className="flex items-center gap-1.5">
-                    <Receipt className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
-                    <p className="text-[15px] font-extrabold leading-none truncate" style={{ color: GREEN }}>
-                      {fmt(f.monto)} <span className="text-[10px] font-semibold" style={{ color: GREEN }}>XAF</span>
-                    </p>
-                  </div>
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
+                  <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(f.monto)} XAF</div>
                 </div>
 
                 {/* Footer */}
@@ -130,9 +107,8 @@ export default function EmpFacturas() {
                     </span>
                   ) : <span />}
                   <button
-                    onClick={() => { setFacturaModal(f); setIpiStep(null); }}
-                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
-                    style={{ color: ORA }}
+                    onClick={e => { e.stopPropagation(); setFacturaModal(f); setIpiStep(null); }}
+                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
                   >
                     Ver detalle <ChevronRight className="w-3.5 h-3.5" />
                   </button>

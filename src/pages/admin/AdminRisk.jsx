@@ -1,4 +1,3 @@
-import { Building2, Truck } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 
@@ -23,14 +22,7 @@ const allInvoices = [
 ];
 
 const InvoiceCard = ({ inv }) => (
-  <div
-    className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
-    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
-  >
-    <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
-      {inv.tipo === 'contratante' ? <Building2 className="w-5 h-5 text-orange" /> : <Truck className="w-5 h-5 text-orange" />}
-    </div>
+  <div className="bg-white rounded-[16px] p-4 flex items-start gap-4 shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)]">
     <div className="flex-1 min-w-0">
       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
         <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
@@ -45,7 +37,7 @@ const InvoiceCard = ({ inv }) => (
         PYME: <span className="font-medium text-text-4">{inv.pyme}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-semibold text-orange bg-orange-tint px-2 py-0.5 rounded-full border border-orange/20">{inv.contrato}</span>
+        <span className="text-[10px] font-semibold text-orange-dark bg-orange-tint px-2 py-0.5 rounded-full">{inv.contrato}</span>
         <span className="text-[11px] text-text-5 truncate">· {contratos[inv.contrato]}</span>
       </div>
     </div>

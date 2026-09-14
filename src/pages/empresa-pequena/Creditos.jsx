@@ -2,13 +2,12 @@ import { useState, useRef } from 'react';
 import {
   FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
-  BarChart2, ScrollText, UserSquare, CalendarDays, Banknote, TrendingUp, Wallet,
+  BarChart2, ScrollText, UserSquare, CalendarDays,
   Upload, Paperclip,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
-import { StatCard } from './empresaPequenaShared';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -328,24 +327,25 @@ export default function EpCreditos() {
     setPagoModal({ open: true, editId: p.id, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha, facturaProvId: p.facturaProvId || '', proveedorId: p.proveedorId || '', documento: p.documento || null });
 
   return (
-    <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito">
+    <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito" back={detailId === null}>
       <div className="fade-in">
 
         {/* ── LISTA ── */}
         {detailId === null ? (
           <div className="space-y-5">
 
-            <BackButton to="roleSelect" />
-
             {/* Resumen */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {[
-                { label: 'Contratos',        display: totalContratos,             Icon: FileText },
-                { label: 'Monto total',      display: formatXaf(montoTotal),      Icon: Banknote },
-                { label: 'Total disponible', display: formatXaf(disponibleTotal), Icon: Wallet },
-                { label: 'KYC Vigentes',     display: kycVigentes,                Icon: TrendingUp },
-              ].map(({ label, display, Icon }) => (
-                <StatCard key={label} label={label} value={display} Icon={Icon} />
+                { label: 'Contratos de crédito activos',    display: totalContratos },
+                { label: 'Monto total asignado',            display: formatXaf(montoTotal) },
+                { label: 'Saldo disponible para uso',       display: formatXaf(disponibleTotal) },
+                { label: 'Contratantes con KYC vigente',    display: kycVigentes },
+              ].map(({ label, display }) => (
+                <div key={label} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
+                  <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{label}</div>
+                  <div className="text-[22px] font-extrabold leading-tight text-white truncate">{display}</div>
+                </div>
               ))}
             </div>
 
@@ -392,29 +392,22 @@ export default function EpCreditos() {
                   <div
                     key={contract.id}
                     onClick={() => { setDetailId(contract.id); setActiveTab('contrato'); }}
-                    className="bg-white rounded-[16px] p-5 border border-border cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 card-enter"
+                    className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                     style={{ animationDelay: `${idx * 70}ms` }}
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
                   >
                     {/* ID + empresa + sector + score */}
-                    <div className="flex items-start gap-2 min-w-0">
-                      <div className="w-8 h-8 rounded-[10px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
-                        <FileText className="w-4 h-4 text-orange" />
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+                        {sStyle && (
+                          <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]"
+                                style={{ background: sStyle.bg, color: sStyle.color }}>
+                            {score}
+                          </span>
+                        )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
-                          {sStyle && (
-                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]"
-                                  style={{ background: sStyle.bg, color: sStyle.color }}>
-                              {score}
-                            </span>
-                          )}
-                        </div>
-                        {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
-                      </div>
+                      {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
                     </div>
 
                     {/* Monto */}
@@ -468,19 +461,14 @@ export default function EpCreditos() {
             {/* Resumen financiero */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
               {[
-                { label: 'Monto del crédito', value: formatXaf(detailContract.monto),      Icon: Banknote,   iconBg: '#FFF3E0', color: '#EF7A2C' },
-                { label: 'Distribuido',        value: formatXaf(detailContract.asignado),   Icon: BarChart2,  iconBg: '#FFF3E0', color: '#EF7A2C' },
-                { label: 'Disponible',         value: formatXaf(detailContract.disponible), Icon: Wallet,     iconBg: '#E3F4EA', color: '#2E7D5B' },
-                { label: '% Distribuido',      value: `${pct(detailContract.asignado, detailContract.monto)}%`, Icon: TrendingUp, iconBg: '#EFF6FF', color: '#3B82F6' },
-              ].map(({ label, value, Icon, iconBg, color }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                    <Icon className="w-5 h-5" style={{ color }} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
-                    <div className="text-[14px] font-extrabold truncate" style={{ color }}>{value}</div>
-                  </div>
+                { label: 'Monto del crédito', value: formatXaf(detailContract.monto) },
+                { label: 'Distribuido',        value: formatXaf(detailContract.asignado) },
+                { label: 'Disponible',         value: formatXaf(detailContract.disponible) },
+                { label: '% Distribuido',      value: `${pct(detailContract.asignado, detailContract.monto)}%` },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
+                  <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{label}</div>
+                  <div className="text-[22px] font-extrabold leading-tight text-white truncate">{value}</div>
                 </div>
               ))}
             </div>

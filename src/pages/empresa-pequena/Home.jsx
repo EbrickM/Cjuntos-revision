@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { TrendingUp, Leaf, ChevronRight, ArrowUpRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 
 // ── MIC Brand tokens ─────────────────────────────────────────────────────────
@@ -176,10 +175,8 @@ export default function EpHome() {
   const pctDisponible = 100 - pctUsado;
 
   return (
-    <AppShell active="epHome" role="empresa-pequena" title="Inicio" sub="Mi Panel">
+    <AppShell active="epHome" role="empresa-pequena" back>
       <div className="fade-in space-y-4">
-
-        <BackButton to="roleSelect" />
 
         {/* Header + Tab nav ─────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -21,7 +21,7 @@ function bezierLine(pts) {
   return d;
 }
 
-function LineChart({ id, data, color = '#e0201c', xKey = 'mes', yKey = 'monto', unit = 'M', h = 180 }) {
+function LineChart({ id, data, color = '#ef7a2c', xKey = 'mes', yKey = 'monto', unit = 'M', h = 180 }) {
   const W = 500, H = h, PL = 48, PR = 20, PT = 24, PB = 34;
   const cW = W - PL - PR, cH = H - PT - PB;
   const vals = data.map(d => d[yKey]);
@@ -89,8 +89,8 @@ function VBarChart({ id, data, h = 170 }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       <defs>
         <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#e0201c" />
-          <stop offset="100%" stopColor="#e0201c" stopOpacity="0.55" />
+          <stop offset="0%" stopColor="#ef7a2c" />
+          <stop offset="100%" stopColor="#ef7a2c" stopOpacity="0.55" />
         </linearGradient>
       </defs>
       {[0, 0.25, 0.5, 0.75, 1].map(p => (
@@ -104,7 +104,7 @@ function VBarChart({ id, data, h = 170 }) {
         return (
           <g key={i}>
             <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />
-            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700" fill={d.color ?? '#e0201c'} fontFamily="Poppins,sans-serif">{d.value}</text>
+            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700" fill={d.color ?? '#ef7a2c'} fontFamily="Poppins,sans-serif">{d.value}</text>
             <text x={x + bW / 2} y={H - 10} textAnchor="middle" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
         );
@@ -121,10 +121,10 @@ function HBarChart({ data, fmtVal = v => `${v}M` }) {
         <div key={i}>
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-[12px] font-semibold text-text-2 truncate mr-2">{d.label}</span>
-            <span className="text-[12px] font-bold shrink-0" style={{ color: d.color ?? '#e0201c' }}>{fmtVal(d.value)}</span>
+            <span className="text-[12px] font-bold shrink-0" style={{ color: d.color ?? '#ef7a2c' }}>{fmtVal(d.value)}</span>
           </div>
           <div className="h-3 bg-page-bg rounded-full overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${(d.value / maxVal) * 100}%`, background: d.color ?? '#e0201c' }} />
+            <div className="h-full rounded-full" style={{ width: `${(d.value / maxVal) * 100}%`, background: d.color ?? '#ef7a2c' }} />
           </div>
         </div>
       ))}
@@ -140,11 +140,11 @@ const TABS = [
 
 // ── General tab data ──────────────────────────────────────────────────────────
 const generalKpis = [
-  { value: 'XAF 180M',  label: 'Monto total financiado', sub: 'Total acumulado 2026',    cls: 'text-orange',      trend: 'Activo',   tUp: null },
+  { value: 'XAF 180M',  label: 'Monto total financiado', sub: 'Total acumulado 2026',    cls: 'text-orange-dark', trend: 'Activo',   tUp: null },
   { value: '1',          label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-green-text',  trend: 'Estable',  tUp: null },
   { value: '1',          label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable',  tUp: null },
   { value: '1',          label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-green-text',  trend: 'Estable',  tUp: null },
-  { value: 'XAF 47.5M', label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange',     trend: 'Estable',  tUp: null },
+  { value: 'XAF 47.5M', label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange-dark', trend: 'Estable',  tUp: null },
   { value: '870/1000',  label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-green-text',  trend: 'Bajo',     tUp: null },
 ];
 
@@ -158,7 +158,7 @@ const generalLineData = [
 ];
 
 const carteraDona = [
-  { tipo: 'Factoring Directo', pct: 100, color: '#e0201c' },
+  { tipo: 'Factoring Directo', pct: 100, color: '#ef7a2c' },
 ];
 
 const opsBarData = [
@@ -179,7 +179,7 @@ const riesgoKpis = [
   { value: '0',      label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',         cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
   { value: '0',      label: 'Documentos vencidos',   sub: 'Necesitan renovación',    cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
   { value: '0',      label: 'KYC pendientes',         sub: 'Verificación requerida',  cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
-  { value: '0',      label: 'Alertas abiertas',       sub: 'Sin resolver',            cls: 'text-orange',      trend: 'Ninguna', tUp: null },
+  { value: '0',      label: 'Alertas abiertas',       sub: 'Sin resolver',            cls: 'text-orange-dark', trend: 'Ninguna', tUp: null },
   { value: 'XAF 0', label: 'Exposición total',        sub: 'Capital en riesgo',       cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
 ];
 
@@ -188,7 +188,12 @@ const riesgoDona = [
 ];
 
 const exposicionBars = [
-  { label: 'Const. Silva Ltd.', value: 48, color: '#059669' },
+  { label: 'Const. Silva Ltd.',   value: 48, color: '#059669' },
+  { label: 'TransGE S.L.',        value: 32, color: '#059669' },
+  { label: 'ServTec GE',          value: 25, color: '#059669' },
+  { label: 'AgroGE Holdings',     value: 18, color: '#059669' },
+  { label: 'LogiRapid GE',        value: 14, color: '#059669' },
+  { label: 'Pinturas Bata SL',    value: 9,  color: '#059669' },
 ];
 
 const alertasAbiertas = [];
@@ -238,7 +243,7 @@ export default function AdminDash() {
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     tUp === true ? 'bg-green-bg text-green-text' :
                     tUp === false ? 'bg-red-bg text-red-text' :
-                    'bg-orange-tint text-orange'
+                    'bg-orange-tint text-orange-dark'
                   }`}>{trend}</span>
                 </div>
               ))}
@@ -260,7 +265,7 @@ export default function AdminDash() {
                   </div>
                 </div>
                 <div className="flex-1 min-h-[200px]">
-                  <LineChart id="admin-general" data={generalLineData} color="#e0201c" xKey="mes" yKey="monto" unit="M" h={180} />
+                  <LineChart id="admin-general" data={generalLineData} color="#ef7a2c" xKey="mes" yKey="monto" unit="M" h={180} />
                 </div>
               </div>
 
@@ -307,7 +312,7 @@ export default function AdminDash() {
                     <div className="text-[11px] text-text-4">Actividad reciente de la plataforma</div>
                   </div>
                   <button onClick={() => go('adminConf')}
-                    className="text-[12px] text-orange font-semibold hover:opacity-75 transition cursor-pointer">
+                    className="text-[12px] text-orange-dark font-semibold hover:opacity-75 transition cursor-pointer">
                     Ver todas →
                   </button>
                 </div>
@@ -325,7 +330,7 @@ export default function AdminDash() {
                         className="border-b border-border last:border-0 hover:bg-page-bg/60 cursor-pointer transition-colors">
                         <td className="py-2.5 text-[12px] font-medium text-text-1 pr-2">{op.empresa}</td>
                         <td className="py-2.5 pl-2 pr-2">
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-tint text-orange border border-orange-border whitespace-nowrap">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-tint text-orange-dark whitespace-nowrap">
                             {op.tipo}
                           </span>
                         </td>
@@ -356,43 +361,34 @@ export default function AdminDash() {
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     tUp === true ? 'bg-green-bg text-green-text' :
                     tUp === false ? 'bg-red-bg text-red-text' :
-                    'bg-orange-tint text-orange'
+                    'bg-orange-tint text-orange-dark'
                   }`}>{trend}</span>
                 </div>
               ))}
             </div>
 
-            {/* Row 1: DonutChart + HBarChart */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Riesgo de cartera + Exposición por empresa, en una sola card */}
+            <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-              {/* DonutChart 2/5 */}
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-3">
-                  <div className="text-[14px] font-bold text-text-1">Riesgo de cartera</div>
-                  <div className="text-[11px] text-text-4">¿Dónde están los riesgos?</div>
-                </div>
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 py-2">
-                  <DonutChart data={riesgoDona} centerLabel="89" centerSub="operaciones" size={190} />
-                  <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 w-full">
-                    {riesgoDona.map(d => (
-                      <div key={d.tipo} className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                        <span className="text-[11px] text-text-2 font-medium">{d.tipo}</span>
-                        <span className="text-[11px] font-bold" style={{ color: d.color }}>{d.pct}%</span>
-                      </div>
-                    ))}
+                {/* Exposición por empresa — 2/3 */}
+                <div className="md:col-span-2">
+                  <div className="mb-5">
+                    <div className="text-[14px] font-bold text-text-1">Exposición por empresa</div>
+                    <div className="text-[11px] text-text-4">Ordenadas de mayor a menor</div>
+                  </div>
+                  <div className="max-h-[260px] overflow-y-auto pr-2">
+                    <HBarChart data={exposicionBars} fmtVal={v => `XAF ${v}M`} />
                   </div>
                 </div>
-              </div>
 
-              {/* HBarChart 3/5 */}
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-5">
-                  <div className="text-[14px] font-bold text-text-1">Exposición por empresa</div>
-                  <div className="text-[11px] text-text-4">Ordenadas de mayor a menor</div>
-                </div>
-                <div className="flex-1 flex flex-col justify-between">
-                  <HBarChart data={exposicionBars} fmtVal={v => `XAF ${v}M`} />
+                {/* Riesgo de cartera — 1/3, en texto plano igual que Score Crediticio en /pyme */}
+                <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border flex flex-col items-center justify-center text-center gap-2">
+                  <p className="text-[12px] font-bold uppercase tracking-widest text-text-4">Riesgo de cartera</p>
+                  <p className="text-[64px] sm:text-[72px] font-extrabold leading-none" style={{ color: riesgoDona[0].color }}>89</p>
+                  <p className="text-[15px] text-text-4">
+                    operaciones · <span className="font-semibold" style={{ color: riesgoDona[0].color }}>{riesgoDona[0].tipo}</span>
+                  </p>
                 </div>
               </div>
             </div>

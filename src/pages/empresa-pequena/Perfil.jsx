@@ -4,7 +4,6 @@ import {
   Clock, FileCheck, AlertCircle, Building2, ShieldCheck, Star,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -71,10 +70,8 @@ export default function EpPerfil() {
   const [avatar, setAvatar] = useState(null);
 
   return (
-    <AppShell active="epPerfil" role="empresa-pequena" title="Mi Perfil" sub="Información de cuenta">
+    <AppShell active="epPerfil" role="empresa-pequena" title="Mi Perfil" sub="Información de cuenta" back>
       <div className="fade-in space-y-5">
-
-        <BackButton to="roleSelect" />
 
         {/* ── Hero card ── */}
         <div className="card-enter bg-white rounded-[14px] border border-border p-6">

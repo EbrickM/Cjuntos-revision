@@ -4,11 +4,12 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import BackButton from '../common/BackButton';
 
 const GREEN = '#2E7D5B';
 const TEXT4 = '#A9A6A1';
 
-export default function AppShell({ active, role, children }) {
+export default function AppShell({ active, role, title, sub, back, children }) {
   const [sideOpen,    setSideOpen]    = useState(false);
   const [showInvite,  setShowInvite]  = useState(false);
   const [invNombre,   setInvNombre]   = useState('');
@@ -50,6 +51,13 @@ export default function AppShell({ active, role, children }) {
 
         {/* Contenido scrollable */}
         <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6">
+          {back && <BackButton to={back === true ? 'roleSelect' : back} />}
+          {title && (
+            <div className="mb-4">
+              <h1 className="text-[20px] font-bold text-text-1 leading-tight">{title}</h1>
+              {sub && <p className="text-[13px] text-text-4 mt-0.5">{sub}</p>}
+            </div>
+          )}
           {children}
         </div>
       </div>

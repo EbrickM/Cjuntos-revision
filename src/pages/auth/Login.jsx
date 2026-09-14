@@ -1,20 +1,22 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import logo from '../../assets/logo-color.webp';
 import { CreditCard, BarChart3, Users, History, ArrowRight, Shield, Lock } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';
 import AdminLoginModal from '../../components/common/AdminLoginModal';
-
-
-const platformFeatures = [
-  { Icon: CreditCard, label: 'Gestiona tus créditos' },
-  { Icon: Users,      label: 'Administra proveedores' },
-  { Icon: BarChart3,  label: 'Planifica tus préstamos' },
-  { Icon: History,    label: 'Consulta el historial de operaciones' },
-];
+import LanguageSelector from '../../components/common/LanguageSelector';
 
 export default function Login() {
+  const { t } = useTranslation();
   const { go } = useApp();
+
+  const platformFeatures = [
+    { Icon: CreditCard, label: t('login.features.credits') },
+    { Icon: Users,      label: t('login.features.providers') },
+    { Icon: BarChart3,  label: t('login.features.loans') },
+    { Icon: History,    label: t('login.features.history') },
+  ];
   const [showOTP,   setShowOTP]   = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
 
@@ -32,6 +34,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center py-6 px-4">
+      <LanguageSelector />
 
       <div
         className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]"
@@ -46,13 +49,13 @@ export default function Login() {
             className="h-20 w-auto object-contain mb-2"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h1 className="text-3xl font-bold text-text-1">Creciendo Juntos</h1>
+          <h1 className="text-3xl font-bold text-text-1">{t('login.title')}</h1>
         </div>
 
         {/* Dentro de la plataforma */}
         <div className="mb-4">
           <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wider mb-2">
-            Dentro de la plataforma
+            {t('login.platformSectionTitle')}
           </p>
           <div className="space-y-1.5">
             {platformFeatures.map(({ Icon, label }) => (
@@ -79,8 +82,8 @@ export default function Login() {
               <Shield className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px]">Plataforma regulada</p>
-              <p className="text-[10px] text-text-3">Normativa de Guinea Ecuatorial</p>
+              <p className="font-medium text-text-1 text-[11px]">{t('login.trust.regulatedTitle')}</p>
+              <p className="text-[10px] text-text-3">{t('login.trust.regulatedDesc')}</p>
             </div>
           </div>
           <div className="flex-1 flex flex-col items-center gap-1.5 text-center bg-gray-50 rounded-xl border border-gray-100 py-3 px-2">
@@ -88,8 +91,8 @@ export default function Login() {
               <Lock className="w-3.5 h-3.5 text-orange" />
             </div>
             <div>
-              <p className="font-medium text-text-1 text-[11px]">Datos protegidos</p>
-              <p className="text-[10px] text-text-3">Cifrado de extremo a extremo</p>
+              <p className="font-medium text-text-1 text-[11px]">{t('login.trust.protectedTitle')}</p>
+              <p className="text-[10px] text-text-3">{t('login.trust.protectedDesc')}</p>
             </div>
           </div>
         </div>
@@ -106,14 +109,14 @@ export default function Login() {
             boxShadow: '0 4px 16px rgba(239,122,44,0.32)',
           }}
         >
-          Acceder
+          {t('login.accessButton')}
           <ArrowRight className="w-4 h-4" />
         </button>
 
         {/* Divider o */}
         <div className="flex items-center gap-3 my-3">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-text-4 font-medium">o</span>
+          <span className="text-xs text-text-4 font-medium">{t('login.or')}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
 
@@ -131,7 +134,7 @@ export default function Login() {
             e.currentTarget.style.color = 'var(--bonafide-red)';
           }}
         >
-          Solicitar Contrato
+          {t('login.requestContractButton')}
         </button>
 
         {/* Acceso administrador */}
@@ -140,7 +143,7 @@ export default function Login() {
             onClick={() => setShowAdmin(true)}
             className="text-xs text-orange font-medium hover:underline cursor-pointer"
           >
-            Acceso Bonafide
+            {t('login.adminAccessButton')}
           </button>
         </p>
       </div>

@@ -1,31 +1,16 @@
 import { useState, useEffect } from 'react';
 import {
-  Pencil, Trash2, Building2, Package, Truck, Cpu, Wrench, Zap, HardHat,
-  Leaf, ShoppingCart, Settings, ShieldCheck, Star, FileText, Search,
+  Pencil, Trash2, Building2, FileText, Search,
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
-import { StatCard } from './empresaPequenaShared';
+import { StatCard } from '../../components/common/StatCard';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+import isotipoBlanco from '../../assets/isotipo-blanco.webp';
 
 const SECTORES = ['Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología', 'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio', 'Materiales', 'Otro'];
-
-const SECTOR_ICONS = {
-  Materiales:   Package,
-  Transporte:   Truck,
-  Tecnología:   Cpu,
-  Servicios:    Wrench,
-  Energía:      Zap,
-  Construcción: HardHat,
-  Minería:      HardHat,
-  Manufactura:  Settings,
-  Agricultura:  Leaf,
-  Alimentación: ShoppingCart,
-  Comercio:     ShoppingCart,
-};
 
 const KYC_BADGE = {
   vigente:   { label: 'KYC Vigente',   bg: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE'              },
@@ -130,20 +115,18 @@ export default function EpMisProveedores() {
   };
 
   return (
-    <AppShell active="epProveedores" role="empresa-pequena" title="Mis Proveedores" sub="Directorio de proveedores">
+    <AppShell active="epProveedores" role="empresa-pequena" title="Mis Proveedores" sub="Directorio de proveedores" back>
       <div className="fade-in space-y-5">
-
-        <BackButton to="roleSelect" />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { value: providers.length, label: 'Proveedores registrados', Icon: Building2 },
-            { value: clientesBonafide, label: 'Clientes Bonafide',       Icon: Star },
-            { value: kycVigentes,      label: 'KYC Vigentes',            Icon: ShieldCheck },
-            { value: conContratos,     label: 'Con contratos activos',   Icon: Package },
-          ].map(({ value, label, Icon }) => (
-            <StatCard key={label} label={label} value={value} Icon={Icon} />
+            { value: providers.length, label: 'Proveedores registrados' },
+            { value: clientesBonafide, label: 'Clientes Bonafide' },
+            { value: kycVigentes,      label: 'KYC Vigentes' },
+            { value: conContratos,     label: 'Con contratos activos' },
+          ].map(({ value, label }) => (
+            <StatCard key={label} label={label} value={value} tone="gradient" />
           ))}
         </div>
 
@@ -171,18 +154,17 @@ export default function EpMisProveedores() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProviders.map((p, idx) => {
-              const SectorIcon = SECTOR_ICONS[p.sector] ?? Building2;
-              const kycStyle   = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
-              const sStyle     = scoreStyle(p.scoreCredito);
+              const kycStyle = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
+              const sStyle   = scoreStyle(p.scoreCredito);
               return (
                 <div key={p.id}
-                  className="bg-white rounded-[16px] p-5 border border-border flex flex-col gap-4 card-lift card-enter transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
+                  className="bg-white rounded-[16px] p-5 flex flex-col gap-4 card-enter transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
                   style={{ animationDelay: `${idx * 70}ms` }}
                 >
                   {/* Icono + nombre + sector + RUC | Score (esquina sup. der.) */}
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-[12px] bg-orange-tint flex items-center justify-center shrink-0">
-                      <SectorIcon className="w-5 h-5 text-orange" />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--bonafide-gradient)' }}>
+                      <img src={isotipoBlanco} alt="" className="w-5 h-5 object-contain" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="text-[14px] font-bold text-text-1 leading-tight truncate">{p.razonSocial}</div>

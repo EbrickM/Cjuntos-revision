@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "selectLanguage": "Sélectionner la langue"
+  },
+  "login": {
+    "title": "Grandir Ensemble",
+    "platformSectionTitle": "Sur la plateforme",
+    "features": {
+      "credits": "Gérez vos crédits",
+      "providers": "Gérez vos fournisseurs",
+      "loans": "Planifiez vos prêts",
+      "history": "Consultez l'historique des opérations"
+    },
+    "trust": {
+      "regulatedTitle": "Plateforme réglementée",
+      "regulatedDesc": "Réglementation de Guinée équatoriale",
+      "protectedTitle": "Données protégées",
+      "protectedDesc": "Chiffrement de bout en bout"
+    },
+    "accessButton": "Se connecter",
+    "or": "ou",
+    "requestContractButton": "Demander un contrat",
+    "adminAccessButton": "Accès Bonafide"
+  }
+}

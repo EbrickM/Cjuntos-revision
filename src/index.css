@@ -148,6 +148,23 @@
   80%      { transform: translateX(4px); }
 }
 
+/* Animaciones de éxito (estilo operación completada — mic) */
+@keyframes pulseRing {
+  0%   { transform: scale(0.85); opacity: 0.45; }
+  100% { transform: scale(1.9);  opacity: 0; }
+}
+
+@keyframes confettiBurst {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(0.4);  opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
 /* Animación de entrada estilo reparto de cartas */
 @keyframes cardDeal {
   from {

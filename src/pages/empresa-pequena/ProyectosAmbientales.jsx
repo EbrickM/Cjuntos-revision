@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react';
 import {
   Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight,
-  Plus, FolderOpen, Activity, Banknote, ShieldAlert, Target,
+  Plus, FolderOpen, Target,
   Upload, X as XIcon, FileText,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
-import BackButton from '../../components/common/BackButton';
-import { StatCard } from './empresaPequenaShared';
+import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -41,11 +40,11 @@ const ESG_METAS = [
 // Verde reservado a las dos métricas ambientales (captura CO₂, riesgo); el
 // resto usa el acento naranja, igual que el resto del dashboard PYME.
 const kpis = [
-  { value: '5',       label: 'Proyectos registrados', tone: 'orange', Icon: FolderOpen  },
-  { value: '2',       label: 'Proyectos activos',     tone: 'orange', Icon: Activity    },
-  { value: '2',       label: 'Proyectos financiados', tone: 'orange', Icon: Banknote    },
-  { value: '7,800 t', label: 'Captura CO₂ potencial', tone: 'green',  Icon: Wind        },
-  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green',  Icon: ShieldAlert },
+  { value: '5',       label: 'Proyectos registrados', tone: 'gradient' },
+  { value: '2',       label: 'Proyectos activos',     tone: 'gradient' },
+  { value: '2',       label: 'Proyectos financiados', tone: 'gradient' },
+  { value: '7,800 t', label: 'Captura CO₂ potencial', tone: 'green' },
+  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green' },
 ];
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -105,15 +104,13 @@ export default function EpProyectosAmbientales() {
   const closeModal = () => { setShowModal(false); setForm(EMPTY_FORM); setFiles([]); };
 
   return (
-    <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales">
+    <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales" back>
       <div className="fade-in space-y-5">
-
-        <BackButton to="roleSelect" />
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {kpis.map(({ value, label, tone, Icon }) => (
-            <StatCard key={label} label={label} value={value} Icon={Icon} tone={tone} />
+          {kpis.map(({ value, label, tone }) => (
+            <StatCard key={label} label={label} value={value} tone={tone} />
           ))}
         </div>
 
