@@ -15,12 +15,16 @@ const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
-// `included` (array de booleans, misma longitud que `data`) marca qué puntos
-// pasan los filtros activos. Las posiciones X se calculan siempre sobre el
-// total de `data` (no sobre los puntos incluidos) para que excluir un punto
-// deje un hueco visible en la línea en vez de simplemente re-espaciar el
-// resto — así el filtro de monto se nota incluso si excluye 1-2 meses.
-function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+// El filtro se resuelve por serie y por punto: `windowStart` aplica el
+// filtro de Periodo (igual para las 3 series), pero `minValue` se compara
+// contra el valor de CADA serie en cada punto — así, si "Monto mínimo" está
+// en 65M, un punto de "Crédito Utilizado" en 20M se oculta igual que uno de
+// "Disponible" en 20M, en vez de solo mirar una serie de referencia y dejar
+// pasar a las otras con valores por debajo del mínimo.
+// Las posiciones X se calculan siempre sobre el total de `data` (no sobre los
+// puntos incluidos) para que excluir un punto deje un hueco visible en la
+// línea en vez de simplemente re-espaciar el resto.
+function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = 300;
@@ -28,7 +32,8 @@ function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 1
   const xPos = i => data.length > 1 ? PL + (i / (data.length - 1)) * cW : PL + cW / 2;
   const yPos = v => PT + cH - (v / maxV) * cH;
   const fmtM = v => compact ? `${v}M` : new Intl.NumberFormat('de-DE').format(v * 1_000_000);
-  const isIn = i => !included || included[i];
+  const isIn = (key, i) => i >= windowStart && data[i][key] >= minValue;
+  const inWindow = i => i >= windowStart;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {yTicks.map(t => (
@@ -39,7 +44,7 @@ function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 1
         const segments = [];
         let current = [];
         data.forEach((d, i) => {
-          if (isIn(i)) {
+          if (isIn(s.key, i)) {
             current.push([xPos(i), yPos(d[s.key])]);
           } else if (current.length) {
             segments.push(current);
@@ -52,12 +57,12 @@ function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 1
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         ));
       })}
-      {series.map((s, si) => data.map((d, i) => isIn(i) && (
+      {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
         <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key])} r="3" fill={s.color} />
       )))}
       {data.map((d, i) => (
         <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
-          fontSize={fxSz} fill={isIn(i) ? TEXT4 : '#D8D5D0'} fontWeight={isIn(i) ? '400' : '400'} fontFamily="Poppins,sans-serif">{d.label}</text>
+          fontSize={fxSz} fill={inWindow(i) ? TEXT4 : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
       {yTicks.map(t => (
         <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
@@ -68,11 +73,12 @@ function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 1
 }
 
 // ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
-// Igual que en LineChart: `included` no recorta el arreglo — cada semana
-// mantiene su posición X fija (calculada sobre el total de `data`), y las
-// excluidas por el filtro simplemente no dibujan su barra en vez de hacer que
-// el resto se reacomode y "cambie de fecha".
-function GroupedBarChart({ data, included, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+// Igual que en LineChart: el filtro de Monto mínimo se evalúa por separado
+// para entradas y salidas (una barra puede ocultarse y la otra no, dentro de
+// la misma semana), y la ventana de Periodo aplica a ambas por igual. Las
+// posiciones X se calculan siempre sobre el total de `data`, así que ocultar
+// una barra no reacomoda a las demás.
+function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
@@ -81,7 +87,8 @@ function GroupedBarChart({ data, included, h = 180, vbW = 560, pl = 98, pr = 8, 
   const outerGap = slot * 0.14;
   const bW = (slot - outerGap * 2 - innerGap) / 2;
   const base = PT + cH;
-  const isIn = i => !included || included[i];
+  const inWindow = i => i >= windowStart;
+  const isIn = (key, i) => inWindow(i) && data[i][key] >= minValue;
   const fmt = v => compact
     ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
     : new Intl.NumberFormat('de-DE').format(Math.round(v));
@@ -97,11 +104,10 @@ function GroupedBarChart({ data, included, h = 180, vbW = 560, pl = 98, pr = 8, 
         const xOut = slotX + outerGap + bW + innerGap;
         const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
         const outH = maxV ? (d.outflow / maxV) * cH : 0;
-        const included_ = isIn(i);
         return (
-          <g key={i} opacity={included_ ? 1 : 0.15}>
-            {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
-            {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
+          <g key={i} opacity={inWindow(i) ? 1 : 0.15}>
+            {d.inflow  > 0 && isIn('inflow', i)  && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
+            {d.outflow > 0 && isIn('outflow', i) && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
             <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
               fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
           </g>
@@ -235,12 +241,12 @@ export default function EpHome() {
   const pctDisponible = 100 - pctUsado;
 
   const evoWindowStart = evolucionData.length - evoPeriodo;
-  const evoIncluded = evolucionData.map((d, i) => i >= evoWindowStart && d.disponible >= evoMonto);
-  const evolucionHasData = evoIncluded.some(Boolean);
+  const evolucionHasData = evolucionData.some((d, i) =>
+    i >= evoWindowStart && evolucionSeries.some(s => d[s.key] >= evoMonto));
 
   const flujoWindowStart = flujoData.length - flujoPeriodo;
-  const flujoIncluded = flujoData.map((d, i) => i >= flujoWindowStart && d.inflow >= flujoMonto);
-  const flujoHasData = flujoIncluded.some(Boolean);
+  const flujoHasData = flujoData.some((d, i) =>
+    i >= flujoWindowStart && (d.inflow >= flujoMonto || d.outflow >= flujoMonto));
 
   return (
     <AppShell active="epHome" role="empresa-pequena" back>
@@ -448,13 +454,13 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {evolucionHasData
-                        ? <LineChart data={evolucionData} series={evolucionSeries} included={evoIncluded} h={240} />
+                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
                     <div className="block md:hidden h-[300px] w-full">
                       {evolucionHasData
-                        ? <LineChart data={evolucionData} series={evolucionSeries} included={evoIncluded} h={300}
+                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={300}
                             vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
@@ -473,13 +479,13 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {flujoHasData
-                        ? <GroupedBarChart data={flujoData} included={flujoIncluded} h={240} />
+                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={240} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
                     <div className="block md:hidden h-[300px] w-full">
                       {flujoHasData
-                        ? <GroupedBarChart data={flujoData} included={flujoIncluded} h={300}
+                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={300}
                             vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
