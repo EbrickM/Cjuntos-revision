@@ -4,7 +4,6 @@ import logo from '../../assets/logo-color.webp';
 import { CreditCard, BarChart3, Users, History, ArrowRight, Shield, Lock } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import OTPModal from '../../components/common/OTPModal';
-import AdminLoginModal from '../../components/common/AdminLoginModal';
 import LanguageSelector from '../../components/common/LanguageSelector';
 
 export default function Login() {
@@ -17,8 +16,7 @@ export default function Login() {
     { Icon: BarChart3,  label: t('login.features.loans') },
     { Icon: History,    label: t('login.features.history') },
   ];
-  const [showOTP,   setShowOTP]   = useState(false);
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [showOTP, setShowOTP] = useState(false);
 
   const ROLE_BY_EMAIL = {
     'soporte@soportetecnico.org': 'epHome',
@@ -29,7 +27,12 @@ export default function Login() {
 
   const handleVerified = (email) => {
     setShowOTP(false);
-    go(ROLE_BY_EMAIL[email?.toLowerCase()] ?? 'roleSelect');
+    const normalized = email?.toLowerCase();
+    if (normalized === 'admin@gmail.com') {
+      go('adminDash');
+    } else {
+      go(ROLE_BY_EMAIL[normalized] ?? 'roleSelect');
+    }
   };
 
   return (
@@ -112,40 +115,6 @@ export default function Login() {
           {t('login.accessButton')}
           <ArrowRight className="w-4 h-4" />
         </button>
-
-        {/* Divider o */}
-        <div className="flex items-center gap-3 my-3">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-text-4 font-medium">{t('login.or')}</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-
-        {/* CTA secundario: Solicitar Contrato */}
-        <button
-          onClick={() => go('solicitarContrato')}
-          className="w-full h-11 font-semibold text-sm rounded-[8px] cursor-pointer transition-all duration-200 border-2 flex items-center justify-center gap-2"
-          style={{ borderColor: 'var(--bonafide-red)', color: 'var(--bonafide-red)' }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = 'var(--bonafide-red)';
-            e.currentTarget.style.color = '#ffffff';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--bonafide-red)';
-          }}
-        >
-          {t('login.requestContractButton')}
-        </button>
-
-        {/* Acceso administrador */}
-        <p className="text-center mt-3">
-          <button
-            onClick={() => setShowAdmin(true)}
-            className="text-xs text-orange font-medium hover:underline cursor-pointer"
-          >
-            {t('login.adminAccessButton')}
-          </button>
-        </p>
       </div>
       </div>
 
@@ -153,13 +122,6 @@ export default function Login() {
         <OTPModal
           onClose={() => setShowOTP(false)}
           onVerify={handleVerified}
-        />
-      )}
-
-      {showAdmin && (
-        <AdminLoginModal
-          onClose={() => setShowAdmin(false)}
-          onVerify={() => { setShowAdmin(false); go('adminDash'); }}
         />
       )}
     </div>
