@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   FilePlus, CreditCard, ClipboardList, ChevronRight,
-  CheckCircle2, AlertCircle, Building2, ArrowUpRight, ShieldCheck,
+  CheckCircle2, AlertCircle, Building2, ShieldCheck,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -68,11 +68,8 @@ export default function EpSolicitudes() {
     <AppShell active="epSolicitudes" role="empresa-pequena" title="Solicitudes" sub="Mis solicitudes e invitaciones de empresas contratantes" back>
       <div className="fade-in space-y-4">
 
-        {/* Tabs + acción */}
+        {/* Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <Button variant="primary" size="sm" className="w-full sm:w-auto sm:order-last justify-center" onClick={() => go('epSolicitarContrato', { returnTo: 'epSolicitudes' })}>
-            <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Nueva solicitud
-          </Button>
           <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
             {[{ id: 'mis', lbl: 'Mis solicitudes' }, { id: 'invitaciones', lbl: 'Invitaciones' }].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, ChevronRight, ArrowUpRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
+import { TrendingUp, Leaf, ChevronRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -313,11 +313,6 @@ export default function EpHome() {
                       <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <button onClick={() => go('epSolicitarContrato', { returnTo: 'epHome' })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
-                              style={{ background: ORA }}>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                        Solicitar Nuevo Contrato
-                      </button>
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
                             style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
