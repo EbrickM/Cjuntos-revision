@@ -1,7 +1,7 @@
 import {
   Home, Building2,
   ClipboardList, Users, Receipt,
-  User, LogOut, Leaf, CreditCard, X, Clock,
+  User, LogOut, Leaf, X, Clock,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { logout } from '../../stores/authStore';
@@ -15,7 +15,7 @@ const NAV = {
   ],
   'empresa-pequena': [
     { id: 'epHome',          Icon: Home,       lbl: 'Inicio' },
-    { id: 'epCreditos',      Icon: CreditCard, lbl: 'Mis créditos' },
+    { id: 'epCreditos',      Icon: ClipboardList, lbl: 'Mis contratos' },
     { id: 'epProveedores',   Icon: Users,      lbl: 'Mis Proveedores' },
     { id: 'epFacturacion',   Icon: Receipt,    lbl: 'Mis Facturas',   badge: '2' },
     { id: 'epSolicitudes',   Icon: Clock,      lbl: 'Solicitudes',    badge: '3' },

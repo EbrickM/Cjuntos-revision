@@ -327,7 +327,7 @@ export default function EpCreditos() {
     setPagoModal({ open: true, editId: p.id, monto: p.monto.toString(), concepto: p.concepto, fecha: p.fecha, facturaProvId: p.facturaProvId || '', proveedorId: p.proveedorId || '', documento: p.documento || null });
 
   return (
-    <AppShell active="epCreditos" role="empresa-pequena" title="Mis créditos" sub="Gestión de contratos de crédito" back={detailId === null}>
+    <AppShell active="epCreditos" role="empresa-pequena" title="Mis contratos" sub="Gestión de contratos de crédito" back={detailId === null}>
       <div className="fade-in">
 
         {/* ── LISTA ── */}

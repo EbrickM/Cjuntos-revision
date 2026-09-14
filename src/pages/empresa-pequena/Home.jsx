@@ -15,14 +15,20 @@ const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
-function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+// `included` (array de booleans, misma longitud que `data`) marca qué puntos
+// pasan los filtros activos. Las posiciones X se calculan siempre sobre el
+// total de `data` (no sobre los puntos incluidos) para que excluir un punto
+// deje un hueco visible en la línea en vez de simplemente re-espaciar el
+// resto — así el filtro de monto se nota incluso si excluye 1-2 meses.
+function LineChart({ data, series, included, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
-  const maxV = 250;
-  const yTicks = [50, 100, 150, 200, 250];
-  const xPos = i => PL + (i / (data.length - 1)) * cW;
+  const maxV = 300;
+  const yTicks = [60, 120, 180, 240, 300];
+  const xPos = i => data.length > 1 ? PL + (i / (data.length - 1)) * cW : PL + cW / 2;
   const yPos = v => PT + cH - (v / maxV) * cH;
   const fmtM = v => compact ? `${v}M` : new Intl.NumberFormat('de-DE').format(v * 1_000_000);
+  const isIn = i => !included || included[i];
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
       {yTicks.map(t => (
@@ -30,15 +36,28 @@ function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14
           stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
       ))}
       {series.map((s, si) => {
-        const pts = data.map((d, i) => `${xPos(i)},${yPos(d[s.key])}`).join(' ');
-        return (
-          <polyline key={si} points={pts} fill="none" stroke={s.color}
+        const segments = [];
+        let current = [];
+        data.forEach((d, i) => {
+          if (isIn(i)) {
+            current.push([xPos(i), yPos(d[s.key])]);
+          } else if (current.length) {
+            segments.push(current);
+            current = [];
+          }
+        });
+        if (current.length) segments.push(current);
+        return segments.map((seg, segI) => (
+          <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        );
+        ));
       })}
+      {series.map((s, si) => data.map((d, i) => isIn(i) && (
+        <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key])} r="3" fill={s.color} />
+      )))}
       {data.map((d, i) => (
         <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
-          fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+          fontSize={fxSz} fill={isIn(i) ? TEXT4 : '#D8D5D0'} fontWeight={isIn(i) ? '400' : '400'} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
       {yTicks.map(t => (
         <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
@@ -49,7 +68,11 @@ function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14
 }
 
 // ── GroupedBarChart — Flujo Financiero ───────────────────────────────────────
-function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+// Igual que en LineChart: `included` no recorta el arreglo — cada semana
+// mantiene su posición X fija (calculada sobre el total de `data`), y las
+// excluidas por el filtro simplemente no dibujan su barra en vez de hacer que
+// el resto se reacomode y "cambie de fecha".
+function GroupedBarChart({ data, included, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
@@ -58,6 +81,7 @@ function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, p
   const outerGap = slot * 0.14;
   const bW = (slot - outerGap * 2 - innerGap) / 2;
   const base = PT + cH;
+  const isIn = i => !included || included[i];
   const fmt = v => compact
     ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
     : new Intl.NumberFormat('de-DE').format(Math.round(v));
@@ -73,8 +97,9 @@ function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, p
         const xOut = slotX + outerGap + bW + innerGap;
         const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
         const outH = maxV ? (d.outflow / maxV) * cH : 0;
+        const included_ = isIn(i);
         return (
-          <g key={i}>
+          <g key={i} opacity={included_ ? 1 : 0.15}>
             {d.inflow  > 0 && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
             {d.outflow > 0 && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
             <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
@@ -89,6 +114,23 @@ function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, p
         </text>
       ))}
     </svg>
+  );
+}
+
+// ── MiniRangeInput — slider horizontal de una sola esfera, apilado en el
+// lateral de cada gráfica, con etiqueta arriba y valor actual debajo ─────────
+function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) {
+  return (
+    <div>
+      <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-1">{label}</p>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full cursor-pointer"
+        style={{ accentColor: 'var(--bonafide-orange)' }}
+      />
+      <p className="text-[10px] font-bold text-text-1 mt-0.5">{format ? format(value) : value}</p>
+    </div>
   );
 }
 
@@ -112,13 +154,23 @@ const SOLICITUDES_PEND     = 1;
 const SOLICITUDES_XAF      = 50_000_000;
 
 
+// "disponible" fluctúa a propósito (no crece de forma constante) para que el
+// filtro de Monto mínimo excluya meses salteados a lo largo del año, en vez
+// de coincidir siempre con los meses más antiguos — así se distingue
+// claramente del filtro de Periodo.
 const evolucionData = [
-  { label: 'Feb', aprobada: 120, utilizado:  10, disponible: 110 },
-  { label: 'Mar', aprobada: 140, utilizado:  18, disponible: 122 },
-  { label: 'Abr', aprobada: 155, utilizado:  25, disponible: 130 },
-  { label: 'May', aprobada: 165, utilizado:  33, disponible: 132 },
-  { label: 'Jun', aprobada: 175, utilizado:  42, disponible: 133 },
-  { label: 'Jul', aprobada: 180, utilizado:  48, disponible: 132 },
+  { label: 'Ene', aprobada: 60,  utilizado: 5,   disponible: 55  },
+  { label: 'Feb', aprobada: 60,  utilizado: 12,  disponible: 48  },
+  { label: 'Mar', aprobada: 100, utilizado: 20,  disponible: 80  },
+  { label: 'Abr', aprobada: 100, utilizado: 30,  disponible: 70  },
+  { label: 'May', aprobada: 100, utilizado: 42,  disponible: 58  },
+  { label: 'Jun', aprobada: 150, utilizado: 50,  disponible: 100 },
+  { label: 'Jul', aprobada: 150, utilizado: 65,  disponible: 85  },
+  { label: 'Ago', aprobada: 150, utilizado: 80,  disponible: 70  },
+  { label: 'Sep', aprobada: 200, utilizado: 90,  disponible: 110 },
+  { label: 'Oct', aprobada: 200, utilizado: 105, disponible: 95  },
+  { label: 'Nov', aprobada: 200, utilizado: 118, disponible: 82  },
+  { label: 'Dic', aprobada: 260, utilizado: 130, disponible: 130 },
 ];
 
 const evolucionSeries = [
@@ -128,12 +180,16 @@ const evolucionSeries = [
 ];
 
 const flujoData = [
-  { label: 'Sem 1', inflow: 42_000_000, outflow: 18_000_000 },
-  { label: 'Sem 2', inflow: 25_000_000, outflow: 33_000_000 },
-  { label: 'Sem 3', inflow: 38_000_000, outflow: 14_000_000 },
-  { label: 'Sem 4', inflow: 16_000_000, outflow: 29_000_000 },
-  { label: 'Sem 5', inflow: 48_000_000, outflow: 21_000_000 },
-  { label: 'Sem 6', inflow: 35_000_000, outflow: 12_000_000 },
+  { label: 'Sem 1',  inflow: 12_000_000, outflow: 8_000_000  },
+  { label: 'Sem 2',  inflow: 28_000_000, outflow: 15_000_000 },
+  { label: 'Sem 3',  inflow: 45_000_000, outflow: 22_000_000 },
+  { label: 'Sem 4',  inflow: 18_000_000, outflow: 35_000_000 },
+  { label: 'Sem 5',  inflow: 60_000_000, outflow: 28_000_000 },
+  { label: 'Sem 6',  inflow: 35_000_000, outflow: 42_000_000 },
+  { label: 'Sem 7',  inflow: 72_000_000, outflow: 30_000_000 },
+  { label: 'Sem 8',  inflow: 48_000_000, outflow: 55_000_000 },
+  { label: 'Sem 9',  inflow: 85_000_000, outflow: 38_000_000 },
+  { label: 'Sem 10', inflow: 52_000_000, outflow: 60_000_000 },
 ];
 
 const riesgoOps = [
@@ -171,8 +227,20 @@ export default function EpHome() {
   const { go } = useApp();
   const [tab, setTab]                 = useState('financiacion');
   const [activityView, setActivityView] = useState('evolucion');
+  const [evoPeriodo, setEvoPeriodo] = useState(evolucionData.length);
+  const [evoMonto, setEvoMonto]     = useState(0);
+  const [flujoPeriodo, setFlujoPeriodo] = useState(flujoData.length);
+  const [flujoMonto, setFlujoMonto]     = useState(0);
   const pctUsado      = Math.round((USADO  / LIMITE) * 100);
   const pctDisponible = 100 - pctUsado;
+
+  const evoWindowStart = evolucionData.length - evoPeriodo;
+  const evoIncluded = evolucionData.map((d, i) => i >= evoWindowStart && d.disponible >= evoMonto);
+  const evolucionHasData = evoIncluded.some(Boolean);
+
+  const flujoWindowStart = flujoData.length - flujoPeriodo;
+  const flujoIncluded = flujoData.map((d, i) => i >= flujoWindowStart && d.inflow >= flujoMonto);
+  const flujoHasData = flujoIncluded.some(Boolean);
 
   return (
     <AppShell active="epHome" role="empresa-pequena" back>
@@ -380,30 +448,57 @@ export default function EpHome() {
                 </div>
               </div>
               {activityView === 'evolucion' ? (
-                <>
-                  {/* Desktop */}
-                  <div className="hidden md:block h-[240px] w-full">
-                    <LineChart data={evolucionData} series={evolucionSeries} h={240} />
+                <div className="flex items-stretch gap-3 px-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Desktop */}
+                    <div className="hidden md:block h-[240px] w-full">
+                      {evolucionHasData
+                        ? <LineChart data={evolucionData} series={evolucionSeries} included={evoIncluded} h={240} />
+                        : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                    </div>
+                    {/* Móvil */}
+                    <div className="block md:hidden h-[300px] w-full">
+                      {evolucionHasData
+                        ? <LineChart data={evolucionData} series={evolucionSeries} included={evoIncluded} h={300}
+                            vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                        : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                    </div>
                   </div>
-                  {/* Móvil */}
-                  <div className="block md:hidden h-[300px] w-full">
-                    <LineChart data={evolucionData} series={evolucionSeries} h={300}
-                      vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  {/* Filtros — apilados en el lateral */}
+                  <div className="w-44 sm:w-56 shrink-0 flex flex-col justify-center gap-6">
+                    <MiniRangeInput label="Periodo" min={2} max={evolucionData.length} value={evoPeriodo}
+                      onChange={setEvoPeriodo} format={v => `${v} meses`} />
+                    <MiniRangeInput label="Monto mín." min={0} max={170} step={5} value={evoMonto}
+                      onChange={setEvoMonto} format={v => `${v}M`} />
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  {/* Desktop */}
-                  <div className="hidden md:block h-[240px] w-full">
-                    <GroupedBarChart data={flujoData} h={240} />
+                <div className="flex items-stretch gap-3 px-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Desktop */}
+                    <div className="hidden md:block h-[240px] w-full">
+                      {flujoHasData
+                        ? <GroupedBarChart data={flujoData} included={flujoIncluded} h={240} />
+                        : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                    </div>
+                    {/* Móvil */}
+                    <div className="block md:hidden h-[300px] w-full">
+                      {flujoHasData
+                        ? <GroupedBarChart data={flujoData} included={flujoIncluded} h={300}
+                            vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                        : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                    </div>
                   </div>
-                  {/* Móvil */}
-                  <div className="block md:hidden h-[300px] w-full">
-                    <GroupedBarChart data={flujoData} h={300}
-                      vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  {/* Filtros — apilados en el lateral */}
+                  <div className="w-44 sm:w-56 shrink-0 flex flex-col justify-center gap-6">
+                    <MiniRangeInput label="Periodo" min={2} max={flujoData.length} value={flujoPeriodo}
+                      onChange={setFlujoPeriodo} format={v => `${v} sem.`} />
+                    <MiniRangeInput label="Monto mín." min={0} max={90_000_000} step={5_000_000} value={flujoMonto}
+                      onChange={setFlujoMonto} format={v => `${Math.round(v / 1_000_000)}M`} />
                   </div>
-                </>
+                </div>
               )}
+
               <p className="block md:hidden text-[10px] text-center pb-2 pt-1 px-4" style={{ color: TEXT4 }}>
                 Valores expresados en millones XAF
               </p>
