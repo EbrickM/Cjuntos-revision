@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useApp } from '../../state/AppContext';
 import { useAuthStore } from '../../stores/authStore';
-import isotipo   from '../../assets/isotipo-blanco.webp';
-import logoTexto from '../../assets/logo-texto-blanco.webp';
+import BonafideLoader from '../../components/common/BonafideLoader';
 
 export default function Splash() {
   const { go } = useApp();
@@ -17,30 +16,5 @@ export default function Splash() {
     return () => clearTimeout(timer);
   }, [go, authorized, isAdmin]);
 
-  return (
-    <div
-      className="bona-gradient-bg min-h-screen flex flex-col items-center justify-center gap-6"
-    >
-      <img
-        src={isotipo}
-        alt=""
-        fetchPriority="high"
-        className="w-32 h-32 sm:w-44 sm:h-44 object-contain"
-        style={{ animation: 'spin 1.2s linear infinite' }}
-      />
-
-      <img
-        src={logoTexto}
-        alt="Bonafide"
-        className="w-56 sm:w-72 object-contain"
-      />
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
+  return <BonafideLoader />;
 }

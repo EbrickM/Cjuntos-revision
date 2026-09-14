@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { AppProvider, ROUTES } from './state/AppContext';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Splash from './pages/auth/Splash';
+import BonafideLoader from './components/common/BonafideLoader';
 
 // Auth
 const Login             = lazy(() => import('./pages/auth/Login'));
@@ -55,13 +55,24 @@ const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDet
 const R = ROUTES;
 
 export default function App() {
+  const location = useLocation();
+  // Al recargar en cualquier pantalla (no solo "/") se muestra brevemente la
+  // misma animación de carga de marca antes de renderizar la ruta pedida —
+  // "/" ya tiene su propio splash (más largo, con redirección incluida), así
+  // que este gate se salta ahí para no mostrar el loader dos veces seguidas.
+  const [booting, setBooting] = useState(location.pathname !== R.splash);
+
+  useEffect(() => {
+    if (!booting) return;
+    const timer = setTimeout(() => setBooting(false), 2500);
+    return () => clearTimeout(timer);
+  }, [booting]);
+
+  if (booting) return <BonafideLoader />;
+
   return (
     <AppProvider>
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="w-6 h-6 animate-spin text-orange" />
-        </div>
-      }>
+      <Suspense fallback={<BonafideLoader />}>
         <Routes>
           {/* Auth */}
           <Route path={R.splash}            element={<Splash />} />
