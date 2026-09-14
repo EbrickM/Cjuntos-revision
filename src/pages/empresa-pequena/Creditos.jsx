@@ -134,10 +134,10 @@ const initialPagos = [];
 
 const TABS = [
   { id: 'contrato',     label: 'Contrato',     Icon: ScrollText,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
-  { id: 'contratante',  label: 'Contratante',  Icon: Building2,   iconBg: '#EFF6FF', iconColor: '#3B82F6' },
+  { id: 'contratante',  label: 'Contratante',  Icon: Building2,   iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'distribucion', label: 'Distribución', Icon: BarChart2,   iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
-  { id: 'facturas',     label: 'Facturas',     Icon: Receipt,     iconBg: '#FDF6E8', iconColor: '#C68A1D' },
-  { id: 'pagos',        label: 'Pagos',        Icon: CreditCard,  iconBg: '#E3F4EA', iconColor: '#2E7D5B' },
+  { id: 'facturas',     label: 'Facturas',     Icon: Receipt,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'pagos',        label: 'Pagos',        Icon: CreditCard,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
 ];
 
 export default function EpCreditos() {
@@ -473,15 +473,15 @@ export default function EpCreditos() {
               ))}
             </div>
 
-            {/* Tabs */}
-            <div className="flex gap-1 mb-5 bg-page-bg p-1 rounded-[10px] overflow-x-auto">
+            {/* Tabs — en grid para que quepan sin scroll lateral en pantallas chicas */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-1.5 mb-5 bg-page-bg p-1 rounded-[10px]">
               {TABS.map(({ id, label, Icon, iconBg, iconColor }) => {
                 const isActive = activeTab === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap
                       ${isActive ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
                   >
                     <div className="w-5 h-5 rounded-[5px] flex items-center justify-center transition-all"
@@ -508,7 +508,7 @@ export default function EpCreditos() {
 
                   {/* Condiciones económicas y plazos */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={CalendarDays} iconBg="#EFF6FF" iconColor="#3B82F6"
+                    <SectionHeader icon={CalendarDays} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Condiciones Económicas y Plazos" subtitle="Montos, fechas de vigencia y plazos de ejecución." />
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
                       <InfoRow label="Monto global"       value={ct.montoGlobal ? formatXaf(ct.montoGlobal) : '—'} />
@@ -553,7 +553,7 @@ export default function EpCreditos() {
                 <div className="space-y-5">
                   {/* Identidad */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
+                    <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Datos de Identidad" subtitle="Información legal y fiscal de la empresa contratante."
                       action={sStyle && (
                         <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: sStyle.bg }}>
@@ -582,7 +582,7 @@ export default function EpCreditos() {
 
                   {/* Representante Legal */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={UserSquare} iconBg="#EFF6FF" iconColor="#3B82F6"
+                    <SectionHeader icon={UserSquare} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Representante Legal" subtitle="Persona autorizada para firmar y representar a la empresa." />
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                       <InfoRow label="Nombre y Apellido"        value={ct.repNombre} />
@@ -606,7 +606,8 @@ export default function EpCreditos() {
                     action={
                       <div className="flex items-center gap-1.5">
                         <div className="sm:hidden flex items-center gap-1.5">
-                          <Button variant="ghost" size="sm" onClick={() => setShowProviderModal(true)} title="Añadir proveedor">
+                          <Button variant="ghost" size="sm" onClick={() => setShowProviderModal(true)} title="Añadir proveedor"
+                            className="!text-orange-dark hover:!bg-orange-tint">
                             <Users className="w-4 h-4" />
                           </Button>
                           <Button variant="primary" size="sm" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
@@ -614,7 +615,8 @@ export default function EpCreditos() {
                           </Button>
                         </div>
                         <div className="hidden sm:flex gap-2">
-                          <Button variant="ghost" onClick={() => setShowProviderModal(true)}>Añadir proveedor</Button>
+                          <Button variant="ghost" onClick={() => setShowProviderModal(true)}
+                            className="!text-orange-dark hover:!bg-orange-tint">Añadir proveedor</Button>
                           <Button variant="primary" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
                             Nueva Distribución
                           </Button>
@@ -638,7 +640,7 @@ export default function EpCreditos() {
                           <div className="sm:hidden">
                             <div className="flex items-center gap-2.5 mb-2">
                               <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
-                                <ConceptIcon className="w-4 h-4 text-orange" />
+                                <ConceptIcon className="w-4 h-4 text-orange-dark" />
                               </div>
                               <span className="text-[13px] font-bold text-text-1 leading-tight">{item.concepto}</span>
                             </div>
@@ -655,7 +657,7 @@ export default function EpCreditos() {
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
@@ -667,7 +669,7 @@ export default function EpCreditos() {
                           {/* Desktop */}
                           <div className="hidden sm:flex items-center gap-4">
                             <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                              <ConceptIcon className="w-5 h-5 text-orange" />
+                              <ConceptIcon className="w-5 h-5 text-orange-dark" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
@@ -685,7 +687,7 @@ export default function EpCreditos() {
                                 </div>
                               </div>
                               <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
                                   <Pencil className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
@@ -715,7 +717,7 @@ export default function EpCreditos() {
 
                   {/* Facturas al Contratante */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
+                    <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Facturas al Contratante"
                       subtitle="Facturas emitidas por la PYME al contratante."
                       action={
@@ -737,8 +739,8 @@ export default function EpCreditos() {
                           {/* Mobile */}
                           <div className="sm:hidden">
                             <div className="flex items-center gap-2.5 mb-2">
-                              <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                                <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                              <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                                <Building2 className="w-4 h-4" style={{ color: '#EF7A2C' }} />
                               </div>
                               <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
                               {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
@@ -755,8 +757,8 @@ export default function EpCreditos() {
                           </div>
                           {/* Desktop */}
                           <div className="hidden sm:flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                              <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                              <Building2 className="w-5 h-5" style={{ color: '#EF7A2C' }} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
@@ -787,7 +789,7 @@ export default function EpCreditos() {
 
                   {/* Facturas de Proveedores */}
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={Truck} iconBg="#FDF6E8" iconColor="#C68A1D"
+                    <SectionHeader icon={Truck} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Facturas de Proveedores"
                       subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
                       action={
@@ -875,7 +877,7 @@ export default function EpCreditos() {
               return (
                 <div className="space-y-5">
                   <div className="bg-white rounded-[14px] border border-border p-5">
-                    <SectionHeader icon={CreditCard} iconBg="#E3F4EA" iconColor="#2E7D5B"
+                    <SectionHeader icon={CreditCard} iconBg="#FFF3E0" iconColor="#EF7A2C"
                       title="Pagos"
                       subtitle="Registra pagos a proveedores. Pueden vincularse a una factura recibida o ser pagos directos."
                       action={
@@ -903,8 +905,8 @@ export default function EpCreditos() {
                             {/* Mobile */}
                             <div className="sm:hidden">
                               <div className="flex items-center gap-2.5 mb-2">
-                                <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                                  <CreditCard className="w-4 h-4" style={{ color: '#2E7D5B' }} />
+                                <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                                  <CreditCard className="w-4 h-4" style={{ color: '#EF7A2C' }} />
                                 </div>
                                 <span className="text-[13px] font-bold text-text-1 truncate">{p.id}</span>
                                 <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
@@ -933,8 +935,8 @@ export default function EpCreditos() {
                             </div>
                             {/* Desktop */}
                             <div className="hidden sm:flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                                <CreditCard className="w-5 h-5" style={{ color: '#2E7D5B' }} />
+                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                                <CreditCard className="w-5 h-5" style={{ color: '#EF7A2C' }} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-0.5">

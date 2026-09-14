@@ -75,7 +75,7 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
         <div className="flex-1" />
 
         {/* Invitar PYME — solo contratante */}
-        {(role === 'contratante' || role === 'empresa-pequena') && (
+        {role === 'contratante' && (
           <Button variant="primary" size="sm" className="hidden sm:inline-flex shrink-0" onClick={onInvitarPyme}>
             <UserPlus className="w-3.5 h-3.5" />
             Invitar PYME

@@ -468,7 +468,7 @@ export default function EpHome() {
                   <div className="w-44 sm:w-56 shrink-0 flex flex-col justify-center gap-6">
                     <MiniRangeInput label="Periodo" min={2} max={evolucionData.length} value={evoPeriodo}
                       onChange={setEvoPeriodo} format={v => `${v} meses`} />
-                    <MiniRangeInput label="Monto mín." min={0} max={170} step={5} value={evoMonto}
+                    <MiniRangeInput label="Monto mín." min={0} max={130} step={5} value={evoMonto}
                       onChange={setEvoMonto} format={v => `${v}M`} />
                   </div>
                 </div>

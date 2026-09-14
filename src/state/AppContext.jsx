@@ -27,7 +27,7 @@ export const ROUTES = {
   epHome:             '/pyme',
   epProveedores:      '/pyme/proveedores',
   epFacturacion:      '/pyme/facturas',
-  epCreditos:         '/pyme/creditos',
+  epCreditos:         '/pyme/contratos',
   epBilletera:        '/pyme/billetera',
   epPerfil:           '/pyme/perfil',
   epDocs:             '/pyme/documentos',
