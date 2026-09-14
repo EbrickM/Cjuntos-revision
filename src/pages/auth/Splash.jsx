@@ -19,8 +19,7 @@ export default function Splash() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center gap-6"
-      style={{ background: 'linear-gradient(135deg, #e0201c 0%, #ef7a2c 100%)' }}
+      className="bona-gradient-bg min-h-screen flex flex-col items-center justify-center gap-6"
     >
       <img
         src={isotipo}

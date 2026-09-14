@@ -1,18 +1,19 @@
 import { Fragment, useState, useRef } from 'react';
 import { useApp } from '../../state/AppContext';
-import logo from '../../assets/logo-color.webp';
+import Topbar from '../../components/layout/Topbar';
+import BackButton from '../../components/common/BackButton';
 import {
   ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Search, X, Check,
   Building2, User, FileText, DollarSign,
   Briefcase, CheckSquare, Plus, ArrowRight,
-  Bell, AlertCircle, Send, LogOut, CheckCircle, CheckCircle2, Download,
+  Bell, AlertCircle, Send, CheckCircle, CheckCircle2, Download,
 } from 'lucide-react';
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
 const RED  = '#e0201c';
 const ORA  = '#ef7a2c';
 const GRAD = `linear-gradient(135deg, ${RED} 0%, ${ORA} 100%)`;
-const SHADOW = '0 4px 12px -2px rgba(198,40,40,0.2), 0 8px 16px -4px rgba(245,124,0,0.15)';
+const SHADOW = '0 4px 12px -2px rgba(224,32,28,0.2), 0 8px 16px -4px rgba(239,122,44,0.15)';
 
 // ── Stepper ───────────────────────────────────────────────────────────────────
 const STEPS_CONT = ['Identificación', 'Operación', 'Beneficiario(s)',  'Confirmación'];
@@ -185,6 +186,47 @@ function BtnSecondary({ onClick, children, disabled, className = '' }) {
   );
 }
 
+// ── SuccessCheck (referencia al patrón de éxito de kappa) ─────────────────────
+const CONFETTI = [
+  { angle: -70,  distance: 68, size: 8, color: '#2E7D5B', delay: 0    },
+  { angle: -25,  distance: 82, size: 6, color: ORA,        delay: 0.05 },
+  { angle: 15,   distance: 78, size: 7, color: '#F4C452', delay: 0.1  },
+  { angle: 55,   distance: 72, size: 6, color: '#4CAF7D', delay: 0.08 },
+  { angle: -115, distance: 62, size: 6, color: ORA,        delay: 0.12 },
+  { angle: 100,  distance: 68, size: 8, color: '#2E7D5B', delay: 0.03 },
+  { angle: 150,  distance: 58, size: 6, color: '#4CAF7D', delay: 0.15 },
+  { angle: -155, distance: 63, size: 7, color: '#F4C452', delay: 0.07 },
+];
+
+function SuccessCheck({ size = 88 }) {
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <span className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2E7D5B] to-[#4CAF7D] animate-[pulseRing_1.4s_ease-out_0.15s]" />
+      <span className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2E7D5B] to-[#4CAF7D] animate-[pulseRing_1.4s_ease-out_0.5s]" />
+      {CONFETTI.map((c, i) => {
+        const rad = (c.angle * Math.PI) / 180;
+        const tx  = Math.cos(rad) * c.distance;
+        const ty  = Math.sin(rad) * c.distance;
+        return (
+          <span key={i}
+            className="absolute top-1/2 left-1/2 rounded-full animate-[confettiBurst_0.7s_ease-out_forwards]"
+            style={{
+              width: c.size, height: c.size, backgroundColor: c.color,
+              marginLeft: -c.size / 2, marginTop: -c.size / 2,
+              '--tx': `${tx}px`, '--ty': `${ty}px`,
+              animationDelay: `${0.25 + c.delay}s`,
+            }} />
+        );
+      })}
+      <div
+        className="relative rounded-full bg-gradient-to-br from-[#2E7D5B] to-[#4CAF7D] flex items-center justify-center shadow-[0_8px_32px_rgba(46,125,91,0.32)] animate-[checkPop_0.4s_ease]"
+        style={{ width: size, height: size }}>
+        <CheckCircle2 className="text-white" style={{ width: size * 0.5, height: size * 0.5 }} />
+      </div>
+    </div>
+  );
+}
+
 function NavRow({ onBack, onNext, nextLabel = 'Continuar', backLabel = 'Atrás', nextDisabled = false, hideNext = false }) {
   return (
     <div className="pt-6 border-t border-border flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 mt-10">
@@ -269,13 +311,18 @@ function ContractUpload({ label = 'Subir contrato', hint = 'PDF, DOC · máx 10 
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
 export default function SolicitarContrato() {
-  const { go } = useApp();
+  const { go, opts, role } = useApp();
+  const exitTarget = opts?.returnTo
+    ?? (actor === 'contratante' ? 'empDash'
+      : actor === 'pyme'        ? 'epHome'
+      : role === 'contratante'  ? 'empDash'
+      : role === 'empresa-pequena' ? 'epHome'
+      : 'login');
 
   // ── Navigation state ────────────────────────────────────────────────────────
   const [phase, setPhase] = useState('who_initiates');
   const [actor, setActor] = useState(null);       // 'contratante' | 'pyme'
   const [returnPhase, setReturnPhase] = useState('operation');
-  const [showExitModal, setShowExitModal] = useState(false);
 
   // ── Identification state ────────────────────────────────────────────────────
   const [isClient, setIsClient] = useState(null);
@@ -310,6 +357,32 @@ export default function SolicitarContrato() {
   const toggleInvConfirm = (id) => setInvConfirmOpen(prev =>
     prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
   );
+
+  // Pantalla blanca de éxito (patrón kappa: overlay al finalizar la operación)
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const overlayTimer = useRef(null);
+  const goSent = () => {
+    if (overlayTimer.current) clearTimeout(overlayTimer.current);
+    setShowSuccessOverlay(true);
+    setPhase('sent');
+    overlayTimer.current = setTimeout(() => setShowSuccessOverlay(false), 1500);
+  };
+
+  // Reinicia el flujo completo al inicio (CTA "Nueva solicitud")
+  const resetFlow = () => {
+    setPhase('who_initiates');
+    setActor(null);
+    setReturnPhase('operation');
+    setIsClient(null);
+    setNif(''); setFoundCompany(null); setNifSearched(false);
+    setRegData({ razonSocial: '', nombreComercial: '', nif: '', fechaConst: '', formaJuridica: '', numEmpleados: '',
+      email: '', telefono: '', web: '', pais: 'Guinea Ecuatorial', provincia: '', municipio: '', barrio: '', direccion: '', cp: 'GQ-240' });
+    setOperation({ tipo: 'factoring', monto: '', plazo: '30', observaciones: '' });
+    setPymeData({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '', contrato: '' });
+    setContData({ razonSocial: '', nombreComercial: '', nif: '', email: '', tel: '' });
+    setInviterCompany(null); setInvLandingPhase(null); setSentFromInv(false);
+    setConfirmOpen(['empresa', 'operacion', 'contraparte']);
+  };
 
   // ── Confirmation accordion state ─────────────────────────────────────────────
   const [confirmOpen, setConfirmOpen] = useState(['empresa', 'operacion', 'contraparte']);
@@ -359,7 +432,6 @@ export default function SolicitarContrato() {
     operation:       { Icon: Briefcase,   title: 'Información de la operación',         sub: 'Monto y plazo son una propuesta — las condiciones definitivas las establece Bonafide' },
     select_parties:  { Icon: User,        title: isCont ? (operation.tipo === 'factoring_inverso' ? 'Empresas beneficiarias' : 'Empresa beneficiaria') : 'Empresa ancla', sub: isCont ? 'Datos de la empresa con la que deseas operar' : 'Identifica la empresa que aportará el financiamiento' },
     confirmation:    { Icon: CheckSquare, title: 'Confirmación de solicitud',           sub: 'Revisa el resumen antes de enviar' },
-    sent:            { Icon: Send,        title: 'Solicitud enviada',                   sub: 'En espera de respuesta de la otra parte' },
     inv_p_landing:   { Icon: Bell,        title: 'Solicitud recibida',                  sub: 'Una empresa contratante desea realizar una operación contigo' },
     inv_c_landing:   { Icon: Bell,        title: 'Solicitud recibida',                  sub: 'Una empresa solicita operar contigo como empresa ancla' },
     inv_final:       { Icon: CheckSquare, title: 'Confirmación de participación',       sub: 'Revisa la operación y decide si deseas participar' },
@@ -970,77 +1042,105 @@ export default function SolicitarContrato() {
               </p>
             </div>
           </div>
-          <NavRow onBack={() => setPhase('select_parties')} onNext={() => setPhase('sent')} nextLabel="Enviar solicitud" />
+          <NavRow onBack={() => setPhase('select_parties')} onNext={goSent} nextLabel="Enviar solicitud" />
         </>
       );
     })(),
 
     /* ── SENT ──────────────────────────────────────────────────────────────── */
-    sent: (
-      <div className="space-y-8">
-        <div className="text-center py-6">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: GRAD }}>
-            <Send className="w-9 h-9 text-white" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-text-1 mb-2">
-            {sentFromInv ? 'Confirmación enviada a Bonafide' : 'Solicitud enviada con éxito'}
-          </h2>
-          <p className="text-text-3 max-w-md mx-auto">
-            {sentFromInv
-              ? 'Tu confirmación de participación ha sido enviada a Bonafide. No es necesario realizar ninguna acción adicional hasta recibir respuesta.'
-              : isCont
-                ? 'Hemos enviado una invitación a la empresa beneficiaria para que confirme su participación en la operación.'
-                : 'Hemos enviado una invitación a la empresa ancla para que confirme la operación.'}
+    sent: (() => {
+      const montoFmt = operation.monto
+        ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
+        : isCont ? '25.000.000 XAF' : '8.500.000 XAF';
+      const tipoLabel  = operation.tipo === 'factoring_inverso' ? 'Factoring Inverso' : 'Factoring';
+      const estadoText = sentFromInv ? 'En revisión por Bonafide' : 'En proceso de confirmación';
+
+      const resumeRows = [
+        { label: 'Tipo de operación', value: tipoLabel },
+        { label: 'Monto propuesto',   value: montoFmt },
+        ...(operation.tipo !== 'factoring_inverso' ? [{ label: 'Plazo propuesto', value: `${operation.plazo || '30'} días` }] : []),
+        { label: 'Referencia',        value: `SOL-2026-${refNumber}` },
+      ];
+
+      return (
+        <div className="space-y-4 max-w-xl mx-auto pb-2">
+
+          {/* Etiqueta superior (patrón "operación completada" de kappa) */}
+          <p className="text-center text-[11px] font-semibold uppercase tracking-widest pt-1" style={{ color: ORA }}>
+            {sentFromInv ? 'Confirmación de participación' : 'Solicitud de operación'}
           </p>
-          <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gray-100 rounded-full">
-            <span className="text-xs text-text-4">Referencia</span>
-            <span className="font-mono font-bold text-text-1">SOL-2026-{refNumber}</span>
-          </div>
-        </div>
 
-        <div className="flex gap-4 p-4 rounded-xl border bg-yellow-bg border-yellow-text/30">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: GRAD }}>
-            <Bell className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="font-semibold text-text-1 text-sm">
-                {sentFromInv ? 'Pendiente de respuesta de Bonafide' : 'Pendiente de respuesta'}
-              </span>
-              <span className="text-xs bg-orange-tint text-orange px-2 py-0.5 rounded-full font-semibold">Estado actual</span>
-            </div>
-            <p className="text-sm text-text-3 leading-relaxed">
+          {/* Encabezado de éxito (sin tarjeta/borde) */}
+          <div className="flex flex-col items-center text-center pt-2">
+            <div className="mb-5"><SuccessCheck /></div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-text-1 mb-2 leading-tight">
+              {sentFromInv ? 'Confirmación enviada a Bonafide' : 'Solicitud enviada con éxito'}
+            </h2>
+            <p className="text-sm text-text-3 leading-relaxed max-w-sm">
               {sentFromInv
-                ? 'Bonafide revisará tu confirmación y te notificará cuando haya novedades sobre la operación.'
-                : `En espera de que la ${isCont ? 'empresa beneficiaria' : 'empresa ancla'} confirme su participación.`}
+                ? 'Tu confirmación de participación ha sido enviada a Bonafide. No es necesario realizar ninguna acción adicional hasta recibir respuesta.'
+                : isCont
+                  ? 'Hemos enviado una invitación a la empresa beneficiaria para que confirme su participación en la operación.'
+                  : 'Hemos enviado una invitación a la empresa ancla para que confirme la operación.'}
             </p>
+            <div className="mt-7 rounded-xl bg-orange-tint border border-orange-border px-6 py-3.5 w-full sm:w-auto sm:min-w-[260px]">
+              <div className="text-[10px] text-text-4 uppercase tracking-widest mb-1.5 font-semibold">Referencia</div>
+              <div className="text-xl sm:text-2xl font-bold font-mono leading-none" style={{ color: ORA }}>SOL-2026-{refNumber}</div>
+            </div>
+          </div>
+
+          {/* Resumen de la operación */}
+          <div className="bg-white rounded-2xl border border-border overflow-hidden">
+            {resumeRows.map((r, i, arr) => (
+              <div key={r.label} className={`flex items-center justify-between gap-3 px-5 py-3 ${i < arr.length - 1 ? 'border-b border-border' : ''}`}>
+                <span className="text-[12px] text-text-4">{r.label}</span>
+                <span className="text-[13px] font-semibold text-text-1 truncate">{r.value}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between gap-3 px-5 py-3.5 bg-orange-tint border-t border-orange-border">
+              <span className="text-[12px] font-bold" style={{ color: ORA }}>Estado</span>
+              <span className="text-[13px] font-bold" style={{ color: ORA }}>{estadoText}</span>
+            </div>
+          </div>
+
+          {/* Notificación pendiente (InfoBox verde, como kappa) */}
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-green-border bg-green-bg">
+            <Bell className="w-4 h-4 text-green-text mt-0.5 shrink-0" />
+            <div>
+              <div className="text-[13px] font-semibold text-green-text mb-0.5">
+                {sentFromInv ? 'Pendiente de respuesta de Bonafide' : 'Pendiente de respuesta'}
+              </div>
+              <p className="text-[12px] text-text-3 leading-relaxed">
+                {sentFromInv
+                  ? 'Bonafide revisará tu confirmación y te notificará cuando haya novedades sobre la operación.'
+                  : `En espera de que la ${isCont ? 'empresa beneficiaria' : 'empresa ancla'} confirme su participación.`}
+              </p>
+            </div>
+          </div>
+
+          {/* Demo: show invitation screens */}
+          <div className="rounded-xl border border-blue-text/20 bg-blue-bg p-5">
+            <div className="font-semibold text-blue-text mb-2 text-sm">Vista previa de pantallas (demo)</div>
+            <p className="text-xs text-text-3 mb-3">Así verá la otra parte la invitación recibida por email:</p>
+            <div className="flex flex-wrap gap-3">
+              <button onClick={() => setPhase(isCont ? 'inv_p_landing' : 'inv_c_landing')}
+                className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-white border border-blue-text/20 rounded-lg cursor-pointer hover:border-blue-text transition-colors"
+                style={{ color: '#3B82F6' }}>
+                <Bell className="w-4 h-4" />
+                Ver pantalla de invitación {isCont ? 'empresa beneficiaria' : 'empresa ancla'}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch justify-center pt-1">
+            <BtnSecondary onClick={resetFlow} className="w-full sm:w-auto justify-center"><Plus className="w-4 h-4" /> Nueva solicitud</BtnSecondary>
+            <BtnPrimary onClick={() => go('login')} className="w-full sm:w-auto justify-center">Volver al inicio</BtnPrimary>
           </div>
         </div>
-
-        {/* Demo: show invitation screens */}
-        <div className="rounded-xl border border-blue-text/20 bg-blue-bg p-5">
-          <div className="font-semibold text-blue-text mb-2 text-sm">Vista previa de pantallas (demo)</div>
-          <p className="text-xs text-text-3 mb-3">Así verá la otra parte la invitación recibida por email:</p>
-          <div className="flex flex-wrap gap-3">
-            <button onClick={() => setPhase(isCont ? 'inv_p_landing' : 'inv_c_landing')}
-              className="flex items-center gap-2 text-sm font-semibold px-4 py-2 bg-white border border-blue-text/20 rounded-lg cursor-pointer hover:border-blue-text transition-colors"
-              style={{ color: '#3B82F6' }}>
-              <Bell className="w-4 h-4" />
-              Ver pantalla de invitación {isCont ? 'empresa beneficiaria' : 'empresa ancla'}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <button onClick={() => go('login')}
-            className="h-11 px-8 flex items-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
-            style={{ background: ORA, boxShadow: '0 4px 14px rgba(239,122,44,0.28)' }}>
-            Volver al inicio
-          </button>
-        </div>
-      </div>
-    ),
+      );
+    })(),
 
     /* ── INVITATION LANDING (PYME receives from Contratante) ───────────────── */
     inv_p_landing: (() => {
@@ -1312,7 +1412,7 @@ export default function SolicitarContrato() {
             <BtnSecondary onClick={() => setPhase(isClient ? 'nif_search' : 'register')}>
               <ChevronLeft className="w-4 h-4" /> Atrás
             </BtnSecondary>
-            <BtnPrimary onClick={() => { setSentFromInv(true); setPhase('sent'); }}>
+            <BtnPrimary onClick={() => { setSentFromInv(true); goSent(); }}>
               <Send className="w-4 h-4" /> Enviar confirmación a Bonafide
             </BtnPrimary>
           </div>
@@ -1321,75 +1421,56 @@ export default function SolicitarContrato() {
     })(),
   };
 
-  // ── TOPBAR ─────────────────────────────────────────────────────────────────
   const showStepper = step >= 0 && !['who_initiates', 'sent', 'inv_p_landing', 'inv_c_landing', 'inv_final', 'is_client'].includes(phase);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-
-      {/* Exit confirmation modal */}
-      {showExitModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: GRAD }}>
-              <LogOut className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-lg font-bold text-text-1 text-center mb-2">¿Abandonar el proceso?</h3>
-            <p className="text-sm text-text-3 text-center mb-6">Perderás el progreso de tu solicitud. Esta acción no se puede deshacer.</p>
-            <div className="flex gap-3">
-              <button onClick={() => go('login')}
-                className="flex-1 h-11 flex items-center justify-center gap-2 text-white text-sm font-semibold rounded-xl cursor-pointer"
-                style={{ background: ORA }}>
-                <LogOut className="w-4 h-4" /> Salir
-              </button>
-              <button onClick={() => setShowExitModal(false)}
-                className="flex-1 h-11 flex items-center justify-center text-sm font-semibold rounded-xl border border-border text-text-2 hover:bg-gray-50 cursor-pointer">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sticky topbar */}
-      <nav className="bg-white sticky top-0 z-50 flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8" style={{ boxShadow: SHADOW }}>
-        <img src={logo} alt="Bonafide" className="h-10 sm:h-14 w-auto object-contain" />
-        <button onClick={() => setShowExitModal(true)}
-          className="flex items-center gap-2 text-sm font-semibold text-white rounded-xl px-3 sm:px-4 py-2 cursor-pointer transition-opacity hover:opacity-90"
-          style={{ background: ORA, boxShadow: '0 4px 12px rgba(239,122,44,0.28)' }}
-        >
-          <span className="hidden sm:inline">Salir</span>
-          <LogOut className="w-4 h-4" />
-        </button>
-      </nav>
+      <Topbar role={role} />
 
       {/* Content */}
       <main className="py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
 
+          <BackButton onClick={() => go(exitTarget)} />
+
           {showStepper && <Stepper steps={steps} step={step} />}
 
-          <div className={`bg-white rounded-2xl shadow-sm border border-border px-5 py-8 sm:p-8 lg:p-12 ${showStepper ? 'mt-6' : 'mt-2'}`}>
+          <div className={`bg-white rounded-2xl shadow-sm border border-border ${phase === 'sent' ? 'max-w-2xl mx-auto px-4 py-6 sm:px-8 sm:py-8' : 'px-5 py-8 sm:p-8 lg:p-12'} ${showStepper ? 'mt-6' : 'mt-2'}`}>
 
             {/* Step header */}
-            <div className="mb-8">
-              <div className="flex items-start gap-3 sm:gap-4 mb-3">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: GRAD }}>
-                  <hdr.Icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-xl sm:text-2xl font-bold text-text-1 leading-tight">{hdr.title}</h2>
-                  <p className="text-sm text-text-3 mt-0.5">{hdr.sub}</p>
-                  <div className="h-1 w-16 rounded-full mt-3" style={{ background: GRAD }} />
+            {phase !== 'sent' && (
+              <div className="mb-8">
+                <div className="flex items-start gap-3 sm:gap-4 mb-3">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{ background: GRAD }}>
+                    <hdr.Icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl sm:text-2xl font-bold text-text-1 leading-tight">{hdr.title}</h2>
+                    <p className="text-sm text-text-3 mt-0.5">{hdr.sub}</p>
+                    <div className="h-1 w-16 rounded-full mt-3" style={{ background: GRAD }} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {content[phase] ?? null}
           </div>
 
         </div>
       </main>
+
+      {/* Pantalla blanca de éxito (patrón kappa) */}
+      {phase === 'sent' && showSuccessOverlay && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white animate-[fadeIn_0.2s_ease]">
+          <div className="flex flex-col items-center text-center px-6">
+            <SuccessCheck size={104} />
+            <h2 className="text-2xl font-bold text-text-1 mt-6 mb-1">
+              {sentFromInv ? 'Confirmación enviada' : 'Solicitud enviada con éxito'}
+            </h2>
+            <p className="text-sm text-text-3">{sentFromInv ? 'Bonafide ha recibido tu confirmación.' : 'Bonafide ha recibido tu solicitud.'}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

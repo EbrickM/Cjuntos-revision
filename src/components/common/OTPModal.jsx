@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Mail, ArrowRight, Loader2 } from 'lucide-react';
+import { X, Mail, ShieldCheck, KeyRound, ArrowRight, ChevronRight, Loader2 } from 'lucide-react';
 import Button from '../ui/Button';
-import { authService, AuthApiError } from '../../services';
 import { useAuthStore } from '../../stores/authStore';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -13,31 +12,48 @@ const formatTimer = (totalSeconds) => {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 };
 
+// Prototipo sin backend: no hay servicio de OTP real, así que derivamos un
+// nombre de cortesía a partir del correo para mostrarlo en el Topbar.
+const nameFromEmail = (email) => {
+  const local = email.split('@')[0] ?? '';
+  const name = local
+    .replace(/[._-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+  return name || 'Usuario';
+};
+
+const METHOD_META = {
+  email:  { Icon: Mail,        title: 'Correo electrónico',      hint: null },
+  totp:   { Icon: ShieldCheck, title: 'Aplicación autenticadora', hint: 'Google Authenticator u otra app' },
+  backup: { Icon: KeyRound,    title: 'Código de respaldo',       hint: 'Usa uno de tus códigos guardados' },
+};
+
 // Mounted only while open (see Login.jsx: `{showOTP && <OTPModal ... />}`) so
 // every open starts from fresh state via the useState initializers below —
 // no separate reset-on-open effect needed.
+//
+// Prototipo sin backend: no hay servicio de OTP/TOTP/backup-codes real detrás
+// de esto. El flujo de 3 pasos (correo → método → código) replica el de
+// bonafide-kappa solo visualmente — cualquier método lleva al mismo paso de
+// código simulado, y cualquier código de 6 dígitos se acepta como válido.
 export default function OTPModal({ onClose, onVerify }) {
   const setSession = useAuthStore((s) => s.setSession);
-  const [step,      setStep]      = useState('contact');
+  const [step,      setStep]      = useState('contact'); // 'contact' | 'method' | 'code'
   const [contact,   setContact]   = useState('');
   const [otp,       setOtp]       = useState(['', '', '', '', '', '']);
   const [timer,     setTimer]     = useState(RESEND_SECONDS);
   const [canResend, setCanResend] = useState(false);
   const [emailError, setEmailError] = useState('');
-  const [codeError,  setCodeError]  = useState('');
-  const [codeInvalid, setCodeInvalid] = useState(false);
   const [sending,   setSending]   = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [shake, setShake] = useState(false);
+  const [activeMethod, setActiveMethod] = useState('email'); // 'email' | 'totp' | 'backup'
   const inputRefs = useRef([]);
 
-  const clearCodeError = () => {
-    setCodeError('');
-    setCodeInvalid(false);
-  };
-
   useEffect(() => {
-    if (step !== 'code') return;
+    if (step !== 'code' || activeMethod !== 'email') return;
 
     const interval = setInterval(() => {
       setTimer((prev) => {
@@ -47,7 +63,7 @@ export default function OTPModal({ onClose, onVerify }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [step]);
+  }, [step, activeMethod]);
 
   const maskEmail = (value) => {
     if (!value) return '···';
@@ -56,12 +72,9 @@ export default function OTPModal({ onClose, onVerify }) {
     return `${name.slice(0, 2)}···@${domain}`;
   };
 
-  const triggerShake = () => {
-    setShake(true);
-    window.setTimeout(() => setShake(false), 450);
-  };
-
-  const handleSend = async () => {
+  // Paso 1 → 2: solo valida el formato del correo y pasa a la selección de
+  // método (no se envía nada todavía, igual que en kappa).
+  const handleSend = () => {
     const email = contact.trim();
     if (!email || sending) return;
 
@@ -72,31 +85,40 @@ export default function OTPModal({ onClose, onVerify }) {
 
     setEmailError('');
     setSending(true);
-    try {
-      await authService.requestOtp(email);
-      setOtp(['', '', '', '', '', '']);
-      clearCodeError();
+    setTimeout(() => {
+      setSending(false);
+      setStep('method');
+    }, 400);
+  };
+
+  const focusFirstDigit = () => setTimeout(() => inputRefs.current[0]?.focus(), 100);
+
+  const goToCode = (method) => {
+    setOtp(['', '', '', '', '', '']);
+    setActiveMethod(method);
+    setStep('code');
+    focusFirstDigit();
+  };
+
+  // Selección de método: "Correo" simula el envío (con su propio timer de
+  // reenvío); "Autenticador"/"Código de respaldo" pasan directo al paso de
+  // código, igual que en kappa (no envían nada).
+  const selectEmailMethod = () => {
+    if (sending) return;
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
       setTimer(RESEND_SECONDS);
       setCanResend(false);
-      setStep('code');
-      setTimeout(() => inputRefs.current[0]?.focus(), 100);
-    } catch (err) {
-      let message = 'No se pudo enviar el código. Inténtalo de nuevo.';
-      if (err instanceof AuthApiError) {
-        if (err.reason === 'network') message = 'No se pudo conectar con el servidor.';
-        else if (err.reason === 'server') message = 'El servidor tuvo un problema. Inténtalo más tarde.';
-        else if (err.status === 404) message = 'No encontramos una cuenta con ese correo.';
-        else message = err.message || message;
-      }
-      setEmailError(message);
-    } finally {
-      setSending(false);
-    }
+      goToCode('email');
+    }, 400);
   };
+
+  const selectTotpMethod = () => goToCode('totp');
+  const selectBackupMethod = () => goToCode('backup');
 
   const handleChange = (index, value) => {
     if (value.length > 1 || !/^\d*$/.test(value)) return;
-    clearCodeError();
     const next = [...otp];
     next[index] = value;
     setOtp(next);
@@ -112,54 +134,49 @@ export default function OTPModal({ onClose, onVerify }) {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').slice(0, 6);
     if (!/^\d+$/.test(pasted)) return;
-    clearCodeError();
     const next = pasted.split('');
     setOtp([...next, ...Array(6 - next.length).fill('')]);
     inputRefs.current[Math.min(pasted.length, 5)]?.focus();
   };
 
-  const handleVerify = async () => {
+  // Prototipo sin backend: cualquier código de 6 dígitos se acepta como
+  // válido, sin importar el método elegido.
+  const handleVerify = () => {
     const code = otp.join('');
     if (code.length !== 6 || verifying) return;
 
-    clearCodeError();
     setVerifying(true);
-    try {
-      const result = await authService.verifyOtp(contact.trim(), code);
-      setSession(result);
-      onVerify(contact.trim());
-    } catch (err) {
-      if (err instanceof AuthApiError && err.reason === 'network') {
-        setCodeError('No se pudo conectar con el servidor.');
-      } else if (err instanceof AuthApiError && err.reason === 'server') {
-        setCodeError('El servidor tuvo un problema. Inténtalo más tarde.');
-      } else {
-        setCodeError('El código es incorrecto o ha expirado.');
-        setCodeInvalid(true);
-        setOtp(['', '', '', '', '', '']);
-        triggerShake();
-        inputRefs.current[0]?.focus();
-      }
-    } finally {
+    setTimeout(() => {
+      const email = contact.trim();
+      setSession({
+        accessToken: 'demo-access-token',
+        refreshToken: 'demo-refresh-token',
+        expiresIn: 3600,
+        user: { fullName: nameFromEmail(email), email },
+      });
       setVerifying(false);
-    }
+      onVerify(email);
+    }, 500);
   };
 
   const handleResend = () => {
     if (!canResend || sending) return;
-    void handleSend();
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setTimer(RESEND_SECONDS);
+      setCanResend(false);
+    }, 400);
   };
+
+  const { Icon: MethodIcon } = METHOD_META[activeMethod];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
-        className="w-full max-w-md rounded-2xl p-[2px]"
-        style={{
-          background: 'linear-gradient(135deg, var(--bonafide-red) 0%, var(--bonafide-orange) 100%)',
-          boxShadow: '0 8px 32px rgba(224,32,28,0.18), 0 2px 8px rgba(239,122,44,0.12)',
-        }}
+        className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]"
       >
-      <div className="bg-white rounded-2xl p-8 relative">
+      <div className="bg-white rounded-2xl p-5 sm:p-8 relative">
 
         <button
           onClick={onClose}
@@ -168,7 +185,7 @@ export default function OTPModal({ onClose, onVerify }) {
           <X className="w-5 h-5 text-text-3" />
         </button>
 
-        {/* ── PASO 1: introducir email ── */}
+        {/* ── PASO 1: introducir correo ── */}
         {step === 'contact' && (
           <>
             <div className="flex justify-center mb-5">
@@ -194,7 +211,7 @@ export default function OTPModal({ onClose, onVerify }) {
                   type="email"
                   value={contact}
                   onChange={(e) => { setContact(e.target.value); if (emailError) setEmailError(''); }}
-                  onKeyDown={(e) => e.key === 'Enter' && void handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="correo@ejemplo.com"
                   className={`h-12 w-full border-2 rounded-lg pl-11 pr-4 text-[14px] text-text-1 bg-[#FAFAFA] outline-none transition-all focus:bg-white ${
                     emailError ? 'border-red text-red-text' : 'border-input-border focus:border-orange focus:shadow-[0_0_0_3px_rgba(224,32,28,0.12)]'
@@ -207,7 +224,7 @@ export default function OTPModal({ onClose, onVerify }) {
             </div>
 
             <Button
-              onClick={() => void handleSend()}
+              onClick={handleSend}
               full
               disabled={!contact.trim() || sending}
               className="h-[48px] gap-2"
@@ -215,36 +232,104 @@ export default function OTPModal({ onClose, onVerify }) {
               {sending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>Enviar código <ArrowRight className="w-4 h-4" /></>
+                <>Continuar <ArrowRight className="w-4 h-4" /></>
               )}
             </Button>
           </>
         )}
 
-        {/* ── PASO 2: introducir código OTP ── */}
+        {/* ── PASO 2: elegir método de verificación ── */}
+        {step === 'method' && (
+          <>
+            <div className="flex justify-center mb-5">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange to-orange-dark flex items-center justify-center">
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+            </div>
+
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-text-1 mb-1">Verificación de identidad</h2>
+              <p className="text-sm text-text-3">Elige cómo quieres verificar tu identidad</p>
+            </div>
+
+            <div className="flex flex-col gap-3 mb-4">
+              <button
+                onClick={selectEmailMethod}
+                disabled={sending}
+                className="w-full flex items-center gap-3 border-2 border-gray-200 rounded-lg px-4 py-3 text-left hover:border-orange transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Mail className="w-5 h-5 text-text-4 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-text-1">Correo electrónico</p>
+                  <p className="text-xs text-text-4 truncate">{maskEmail(contact)}</p>
+                </div>
+                {sending ? (
+                  <Loader2 className="w-4 h-4 text-text-4 shrink-0 animate-spin" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-text-4 shrink-0" />
+                )}
+              </button>
+
+              <button
+                onClick={selectTotpMethod}
+                disabled={sending}
+                className="w-full flex items-center gap-3 border-2 border-gray-200 rounded-lg px-4 py-3 text-left hover:border-orange transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <ShieldCheck className="w-5 h-5 text-text-4 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-text-1">{METHOD_META.totp.title}</p>
+                  <p className="text-xs text-text-4 truncate">{METHOD_META.totp.hint}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-text-4 shrink-0" />
+              </button>
+
+              <button
+                onClick={selectBackupMethod}
+                disabled={sending}
+                className="w-full flex items-center gap-3 border-2 border-gray-200 rounded-lg px-4 py-3 text-left hover:border-orange transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                <KeyRound className="w-5 h-5 text-text-4 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-text-1">{METHOD_META.backup.title}</p>
+                  <p className="text-xs text-text-4 truncate">{METHOD_META.backup.hint}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-text-4 shrink-0" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setStep('contact')}
+              className="text-sm text-text-3 hover:text-orange transition-colors cursor-pointer font-medium inline-flex items-center gap-1"
+            >
+              ← Volver
+            </button>
+          </>
+        )}
+
+        {/* ── PASO 3: introducir código ── */}
         {step === 'code' && (
           <>
             <div className="flex justify-center mb-5">
               <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange to-orange-dark flex items-center justify-center">
-                <Mail className="w-8 h-8 text-white" />
+                <MethodIcon className="w-8 h-8 text-white" />
               </div>
             </div>
 
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-text-1 mb-1">Código enviado</h2>
-              <p className="text-sm text-text-3">
-                Ingresa el código de 6 dígitos enviado a{' '}
-                <span className="font-semibold text-text-1">{maskEmail(contact)}</span>
-              </p>
+              {activeMethod === 'email' ? (
+                <p className="text-sm text-text-3">
+                  Ingresa el código de 6 dígitos enviado a{' '}
+                  <span className="font-semibold text-text-1">{maskEmail(contact)}</span>
+                </p>
+              ) : activeMethod === 'totp' ? (
+                <p className="text-sm text-text-3">Ingresa el código de tu aplicación autenticadora</p>
+              ) : (
+                <p className="text-sm text-text-3">Ingresa uno de tus códigos de respaldo</p>
+              )}
             </div>
 
-            {codeError && (
-              <p className="text-center text-xs font-semibold text-red-text bg-red-bg border border-red/20 rounded-lg px-3 py-2 mb-4">
-                {codeError}
-              </p>
-            )}
-
-            <div className={`flex gap-2 mb-6 justify-center ${shake ? 'animate-[shake_0.45s_ease]' : ''}`}>
+            <div className="flex gap-2 mb-6 justify-center">
               {otp.map((digit, index) => (
                 <input
                   key={index}
@@ -257,15 +342,13 @@ export default function OTPModal({ onClose, onVerify }) {
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={index === 0 ? handlePaste : undefined}
                   disabled={verifying}
-                  className={`w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent ${
-                    codeInvalid ? 'border-red bg-red-bg text-red-text' : 'border-input-border'
-                  }`}
+                  className="w-11 h-12 text-center text-xl font-bold border-2 border-input-border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange focus:border-transparent"
                 />
               ))}
             </div>
 
             <Button
-              onClick={() => void handleVerify()}
+              onClick={handleVerify}
               full
               disabled={otp.join('').length !== 6 || verifying}
               className="mb-4 h-[48px]"
@@ -275,20 +358,23 @@ export default function OTPModal({ onClose, onVerify }) {
 
             <div className="flex items-center justify-between">
               <button
-                onClick={() => { setStep('contact'); clearCodeError(); }}
+                onClick={() => setStep('method')}
                 className="text-sm text-text-3 hover:text-orange transition-colors cursor-pointer font-medium"
               >
                 ← Volver
               </button>
-              <button
-                onClick={handleResend}
-                disabled={!canResend}
-                className={`text-sm font-medium transition-colors ${
-                  canResend ? 'text-orange cursor-pointer hover:underline' : 'text-text-4 cursor-not-allowed'
-                }`}
-              >
-                {canResend ? 'Reenviar código' : `Reenviar (${formatTimer(timer)})`}
-              </button>
+              {activeMethod === 'email' && (
+                <button
+                  onClick={handleResend}
+                  disabled={!canResend || sending}
+                  className={`text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
+                    canResend ? 'text-orange cursor-pointer hover:underline' : 'text-text-4 cursor-not-allowed'
+                  }`}
+                >
+                  {sending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {canResend ? 'Reenviar código' : `Reenviar (${formatTimer(timer)})`}
+                </button>
+              )}
             </div>
           </>
         )}

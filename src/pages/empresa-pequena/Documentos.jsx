@@ -1,7 +1,7 @@
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { EmojiIcon } from '../../components/ui/IconHelper';
+import { Upload, FileText, Download } from 'lucide-react';
 
 const docs = [
   { cat:'Préstamos', items:[
@@ -27,7 +27,7 @@ const docs = [
 export default function EpDocumentos() {
   return (
     <AppShell active="epDocs" role="empresa-pequena" title="Documentos" sub="Repositorio de archivos"
-      extra={<Button variant="primary" size="sm"><EmojiIcon emoji="📤" size={16} className="mr-2" />Subir documento</Button>}
+      extra={<Button variant="primary" size="sm"><Upload size={16} className="mr-2" />Subir documento</Button>}
     >
       <div className="fade-in">
         {docs.map(cat => (
@@ -39,13 +39,13 @@ export default function EpDocumentos() {
                   className={`flex items-center gap-3 px-5 py-3.5 cursor-pointer hover:bg-[#FFFAF8]
                     ${i < cat.items.length - 1 ? 'border-b border-border' : ''}`}
                 >
-                  <div className="w-9 h-9 rounded-[10px] bg-orange-tint flex items-center justify-center text-[18px] shrink-0"><EmojiIcon emoji="📄" size={18} /></div>
+                  <div className="w-9 h-9 rounded-[10px] bg-orange-tint flex items-center justify-center text-[18px] shrink-0"><FileText size={18} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13px] font-semibold text-text-1 truncate">{doc.nombre}</div>
                     <div className="text-[11px] text-text-4">{doc.dt} · {doc.size}</div>
                   </div>
                   <Badge variant={doc.cls}>{doc.estado}</Badge>
-                  <Button variant="ghost" size="sm"><EmojiIcon emoji="📥" size={16} className="mr-2" />Descargar</Button>
+                  <Button variant="ghost" size="sm"><Download size={16} className="mr-2" />Descargar</Button>
                 </div>
               ))}
             </div>

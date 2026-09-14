@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Pencil, Trash2, Building2, Truck, Receipt, BarChart2, Upload, Paperclip, Search,
+  Pencil, Trash2, Building2, Upload, Paperclip, Search,
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
@@ -12,8 +12,8 @@ const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0
 
 const ctBadgeStyle = (estado) =>
   estado === 'Pagada'      ? { background: '#E3F4EA', color: '#2E7D5B' } :
-  estado === 'Validada'    ? { background: '#EFF6FF', color: '#3B82F6' } :
-  estado === 'IPI Emitido' ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'Validada'    ? { background: '#FFF3E0', color: '#EF7A2C' } :
+  estado === 'IPI Emitido' ? { background: '#FFF3E0', color: '#EF7A2C' } :
   estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
                              { background: '#F6F5F3', color: '#9CA3AF' };
 
@@ -49,9 +49,11 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
-        <Icon className="w-4 h-4" style={{ color: iconColor }} />
-      </div>
+      {Icon && (
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
+          <Icon className="w-4 h-4" style={{ color: iconColor }} />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-bold text-text-1">{title}</div>
         {subtitle && <div className="text-[12px] text-text-4">{subtitle}</div>}
@@ -171,32 +173,27 @@ export default function EpFacturacion() {
   const handleDeleteInvoice = (id) => setInvoices(prev => prev.filter(inv => inv.id !== id));
 
   return (
-    <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos">
+    <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos" back>
       <div className="fade-in space-y-5">
 
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { label: 'Total facturas',  value: invoices.length,                                    Icon: Receipt,   iconBg: '#FFF3E0', color: '#EF7A2C' },
-            { label: 'Al contratante',  value: contratanteInvoices.length,                         Icon: Building2, iconBg: '#EFF6FF', color: '#3B82F6' },
-            { label: 'De proveedores',  value: proveedorInvoices.length,                           Icon: Truck,     iconBg: '#FDF6E8', color: '#C68A1D' },
-            { label: 'Pagadas',         value: invoices.filter(i => i.estado === 'Pagada').length, Icon: BarChart2, iconBg: '#E3F4EA', color: '#2E7D5B' },
-          ].map(({ label, value, Icon, iconBg, color }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color }} />
-              </div>
-              <div className="min-w-0">
-                <div className="text-[10px] text-text-4 uppercase tracking-wide mb-0.5">{label}</div>
-                <div className="text-[22px] font-extrabold leading-none" style={{ color }}>{value}</div>
-              </div>
+            { label: 'Total facturas', value: invoices.length },
+            { label: 'Al contratante', value: contratanteInvoices.length },
+            { label: 'De proveedores', value: proveedorInvoices.length },
+            { label: 'Pagadas',        value: invoices.filter(i => i.estado === 'Pagada').length },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
+              <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{label}</div>
+              <div className="text-[22px] font-extrabold leading-tight text-white">{value}</div>
             </div>
           ))}
         </div>
 
         {/* Facturas al Contratante */}
         <div className="bg-white rounded-[14px] border border-border p-5">
-          <SectionHeader icon={Building2} iconBg="#EFF6FF" iconColor="#3B82F6"
+          <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas al Contratante"
             subtitle="Facturas emitidas por la PYME al contratante."
             action={
@@ -214,21 +211,18 @@ export default function EpFacturacion() {
             {filteredCT.map((inv, idx) => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift card-enter"
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 card-enter transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
                      style={{ animationDelay: `${idx * 70}ms` }}>
                   {/* Mobile */}
                   <div className="sm:hidden">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                        <Building2 className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                      </div>
                       <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
                       {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
                     </div>
                     <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
                     {contract && (
                       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>
                         <span className="text-[11px] text-text-3 truncate">{contract.contratante}</span>
                       </div>
                     )}
@@ -243,9 +237,6 @@ export default function EpFacturacion() {
                   </div>
                   {/* Desktop */}
                   <div className="hidden sm:flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF' }}>
-                      <Building2 className="w-5 h-5" style={{ color: '#3B82F6' }} />
-                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
@@ -254,7 +245,7 @@ export default function EpFacturacion() {
                       <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
                       {contract && (
                         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>
                           <span className="text-[12px] font-semibold text-text-2 truncate">{contract.contratante}</span>
                         </div>
                       )}
@@ -282,7 +273,7 @@ export default function EpFacturacion() {
 
         {/* Facturas de Proveedores */}
         <div className="bg-white rounded-[14px] border border-border p-5">
-          <SectionHeader icon={Truck} iconBg="#FDF6E8" iconColor="#C68A1D"
+          <SectionHeader
             title="Facturas de Proveedores"
             subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
             action={
@@ -304,21 +295,18 @@ export default function EpFacturacion() {
                 inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                 { background: '#FDF6E8', color: '#C68A1D' };
               return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border card-lift card-enter"
+                <div key={inv.id} className="bg-white rounded-[16px] p-4 card-enter transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
                      style={{ animationDelay: `${idx * 70}ms` }}>
                   {/* Mobile */}
                   <div className="sm:hidden">
                     <div className="flex items-center gap-2.5 mb-2">
-                      <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
-                        <Truck className="w-4 h-4 text-orange" />
-                      </div>
                       <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
                       <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={estadoStyle}>{inv.estado}</span>
                       {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
                     </div>
                     <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
                     <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                      {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                      {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>}
                       {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
                     </div>
                     {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}
@@ -332,9 +320,6 @@ export default function EpFacturacion() {
                   </div>
                   {/* Desktop */}
                   <div className="hidden sm:flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                      <Truck className="w-5 h-5 text-orange" />
-                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
@@ -343,7 +328,7 @@ export default function EpFacturacion() {
                       </div>
                       <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
                       <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                        {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#EFF6FF', color: '#3B82F6' }}>{inv.contrato}</span>}
+                        {contract && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FFF3E0', color: '#EF7A2C' }}>{inv.contrato}</span>}
                         {inv.proveedorNombre && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: '#FDF6E8', color: '#C68A1D' }}>{inv.proveedorNombre}</span>}
                       </div>
                       {inv.fechaVencimiento && <div className="text-[11px] text-text-5 mt-1">Vence: {inv.fechaVencimiento}</div>}

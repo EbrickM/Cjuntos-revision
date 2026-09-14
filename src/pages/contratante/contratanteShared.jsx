@@ -19,8 +19,7 @@ export const HeroBadge = ({ label, value, Icon, bg, color }) => (
 export const SectionHeader = ({ title, sub, Icon, right }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
     <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5"
-           style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5">
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div className="flex-1 min-w-0">
@@ -85,8 +84,7 @@ export const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
          onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="w-full max-w-md rounded-2xl p-[2px]"
-           style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+      <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
         <div className="bg-white rounded-2xl p-8 relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
             <X className="w-5 h-5 text-text-3" />

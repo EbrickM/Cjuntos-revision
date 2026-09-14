@@ -1,6 +1,5 @@
 import { useApp } from '../../state/AppContext';
-import { logout } from '../../stores/authStore';
-import Logo from '../../components/layout/Logo';
+import Topbar from '../../components/layout/Topbar';
 import Button from '../../components/ui/Button';
 import { Briefcase, Building2 } from 'lucide-react';
 
@@ -21,7 +20,7 @@ const roles = [
   {
     id: 'empDash',
     Icon: Building2,
-    gradient: 'from-[#F57C00] to-[#FF9800]',
+    gradient: 'from-[#ef7a2c] to-[#FF9800]',
     badge: 'Empresa ancla',
     title: 'Empresa Contratante',
     subtitle: 'Empresa Contratante',
@@ -39,20 +38,13 @@ export default function RoleSelect() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
-      {/* Navbar */}
-      <div className="h-[60px] bg-white border-b border-border shadow-sm flex items-center px-4 sm:px-10">
-        <Logo size={18} />
-        <div className="flex-1" />
-        <button
-          onClick={() => { void logout(); go('login'); }}
-          className="text-[13px] text-text-3 hover:text-orange transition-colors cursor-pointer font-medium"
-        >
-          ← Cerrar sesión
-        </button>
-      </div>
+      {/* Mismo Topbar que el resto de la app — sin rol asignado aún, así que
+          no muestra ni el botón Invitar PYME ni el sidebar (RoleSelect es
+          previo a elegir uno de los dos). */}
+      <Topbar onMenuClick={() => {}} onInvitarPyme={() => {}} />
 
       {/* Contenido */}
-      <div className="flex items-center justify-center min-h-[calc(100vh-60px)] p-4 sm:p-8">
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 sm:p-8">
         <div className="max-w-[900px] w-full">
 
           {/* Encabezado */}

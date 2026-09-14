@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "login": {
+    "title": "Creciendo Juntos",
+    "platformSectionTitle": "Dentro de la plataforma",
+    "features": {
+      "credits": "Gestiona tus créditos",
+      "providers": "Administra proveedores",
+      "loans": "Planifica tus préstamos",
+      "history": "Consulta el historial de operaciones"
+    },
+    "trust": {
+      "regulatedTitle": "Plataforma regulada",
+      "regulatedDesc": "Normativa de Guinea Ecuatorial",
+      "protectedTitle": "Datos protegidos",
+      "protectedDesc": "Cifrado de extremo a extremo"
+    },
+    "accessButton": "Acceder",
+    "or": "o",
+    "requestContractButton": "Solicitar Contrato",
+    "adminAccessButton": "Acceso Bonafide"
+  }
+}

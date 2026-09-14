@@ -92,6 +92,7 @@ export default function App() {
           <Route path={R.epDocs}        element={<EpDocumentos />} />
           <Route path={R.epESG}         element={<EpProyectosAmbientales />} />
           <Route path={R.epSolicitudes} element={<EpSolicitudes />} />
+          <Route path={R.epSolicitarContrato} element={<SolicitarContrato />} />
 
           {/* Contratante */}
           <Route path={R.empDash}            element={<EmpDash />} />
@@ -102,6 +103,7 @@ export default function App() {
           <Route path={R.empSolicitudes}     element={<EmpSolicitudes />} />
           <Route path={R.empESG}             element={<EmpESG />} />
           <Route path={R.empPerfil}          element={<EmpPerfil />} />
+          <Route path={R.empSolicitarContrato} element={<SolicitarContrato />} />
           {/* Legado */}
           <Route path={R.empConf}       element={<EmpConf />} />
           <Route path={R.empConfDet}    element={<EmpConfDet />} />

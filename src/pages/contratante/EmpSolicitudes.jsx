@@ -37,7 +37,7 @@ export default function EmpSolicitudes() {
   };
 
   return (
-    <AppShell active="empSolicitudes" role="contratante" title="Solicitudes" sub="Mis solicitudes y oportunidades de PYMEs">
+    <AppShell active="empSolicitudes" role="contratante" title="Solicitudes" sub="Mis solicitudes y oportunidades de PYMEs" back>
       <div className="fade-in space-y-4">
 
         {/* Tabs + acción */}

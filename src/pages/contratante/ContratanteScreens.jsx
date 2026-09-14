@@ -40,8 +40,7 @@ const HeroBadge = ({ label, value, Icon, bg, color }) => (
 const SectionHeader = ({ title, sub, Icon, right }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
     <div className="flex items-start gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5"
-           style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5">
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div className="flex-1 min-w-0">
@@ -106,8 +105,7 @@ const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
          onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="w-full max-w-md rounded-2xl p-[2px]"
-           style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+      <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
         <div className="bg-white rounded-2xl p-8 relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
             <X className="w-5 h-5 text-text-3" />
@@ -547,8 +545,7 @@ export function EmpFacturas() {
       {ipiStep === 'confirm' && modalFac && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setIpiStep(null)}>
-          <div className="w-full max-w-md rounded-2xl p-[2px]"
-               style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+          <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
             <div className="bg-white rounded-2xl p-8 relative">
               <button onClick={() => setIpiStep(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
                 <X className="w-5 h-5 text-text-3" />
@@ -745,8 +742,7 @@ export function EmpPymes() {
         const ModalLabel = ({ text, Icon }) => (
           <div className="flex items-center gap-2 mb-3">
             {Icon && (
-              <div className="w-5 h-5 rounded-[5px] flex items-center justify-center shrink-0"
-                   style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+              <div className="bona-gradient-bg w-5 h-5 rounded-[5px] flex items-center justify-center shrink-0">
                 <Icon className="w-3 h-3 text-white" />
               </div>
             )}
@@ -1255,8 +1251,7 @@ export function EmpContratoDetalle() {
           <div className="card-enter bg-white rounded-[14px] border border-border p-5">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
               <div className="flex items-center gap-3 flex-1">
-                <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                     style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+                <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
                   <Receipt className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -1399,8 +1394,7 @@ export function EmpContratoDetalle() {
       {ipiStep === 'confirm' && modalFac && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setIpiStep(null)}>
-          <div className="w-full max-w-md rounded-2xl p-[2px]"
-               style={{ background: 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)', boxShadow: '0 8px 32px rgba(224,32,28,0.18)' }}>
+          <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
             <div className="bg-white rounded-2xl p-8 relative">
               <button onClick={() => setIpiStep(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
                 <X className="w-5 h-5 text-text-3" />
@@ -1486,8 +1480,7 @@ export function EmpPerfil() {
               <div className="w-24 h-24 rounded-[20px] overflow-hidden">
                 {avatar
                   ? <img src={avatar} alt="Logo empresa" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-white font-bold text-[28px]"
-                         style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>TE</div>
+                  : <div className="bona-gradient-bg w-full h-full flex items-center justify-center text-white font-bold text-[28px]">TE</div>
                 }
               </div>
               <label className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-white border border-border shadow-sm flex items-center justify-center cursor-pointer hover:bg-page-bg transition"

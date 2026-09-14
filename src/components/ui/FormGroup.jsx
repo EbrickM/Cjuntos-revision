@@ -12,9 +12,9 @@ export default function FormGroup({ label, required, children, className = '' })
   );
 }
 
-const inputBase = `h-12 border-0 rounded-lg px-3.5
+const inputBase = `h-12 border-2 border-gray-200 rounded-[8px] px-3.5
   text-[14px] text-text-1 bg-[#fafafa] outline-none transition-all w-full
-  focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)] focus:ring-1 focus:ring-orange
+  focus:bg-white focus:shadow-[0_0_0_3px_rgba(239,122,44,0.12)] focus:ring-1 focus:ring-orange
   placeholder:text-text-4`;
 
 export function Input({ className = '', ...props }) {
@@ -32,9 +32,9 @@ export function Select({ children, className = '', ...props }) {
 export function Textarea({ className = '', ...props }) {
   return (
     <textarea
-      className={`border-0 rounded-lg px-3.5 py-3
+      className={`border-2 border-gray-200 rounded-[8px] px-3.5 py-3
         text-[14px] text-text-1 bg-[#fafafa] outline-none transition-all w-full h-20 resize-none
-        focus:bg-white focus:shadow-[0_0_0_3px_rgba(198,40,40,0.12)] focus:ring-1 focus:ring-orange
+        focus:bg-white focus:shadow-[0_0_0_3px_rgba(239,122,44,0.12)] focus:ring-1 focus:ring-orange
         placeholder:text-text-4 ${className}`}
       {...props}
     />

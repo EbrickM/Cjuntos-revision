@@ -29,7 +29,7 @@ export default function EmpPerfil() {
   const [avatar, setAvatar] = useState(null);
 
   return (
-    <AppShell active="empPerfil" role="contratante" title="Mi Perfil" sub="Información de cuenta">
+    <AppShell active="empPerfil" role="contratante" title="Mi Perfil" sub="Información de cuenta" back>
       <div className="fade-in space-y-5">
 
         {/* ── Hero card ── */}
@@ -41,8 +41,7 @@ export default function EmpPerfil() {
               <div className="w-24 h-24 rounded-[20px] overflow-hidden">
                 {avatar
                   ? <img src={avatar} alt="Logo empresa" loading="lazy" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-white font-bold text-[28px]"
-                         style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>{initials}</div>
+                  : <div className="bona-gradient-bg w-full h-full flex items-center justify-center text-white font-bold text-[28px]">{initials}</div>
                 }
               </div>
               <label className="absolute -bottom-2 -right-2 w-7 h-7 rounded-full bg-white border border-border shadow-sm flex items-center justify-center cursor-pointer hover:bg-page-bg transition"
@@ -140,22 +139,22 @@ export default function EmpPerfil() {
               <ComplianceItem
                 label="Documentos" value="4 / 4"
                 sub="Todos los documentos verificados"
-                Icon={FileCheck} iconBg="#EFF6FF" iconColor="#3B82F6"
+                Icon={FileCheck} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Nivel Compliance" value="AA"
                 sub="Calificación de cumplimiento normativo"
-                Icon={Star} iconBg="#EFF6FF" iconColor="#3B82F6"
+                Icon={Star} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Última Auditoría" value={ULTIMA_AUD}
                 sub={<>Próxima revisión en <span className="font-semibold text-text-2">Sep 2026</span></>}
-                Icon={Clock} iconBg="#FDF6E8" iconColor="#C68A1D"
+                Icon={Clock} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Firma Digital" value="Pendiente"
                 sub="Renovación de firma digital requerida"
-                Icon={AlertCircle} iconBg="#FDF6E8" iconColor="#C68A1D"
+                Icon={AlertCircle} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
             </div>
           </div>

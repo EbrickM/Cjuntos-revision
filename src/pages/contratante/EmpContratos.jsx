@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import {
-  ClipboardList, TrendingUp, CreditCard, CheckCircle, Receipt, Search, ArrowUpRight, ChevronRight,
+  Search, ArrowUpRight, ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import { IniAvatar } from './contratanteShared';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, contratanteState } from './contratanteData';
+import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 
@@ -28,33 +28,18 @@ export default function EmpContratos() {
   );
 
   return (
-    <AppShell active="empContratos" role="contratante" title="Mis Contratos" sub="Contratos activos con Bonafide">
+    <AppShell active="empContratos" role="contratante" title="Mis Contratos" sub="Contratos activos con Bonafide" back>
       <div className="fade-in space-y-5">
 
-        {/* KPI cards — compactas, sin acción */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* KPI cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { lbl: 'Contratos Activos',    val: String(activos),              Icon: ClipboardList, iconBg: '#FFF3E0', iconColor: ORA   },
-            { lbl: 'Fondo Total Asignado', val: `${fmt(totalAsignado)} XAF`,  Icon: TrendingUp,   iconBg: '#FDEEEB', iconColor: RED   },
-            { lbl: 'Utilizado',            val: `${fmt(totalUtilizado)} XAF`,  Icon: CreditCard,   iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Disponible',           val: `${fmt(totalDisponible)} XAF`, Icon: CheckCircle,  iconBg: '#E3F4EA', iconColor: GREEN },
-          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
-            <div key={lbl} className="card-lift card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                {val.endsWith(' XAF') ? (
-                  <>
-                    <p className="text-[12px] sm:text-[14px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
-                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
-                  </>
-                ) : (
-                  <p className="text-[14px] font-extrabold text-text-1 leading-tight">{val}</p>
-                )}
-              </div>
-            </div>
+            { lbl: 'Contratos Activos',    val: String(activos) },
+            { lbl: 'Fondo Total Asignado', val: `${fmt(totalAsignado)} XAF` },
+            { lbl: 'Utilizado',            val: `${fmt(totalUtilizado)} XAF` },
+            { lbl: 'Disponible',           val: `${fmt(totalDisponible)} XAF` },
+          ].map(({ lbl, val }) => (
+            <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
         </div>
 
@@ -82,79 +67,58 @@ export default function EmpContratos() {
 
         {/* Cards de contratos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtrados.map(c => {
+          {filtrados.map((c, idx) => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);
-            const bar  = pct > 90 ? ERR : pct > 70 ? WARN : GREEN;
             const disp = c.asignado - c.utilizado;
             return (
-              <div key={c.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
-
-                {/* Header */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3">
-                    <IniAvatar ini={c.ini} size={44} />
-                    <div>
-                      <p className="text-[13px] font-bold text-text-1 leading-snug">{c.pyme}</p>
-                      <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{c.id}</p>
-                      <p className="text-[11px]" style={{ color: TEXT4 }}>{c.sector}</p>
-                    </div>
+              <div
+                key={c.id}
+                onClick={() => { contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
+                className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                style={{ animationDelay: `${idx * 70}ms` }}
+              >
+                {/* ID + PYME + sector + estado */}
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
+                    <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
                   </div>
-                  <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
+                  <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
+                  {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
                 </div>
 
-                {/* Utilización */}
+                {/* Monto */}
                 <div>
-                  <div className="flex justify-between text-[11px] mb-1.5">
-                    <span className="font-semibold" style={{ color: TEXT4 }}>Utilizado</span>
-                    <span className="font-bold" style={{ color: bar }}>{pct}%</span>
-                  </div>
-                  <div className="h-2 rounded-full overflow-hidden mb-1.5" style={{ background: BORDER }}>
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bar }} />
-                  </div>
-                  <div className="flex justify-between text-[10px]" style={{ color: TEXT4 }}>
-                    <span>{fmt(c.utilizado)} XAF usados</span>
-                    <span>{fmt(c.asignado)} XAF total</span>
-                  </div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo Asignado</div>
+                  <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(c.asignado)} XAF</div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-page-bg rounded-[10px] p-3">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Disponible</p>
-                    <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4 shrink-0" style={{ color: GREEN }} />
-                      <div>
-                        <p className="text-[13px] font-extrabold leading-tight" style={{ color: GREEN }}>{fmt(disp)}</p>
-                        <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
-                      </div>
-                    </div>
+                {/* Barra de distribución */}
+                <div className="mt-auto space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-text-4">Utilizado</span>
+                    <span className="text-[11px] font-bold" style={{ color: '#EF7A2C' }}>{pct}%</span>
                   </div>
-                  <div className="bg-page-bg rounded-[10px] p-3">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide mb-2" style={{ color: TEXT4 }}>Facturas</p>
-                    <div className="flex items-center gap-1.5">
-                      <Receipt className="w-4 h-4 shrink-0" style={{ color: ORA }} />
-                      <p className="text-[15px] font-extrabold leading-none" style={{ color: ORA }}>{c.facturas}</p>
-                    </div>
+                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                    <div className="h-full rounded-full"
+                         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
                   </div>
+                  <div className="text-[10px] text-text-5">Disponible: {fmt(disp)} XAF · {c.facturas} facturas</div>
                 </div>
 
-                {/* Footer */}
-                <div className="mt-auto pt-1 flex justify-end">
-                  <button
-                    onClick={() => { contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
-                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition"
-                    style={{ color: ORA }}
-                  >
-                    Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {/* Botón Ver */}
+                <button
+                  onClick={e => { e.stopPropagation(); contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
+                  className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+                >
+                  Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
             );
           })}
           {filtrados.length === 0 && (
-            <div className="col-span-full py-12 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
-              <Search className="w-8 h-8" />
-              <p className="text-[13px] font-semibold">Sin resultados para "{busqueda}"</p>
+            <div className="col-span-full text-[13px] text-text-4 text-center py-12">
+              No se encontraron contratos para "{busqueda}".
             </div>
           )}
         </div>

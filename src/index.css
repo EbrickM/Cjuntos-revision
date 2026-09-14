@@ -50,6 +50,16 @@
   --color-orange-tint:   #fff3e0;            /* accent claro                 */
   --color-orange-border: rgba(224,32,28,0.2);/* borde sutil acento           */
 
+  /* Nombres no ambiguos (bg-orange pinta el rojo, ver arriba) — preferir estos en código nuevo */
+  --color-brand-red:    #E0201C;
+  --color-brand-orange: #EF7A2C;
+
+  /* ── Radios derivados (alineado con bonafide-kappa / bonafide-identity-frontend) ── */
+  --radius-sm: calc(var(--radius) - 4px);  /* 8px  */
+  --radius-md: calc(var(--radius) - 2px);  /* 10px */
+  --radius-lg: var(--radius);              /* 12px */
+  --radius-xl: calc(var(--radius) + 4px);  /* 16px */
+
   /* ── Superficies ─────────────────────────────── */
   --color-page-bg:       #F6F5F3;            /* Fondo app MIC                */
   --color-border:        #ECEAE7;            /* Línea/divisor MIC            */
@@ -138,6 +148,23 @@
   80%      { transform: translateX(4px); }
 }
 
+/* Animaciones de éxito (estilo operación completada — mic) */
+@keyframes pulseRing {
+  0%   { transform: scale(0.85); opacity: 0.45; }
+  100% { transform: scale(1.9);  opacity: 0; }
+}
+
+@keyframes confettiBurst {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+@keyframes checkPop {
+  0%   { transform: scale(0.4);  opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
 /* Animación de entrada estilo reparto de cartas */
 @keyframes cardDeal {
   from {
@@ -156,6 +183,22 @@
 .card-enter:nth-child(3) { animation-delay: 120ms; }
 .card-enter:nth-child(4) { animation-delay: 180ms; }
 .card-enter:nth-child(5) { animation-delay: 240ms; }
+
+/* Sombra de marca reutilizable (navbar, avatares, badges) — MIC v1.0 */
+.bona-brand-shadow {
+  box-shadow: 0 4px 12px -2px rgba(224, 32, 28, 0.2), 0 8px 16px -4px rgba(239, 122, 44, 0.15);
+}
+
+/* Fondo con degradado de marca reutilizable */
+.bona-gradient-bg {
+  background: var(--bonafide-gradient);
+}
+
+/* Degradado de marca + sombra a juego, para tarjetas/CTAs con acento de marca */
+.bona-gradient-shadow {
+  background: var(--bonafide-gradient);
+  box-shadow: 0 8px 32px rgba(224, 32, 28, 0.18), 0 2px 8px rgba(239, 122, 44, 0.12);
+}
 
 /* Elevación de tarjetas con sombra de marca en hover */
 .card-lift {

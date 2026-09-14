@@ -1,26 +1,13 @@
 import { useState } from 'react';
-import {
-  ArrowLeft, FileText, CheckCircle2, Trash2, Building2, Truck,
-  Users, Package, Wrench, Receipt, Cpu, FolderOpen,
-} from 'lucide-react';
+import { CheckCircle2, Trash2, Building2 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 
 const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 const pct = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
-
-const CONCEPTO_ICONS = {
-  'Nómina':               Users,
-  'Compra de Materiales': Package,
-  'Pago a Proveedor':     Truck,
-  'Servicios':            Wrench,
-  'Gastos Operativos':    Receipt,
-  'Inversión en Equipos': Cpu,
-  'Otros':                FolderOpen,
-  'Otro':                 FolderOpen,
-};
 
 const contractBadge = (paso) => ({
   1: { variant: 'yellow', label: 'Pend. datos' },
@@ -218,22 +205,16 @@ export default function AdminContratos() {
                 return (
                   <div
                     key={contract.id}
-                    className="bg-white rounded-[16px] p-4 border border-border flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] hover:border-orange/40"
-                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                    onClick={() => openDetail(contract.id)}
+                    className="bg-white rounded-[16px] p-4 cursor-pointer flex items-start gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
                   >
-                      <div onClick={() => openDetail(contract.id)} className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5 cursor-pointer">
-                        <FileText className="w-5 h-5 text-orange" />
-                      </div>
-
-                      <div onClick={() => openDetail(contract.id)} className="flex-1 min-w-0 cursor-pointer">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-[13px] font-bold text-text-1">{contract.id}</span>
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </div>
                         {/* PYME chip */}
-                        <div className="inline-flex items-center gap-1.5 bg-orange-tint text-orange text-[11px] font-semibold px-2 py-0.5 rounded-full border border-orange/20 mb-1">
-                          <Building2 className="w-3 h-3" />
+                        <div className="inline-flex items-center gap-1.5 bg-orange-tint text-orange-dark text-[11px] font-semibold px-2 py-0.5 rounded-full mb-1">
                           {contract.pymeNombre}
                         </div>
                         {contract.contratante?.razonSocial && (
@@ -242,27 +223,27 @@ export default function AdminContratos() {
                         {contract.paso === 4 && (
                           <div className="mt-2 flex items-center gap-2">
                             <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
-                              <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
+                              <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
                             </div>
-                            <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}% asignado</span>
+                            <span className="text-[10px] font-bold text-orange-dark shrink-0">{pctVal}% asignado</span>
                           </div>
                         )}
                       </div>
 
                       {/* Monto + acciones */}
                       <div className="shrink-0 flex items-start gap-2">
-                        <div onClick={() => openDetail(contract.id)} className="text-right cursor-pointer">
+                        <div className="text-right">
                           <div className="text-[15px] font-extrabold text-text-1">{formatXaf(contract.monto)}</div>
                           {contract.paso === 4 && (
                             <div className="text-[11px] text-text-5 mt-0.5">Disp: {formatXaf(contract.disponible)}</div>
                           )}
                         </div>
-                        <div className="flex flex-col gap-1 pl-2 border-l border-border">
+                        <div className="flex flex-col gap-1 pl-2 border-l border-border" onClick={e => e.stopPropagation()}>
                           {contract.paso === 3 && (
                             <button
                               onClick={() => handleAuthorize(contract.id)}
                               title="Autorizar contrato"
-                              className="p-1.5 rounded-[8px] hover:bg-green-bg transition text-text-4 hover:text-green-text"
+                              className="p-1.5 rounded-[8px] hover:bg-green-bg transition text-text-4 hover:text-green-text cursor-pointer"
                             >
                               <CheckCircle2 className="w-4 h-4" />
                             </button>
@@ -270,12 +251,12 @@ export default function AdminContratos() {
                           <button
                             onClick={() => setDeleteModal({ open: true, id: contract.id })}
                             title="Eliminar contrato"
-                            className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text"
+                            className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                        <div onClick={() => openDetail(contract.id)} className="text-text-4 text-[18px] leading-none pt-0.5 cursor-pointer">›</div>
+                        <div className="text-text-4 text-[18px] leading-none pt-0.5">›</div>
                       </div>
                   </div>
                 );
@@ -315,13 +296,7 @@ export default function AdminContratos() {
           <>
             {/* Breadcrumb + acciones */}
             <div className="flex flex-wrap items-center gap-2 mb-4">
-              <button
-                onClick={() => setDetailId(null)}
-                className="flex items-center gap-1.5 text-[13px] font-medium text-text-3 hover:text-orange transition px-3 py-2 rounded-[10px] hover:bg-orange-tint"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Contratos
-              </button>
+              <BackButton onClick={() => setDetailId(null)} label="Contratos" className="mb-0" />
               <span className="text-text-5">/</span>
               <span className="text-[14px] font-bold text-text-1">{detailContract.id}</span>
               <Badge variant={contractBadge(detailContract.paso).variant}>
@@ -447,13 +422,9 @@ export default function AdminContratos() {
                   </div>
                   <div className="space-y-3">
                     {detailContract.distribucion.map(item => {
-                      const ConceptIcon = CONCEPTO_ICONS[item.concepto] ?? FolderOpen;
                       const pctVal = parseFloat(pct(item.monto, detailContract.monto));
                       return (
-                        <div key={item.id} className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                            <ConceptIcon className="w-5 h-5 text-orange" />
-                          </div>
+                        <div key={item.id} className="bg-white rounded-[16px] p-4 shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] flex items-center gap-4">
                           <div className="flex-1 min-w-0">
                             <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
                             {item.providerName
@@ -462,14 +433,14 @@ export default function AdminContratos() {
                             }
                             <div className="mt-2.5 flex items-center gap-2">
                               <div className="flex-1 h-[5px] bg-page-bg rounded-full overflow-hidden">
-                                <div className="h-full bg-orange rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%` }} />
+                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
                               </div>
-                              <span className="text-[10px] font-bold text-orange shrink-0">{pctVal}%</span>
+                              <span className="text-[10px] font-bold text-orange-dark shrink-0">{pctVal}%</span>
                             </div>
                           </div>
                           <div className="shrink-0 text-right">
                             <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
-                            <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-tint text-orange border border-orange/20">
+                            <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-tint text-orange-dark">
                               {pctVal}% del crédito
                             </div>
                           </div>
@@ -491,13 +462,7 @@ export default function AdminContratos() {
               const provFacts = facts.filter(f => f.tipo === 'proveedor');
 
               const InvoiceCard = ({ inv }) => (
-                <div className="bg-white rounded-[16px] p-4 border border-border flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                    {inv.tipo === 'contratante'
-                      ? <Building2 className="w-5 h-5 text-orange" />
-                      : <Truck className="w-5 h-5 text-orange" />
-                    }
-                  </div>
+                <div className="bg-white rounded-[16px] p-4 shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-[13px] font-bold text-text-1">{inv.id}</span>

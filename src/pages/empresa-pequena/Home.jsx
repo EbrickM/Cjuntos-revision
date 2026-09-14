@@ -5,7 +5,6 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 
 // ── MIC Brand tokens ─────────────────────────────────────────────────────────
-const GRAD        = 'linear-gradient(135deg, #E0201C 0%, #EF7A2C 100%)';
 const RED         = '#E0201C';
 const ORA         = '#EF7A2C';
 const GREEN       = '#2E7D5B';
@@ -14,110 +13,6 @@ const ERR         = '#B8352A';
 const BORDER      = '#ECEAE7';
 const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
-
-// ── DonutChart ────────────────────────────────────────────────────────────────
-// inner: radio del anillo en unidades viewBox. El viewBox se recalcula para
-// que el anillo llene el SVG con margen fijo; subir `inner` expande el
-// diámetro sin cambiar el grosor visual (sw=13).
-function DonutChart({ data, centerLabel, centerSub, size = 130, inner = 40 }) {
-  const sw = 13, margin = 8;
-  const vb = Math.round((inner + sw / 2 + margin) * 2);
-  const cx = vb / 2, cy = vb / 2;
-  const circ = 2 * Math.PI * inner;
-  const scale = vb / 110;
-  const segs = data.reduce(({ segs, total }, d) => {
-    const dash = (d.pct / 100) * circ;
-    return { segs: [...segs, { ...d, dash, off: -total }], total: total + dash };
-  }, { segs: [], total: 0 }).segs;
-  return (
-    <svg viewBox={`0 0 ${vb} ${vb}`} style={{ width: size, height: size, flexShrink: 0 }}>
-      <defs>
-        <linearGradient id="donut-grad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={RED} />
-          <stop offset="100%" stopColor={ORA} />
-        </linearGradient>
-      </defs>
-      <circle cx={cx} cy={cy} r={inner} fill="none" stroke={BORDER} strokeWidth={sw} />
-      {segs.map((s, i) => (
-        <circle key={i} cx={cx} cy={cy} r={inner} fill="none"
-          stroke={s.gradient ? 'url(#donut-grad)' : s.color}
-          strokeWidth={sw}
-          strokeDasharray={`${s.dash} ${circ - s.dash}`}
-          strokeDashoffset={s.off}
-          strokeLinecap="round"
-          style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
-      ))}
-      {centerLabel && (
-        <text x={cx} y={cy - 4 * scale} textAnchor="middle"
-          fontSize={Math.round(14 * scale)} fontWeight="800"
-          fill="#26262B" fontFamily="Poppins,sans-serif">{centerLabel}</text>
-      )}
-      {centerSub && (
-        <text x={cx} y={cy + 11 * scale} textAnchor="middle"
-          fontSize={Math.round(8 * scale)} fill={TEXT4}
-          fontFamily="Poppins,sans-serif">{centerSub}</text>
-      )}
-    </svg>
-  );
-}
-
-// ── Gauge — Velocímetro Score Crediticio ─────────────────────────────────────
-// sweep=1 (horario en SVG donde Y↓) traza el semicírculo superior de izq. a der.
-function Gauge({ score = 82, size = 190 }) {
-  const W = 200, H = 165;
-  const cx = 100, cy = 100, r = 80, sw = 16;
-  const deg2rad = d => d * Math.PI / 180;
-  // Ángulo en convención matemática: 180°=izq, 90°=arriba, 0°=der
-  const scoreToAngle = s => 180 - (s / 1000) * 180;
-  const pt = a => {
-    const rad = deg2rad(a);
-    return [cx + r * Math.cos(rad), cy - r * Math.sin(rad)];
-  };
-  const zones = [
-    [0,   400,  ERR  ],
-    [400, 600,  ORA  ],
-    [600, 750,  WARN ],
-    [750, 1000, GREEN],
-  ];
-  const needleAngle = scoreToAngle(score);
-  const needleRad = deg2rad(needleAngle);
-  const nx = cx + (r - sw - 2) * Math.cos(needleRad);
-  const ny = cy - (r - sw - 2) * Math.sin(needleRad);
-  const zoneLabel = score < 400 ? 'Crítico' : score < 600 ? 'Alto' : score < 750 ? 'Medio' : 'Bajo';
-  const zoneColor = score < 400 ? ERR : score < 600 ? ORA : score < 750 ? WARN : GREEN;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: size, height: Math.round(size * H / W) }}>
-      {/* Pista de fondo — semicírculo superior: sweep=1 (horario SVG) */}
-      <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 1 1 ${cx + r} ${cy}`}
-        fill="none" stroke={BORDER} strokeWidth={sw} strokeLinecap="butt" />
-      {/* Zonas de color sobre la pista */}
-      {zones.map(([s1, s2, color]) => {
-        const [x1, y1] = pt(scoreToAngle(s1));
-        const [x2, y2] = pt(scoreToAngle(s2));
-        return (
-          <path key={s1}
-            d={`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`}
-            fill="none" stroke={color} strokeWidth={sw} strokeLinecap="butt" opacity="0.9" />
-        );
-      })}
-      {/* Aguja */}
-      <line x1={cx} y1={cy} x2={nx.toFixed(2)} y2={ny.toFixed(2)}
-        stroke="#26262B" strokeWidth="3" strokeLinecap="round" />
-      <circle cx={cx} cy={cy} r="6" fill="#26262B" />
-      {/* Score y etiqueta bajo el pivote */}
-      
-      <text x={cx} y={cy + 32} textAnchor="middle" fontSize="27" fontWeight="800"
-        fill="#26262B" fontFamily="Poppins,sans-serif">{score}</text>
-      <text x={cx} y={cy + 50} textAnchor="middle" fontSize="13" fontWeight="700"
-        fill={zoneColor} fontFamily="Poppins,sans-serif">Riesgo {zoneLabel}</text>
-      {/* Etiquetas de escala */}
-      <text x={cx - r + 2} y={cy + 15} textAnchor="start" fontSize="9"
-        fill={TEXT4} fontFamily="Poppins,sans-serif">0</text>
-      <text x={cx + r - 2} y={cy + 15} textAnchor="end" fontSize="9"
-        fill={TEXT4} fontFamily="Poppins,sans-serif">1000</text>
-    </svg>
-  );
-}
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
 function LineChart({ data, series, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
@@ -197,44 +92,6 @@ function GroupedBarChart({ data, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, p
   );
 }
 
-// ── VBarChart — pestaña Medioambiental ───────────────────────────────────────
-function VBarChart({ id, data, h = 170 }) {
-  const W = 420, H = h, PL = 32, PR = 12, PT = 28, PB = 32;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const maxV = Math.max(...data.map(d => d.value)) * 1.12;
-  const slot = cW / data.length, bW = slot * 0.52;
-  const gId = `vb-${id}`;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
-      <defs>
-        <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ORA} />
-          <stop offset="100%" stopColor={ORA} stopOpacity="0.55" />
-        </linearGradient>
-      </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map(p => (
-        <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
-          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
-      ))}
-      {data.map((d, i) => {
-        const x = PL + slot * i + (slot - bW) / 2;
-        const bH = (d.value / maxV) * cH;
-        const y = PT + cH - bH;
-        const fill = d.color ?? `url(#${gId})`;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />
-            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize="10" fontWeight="700"
-              fill={d.color ?? ORA} fontFamily="Poppins,sans-serif">{d.value}</text>
-            <text x={x + bW / 2} y={H - 10} textAnchor="middle" fontSize="9"
-              fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
@@ -295,20 +152,6 @@ const envKpis = [
   { value: 'Medio',     label: 'Riesgo ambiental',      sub: 'Clasificación global',      Icon: Shield,      iconBg: '#FDF6E8', iconColor: WARN,  trend: 'Estable', tUp: null  },
 ];
 
-const proyectoDona = [
-  { tipo: 'En ejecución', pct: 50, color: GREEN },
-  { tipo: 'Planificado',  pct: 25, color: ORA   },
-  { tipo: 'Finalizado',   pct: 13, color: RED   },
-  { tipo: 'Suspendido',   pct: 12, color: TEXT4 },
-];
-
-const catBarData = [
-  { label: 'Reforestación', value: 3, color: GREEN },
-  { label: 'Agricultura',   value: 2, color: ORA   },
-  { label: 'Energía',       value: 2, color: RED   },
-  { label: 'Residuos',      value: 1, color: TEXT4 },
-];
-
 const proyectos = [
   { nombre: 'Reforestación Bata Norte',     estado: 'En ejecución', riesgo: 'Bajo',  fin: '45.000.000 XAF' },
   { nombre: 'Agro Sierra Sur',              estado: 'En ejecución', riesgo: 'Medio', fin: '28.000.000 XAF' },
@@ -326,12 +169,13 @@ const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : '
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function EpHome() {
   const { go } = useApp();
-  const [tab, setTab]         = useState('financiacion');
+  const [tab, setTab]                 = useState('financiacion');
+  const [activityView, setActivityView] = useState('evolucion');
   const pctUsado      = Math.round((USADO  / LIMITE) * 100);
   const pctDisponible = 100 - pctUsado;
 
   return (
-    <AppShell active="epHome" role="empresa-pequena" title="Inicio" sub="Mi Panel">
+    <AppShell active="epHome" role="empresa-pequena" back>
       <div className="fade-in space-y-4">
 
         {/* Header + Tab nav ─────────────────────────────────────────────────── */}
@@ -383,275 +227,239 @@ export default function EpHome() {
         {tab === 'financiacion' && (
           <div key="financiacion" className="fade-in space-y-4">
 
-            {/* ── Fila 1: mismo grid de 4 cols que fila 2 — Hero ocupa 3, Score ocupa 1 ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+            {/* ── Panel 1: Resumen financiero — billetera + score + KPIs integrados ── */}
+            <div className="card-lift card-enter bg-white rounded-[18px] border border-border p-5 sm:p-6">
+              <div className="flex flex-col md:flex-row gap-5 md:gap-6">
 
-              {/* Hero — Mi Billetera (3 columnas) */}
-              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[18px] border border-border p-5 pb-3 sm:p-6 sm:pb-4 flex flex-col">
-                <div className="flex flex-col md:flex-row md:items-stretch gap-5 flex-1">
-
-                  {/* Izquierda: título + cifra principal + (desktop) CTAs + indicadores */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-around">
-                    {/* Bloque superior */}
-                    <div>
-                      <p className="text-[18px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
-                        MI BILLETERA
-                      </p>
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-extrabold text-text-1 leading-none"
-                              style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
-                          {new Intl.NumberFormat('de-DE').format(LIMITE)}
-                        </span>
-                        <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
-                      </div>
+                {/* Billetera */}
+                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-5">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
+                      MI BILLETERA
+                    </p>
+                    <div className="flex items-baseline gap-2 mb-4">
+                      <span className="font-extrabold text-text-1 leading-none"
+                            style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
+                        {new Intl.NumberFormat('de-DE').format(LIMITE)}
+                      </span>
+                      <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
-
-                    {/* Bloque inferior — CTAs + indicadores, solo desktop */}
-                    <div className="hidden md:block">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[9px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
-                                style={{ background: ORA }}>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                          Solicitar Nuevo Contrato
-                        </button>
-                      </div>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
-                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
-                          {CONTRATOS_ACTIVOS} contratos activos
-                        </span>
-                      </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button onClick={() => go('epSolicitarContrato', { returnTo: 'epHome' })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
+                              style={{ background: ORA }}>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                        Solicitar Nuevo Contrato
+                      </button>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
+                        {CONTRATOS_ACTIVOS} contratos activos
+                      </span>
                     </div>
                   </div>
 
-                  {/* Donut + leyenda al lado */}
-                  <div className="flex flex-row items-center gap-4 shrink-0 self-center md:self-auto">
-                    <DonutChart
-                      data={[
-                        { pct: pctUsado,      gradient: true, color: RED },
-                        { pct: pctDisponible, color: DONUT_EMPTY         },
-                      ]}
-                      centerLabel={`${pctDisponible}%`}
-                      centerSub="DISPONIBLE"
-                      size={175}
-                      inner={60}
-                    />
-                    {/* Leyenda vertical */}
-                    <div className="flex flex-col gap-3">
-                      <div>
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GRAD }} />
-                          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
-                        </div>
-                        <p className="text-[12px] font-extrabold text-text-1">
-                          {new Intl.NumberFormat('de-DE').format(USADO)} XAF
-                        </p>
-                        <p className="text-[10px]" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                  {/* Leyenda Utilizado/Disponible — sin gráfico */}
+                  <div className="flex flex-col gap-3.5 shrink-0 self-center sm:self-auto">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                       </div>
-                      <div className="h-px w-full bg-border" />
-                      <div>
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
-                          <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
-                        </div>
-                        <p className="text-[12px] font-extrabold" style={{ color: ORA }}>
-                          {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
-                        </p>
-                        <p className="text-[10px]" style={{ color: TEXT4 }}>{pctDisponible}%</p>
+                      <p className="text-lg font-extrabold text-text-1">
+                        {new Intl.NumberFormat('de-DE').format(USADO)} XAF
+                      </p>
+                      <p className="text-xs" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                    </div>
+                    <div className="h-px w-full bg-border" />
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                       </div>
+                      <p className="text-lg font-extrabold" style={{ color: ORA }}>
+                        {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
+                      </p>
+                      <p className="text-xs" style={{ color: TEXT4 }}>{pctDisponible}%</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Móvil: botones icono + indicadores al final */}
-                <div className="flex md:hidden items-center justify-between gap-3 mt-4 pt-3 border-t border-border">
-                  <div className="flex gap-2">
-                    <button onClick={() => window.open('/solicitar-contrato', '_blank')} className="w-9 h-9 rounded-[9px] flex items-center justify-center text-white cursor-pointer transition-opacity hover:opacity-90"
-                            style={{ background: ORA }}>
-                      <ArrowUpRight className="w-4 h-4" />
+                {/* Divisor */}
+                <div className="hidden md:block w-px bg-border" />
+                <div className="md:hidden h-px bg-border" />
+
+                {/* Score Crediticio — mismo formato prominente que en Mi Perfil */}
+                <div className="md:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
+                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: GREEN }}>{SCORE}</p>
+                  <p className="text-[12px] text-text-4">
+                    / 1000 · <span className="font-semibold" style={{ color: GREEN }}>Riesgo Bajo</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* KPIs integrados — tiles subrayadas, sin card propia */}
+              <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
+                <button onClick={() => go('epCreditos')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
+                  <div className="flex items-center gap-1.5">
+                    <FilePlus className="w-3.5 h-3.5" style={{ color: ORA }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_CONTRATOS}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Contratos en cartera</div>
+                </button>
+                <button onClick={() => go('epProveedores')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: '#5B5B5F' }}>
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" style={{ color: '#5B5B5F' }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_PROVEEDORES}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Mis proveedores</div>
+                </button>
+                <button onClick={() => go('epFacturacion')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
+                  <div className="flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5" style={{ color: GREEN }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</span>
+                  </div>
+                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>
+                    Facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Panel 2: Actividad financiera + Riesgo y solicitudes, en una sola card ── */}
+            <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden">
+
+            {/* Sección: Actividad financiera */}
+            <div className="pb-3">
+              <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
+                <div>
+                  <p className="text-[13px] font-bold text-text-1">
+                    {activityView === 'evolucion' ? 'Evolución Financiera' : 'Flujo Financiero'}
+                  </p>
+                  <p className="text-[11px] text-text-4">
+                    {activityView === 'evolucion' ? 'Últimos 6 meses' : 'Últimas 4 semanas'}
+                    <span className="hidden md:inline"> · XAF</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="hidden lg:flex items-center gap-4">
+                    {activityView === 'evolucion' ? (
+                      evolucionSeries.map(s => (
+                        <div key={s.key} className="flex items-center gap-1.5">
+                          <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
+                          <span className="text-[10px] text-text-4">{s.label}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-sm" style={{ background: ORA }} />
+                          <span className="text-[10px] text-text-4">Entradas</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-3 h-3 rounded-sm" style={{ background: RED, opacity: 0.82 }} />
+                          <span className="text-[10px] text-text-4">Salidas</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex gap-1 bg-page-bg p-1 rounded-[8px] shrink-0">
+                    <button onClick={() => setActivityView('evolucion')}
+                      className={`px-3 py-1.5 rounded-[6px] text-[11px] font-semibold transition-all cursor-pointer ${
+                        activityView === 'evolucion' ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                      }`}>
+                      Evolución
+                    </button>
+                    <button onClick={() => setActivityView('flujo')}
+                      className={`px-3 py-1.5 rounded-[6px] text-[11px] font-semibold transition-all cursor-pointer ${
+                        activityView === 'flujo' ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                      }`}>
+                      Flujo
                     </button>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-[5px]"
-                        style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
-                    <div className="w-1 h-1 rounded-full" style={{ background: ORA }} />
-                    {CONTRATOS_ACTIVOS} activos
-                  </span>
                 </div>
               </div>
-
-              {/* Score Crediticio con Gauge */}
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col items-center justify-between gap-2">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide self-start">Score Crediticio</p>
-                <Gauge score={SCORE} size={220} />
-              </div>
+              {activityView === 'evolucion' ? (
+                <>
+                  {/* Desktop */}
+                  <div className="hidden md:block h-[240px] w-full">
+                    <LineChart data={evolucionData} series={evolucionSeries} h={240} />
+                  </div>
+                  {/* Móvil */}
+                  <div className="block md:hidden h-[300px] w-full">
+                    <LineChart data={evolucionData} series={evolucionSeries} h={300}
+                      vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Desktop */}
+                  <div className="hidden md:block h-[240px] w-full">
+                    <GroupedBarChart data={flujoData} h={240} />
+                  </div>
+                  {/* Móvil */}
+                  <div className="block md:hidden h-[300px] w-full">
+                    <GroupedBarChart data={flujoData} h={300}
+                      vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                  </div>
+                </>
+              )}
+              <p className="block md:hidden text-[10px] text-center pb-2 pt-1 px-4" style={{ color: TEXT4 }}>
+                Valores expresados en millones XAF
+              </p>
             </div>
 
-            {/* ── Fila 2: Contratos + Proveedores + Facturas ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Divisor */}
+            <div className="h-px w-full bg-border" />
 
-              {/* Contratos en Cartera — naranja marca */}
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Contratos en Cartera</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                    <FilePlus className="w-6 h-6" style={{ color: ORA }} />
+            {/* Sección: Riesgo y solicitudes */}
+            <div className="p-4 sm:p-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                {/* Riesgo de Operaciones */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
+                      <Shield className="w-6 h-6" style={{ color: WARN }} />
+                    </div>
+                    <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
                   </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_CONTRATOS}</p>
-                </div>
-                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>en cartera activa</p>
-                <button onClick={() => go('epCreditos')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
-                        style={{ color: ORA }}>
-                  Ver contratos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Proveedores — gris marca */}
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Mis Proveedores</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#ECEAE7' }}>
-                    <Users className="w-6 h-6" style={{ color: '#5B5B5F' }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{NUEVOS_PROVEEDORES}</p>
-                </div>
-                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>en tu directorio</p>
-                <button onClick={() => go('epProveedores')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
-                        style={{ color: ORA }}>
-                  Ver proveedores <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {/* Total Facturas — verde éxito */}
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2 min-h-[2.4rem]">Total Facturas</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#E3F4EA' }}>
-                    <FileCheck className="w-6 h-6" style={{ color: GREEN }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</p>
-                </div>
-                <p className="text-[10px] flex-1" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
-                </p>
-                <button onClick={() => go('epFacturacion')}
-                  className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition mt-3"
-                  style={{ color: ORA }}>
-                  Ver facturas <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-            </div>
-
-            {/* ── Evolución Financiera + Flujo Financiero — 50/50 ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3">
-                <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
-                  <div>
-                    <p className="text-[13px] font-bold text-text-1">Evolución Financiera</p>
-                    <p className="text-[11px] text-text-4">Últimos 6 meses<span className="hidden md:inline"> · XAF</span></p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {evolucionSeries.map(s => (
-                      <div key={s.key} className="flex items-center gap-1.5">
-                        <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
-                        <span className="text-[10px] text-text-4">{s.label}</span>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
+                    {riesgoOps.map(r => (
+                      <div key={r.label}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[10px] font-medium text-text-2">{r.label}</span>
+                          <span className="text-[10px] font-bold tabular-nums" style={{ color: r.color }}>{r.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
+                          <div className="h-full rounded-full transition-all"
+                               style={{ background: r.color, width: `${r.pct}%` }} />
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-                {/* Desktop */}
-                <div className="hidden md:block h-[260px] w-full">
-                  <LineChart data={evolucionData} series={evolucionSeries} h={260} />
-                </div>
-                {/* Móvil */}
-                <div className="block md:hidden h-[360px] w-full">
-                  <LineChart data={evolucionData} series={evolucionSeries} h={360}
-                    vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
-                </div>
-                <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
-                  Valores expresados en millones XAF
-                </p>
-              </div>
 
-              <div className="card-lift card-enter bg-white rounded-[14px] border border-border overflow-hidden pb-3">
-                <div className="flex flex-wrap justify-between items-start gap-3 px-4 pt-4 pb-2">
-                  <div>
-                    <p className="text-[13px] font-bold text-text-1">Flujo Financiero</p>
-                    <p className="text-[11px] text-text-4">Últimas 4 semanas<span className="hidden md:inline"> · XAF</span></p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-sm" style={{ background: ORA }} />
-                      <span className="text-[10px] text-text-4">Entradas</span>
+                {/* Solicitudes Pendientes */}
+                <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
+                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                      <Clock className="w-6 h-6" style={{ color: ORA }} />
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded-sm" style={{ background: RED, opacity: 0.82 }} />
-                      <span className="text-[10px] text-text-4">Salidas</span>
-                    </div>
+                    <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
                   </div>
+                  <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                    {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
+                  </p>
+                  <button onClick={() => go('epSolicitudes')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                          style={{ color: ORA }}>
+                    Ver solicitudes <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                {/* Desktop */}
-                <div className="hidden md:block h-[260px] w-full">
-                  <GroupedBarChart data={flujoData} h={260} />
-                </div>
-                {/* Móvil */}
-                <div className="block md:hidden h-[360px] w-full">
-                  <GroupedBarChart data={flujoData} h={360}
-                    vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
-                </div>
-                <p className="block md:hidden text-[10px] text-center pb-2" style={{ color: TEXT4 }}>
-                  Valores expresados en millones XAF
-                </p>
-              </div>
 
+              </div>
             </div>
-
-            {/* ── Fila 3: Riesgo + Solicitudes ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-
-              {/* Riesgo de Operaciones — col-span-2, amarillo advertencia */}
-              <div className="col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
-                    <Shield className="w-6 h-6" style={{ color: WARN }} />
-                  </div>
-                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
-                </div>
-                <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-                  {riesgoOps.map(r => (
-                    <div key={r.label}>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-[10px] font-medium text-text-2">{r.label}</span>
-                        <span className="text-[10px] font-bold tabular-nums" style={{ color: r.color }}>{r.pct}%</span>
-                      </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                        <div className="h-full rounded-full transition-all"
-                             style={{ background: r.color, width: `${r.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Solicitudes Pendientes — naranja marca */}
-              <div className="col-span-2 lg:col-span-1 card-lift card-enter bg-white rounded-[14px] border border-border p-4">
-                <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                    <Clock className="w-6 h-6" style={{ color: ORA }} />
-                  </div>
-                  <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
-                </div>
-                <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
-                  {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
-                </p>
-                <button onClick={() => go('epSolicitudes')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition self-end md:self-start"
-                        style={{ color: ORA }}>
-                  Ver solicitudes <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
 
             </div>
 
@@ -663,63 +471,21 @@ export default function EpHome() {
         {tab === 'medioambiental' && (
           <div key="medioambiental" className="fade-in space-y-5">
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {envKpis.map(({ value, label, sub, Icon, iconBg, iconColor, trend, tUp }) => (
-                <div key={label} className="card-lift card-enter bg-white rounded-[14px] border border-border p-4">
-                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3 leading-tight">{label}</p>
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                      <Icon className="w-5 h-5" style={{ color: iconColor }} />
-                    </div>
-                    <p className="font-extrabold leading-none text-text-1" style={{ fontSize: value.length > 4 ? '16px' : '24px' }}>{value}</p>
+            {/* KPIs — tiles subrayadas estilo panel admin de kappa, sin card ni gráficos */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-7">
+              {envKpis.map(({ value, label, Icon, iconColor }) => (
+                <div key={label} className="text-left pb-2.5 border-b-2" style={{ borderColor: iconColor }}>
+                  <div className="flex items-center gap-1.5">
+                    <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
+                    <span className="text-2xl font-bold leading-none text-text-1">{value}</span>
                   </div>
-                  <p className="text-[10px] mb-2.5" style={{ color: TEXT4 }}>{sub}</p>
-                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
-                    tUp === true  ? 'bg-green-bg text-green-text' :
-                    tUp === false ? 'bg-red-bg text-red-text'     :
-                    'bg-orange-tint text-orange'
-                  }`}>{trend}</span>
+                  <div className="text-xs text-text-4 mt-1.5">{label}</div>
                 </div>
               ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-              <div className="lg:col-span-2 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-3">
-                  <div className="text-[14px] font-bold text-text-1">Estado de proyectos</div>
-                  <div className="text-[11px] text-text-4">Distribución por fase</div>
-                </div>
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 py-2">
-                  <DonutChart data={proyectoDona} centerLabel="8" centerSub="proyectos" size={190} />
-                  <div className="flex flex-wrap justify-center gap-x-5 gap-y-1.5 w-full">
-                    {proyectoDona.map(d => (
-                      <div key={d.tipo} className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                        <span className="text-[11px] text-text-2 font-medium">{d.tipo}</span>
-                        <span className="text-[11px] font-bold" style={{ color: d.color }}>{d.pct}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="lg:col-span-3 card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col">
-                <div className="mb-4">
-                  <div className="text-[14px] font-bold text-text-1">Proyectos por categoría</div>
-                  <div className="text-[11px] text-text-4">Distribución por tipo de proyecto</div>
-                </div>
-                {/* Desktop */}
-                <div className="hidden sm:block h-[220px] w-full">
-                  <VBarChart id="pyme-env" data={catBarData} h={210} />
-                </div>
-                {/* Móvil */}
-                <div className="block sm:hidden h-[240px] w-full">
-                  <VBarChart id="pyme-env-m" data={catBarData} h={200} />
-                </div>
-              </div>
-            </div>
-
-            <div className="card-lift card-enter bg-white rounded-[14px] border border-border p-5">
+            {/* Proyectos — misma estructura de tabla que el panel admin de kappa */}
+            <div className="bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-[14px] font-bold text-text-1">Proyectos</div>
@@ -746,25 +512,29 @@ export default function EpHome() {
                   </div>
                 ))}
               </div>
-              <table className="hidden sm:table w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h, i) => (
-                      <th key={h} className={`text-[10px] font-semibold text-text-4 uppercase tracking-wide pb-2.5 ${i === 3 ? 'text-right' : 'text-left'} ${i > 0 ? 'pl-3' : ''}`}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {proyectos.map((p, i) => (
-                    <tr key={i} className="border-b border-border last:border-0 hover:bg-page-bg/60 transition-colors">
-                      <td className="py-2.5 text-[12px] font-medium text-text-1 pr-3">{p.nombre}</td>
-                      <td className="py-2.5 pl-3 pr-3"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
-                      <td className="py-2.5 pl-3 pr-3"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
-                      <td className="py-2.5 pl-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr>
+                      {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h) => (
+                        <th key={h} className="text-center whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider bg-page-bg border-b border-border">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {proyectos.map((p, i) => (
+                      <tr key={i} className="hover:bg-orange-50/30 transition-colors">
+                        <td className="px-4 py-3 text-sm font-semibold text-text-1 text-center whitespace-nowrap">{p.nombre}</td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
+                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap">{p.fin}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

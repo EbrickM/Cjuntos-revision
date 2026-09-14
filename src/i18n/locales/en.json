@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "selectLanguage": "Select language"
+  },
+  "login": {
+    "title": "Growing Together",
+    "platformSectionTitle": "Inside the platform",
+    "features": {
+      "credits": "Manage your credit lines",
+      "providers": "Manage suppliers",
+      "loans": "Plan your loans",
+      "history": "View your operation history"
+    },
+    "trust": {
+      "regulatedTitle": "Regulated platform",
+      "regulatedDesc": "Equatorial Guinea regulations",
+      "protectedTitle": "Protected data",
+      "protectedDesc": "End-to-end encryption"
+    },
+    "accessButton": "Sign in",
+    "or": "or",
+    "requestContractButton": "Request Contract",
+    "adminAccessButton": "Bonafide Access"
+  }
+}

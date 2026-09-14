@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import {
   Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight,
-  Plus, FolderOpen, Activity, Banknote, ShieldAlert, Target,
+  Plus, FolderOpen, Target,
   Upload, X as XIcon, FileText,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
@@ -18,7 +19,7 @@ const CERT_PATH = [
   { Icon: BadgeCheck,   label: 'Verde Bonafide',    desc: 'Certificación completa verificada por Bonafide', color: '#059669', status: 'active', date: 'Junio 2025' },
   { Icon: Wind,         label: 'Verde CO₂',         desc: 'Captura activa de carbono certificada', color: '#3B82F6', status: 'pending' },
   { Icon: Recycle,      label: 'Verde Neutro',      desc: 'Balance de carbono neutro certificado', color: '#059669', status: 'pending' },
-  { Icon: Trophy,       label: 'Verde ESG',         desc: 'Cumplimiento Ambiental + Social + Gobernanza verificado', color: '#F57C00', status: 'pending' },
+  { Icon: Trophy,       label: 'Verde ESG',         desc: 'Cumplimiento Ambiental + Social + Gobernanza verificado', color: '#ef7a2c', status: 'pending' },
 ];
 
 const NEXT_REQS = {
@@ -36,12 +37,14 @@ const ESG_METAS = [
 ];
 
 // ── KPIs ──────────────────────────────────────────────────────────────────────
+// Verde reservado a las dos métricas ambientales (captura CO₂, riesgo); el
+// resto usa el acento naranja, igual que el resto del dashboard PYME.
 const kpis = [
-  { value: '5',       label: 'Proyectos registrados', mobileLabel: 'Proyectos', cls: 'text-green-text', trend: '+2',      tUp: true, Icon: FolderOpen  },
-  { value: '2',       label: 'Proyectos activos',                               cls: 'text-blue-text',  trend: 'Estable', tUp: null, Icon: Activity    },
-  { value: '2',       label: 'Proyectos financiados',                           cls: 'text-orange',     trend: '+1',      tUp: true, Icon: Banknote    },
-  { value: '7,800 t', label: 'Captura CO₂ potencial',                           cls: 'text-green-text', trend: '+8%',     tUp: true, Icon: Wind        },
-  { value: 'Bajo',    label: 'Riesgo ambiental',                                cls: 'text-green-text', trend: 'Estable', tUp: true, Icon: ShieldAlert },
+  { value: '5',       label: 'Proyectos registrados', tone: 'gradient' },
+  { value: '2',       label: 'Proyectos activos',     tone: 'gradient' },
+  { value: '2',       label: 'Proyectos financiados', tone: 'gradient' },
+  { value: '7,800 t', label: 'Captura CO₂ potencial', tone: 'green' },
+  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green' },
 ];
 
 // ── Projects ──────────────────────────────────────────────────────────────────
@@ -63,8 +66,7 @@ const EMPTY_FORM = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fecha
 const CardHeader = ({ title, sub, Icon, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div className="flex items-center gap-3">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-           style={{ background: 'linear-gradient(135deg, #E0201C, #EF7A2C)' }}>
+      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
         <Icon className="w-5 h-5 text-white" />
       </div>
       <div>
@@ -102,26 +104,13 @@ export default function EpProyectosAmbientales() {
   const closeModal = () => { setShowModal(false); setForm(EMPTY_FORM); setFiles([]); };
 
   return (
-    <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales">
+    <AppShell active="epESG" role="empresa-pequena" title="Huella Verde" sub="Mi certificación y proyectos ambientales" back>
       <div className="fade-in space-y-5">
 
         {/* KPIs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {kpis.map(({ value, label, mobileLabel, cls, trend, tUp, Icon }, idx) => (
-            <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5"
-                 style={{ animationDelay: `${idx * 70}ms` }}>
-              <div className="flex items-center gap-1.5">
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${cls}`} />
-                <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">
-                  <span className="sm:hidden">{mobileLabel ?? label}</span>
-                  <span className="hidden sm:inline">{label}</span>
-                </div>
-              </div>
-              <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
-              <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                tUp === true ? 'bg-green-bg text-green-text' : 'bg-orange-tint text-orange'
-              }`}>{trend}</span>
-            </div>
+          {kpis.map(({ value, label, tone }) => (
+            <StatCard key={label} label={label} value={value} tone={tone} />
           ))}
         </div>
 
@@ -290,28 +279,27 @@ export default function EpProyectosAmbientales() {
           {/* Desktop: tabla */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full min-w-[560px]">
-              <thead>
+              <thead className="bg-page-bg">
                 <tr className="border-b border-border">
                   {['Proyecto', 'Estado', 'Riesgo', 'Certificación', 'Financiamiento'].map((h, i) => (
-                    <th key={h} className={`text-[10px] font-semibold text-text-4 uppercase tracking-wide pb-2.5
+                    <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                       ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
-                      ${i > 0 ? 'pl-3' : ''}
                     `}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {proyectos.map((p, i) => (
-                  <tr key={i} className="border-b border-border last:border-0 hover:bg-page-bg/60 transition-colors">
-                    <td className="py-2.5 text-[12px] font-medium text-text-1 pr-3">{p.nombre}</td>
-                    <td className="py-2.5 pl-3 pr-3 text-center"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
-                    <td className="py-2.5 pl-3 pr-3 text-center"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
-                    <td className="py-2.5 pl-3 pr-3 text-center">
+                  <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                    <td className="px-4 py-3 text-[12px] font-medium text-text-1">{p.nombre}</td>
+                    <td className="px-4 py-3 text-center"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
+                    <td className="px-4 py-3 text-center"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
+                    <td className="px-4 py-3 text-center">
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border whitespace-nowrap">
                         {p.cert}
                       </span>
                     </td>
-                    <td className="py-2.5 pl-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                    <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
                   </tr>
                 ))}
               </tbody>
