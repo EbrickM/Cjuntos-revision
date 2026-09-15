@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ChevronRight, TrendingUp, CreditCard, CheckCircle, ClipboardList, FileText, Clock, Building2, User, Users,
+  ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
   Receipt, ListFilter, Zap, X,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -9,13 +9,13 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
-import { RED, ORA, GREEN, WARN, ERR, TEXT4, BLUE, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState } from './contratanteData';
+import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState } from './contratanteData';
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
-  { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA  },
-  { id: 'pyme',     lbl: 'PYME',     Icon: Users,       iconBg: '#EFF6FF', iconColor: BLUE },
-  { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FDF6E8', iconColor: WARN },
+  { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'pyme',     lbl: 'PYME',     Icon: Users,       iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FFF3E0', iconColor: ORA },
 ];
 
 export default function EmpContratoDetalle() {
@@ -27,7 +27,6 @@ export default function EmpContratoDetalle() {
   const [filtroFac, setFiltroFac]       = useState('Todos');
   const c    = contratanteState.selectedContrato;
   const pct  = Math.round((c.utilizado / c.asignado) * 100);
-  const bar  = pct > 90 ? ERR : pct > 70 ? WARN : GREEN;
   const disp = c.asignado - c.utilizado;
   const facturasContrato = facturas
     .filter(f => f.contrato === c.id)
@@ -52,40 +51,36 @@ export default function EmpContratoDetalle() {
           <span className="text-text-1 font-semibold">{c.id}</span>
         </button>
 
-        {/* ── Resumen financiero (como en PYME) ── */}
+        {/* ── Resumen financiero (mismo estilo degradado que en PYME) ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { lbl: 'Fondo Asignado', val: `${fmt(c.asignado)} XAF`,  Icon: TrendingUp,   iconBg: '#FDEEEB', iconColor: RED   },
-            { lbl: 'Utilizado',      val: `${fmt(c.utilizado)} XAF`, Icon: CreditCard,   iconBg: '#FDF6E8', iconColor: WARN  },
-            { lbl: 'Disponible',     val: `${fmt(disp)} XAF`,        Icon: CheckCircle,  iconBg: '#E3F4EA', iconColor: GREEN },
-            { lbl: '% Utilización',  val: `${pct}%`,                 Icon: ClipboardList,iconBg: pct > 90 ? '#FDEEEB' : pct > 70 ? '#FDF6E8' : '#E3F4EA', iconColor: bar },
-          ].map(({ lbl, val, Icon, iconBg, iconColor }) => (
-            <div key={lbl} className="card-enter bg-white rounded-[12px] border border-border p-3 flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-                <Icon className="w-5 h-5" style={{ color: iconColor }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-0.5">{lbl}</p>
-                {val.endsWith(' XAF') ? (
-                  <>
-                    <p className="text-[12px] sm:text-[13px] font-extrabold text-text-1 leading-tight">{val.slice(0, -4)}</p>
-                    <p className="text-[9px] font-semibold leading-tight" style={{ color: TEXT4 }}>XAF</p>
-                  </>
-                ) : (
-                  <p className="text-[13px] font-extrabold text-text-1 leading-tight">{val}</p>
-                )}
-              </div>
+            { lbl: 'Fondo Asignado', val: `${fmt(c.asignado)} XAF` },
+            { lbl: 'Utilizado',      val: `${fmt(c.utilizado)} XAF` },
+            { lbl: 'Disponible',     val: `${fmt(disp)} XAF` },
+            { lbl: '% Utilización',  val: `${pct}%` },
+          ].map(({ lbl, val }) => (
+            <div key={lbl} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
+              <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{lbl}</div>
+              {val.endsWith(' XAF') ? (
+                <>
+                  <div className="text-[18px] sm:text-[22px] font-extrabold leading-tight text-white truncate">{val.slice(0, -4)}</div>
+                  <div className="text-[10px] font-semibold text-white/80 leading-tight">XAF</div>
+                </>
+              ) : (
+                <div className="text-[22px] font-extrabold leading-tight text-white truncate">{val}</div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* ── Tabs con iconos (como en PYME) ── */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] overflow-x-auto">
+        {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
+              lateral en pantallas chicas ── */}
+        <div className="grid grid-cols-3 gap-1.5 bg-page-bg p-1 rounded-[10px]">
           {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-[8px] text-[12px] font-medium transition-all whitespace-nowrap cursor-pointer
+                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
                   ${active ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-4 hover:text-text-2'}`}
               >
                 <div className="w-5 h-5 rounded-[5px] flex items-center justify-center"
