@@ -52,7 +52,8 @@ export default function Login() {
             className="h-20 w-auto object-contain mb-2"
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h1 className="text-3xl font-bold text-text-1">{t('login.title')}</h1>
+          {/* Nombre de marca — se mantiene fijo en español, no forma parte de la traducción */}
+          <h1 className="text-3xl font-bold text-text-1">Creciendo Juntos</h1>
         </div>
 
         {/* Dentro de la plataforma */}
