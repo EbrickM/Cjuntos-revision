@@ -252,8 +252,12 @@ export default function EpHome() {
     <AppShell active="epHome" role="empresa-pequena" back>
       <div className="fade-in space-y-4">
 
-        {/* Header + Tab nav ─────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Header + Tab nav ───────────────────────────────────────────────────
+            El nav de escritorio (pills en fila) no cabe junto al nombre desde
+            que el sidebar reduce el ancho de contenido — por debajo de 1156px
+            se apilan (nombre arriba, nav abajo) en vez de comprimirse uno
+            contra el otro. */}
+        <div className="flex flex-col min-[1156px]:flex-row min-[1156px]:items-center min-[1156px]:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0 self-center">
             <div className="min-w-0">
               <div className="text-[20px] font-bold text-text-1 truncate">
@@ -261,7 +265,7 @@ export default function EpHome() {
               </div>
             </div>
           </div>
-          <div className="hidden sm:flex gap-1 bg-page-bg p-1 rounded-xl">
+          <div className="hidden min-[1156px]:flex gap-1 bg-page-bg p-1 rounded-xl">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
@@ -277,8 +281,8 @@ export default function EpHome() {
           </div>
         </div>
 
-        {/* Tab nav móvil */}
-        <div className="flex sm:hidden gap-1 bg-page-bg p-1 rounded-xl w-full">
+        {/* Tab nav compacto — visible por debajo de 1156px */}
+        <div className="flex min-[1156px]:hidden gap-1 bg-page-bg p-1 rounded-xl w-full">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
@@ -303,23 +307,28 @@ export default function EpHome() {
 
             {/* ── Panel 1: Resumen financiero — billetera + score + KPIs integrados ── */}
             <div className="card-lift card-enter bg-white rounded-[18px] border border-border p-5 sm:p-6">
-              <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+              {/* La fila billetera|score solo pasa a horizontal en lg — entre md y lg el
+                  sidebar deja muy poco ancho de contenido y forzarla en fila (antes en
+                  md) hacía que el texto se montara encima del panel de Score. */}
+              <div className="flex flex-col lg:flex-row gap-5 lg:gap-6">
 
-                {/* Billetera */}
-                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-5">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
+                {/* Billetera — por debajo de 766px todas las cards quedan en una sola
+                    columna, así que aquí se centra el contenido (en vez de dejarlo
+                    alineado a la izquierda) y se agranda un poco el texto. */}
+                <div className="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-5 max-[765px]:items-center max-[765px]:text-center">
+                  <div className="flex-1 min-w-0 max-[765px]:w-full">
+                    <p className="text-[11px] max-[765px]:text-xs font-semibold uppercase tracking-[1.2px] mb-2" style={{ color: TEXT4 }}>
                       MI BILLETERA
                     </p>
-                    <div className="flex items-baseline gap-2 mb-4">
+                    <div className="flex items-baseline gap-2 mb-4 max-[765px]:justify-center">
                       <span className="font-extrabold text-text-1 leading-none"
                             style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
                         {new Intl.NumberFormat('de-DE').format(LIMITE)}
                       </span>
-                      <span className="text-[13px] font-semibold" style={{ color: TEXT4 }}>XAF</span>
+                      <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-[6px]"
+                    <div className="flex flex-wrap items-center gap-2 max-[765px]:justify-center">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
                             style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIVOS} contratos activos
@@ -328,37 +337,37 @@ export default function EpHome() {
                   </div>
 
                   {/* Leyenda Utilizado/Disponible — sin gráfico */}
-                  <div className="flex flex-col gap-3.5 shrink-0 self-center sm:self-auto">
+                  <div className="flex flex-col gap-3.5 shrink-0 self-center md:self-auto max-[765px]:w-full max-[765px]:items-center">
                     <div>
-                      <div className="flex items-center gap-1.5 mb-1">
+                      <div className="flex items-center gap-1.5 mb-1 max-[765px]:justify-center">
                         <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
-                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
+                        <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                       </div>
-                      <p className="text-lg font-extrabold text-text-1">
+                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1">
                         {new Intl.NumberFormat('de-DE').format(USADO)} XAF
                       </p>
-                      <p className="text-xs" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{pctUsado}%</p>
                     </div>
                     <div className="h-px w-full bg-border" />
                     <div>
-                      <div className="flex items-center gap-1.5 mb-1">
+                      <div className="flex items-center gap-1.5 mb-1 max-[765px]:justify-center">
                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
-                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
+                        <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                       </div>
-                      <p className="text-lg font-extrabold" style={{ color: ORA }}>
+                      <p className="text-lg max-[765px]:text-xl font-extrabold" style={{ color: ORA }}>
                         {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
                       </p>
-                      <p className="text-xs" style={{ color: TEXT4 }}>{pctDisponible}%</p>
+                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{pctDisponible}%</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Divisor */}
-                <div className="hidden md:block w-px bg-border" />
-                <div className="md:hidden h-px bg-border" />
+                <div className="hidden lg:block w-px bg-border" />
+                <div className="lg:hidden h-px bg-border" />
 
                 {/* Score Crediticio — mismo formato prominente que en Mi Perfil */}
-                <div className="md:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
+                <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
                   <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: GREEN }}>{SCORE}</p>
                   <p className="text-[12px] text-text-4">
@@ -369,22 +378,22 @@ export default function EpHome() {
 
               {/* KPIs integrados — tiles subrayadas, sin card propia */}
               <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
-                <button onClick={() => go('epCreditos')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
-                  <div className="flex items-center gap-1.5">
+                <button onClick={() => go('epCreditos')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
+                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
                     <FilePlus className="w-3.5 h-3.5" style={{ color: ORA }} />
                     <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_CONTRATOS}</span>
                   </div>
                   <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Contratos en cartera</div>
                 </button>
-                <button onClick={() => go('epProveedores')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: '#5B5B5F' }}>
-                  <div className="flex items-center gap-1.5">
+                <button onClick={() => go('epProveedores')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: '#5B5B5F' }}>
+                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
                     <Users className="w-3.5 h-3.5" style={{ color: '#5B5B5F' }} />
                     <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_PROVEEDORES}</span>
                   </div>
                   <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Mis proveedores</div>
                 </button>
-                <button onClick={() => go('epFacturacion')} className="text-left pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
-                  <div className="flex items-center gap-1.5">
+                <button onClick={() => go('epFacturacion')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
+                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
                     <FileCheck className="w-3.5 h-3.5" style={{ color: GREEN }} />
                     <span className="text-2xl font-bold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</span>
                   </div>
@@ -449,8 +458,8 @@ export default function EpHome() {
                 </div>
               </div>
               {activityView === 'evolucion' ? (
-                <div className="flex items-stretch gap-3 px-4">
-                  <div className="flex-1 min-w-0">
+                <div className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
+                  <div className="w-full md:flex-1 md:min-w-0">
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {evolucionHasData
@@ -465,17 +474,21 @@ export default function EpHome() {
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                   </div>
-                  {/* Filtros — apilados en el lateral */}
-                  <div className="w-44 sm:w-56 shrink-0 flex flex-col justify-center gap-6">
-                    <MiniRangeInput label="Periodo" min={2} max={evolucionData.length} value={evoPeriodo}
-                      onChange={setEvoPeriodo} format={v => `${v} meses`} />
-                    <MiniRangeInput label="Monto mín." min={0} max={130} step={5} value={evoMonto}
-                      onChange={setEvoMonto} format={v => `${v}M`} />
+                  {/* Filtros — en móvil debajo de la gráfica uno al lado del otro; en desktop apilados en el lateral */}
+                  <div className="flex flex-row gap-4 md:flex-col md:justify-center md:gap-6 md:w-44 lg:w-56 md:shrink-0">
+                    <div className="flex-1 min-w-0 md:flex-none">
+                      <MiniRangeInput label="Periodo" min={2} max={evolucionData.length} value={evoPeriodo}
+                        onChange={setEvoPeriodo} format={v => `${v} meses`} />
+                    </div>
+                    <div className="flex-1 min-w-0 md:flex-none">
+                      <MiniRangeInput label="Monto mín." min={0} max={130} step={5} value={evoMonto}
+                        onChange={setEvoMonto} format={v => `${v}M`} />
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-stretch gap-3 px-4">
-                  <div className="flex-1 min-w-0">
+                <div className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
+                  <div className="w-full md:flex-1 md:min-w-0">
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {flujoHasData
@@ -490,12 +503,16 @@ export default function EpHome() {
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                   </div>
-                  {/* Filtros — apilados en el lateral */}
-                  <div className="w-44 sm:w-56 shrink-0 flex flex-col justify-center gap-6">
-                    <MiniRangeInput label="Periodo" min={2} max={flujoData.length} value={flujoPeriodo}
-                      onChange={setFlujoPeriodo} format={v => `${v} sem.`} />
-                    <MiniRangeInput label="Monto mín." min={0} max={90_000_000} step={5_000_000} value={flujoMonto}
-                      onChange={setFlujoMonto} format={v => `${Math.round(v / 1_000_000)}M`} />
+                  {/* Filtros — en móvil debajo de la gráfica uno al lado del otro; en desktop apilados en el lateral */}
+                  <div className="flex flex-row gap-4 md:flex-col md:justify-center md:gap-6 md:w-44 lg:w-56 md:shrink-0">
+                    <div className="flex-1 min-w-0 md:flex-none">
+                      <MiniRangeInput label="Periodo" min={2} max={flujoData.length} value={flujoPeriodo}
+                        onChange={setFlujoPeriodo} format={v => `${v} sem.`} />
+                    </div>
+                    <div className="flex-1 min-w-0 md:flex-none">
+                      <MiniRangeInput label="Monto mín." min={0} max={90_000_000} step={5_000_000} value={flujoMonto}
+                        onChange={setFlujoMonto} format={v => `${Math.round(v / 1_000_000)}M`} />
+                    </div>
                   </div>
                 </div>
               )}
