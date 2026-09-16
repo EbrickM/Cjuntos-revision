@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
-  FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
-  Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
-  BarChart2, ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare,
+  FileText, Trash2, Pencil, Search, ChevronRight, Plus,
+  Truck, Receipt, Building2, CreditCard,
+  ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare, Eye,
   Upload, Paperclip,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -10,6 +10,7 @@ import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -17,20 +18,6 @@ import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGrou
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
 const pct        = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
 const fmtDate    = (iso) => iso ? new Date(iso + 'T00:00:00').toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
-
-const SECTORES  = ['Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología', 'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio', 'Otro'];
-const CONCEPTOS = ['Nómina', 'Compra de Materiales', 'Pago a Proveedor', 'Servicios', 'Gastos Operativos', 'Inversión en Equipos', 'Otro'];
-
-const CONCEPTO_ICONS = {
-  'Nómina':               Users,
-  'Compra de Materiales': Package,
-  'Pago a Proveedor':     Truck,
-  'Servicios':            Wrench,
-  'Gastos Operativos':    Receipt,
-  'Inversión en Equipos': Cpu,
-  'Otros':                FolderOpen,
-  'Otro':                 FolderOpen,
-};
 
 const scoreStyle = (score) => {
   if (score >= 750) return { bg: '#E3F4EA', color: '#2E7D5B' };
@@ -92,8 +79,6 @@ const CTPipeline = ({ estado, tipoFactoring }) => {
   );
 };
 
-const DISTRIB_EMPTY       = { open: false, editId: null, concepto: '', monto: '', asignarProveedor: false, providerId: '' };
-const PROVIDER_FORM_EMPTY = { razonSocial: '', nombreComercial: '', ruc: '', sector: 'Materiales', telefono: '', correo: '', esClienteBonafide: false };
 const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', fechaVencimiento: '', documento: null };
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
@@ -102,10 +87,12 @@ const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pag
 const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
 
 const initialProviders = [
-  { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true },
-  { id: 'p2', razonSocial: 'TransGE S.L.',  nombreComercial: 'TransGE',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true },
-  { id: 'p3', razonSocial: 'ServTec GE',    nombreComercial: 'ServTec GE', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true },
+  { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true, kyc: 'vigente',  scoreCredito: 780 },
+  { id: 'p2', razonSocial: 'TransGE S.L.',  nombreComercial: 'TransGE',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true, kyc: 'vigente',  scoreCredito: 690 },
+  { id: 'p3', razonSocial: 'ServTec GE',    nombreComercial: 'ServTec GE', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true, kyc: 'pendiente', scoreCredito: 510 },
 ];
+
+const KYC_BADGE = { vigente: 'green', pendiente: 'yellow', vencido: 'red' };
 
 const initialContracts = [
   {
@@ -170,34 +157,25 @@ const initialPagos = [];
 const TABS = [
   { id: 'contrato',     label: 'Contrato',     Icon: ScrollText,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'contratante',  label: 'Contratante',  Icon: Building2,   iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
-  { id: 'distribucion', label: 'Distribución', Icon: BarChart2,   iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'proveedores',  label: 'Proveedores', Icon: Truck,       iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'facturas',     label: 'Facturas',     Icon: Receipt,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'pagos',        label: 'Pagos',        Icon: CreditCard,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
 ];
 
 export default function EpCreditos() {
   const { go } = useApp();
-  const nextDistribId = useRef(0);
-  const [contracts, setContracts]                 = useState(initialContracts);
-  const [providers, setProviders]                 = useState(initialProviders);
+  const contracts = initialContracts;
+  const providers = initialProviders;
   const [detailId, setDetailId]                   = useState(null);
   const [activeTab, setActiveTab]                 = useState('contrato');
   const [invoices, setInvoices]                   = useState(initialInvoices);
   const [pagos, setPagos]                         = useState(initialPagos);
   const [search, setSearch]                       = useState('');
-  const [showProviderModal, setShowProviderModal] = useState(false);
-  const [distribModal, setDistribModal]           = useState(DISTRIB_EMPTY);
   const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
-  const [providerForm, setProviderForm]           = useState(PROVIDER_FORM_EMPTY);
-  const [toast, setToast] = useState({ visible: false, message: '' });
   const [reqModal, setReqModal] = useState(null);
-
-  const showToast = (message) => {
-    setToast({ visible: true, message });
-    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 4500);
-  };
+  const [provDetailModal, setProvDetailModal] = useState(null);
 
   const detailContract = detailId ? (contracts.find(c => c.id === detailId) ?? null) : null;
 
@@ -218,61 +196,6 @@ export default function EpCreditos() {
   // página se debe mostrar de inmediato, sin espera artificial del frontend.
   const { visibleItems: pagedContracts, hasMore: hasMoreContracts, loading: loadingContracts, sentinelRef: contractsSentinelRef } =
     useInfiniteScroll(filteredContracts, { pageSize: 10, delay: 0, resetKey: search });
-
-  const updateContract = (id, patch) =>
-    setContracts(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
-
-  const syncDistrib = (id, nextDist) => {
-    const nextAsignado = nextDist.reduce((s, d) => s + d.monto, 0);
-    updateContract(id, { distribucion: nextDist, asignado: nextAsignado, disponible: contracts.find(c => c.id === id).monto - nextAsignado });
-  };
-
-  // ── Distribución handlers ──
-
-  const handleSaveDistrib = () => {
-    const amount = Number(distribModal.monto.replace?.(/[^0-9]/g, '') ?? distribModal.monto) || 0;
-    if (amount <= 0 || !distribModal.concepto) return;
-    const provider = distribModal.asignarProveedor && distribModal.providerId
-      ? providers.find(p => p.id === distribModal.providerId)
-      : null;
-    const item = {
-      id: distribModal.editId || `dist-${nextDistribId.current++}`,
-      concepto: distribModal.concepto,
-      monto: amount,
-      providerId:     provider?.id          || null,
-      providerName:   provider?.razonSocial || null,
-      providerSector: provider?.sector      || null,
-    };
-    const nextDist = distribModal.editId
-      ? detailContract.distribucion.map(d => d.id === distribModal.editId ? item : d)
-      : [...detailContract.distribucion, item];
-    syncDistrib(detailId, nextDist);
-    setDistribModal(DISTRIB_EMPTY);
-  };
-
-  const handleDeleteDistrib = (distId) =>
-    syncDistrib(detailId, detailContract.distribucion.filter(d => d.id !== distId));
-
-  const handleOpenEditDistrib = (item) =>
-    setDistribModal({
-      open: true, editId: item.id,
-      concepto: item.concepto,
-      monto: item.monto.toString(),
-      asignarProveedor: !!item.providerId,
-      providerId: item.providerId || providers[0]?.id || '',
-    });
-
-  // ── Proveedor handler ──
-
-  const handleAddProvider = () => {
-    if (!providerForm.razonSocial.trim()) return;
-    const newId = `p${Math.max(...providers.map(p => Number(p.id.replace('p', ''))), 0) + 1}`;
-    const next  = { id: newId, razonSocial: providerForm.razonSocial, nombreComercial: providerForm.nombreComercial, ruc: providerForm.ruc, sector: providerForm.sector, email: providerForm.correo, telefono: providerForm.telefono, esClienteBonafide: providerForm.esClienteBonafide, activo: true };
-    setProviders(prev => [...prev, next]);
-    setShowProviderModal(false);
-    setProviderForm(PROVIDER_FORM_EMPTY);
-    showToast(`${providerForm.razonSocial} ha sido añadido al directorio de proveedores.`);
-  };
 
   // ── Facturas handlers ──
 
@@ -658,115 +581,84 @@ export default function EpCreditos() {
               );
             })()}
 
-            {/* ── TAB: Distribución del crédito ── */}
-            {activeTab === 'distribucion' && (
+            {/* ── TAB: Proveedores ── */}
+            {activeTab === 'proveedores' && (() => {
+              // Solo se listan asignaciones con un proveedor real vinculado —
+              // los conceptos sin proveedor (ej. "Compra de Materiales" sin
+              // asignar) no pertenecen a esta vista de solo lectura.
+              const filas = detailContract.distribucion
+                .map(item => ({ item, prov: providers.find(p => p.id === item.providerId) }))
+                .filter(({ prov }) => prov);
+              return (
               <div className="space-y-5">
                 <div className="bg-white rounded-[14px] border border-border p-5">
-                  <SectionHeader icon={BarChart2} iconBg="#FFF3E0" iconColor="#EF7A2C"
-                    title="Distribuciones" subtitle="Asignaciones del crédito por concepto y proveedor."
-                    action={
-                      <div className="flex items-center gap-1.5">
-                        <div className="sm:hidden flex items-center gap-1.5">
-                          <Button variant="ghost" size="sm" onClick={() => setShowProviderModal(true)} title="Añadir proveedor"
-                            className="!text-orange-dark hover:!bg-orange-tint">
-                            <Users className="w-4 h-4" />
-                          </Button>
-                          <Button variant="primary" size="sm" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <div className="hidden sm:flex gap-2">
-                          <Button variant="ghost" onClick={() => setShowProviderModal(true)}
-                            className="!text-orange-dark hover:!bg-orange-tint">Añadir proveedor</Button>
-                          <Button variant="primary" onClick={() => setDistribModal({ ...DISTRIB_EMPTY, open: true, providerId: providers[0]?.id || '' })}>
-                            Nueva Distribución
-                          </Button>
-                        </div>
-                      </div>
-                    }
+                  <SectionHeader icon={Truck} iconBg="#FFF3E0" iconColor="#EF7A2C"
+                    title="Proveedores" subtitle="Proveedores de este contrato y el monto que le corresponde a cada uno."
                   />
 
-                  <div className="space-y-3">
-                    {detailContract.distribucion.map(item => {
-                      const ConceptIcon = CONCEPTO_ICONS[item.concepto] ?? FolderOpen;
-                      const pctVal = parseFloat(pct(item.monto, detailContract.monto));
-                      return (
-                        <div
-                          key={item.id}
-                          className="bg-white rounded-[16px] p-4 border border-border transition-all duration-200 hover:scale-[1.015] hover:border-orange/40 cursor-default"
-                          onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(249,115,22,0.18)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
-                        >
-                          {/* Mobile */}
-                          <div className="sm:hidden">
-                            <div className="flex items-center gap-2.5 mb-2">
-                              <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
-                                <ConceptIcon className="w-4 h-4 text-orange-dark" />
-                              </div>
-                              <span className="text-[13px] font-bold text-text-1 leading-tight">{item.concepto}</span>
-                            </div>
-                            {item.providerName
-                              ? <div className="text-[12px] text-text-4 truncate mb-2">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
-                              : <div className="text-[12px] text-text-5 mb-2">Sin proveedor asociado</div>
-                            }
-                            <div className="flex items-center justify-between pt-2.5 border-t border-border">
-                              <div>
-                                <div className="text-[14px] font-extrabold text-text-1">{formatXaf(item.monto)}</div>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1"
-                                      style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
-                                  {pctVal}% del crédito
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
+                  {/* Móvil: cards */}
+                  <div className="sm:hidden space-y-2">
+                    {filas.map(({ item, prov }) => (
+                      <div key={item.id} className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-bold text-text-1 truncate">{item.providerName}</p>
+                            <p className="text-[11px] text-text-4">{item.concepto}{item.providerSector ? ` · ${item.providerSector}` : ''}</p>
                           </div>
-                          {/* Desktop */}
-                          <div className="hidden sm:flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                              <ConceptIcon className="w-5 h-5 text-orange-dark" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[14px] font-bold text-text-1 leading-tight">{item.concepto}</div>
-                              {item.providerName
-                                ? <div className="text-[12px] text-text-4 mt-0.5 truncate">{item.providerName} · <span className="text-text-5">{item.providerSector}</span></div>
-                                : <div className="text-[12px] text-text-5 mt-0.5">Sin proveedor asociado</div>
-                              }
-                            </div>
-                            <div className="shrink-0 flex items-center gap-3">
-                              <div className="text-right">
-                                <div className="text-[15px] font-extrabold text-text-1 leading-tight">{formatXaf(item.monto)}</div>
-                                <div className="mt-1 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full"
-                                     style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.25)' }}>
-                                  {pctVal}% del crédito
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditDistrib(item)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => handleDeleteDistrib(item.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                          <Badge variant={KYC_BADGE[prov.kyc] ?? 'yellow'}>{prov.kyc}</Badge>
                         </div>
-                      );
-                    })}
-                    {detailContract.distribucion.length === 0 && (
-                      <div className="text-[12px] text-text-4 py-6 text-center">No hay distribuciones registradas aún.</div>
+                        <div className="flex items-center justify-between pt-2 border-t border-border">
+                          <div className="text-[13px] font-extrabold text-text-1">{formatXaf(item.monto)}</div>
+                          <button onClick={() => setProvDetailModal(prov)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {filas.length === 0 && (
+                      <div className="text-[12px] text-text-4 text-center py-8">No hay proveedores asignados aún.</div>
                     )}
+                  </div>
+
+                  {/* Desktop: tabla (mismo patrón que la tabla de PYMEs en Mis Contratos del Contratante) */}
+                  <div className="hidden sm:block overflow-x-auto">
+                    <table className="w-full min-w-[680px]">
+                      <thead className="bg-page-bg">
+                        <tr className="border-b border-border">
+                          {['Proveedor', 'Concepto', 'Sector', 'Estado', 'Monto', ''].map((h, i) => (
+                            <th key={h || 'accion'} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 4 ? 'text-right' : i === 5 ? 'text-center' : 'text-left'}`}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filas.map(({ item, prov }) => (
+                          <tr key={item.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                            <td className="px-4 py-3 text-[12px] font-medium text-text-1">{item.providerName}</td>
+                            <td className="px-4 py-3 text-[12px] text-text-4">{item.concepto}</td>
+                            <td className="px-4 py-3 text-[12px] text-text-4">{item.providerSector || '—'}</td>
+                            <td className="px-4 py-3">
+                              <Badge variant={KYC_BADGE[prov.kyc] ?? 'yellow'}>{prov.kyc}</Badge>
+                            </td>
+                            <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{formatXaf(item.monto)}</td>
+                            <td className="px-4 py-3 text-center">
+                              <button onClick={() => setProvDetailModal(prov)} title="Ver proveedor" className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer">
+                                <Eye className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {filas.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">No hay proveedores asignados aún.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
 
             {/* ── TAB: Facturas ── */}
             {activeTab === 'facturas' && (() => {
@@ -1042,128 +934,6 @@ export default function EpCreditos() {
         ) : null}
       </div>
 
-      {/* ── Modal: Nueva / Editar Distribución ── */}
-      {distribModal.open && (
-        <Modal
-          title={distribModal.editId ? 'Editar distribución' : 'Nueva distribución'}
-          onClose={() => setDistribModal(DISTRIB_EMPTY)}
-          footer={
-            <>
-              <Button variant="ghost"   onClick={() => setDistribModal(DISTRIB_EMPTY)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleSaveDistrib}>
-                {distribModal.editId ? 'Guardar cambios' : 'Añadir distribución'}
-              </Button>
-            </>
-          }
-          wide
-        >
-          <div className="grid grid-cols-1 gap-4">
-            <FormGroup label="Concepto" required>
-              <Select value={distribModal.concepto} onChange={e => setDistribModal({ ...distribModal, concepto: e.target.value })}>
-                <option value="">Seleccionar concepto…</option>
-                {CONCEPTOS.map(c => <option key={c}>{c}</option>)}
-              </Select>
-            </FormGroup>
-            <FormGroup label="Monto asignado (XAF)" required>
-              <Input
-                type="text" inputMode="numeric" placeholder="Ej: 5,000,000"
-                value={distribModal.monto}
-                onChange={e => setDistribModal({ ...distribModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-              />
-              {distribModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(distribModal.monto)}</div>}
-            </FormGroup>
-            <div className="flex items-center gap-3">
-              <input
-                id="asignar-proveedor-distrib"
-                type="checkbox"
-                checked={distribModal.asignarProveedor}
-                onChange={() => setDistribModal({
-                  ...distribModal,
-                  asignarProveedor: !distribModal.asignarProveedor,
-                  providerId: !distribModal.asignarProveedor ? (providers[0]?.id || '') : '',
-                })}
-              />
-              <label htmlFor="asignar-proveedor-distrib" className="text-[13px] text-text-3">Asignar a un proveedor</label>
-            </div>
-            {distribModal.asignarProveedor && (
-              <FormGroup label="Proveedor" required>
-                <Select value={distribModal.providerId} onChange={e => setDistribModal({ ...distribModal, providerId: e.target.value })}>
-                  <option value="">Seleccionar proveedor…</option>
-                  {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
-                </Select>
-              </FormGroup>
-            )}
-          </div>
-        </Modal>
-      )}
-
-      {/* ── Modal: Añadir proveedor ── */}
-      {showProviderModal && (
-        <Modal
-          title="Añadir proveedor"
-          onClose={() => { setShowProviderModal(false); setProviderForm(PROVIDER_FORM_EMPTY); }}
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => { setShowProviderModal(false); setProviderForm(PROVIDER_FORM_EMPTY); }}>Cancelar</Button>
-              <Button variant="primary" onClick={handleAddProvider}>Guardar proveedor</Button>
-            </>
-          }
-          wide
-        >
-          <div className="space-y-4">
-            <div className="text-[12px] text-text-4">Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones y pagos en cualquier momento.</div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormGroup label="Razón Social" required>
-                <Input value={providerForm.razonSocial} onChange={e => setProviderForm({ ...providerForm, razonSocial: e.target.value })} placeholder="Nombre legal exacto" />
-              </FormGroup>
-              <FormGroup label="Nombre Comercial">
-                <Input value={providerForm.nombreComercial} onChange={e => setProviderForm({ ...providerForm, nombreComercial: e.target.value })} placeholder="Nombre comercial o marca" />
-              </FormGroup>
-              <FormGroup label="RUC / NIF" required>
-                <Input value={providerForm.ruc} onChange={e => setProviderForm({ ...providerForm, ruc: e.target.value })} placeholder="Ej: GE-2024-00123" />
-              </FormGroup>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormGroup label="Sector Productivo" required>
-                <Select value={providerForm.sector} onChange={e => setProviderForm({ ...providerForm, sector: e.target.value })}>
-                  <option value="">Seleccionar…</option>
-                  {SECTORES.map(s => <option key={s}>{s}</option>)}
-                </Select>
-              </FormGroup>
-              <FormGroup label="Teléfono">
-                <Input value={providerForm.telefono} onChange={e => setProviderForm({ ...providerForm, telefono: e.target.value })} placeholder="+240 222 000 000" />
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input type="email" value={providerForm.correo} onChange={e => setProviderForm({ ...providerForm, correo: e.target.value })} placeholder="correo@empresa.gq" />
-              </FormGroup>
-            </div>
-            <button
-              type="button"
-              onClick={() => setProviderForm({ ...providerForm, esClienteBonafide: !providerForm.esClienteBonafide })}
-              className="flex items-center gap-3 w-full rounded-[10px] border px-4 py-3 transition-all"
-              style={{
-                borderColor: providerForm.esClienteBonafide ? 'rgba(224,32,28,0.35)' : '#ECEAE7',
-                background:  providerForm.esClienteBonafide ? '#FFF3E0' : '#F6F5F3',
-              }}
-            >
-              <div className="w-9 h-5 rounded-full flex items-center transition-all shrink-0 px-0.5"
-                   style={{ background: providerForm.esClienteBonafide ? '#E0201C' : '#A9A6A1' }}>
-                <div className="w-4 h-4 rounded-full bg-white shadow transition-transform"
-                     style={{ transform: providerForm.esClienteBonafide ? 'translateX(16px)' : 'translateX(0)' }} />
-              </div>
-              <div className="text-left">
-                <div className="text-[13px] font-semibold" style={{ color: providerForm.esClienteBonafide ? '#E0201C' : '#26262B' }}>
-                  Cliente Bonafide
-                </div>
-                <div className="text-[11px] text-text-4">
-                  {providerForm.esClienteBonafide ? 'Este proveedor es cliente de Bonafide' : 'Este proveedor no es cliente de Bonafide'}
-                </div>
-              </div>
-            </button>
-          </div>
-        </Modal>
-      )}
-
       {/* ── Modal: Nueva / Editar factura al Contratante ── */}
       {invCtModal.open && (
         <Modal
@@ -1368,6 +1138,33 @@ export default function EpCreditos() {
         );
       })()}
 
+      {/* ── Modal: Ver proveedor ── */}
+      {provDetailModal && (
+        <Modal title={`${provDetailModal.razonSocial} · ${provDetailModal.id}`} onClose={() => setProvDetailModal(null)}>
+          <div className="space-y-5">
+            <div className="flex items-center justify-between gap-3">
+              <Badge variant={KYC_BADGE[provDetailModal.kyc] ?? 'yellow'}>{provDetailModal.kyc}</Badge>
+              {provDetailModal.scoreCredito != null && (() => {
+                const sStyle = scoreStyle(provDetailModal.scoreCredito);
+                return (
+                  <div className="px-2.5 py-1.5 rounded-[8px]" style={{ background: sStyle.bg }}>
+                    <span className="text-[11px] font-semibold mr-1.5" style={{ color: sStyle.color }}>Score crediticio</span>
+                    <span className="text-[15px] font-extrabold" style={{ color: sStyle.color }}>{provDetailModal.scoreCredito}</span>
+                  </div>
+                );
+              })()}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <InfoRow label="Nombre Comercial" value={provDetailModal.nombreComercial} />
+              <InfoRow label="RUC / NIF"        value={provDetailModal.ruc} />
+              <InfoRow label="Sector"           value={provDetailModal.sector} />
+              <InfoRow label="Teléfono"         value={provDetailModal.telefono} />
+              <InfoRow label="Correo"           value={provDetailModal.email} />
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* ── Modal: Requerimiento de Bonafide ── */}
       {reqModal && (
         <Modal title={`Requerimiento · ${reqModal.id}`} onClose={() => setReqModal(null)}>
@@ -1391,18 +1188,6 @@ export default function EpCreditos() {
         </Modal>
       )}
 
-      {/* ── Toast ── */}
-      <div className={`fixed bottom-6 right-6 z-50 w-[340px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
-        ${toast.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}
-      >
-        <div className="w-8 h-8 rounded-[8px] bg-orange-tint flex items-center justify-center shrink-0 mt-0.5">
-          <CheckCircle2 className="w-4 h-4 text-orange" />
-        </div>
-        <div>
-          <div className="text-[13px] font-semibold text-text-1 mb-0.5">Acción realizada</div>
-          <div className="text-[12px] text-text-4 leading-snug">{toast.message}</div>
-        </div>
-      </div>
     </AppShell>
   );
 }
