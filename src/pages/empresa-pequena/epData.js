@@ -21,6 +21,31 @@ export const pymeContratosPendientes = [
     comentarioRechazo: '',
     proveedoresAsignados: [],             // [{ id, nombre, email, telefono, monto, cargaNomina }]
   },
+  {
+    // Ya fue configurado por la PYME y enviado a revisión, pero Bonafide
+    // encontró una observación y lo devolvió con un requerimiento — la PYME
+    // debe reconfigurarlo.
+    id: 'CT-2026-0066',
+    contratanteNombre: 'Evans Construction & Engineering S.A.',
+    montoAsignado: 30_000_000,
+    plazoPago: 45,
+    interes: '5.5% anual',
+    bancoFondeador: 'ECOBank',
+    porcentajeRetencion: 2.5,
+    porcentajeGestionCobranza: 1,
+    fechaAsignacion: '20/06/2026',
+    estado: 'Con Requerimientos',
+    gestionFondos: 'retirar',
+    comentarioRechazo: '',
+    proveedoresAsignados: [
+      { id: 'PROV-9001', nombre: 'Suministros del Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
+    ],
+    requerimiento: {
+      entidades: ['PYME'],
+      mensaje: 'El proveedor "Suministros del Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
+      fecha: '21/06/2026',
+    },
+  },
 ];
 
 export const montoDisponibleProveedores = (item, excluirId = null) =>

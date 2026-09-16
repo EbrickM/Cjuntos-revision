@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ArrowUpRight, ChevronRight,
+  Search, ChevronRight, MessageSquare,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -9,6 +9,7 @@ import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentin
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
 export default function EmpContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
+  const [reqModal, setReqModal] = useState(null);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
   const totalUtilizado  = contratos.reduce((a, c) => a + c.utilizado, 0);
@@ -50,25 +52,20 @@ export default function EmpContratos() {
           ))}
         </div>
 
-        {/* Buscador + botón */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
+        {/* Título + buscador */}
+        <div>
+          <div className="mb-3">
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-52">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-              <input
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar contrato, PYME…"
-                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
-              />
-            </div>
-            <Button variant="primary" size="sm" onClick={() => go('empNuevaSolicitud')}>
-              <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Nueva solicitud
-            </Button>
+          <div className="relative w-full sm:w-52">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar contrato, PYME…"
+              className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+            />
           </div>
         </div>
 
@@ -81,14 +78,25 @@ export default function EmpContratos() {
               <div
                 key={c.id}
                 onClick={() => { contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
-                className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                 style={{ animationDelay: `${idx * 70}ms` }}
               >
+                {/* Ícono flotante: contrato con requerimiento de Bonafide */}
+                {c.requerimiento && (
+                  <button
+                    onClick={e => { e.stopPropagation(); setReqModal(c); }}
+                    title="Ver requerimiento"
+                    className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                  </button>
+                )}
+
                 {/* ID + PYME + sector + estado */}
                 <div className="min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
-                    <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
+                    <Badge variant={c.estado === 'Activo' ? 'green' : 'yellow'}>{c.estado}</Badge>
                   </div>
                   <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
                   {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
@@ -132,6 +140,29 @@ export default function EmpContratos() {
         </div>
 
       </div>
+
+      {/* ── Modal: Requerimiento de Bonafide ── */}
+      {reqModal && (
+        <Modal title={`Requerimiento · ${reqModal.id}`} onClose={() => setReqModal(null)}>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3 p-4 rounded-[12px] bg-red-bg border border-red/20">
+              <MessageSquare className="w-5 h-5 shrink-0 mt-0.5 text-red-text" />
+              <div>
+                <p className="text-[13px] text-text-1 leading-relaxed">{reqModal.requerimiento?.mensaje}</p>
+                <p className="text-[11px] mt-2" style={{ color: TEXT4 }}>Reportado el {reqModal.requerimiento?.fecha}</p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              full
+              className="h-[46px] justify-center"
+              onClick={() => { const marcoId = reqModal.requerimiento?.marcoId; setReqModal(null); go('empConfigurarContrato', { marcoId }); }}
+            >
+              Reconfigurar Contrato
+            </Button>
+          </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }

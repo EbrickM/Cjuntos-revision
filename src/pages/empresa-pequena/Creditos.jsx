@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import {
   FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
-  BarChart2, ScrollText, UserSquare, CalendarDays, Landmark,
+  BarChart2, ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare,
   Upload, Paperclip,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -116,6 +116,15 @@ const initialContracts = [
     // eligió al configurarlo (Subproceso 2 del BPMN).
     plazoPago: 30, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
     porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5, gestionFondos: 'billetera',
+    // Bonafide encontró una observación en la reconfiguración de este
+    // contrato (Fase 3 del proceso maestro) — `contratoId` apunta al ítem en
+    // `pymeContratosPendientes` (epData.js) que el wizard debe reabrir.
+    requerimiento: {
+      entidades: ['PYME'],
+      mensaje: 'El proveedor "Suministros del Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
+      fecha: '21/06/2026',
+      contratoId: 'CT-2026-0066',
+    },
     contratante: {
       razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
@@ -128,6 +137,25 @@ const initialContracts = [
     distribucion: [
       { id: 'dist-001', concepto: 'Compra de Materiales', monto: 21_500_000, providerId: '',   providerName: '',            providerSector: '' },
       { id: 'dist-002', concepto: 'Pago a Proveedor',     monto: 26_000_000, providerId: 'p1', providerName: 'Cemex GE',    providerSector: 'Materiales' },
+    ],
+  },
+  {
+    id: 'CT-2026-0059', kyc: 'vigente', tipoFactoring: 'directo',
+    monto: 95_000_000, asignado: 30_000_000, disponible: 65_000_000,
+    plazoPago: 60, interes: '4.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
+    porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1, gestionFondos: 'retirar',
+    contratante: {
+      razonSocial: 'TotalEnerGE S.A.', nombreComercial: 'TotalEnerGE', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
+      telefonoCorporativo: '+240 222 300 400', correoCorporativo: 'contratos@totalenerge.gq',
+      objetoTrabajo: 'Suministro y mantenimiento de equipos de perforación para operaciones costa afuera en el bloque de Punta Europa.',
+      documentoContrato: null, montoGlobal: '95000000',
+      fechaInicio: '2026-04-01', fechaFin: '2027-03-31', plazosEjecucion: '12 meses',
+      repNombre: 'Ricardo Nsue Obama', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1975-00456',
+      repCargo: 'Gerente de Operaciones', repTelefono: '+240 222 300 401', repCorreo: 'rnsue@totalenerge.gq',
+    },
+    distribucion: [
+      { id: 'dist-201', concepto: 'Pago a Proveedor',     monto: 18_000_000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
+      { id: 'dist-202', concepto: 'Compra de Materiales', monto: 12_000_000, providerId: '',   providerName: '',             providerSector: '' },
     ],
   },
 ];
@@ -164,6 +192,7 @@ export default function EpCreditos() {
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
   const [providerForm, setProviderForm]           = useState(PROVIDER_FORM_EMPTY);
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const [reqModal, setReqModal] = useState(null);
 
   const showToast = (message) => {
     setToast({ visible: true, message });
@@ -364,21 +393,13 @@ export default function EpCreditos() {
             {/* Contenedor principal */}
             <div className="bg-white rounded-[14px] border border-border p-5">
 
-              {/* Cabecera: título + buscador + botón */}
+              {/* Cabecera: título + buscador */}
               <div className="mb-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
-                    <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
-                  </div>
-                  {/* Botón solo en desktop */}
-                  <div className="hidden sm:block shrink-0">
-                    <Button variant="primary" onClick={() => go('epSolicitarContrato', { returnTo: 'epCreditos' })}>Solicitar Nuevo Contrato</Button>
-                  </div>
+                <div className="mb-3">
+                  <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
+                  <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  {/* Botón ancho completo en móvil */}
-                  <Button variant="primary" full className="sm:hidden" onClick={() => go('epSolicitarContrato', { returnTo: 'epCreditos' })}>Solicitar Nuevo Contrato</Button>
                   <div className="relative flex-1 sm:flex-none">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
                     <input
@@ -404,9 +425,20 @@ export default function EpCreditos() {
                   <div
                     key={contract.id}
                     onClick={() => { setDetailId(contract.id); setActiveTab('contrato'); }}
-                    className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                    className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                     style={{ animationDelay: `${idx * 70}ms` }}
                   >
+                    {/* Ícono flotante: contrato con requerimiento de Bonafide */}
+                    {contract.requerimiento && (
+                      <button
+                        onClick={e => { e.stopPropagation(); setReqModal(contract); }}
+                        title="Ver requerimiento"
+                        className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                    )}
+
                     {/* ID + empresa + sector + score */}
                     <div className="min-w-0">
                       <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
@@ -1335,6 +1367,29 @@ export default function EpCreditos() {
           </Modal>
         );
       })()}
+
+      {/* ── Modal: Requerimiento de Bonafide ── */}
+      {reqModal && (
+        <Modal title={`Requerimiento · ${reqModal.id}`} onClose={() => setReqModal(null)}>
+          <div className="space-y-5">
+            <div className="flex items-start gap-3 p-4 rounded-[12px] bg-red-bg border border-red/20">
+              <MessageSquare className="w-5 h-5 shrink-0 mt-0.5 text-red-text" />
+              <div>
+                <p className="text-[13px] text-text-1 leading-relaxed">{reqModal.requerimiento?.mensaje}</p>
+                <p className="text-[11px] text-text-5 mt-2">Reportado el {reqModal.requerimiento?.fecha}</p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              full
+              className="h-[46px] justify-center"
+              onClick={() => { const contratoId = reqModal.requerimiento?.contratoId; setReqModal(null); go('epConfigurarContrato', { contratoId }); }}
+            >
+              Reconfigurar Contrato
+            </Button>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Toast ── */}
       <div className={`fixed bottom-6 right-6 z-50 w-[340px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out

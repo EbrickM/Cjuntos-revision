@@ -29,6 +29,15 @@ export const contratos = [
     ...FICHA_CTM_2026_0002 },
   { id: 'CT-2026-0052', pyme: 'AgroSur GE S.L.', ini: 'AS', sector: 'Agroindustria', asignado: 60_000_000, utilizado: 12_000_000, facturas: 0, estado: 'Activo',
     objeto: 'Suministro de insumos agrícolas para plantaciones de cacao y café en la región continental.', fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses', plazoPago: 45,
+    // Bonafide encontró una observación en la reconfiguración de este
+    // contrato (Fase 3 del proceso maestro) — `marcoId` apunta al
+    // contrato-marco en `contratosMarco` que el wizard debe reabrir.
+    requerimiento: {
+      entidades: ['Empresa Contratante'],
+      mensaje: 'El monto asignado a AgroSur GE S.L. supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      fecha: '16/06/2026',
+      marcoId: 'CTM-2026-0011',
+    },
     ...FICHA_CTM_2026_0002 },
 ];
 
@@ -85,6 +94,29 @@ export const contratosMarco = [
     estado: 'Pendiente de Configuración', // -> 'Pendiente de Revisión' al enviar
     cuentaBancaria: null,                 // { tipo: 'bonafide' | 'fondeador', numero }
     pymesAsignadas: [],                   // [{ id, pymeNombre, pymeId, monto, plazoPago, email, telefono, documentoNombre }]
+  },
+  {
+    // Ya fue configurado por la Contratante y enviado a revisión, pero
+    // Bonafide encontró una observación (Fase 3 del proceso maestro) y lo
+    // devolvió con un requerimiento — la Contratante debe reconfigurarlo.
+    id: 'CTM-2026-0011',
+    montoBase: 120_000_000,
+    plazoPagoDefault: 45,
+    interes: '6% anual',
+    bancoFondeador: 'CCEIBank',
+    porcentajeRetencion: 2,
+    porcentajeGestionCobranza: 1,
+    fechaCreacion: '15/06/2026',
+    estado: 'Con Requerimientos',
+    cuentaBancaria: { tipo: 'bonafide', numero: null },
+    pymesAsignadas: [
+      { id: 'ASG-9001', pymeNombre: 'AgroSur GE S.L.', pymeId: 'AgroSur GE S.L.', monto: 80_000_000, plazoPago: 45, email: 'contacto@agrosur.gq', telefono: '+240 222 550 120', documentoNombre: 'contrato_comercial.pdf' },
+    ],
+    requerimiento: {
+      entidades: ['Empresa Contratante'],
+      mensaje: 'El monto asignado a AgroSur GE S.L. supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      fecha: '16/06/2026',
+    },
   },
 ];
 

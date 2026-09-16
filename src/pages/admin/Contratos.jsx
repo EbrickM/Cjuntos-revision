@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, ListFilter, Eye, AlertTriangle, Send } from 'lucide-react';
+import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, ListFilter, Eye, AlertTriangle, Send, X } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
@@ -872,27 +872,59 @@ export default function AdminContratos() {
                     {/* Un contrato puede tener varias PYMEs o proveedores —
                         hay que precisar cuál(es), no solo el tipo de entidad. */}
                     {ent === 'PYME' && reqModal.entidades.includes('PYME') && (
-                      <div className="ml-7 mt-1.5 mb-1 space-y-1.5">
+                      <div className="ml-7 mt-1.5 mb-1 space-y-2">
                         {pymesDisponibles.length === 0 ? (
                           <p className="text-[11px] text-text-5 italic">No hay PYMEs registradas en este contrato.</p>
-                        ) : pymesDisponibles.map(p => (
-                          <label key={p} className="flex items-center gap-2 cursor-pointer text-[12px] text-text-2">
-                            <input type="checkbox" checked={reqModal.pymes.includes(p)} onChange={() => toggleReqPyme(p)} className="w-3.5 h-3.5 accent-orange cursor-pointer" />
-                            {p}
-                          </label>
-                        ))}
+                        ) : (
+                          <>
+                            <Select value="" onChange={e => { if (e.target.value) toggleReqPyme(e.target.value); }}>
+                              <option value="">+ Seleccionar PYME…</option>
+                              {pymesDisponibles.filter(p => !reqModal.pymes.includes(p)).map(p => (
+                                <option key={p} value={p}>{p}</option>
+                              ))}
+                            </Select>
+                            {reqModal.pymes.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {reqModal.pymes.map(p => (
+                                  <span key={p} className="inline-flex items-center gap-1 text-[11px] font-medium pl-2.5 pr-1.5 py-1 rounded-full bg-orange-tint text-orange-dark">
+                                    {p}
+                                    <button type="button" onClick={() => toggleReqPyme(p)} className="p-0.5 rounded-full hover:bg-orange/20 cursor-pointer">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                     {ent === 'Proveedor' && reqModal.entidades.includes('Proveedor') && (
-                      <div className="ml-7 mt-1.5 mb-1 space-y-1.5">
+                      <div className="ml-7 mt-1.5 mb-1 space-y-2">
                         {proveedoresDisponibles.length === 0 ? (
                           <p className="text-[11px] text-text-5 italic">No hay proveedores registrados en este contrato.</p>
-                        ) : proveedoresDisponibles.map(p => (
-                          <label key={p} className="flex items-center gap-2 cursor-pointer text-[12px] text-text-2">
-                            <input type="checkbox" checked={reqModal.proveedores.includes(p)} onChange={() => toggleReqProveedor(p)} className="w-3.5 h-3.5 accent-orange cursor-pointer" />
-                            {p}
-                          </label>
-                        ))}
+                        ) : (
+                          <>
+                            <Select value="" onChange={e => { if (e.target.value) toggleReqProveedor(e.target.value); }}>
+                              <option value="">+ Seleccionar proveedor…</option>
+                              {proveedoresDisponibles.filter(p => !reqModal.proveedores.includes(p)).map(p => (
+                                <option key={p} value={p}>{p}</option>
+                              ))}
+                            </Select>
+                            {reqModal.proveedores.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {reqModal.proveedores.map(p => (
+                                  <span key={p} className="inline-flex items-center gap-1 text-[11px] font-medium pl-2.5 pr-1.5 py-1 rounded-full bg-orange-tint text-orange-dark">
+                                    {p}
+                                    <button type="button" onClick={() => toggleReqProveedor(p)} className="p-0.5 rounded-full hover:bg-orange/20 cursor-pointer">
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
