@@ -434,9 +434,10 @@ export default function EpConfigurarContrato() {
 
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
+                inputMode="numeric"
                 value={modal.monto}
-                onChange={e => setModal(m => ({ ...m, monto: e.target.value }))}
-                placeholder="Ej. 5.000.000"
+                onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
+                placeholder="Ej. 5000000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>

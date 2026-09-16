@@ -376,9 +376,10 @@ export default function EmpConfigurarContrato() {
               </FormGroup>
               <FormGroup label="Monto (XAF)" required className="mb-0">
                 <Input
+                  inputMode="numeric"
                   value={modal.monto}
-                  onChange={e => setModal(m => ({ ...m, monto: e.target.value }))}
-                  placeholder="Ej. 50.000.000"
+                  onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
+                  placeholder="Ej. 50000000"
                   className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
                 />
               </FormGroup>

@@ -333,9 +333,10 @@ export default function ProvConfigurarContrato() {
 
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
+                inputMode="numeric"
                 value={modal.monto}
-                onChange={e => setModal(m => ({ ...m, monto: e.target.value }))}
-                placeholder="Ej. 3.000.000"
+                onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
+                placeholder="Ej. 3000000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>
