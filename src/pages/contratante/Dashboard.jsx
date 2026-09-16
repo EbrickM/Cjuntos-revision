@@ -458,7 +458,7 @@ export default function EmpDash() {
               {/* Divisor */}
               <div className="h-px w-full bg-border" />
 
-              {/* Sección: Distribución por PYME + Estado de Solicitudes */}
+              {/* Sección: Distribución por PYME + Estado de Contratos */}
               <div className="p-4 sm:p-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
@@ -475,9 +475,9 @@ export default function EmpDash() {
                     </div>
                   </div>
 
-                  {/* Estado de las Solicitudes */}
+                  {/* Estado de Contratos */}
                   <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
-                    <p className="text-[13px] font-bold text-text-1 mb-1">Estado de las Solicitudes</p>
+                    <p className="text-[13px] font-bold text-text-1 mb-1">Estado de Contratos</p>
                     <p className="text-[11px] text-text-4 mb-4">{SOLICITUDES_TOTAL} solicitudes</p>
                     <div className="flex flex-col gap-2">
                       {estadoOps.map(d => (

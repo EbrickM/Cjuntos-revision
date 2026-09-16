@@ -452,7 +452,7 @@ export default function ProvDash() {
                   </div>
 
                   <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
-                    <p className="text-[13px] font-bold text-text-1 mb-1">Estado de las Solicitudes</p>
+                    <p className="text-[13px] font-bold text-text-1 mb-1">Estado de Contratos</p>
                     <p className="text-[11px] text-text-4 mb-4">{SOLICITUDES_TOTAL} solicitudes</p>
                     <div className="flex flex-col gap-2">
                       {estadoOps.map(d => (
