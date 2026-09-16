@@ -1,7 +1,7 @@
 import {
   Home, Building2,
   ClipboardList, Users, Receipt,
-  User, LogOut, Leaf, X, Clock, Landmark,
+  User, LogOut, Leaf, X, Clock, Landmark, Truck,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { logout } from '../../stores/authStore';
@@ -31,6 +31,15 @@ const NAV = {
     { id: 'empSolicitudes', Icon: Clock,         lbl: 'Solicitudes',     badge: '4'  },
     { id: 'empESG',         Icon: Leaf,          lbl: 'Huella Verde' },
     { id: 'empPerfil',      Icon: User,          lbl: 'Mi Perfil' },
+  ],
+  proveedor: [
+    { id: 'provDash',           Icon: Home,          lbl: 'Inicio' },
+    { id: 'provContratos',      Icon: ClipboardList, lbl: 'Mis Contratos' },
+    { id: 'provFacturas',       Icon: Receipt,       lbl: 'Mis Facturas' },
+    { id: 'provSuministradores', Icon: Truck,        lbl: 'Suministradores' },
+    { id: 'provSolicitudes',    Icon: Clock,         lbl: 'Solicitudes' },
+    { id: 'provESG',            Icon: Leaf,          lbl: 'Huella Verde' },
+    { id: 'provPerfil',         Icon: User,          lbl: 'Mi Perfil' },
   ],
 };
 

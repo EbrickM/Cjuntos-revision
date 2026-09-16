@@ -1,7 +1,7 @@
 import { useApp } from '../../state/AppContext';
 import Topbar from '../../components/layout/Topbar';
 import Button from '../../components/ui/Button';
-import { Briefcase, Building2 } from 'lucide-react';
+import { Briefcase, Building2, Truck } from 'lucide-react';
 
 const roles = [
   {
@@ -30,6 +30,19 @@ const roles = [
     buttonLabel: 'Acceder como Contratante',
     buttonVariant: 'primary',
   },
+  {
+    id: 'provDash',
+    Icon: Truck,
+    gradient: 'from-[#ef7a2c] to-[#FF9800]',
+    badge: 'Proveedor de la cadena',
+    title: 'Proveedor',
+    subtitle: 'Proveedor de Bienes y Servicios',
+    description:
+      'Gestiona los contratos que te asignan tus PYMEs y distribuye fondos entre tus propios suministradores.',
+
+    buttonLabel: 'Acceder como Proveedor',
+    buttonVariant: 'primary',
+  },
 ];
 
 export default function RoleSelect() {
@@ -44,7 +57,7 @@ export default function RoleSelect() {
 
       {/* Contenido */}
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 sm:p-8">
-        <div className="max-w-[900px] w-full">
+        <div className="max-w-[1280px] w-full">
 
           {/* Encabezado */}
           <div className="text-center mb-10">
@@ -57,7 +70,7 @@ export default function RoleSelect() {
           </div>
 
           {/* Grid de cards */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {roles.map(({ id, Icon, gradient, title, subtitle, description, buttonLabel, buttonVariant }) => (
               <div
                 key={id}

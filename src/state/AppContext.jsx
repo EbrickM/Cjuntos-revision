@@ -59,9 +59,16 @@ export const ROUTES = {
   empNotif:           '/contratante/notificaciones',
   empSettings:        '/contratante/ajustes',
 
-  // Proveedor (sin dashboard propio — solo el wizard de configuración del
-  // Subproceso 3, accedido por enlace directo)
+  // Proveedor
+  provDash:           '/proveedor',
+  provContratos:      '/proveedor/contratos',
+  provContratoDetalle: '/proveedor/contratos/detalle',
   provConfigurarContrato: '/proveedor/contratos/configurar',
+  provFacturas:       '/proveedor/facturas',
+  provSuministradores: '/proveedor/suministradores',
+  provSolicitudes:    '/proveedor/solicitudes',
+  provESG:            '/proveedor/huella-verde',
+  provPerfil:         '/proveedor/perfil',
 };
 
 const PATH_TO_SCREEN = Object.fromEntries(
@@ -85,6 +92,7 @@ export function AppProvider({ children }) {
     if (p.startsWith('/pyme'))        return 'empresa-pequena';
     if (p.startsWith('/contratante')) return 'contratante';
     if (p.startsWith('/admin'))       return 'admin';
+    if (p.startsWith('/proveedor'))   return 'proveedor';
     return null;
   })();
   const effectiveRole = role ?? derivedRole;
@@ -95,6 +103,7 @@ export function AppProvider({ children }) {
     if (screenId.startsWith('ep'))         setRole('empresa-pequena');
     else if (screenId.startsWith('emp'))   setRole('contratante');
     else if (screenId.startsWith('admin')) setRole('admin');
+    else if (screenId.startsWith('prov'))  setRole('proveedor');
     else if (screenId === 'splash' || screenId === 'login') setRole(null);
     navigate(path);
     window.scrollTo(0, 0);

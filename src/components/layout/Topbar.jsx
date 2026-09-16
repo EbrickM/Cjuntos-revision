@@ -4,6 +4,7 @@ import { useApp } from '../../state/AppContext';
 import { useAuthStore, logout } from '../../stores/authStore';
 import { contratosMarco, fmt } from '../../pages/contratante/contratanteData';
 import { pymeContratosPendientes, fmt as fmtEp } from '../../pages/empresa-pequena/epData';
+import { contratosPendientes as provContratosPendientes, fmt as fmtProv } from '../../pages/proveedor/provData';
 import Logo from './Logo';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
 
@@ -11,6 +12,7 @@ const ROLE_META = {
   'empresa-pequena': { roleLabel: 'Empresa PYME',       pill: { lbl: 'PYME',  cls: 'bg-green-bg text-green-text border-green-border'    } },
   contratante:       { roleLabel: 'Empresa Contratante', pill: null },
   admin:             { roleLabel: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
+  proveedor:         { roleLabel: 'Proveedor',           pill: { lbl: 'Proveedor', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
 };
 
 function getInitials(fullName = '') {
@@ -69,6 +71,16 @@ export default function Topbar({ role, onMenuClick }) {
         dt: c.fechaAsignacion,
         leida: false,
         accion: { label: 'Proceder con el contrato', screenId: 'epConfigurarContrato', opts: { contratoId: c.id } },
+      }));
+    }
+    if (role === 'proveedor') {
+      return provContratosPendientes.filter(c => c.estado === 'Pendiente de Configuración').map(c => ({
+        id: `provCt-${c.id}`,
+        titulo: `${c.pymeNombre} te asignó un nuevo contrato`,
+        cuerpo: `Contrato ${c.id} por ${fmtProv(c.montoAsignado)} XAF. Repártelo entre tus suministradores para activarlo.`,
+        dt: c.fechaAsignacion,
+        leida: false,
+        accion: { label: 'Proceder con el contrato', screenId: 'provConfigurarContrato', opts: { contratoId: c.id } },
       }));
     }
     return [];

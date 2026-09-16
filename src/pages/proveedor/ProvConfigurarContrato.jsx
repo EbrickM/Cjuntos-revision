@@ -8,32 +8,10 @@ import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
+import { contratosPendientes, montoDisponibleProveedores, fmt } from './provData';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
-//
-// A diferencia de los wizards de Contratante/PYME, aquí NO existe ningún
-// dashboard/rol "Proveedor" en el frontend (no hay login, Sidebar ni Topbar
-// propios) — a pedido explícito, esta pantalla es standalone y se accede por
-// URL directa (simulando el enlace seguro que el diagrama BPMN describe como
-// "Recibe Correo"), sin notificación de entrada ni datos compartidos con
-// ninguna otra pantalla — por eso el mock vive aquí mismo, no en un archivo
-// de datos separado.
-
-const fmt = n => new Intl.NumberFormat('de-DE').format(n);
-
-const contratoProveedor = {
-  id: 'CT-2026-0073',
-  pymeNombre: 'Const. Silva Ltd.',
-  montoAsignado: 15_000_000,
-  fechaAsignacion: '12/07/2026',
-  estado: 'Pendiente de Configuración', // -> 'Pendiente de Revisión' al enviar
-  cuentaBancaria: null,                 // { tipo: 'bonafide' | 'banco', numero }
-  suministradoresAsignados: [],         // [{ id, nombre, email, telefono, monto, cargaNomina }]
-};
-
-const montoDisponible = (asignados, montoAsignado, excluirId = null) =>
-  montoAsignado - asignados.filter(s => s.id !== excluirId).reduce((sum, s) => sum + s.monto, 0);
 
 const STEPS = ['Cuenta bancaria', 'Suministradores', 'Revisión y envío'];
 
@@ -75,8 +53,8 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 }
 
 export default function ProvConfigurarContrato() {
-  const { go } = useApp();
-  const contrato = contratoProveedor;
+  const { go, opts } = useApp();
+  const contrato = contratosPendientes.find(c => c.id === opts?.contratoId) ?? contratosPendientes[0];
 
   const [step, setStep]                 = useState(0);
   const [cuentaTipo, setCuentaTipo]     = useState(contrato.cuentaBancaria?.tipo ?? 'bonafide');
@@ -87,11 +65,22 @@ export default function ProvConfigurarContrato() {
   const [intentoEnvio, setIntentoEnvio] = useState(false);
   const [enviado, setEnviado]           = useState(false);
 
+  if (!contrato) {
+    return (
+      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
+        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
+        <Button variant="ghost" onClick={() => go('provDash')}>
+          <ArrowLeft className="w-4 h-4 mr-1" />Volver al inicio
+        </Button>
+      </div>
+    );
+  }
+
   const totalAsignado    = suministradores.reduce((s, x) => s + x.monto, 0);
   const disponibleGlobal = contrato.montoAsignado - totalAsignado;
 
   const montoNumLive        = parseMonto(modal.monto);
-  const disponibleParaModal = montoDisponible(suministradores, contrato.montoAsignado, modal.editId);
+  const disponibleParaModal = montoDisponibleProveedores({ ...contrato, suministradoresAsignados: suministradores }, modal.editId);
   const montoInvalido       = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
   const puedeGuardar        = modal.nombre.trim() && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
 
@@ -120,11 +109,17 @@ export default function ProvConfigurarContrato() {
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
-    contratoProveedor.cuentaBancaria = cuentaTipo === 'bonafide'
-      ? { tipo: 'bonafide', numero: null }
-      : { tipo: 'banco', numero: cuentaNumero };
-    contratoProveedor.suministradoresAsignados = suministradores;
-    contratoProveedor.estado = 'Pendiente de Revisión';
+    // Se muta por índice sobre `contratosPendientes` (el binding importado)
+    // en vez de sobre la constante local `contrato` derivada en el render,
+    // para no romper la regla de lint react-hooks de inmutabilidad.
+    const idx = contratosPendientes.findIndex(c => c.id === contrato.id);
+    if (idx !== -1) {
+      contratosPendientes[idx].cuentaBancaria = cuentaTipo === 'bonafide'
+        ? { tipo: 'bonafide', numero: null }
+        : { tipo: 'banco', numero: cuentaNumero };
+      contratosPendientes[idx].suministradoresAsignados = suministradores;
+      contratosPendientes[idx].estado = 'Pendiente de Revisión';
+    }
     setEnviado(true);
   };
 
@@ -144,8 +139,8 @@ export default function ProvConfigurarContrato() {
           <p className="text-[13px] text-text-3 leading-relaxed mb-6">
             Bonafide revisará la configuración del contrato {contrato.id} y los {suministradores.length} suministrador{suministradores.length === 1 ? '' : 'es'} asignado{suministradores.length === 1 ? '' : 's'}.
           </p>
-          <Button variant="primary" full className="h-[48px]" onClick={() => go('roleSelect')}>
-            Salir
+          <Button variant="primary" full className="h-[48px]" onClick={() => go('provContratos')}>
+            Volver a Mis Contratos
           </Button>
         </div>
       </div>
@@ -154,7 +149,7 @@ export default function ProvConfigurarContrato() {
 
   return (
     <div className="min-h-screen bg-page-bg fade-in">
-      <WizardHeader contrato={contrato} step={step} onExit={() => go('roleSelect')} />
+      <WizardHeader contrato={contrato} step={step} onExit={() => go('provContratos')} />
       <div className="max-w-[720px] mx-auto py-8 sm:py-10 px-4 sm:px-5 space-y-5">
         <p className="text-[12px] text-text-4 text-center mb-1">Monto asignado por {contrato.pymeNombre}: <span className="font-semibold text-text-2">{fmt(contrato.montoAsignado)} XAF</span></p>
         <Stepper steps={STEPS} current={step} />

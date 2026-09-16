@@ -55,8 +55,16 @@ const EmpPerfil         = lazy(() => import('./pages/contratante/EmpPerfil'));
 const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDetalle'));
 const EmpConfigurarContrato = lazy(() => import('./pages/contratante/EmpConfigurarContrato'));
 
-// Proveedor (sin dashboard propio)
+// Proveedor
+const ProvDash            = lazy(() => import('./pages/proveedor/Dashboard'));
+const ProvContratos       = lazy(() => import('./pages/proveedor/Contratos'));
+const ProvContratoDetalle = lazy(() => import('./pages/proveedor/ContratoDetalle'));
 const ProvConfigurarContrato = lazy(() => import('./pages/proveedor/ProvConfigurarContrato'));
+const ProvFacturas        = lazy(() => import('./pages/proveedor/Facturas'));
+const ProvSuministradores = lazy(() => import('./pages/proveedor/Suministradores'));
+const ProvSolicitudes     = lazy(() => import('./pages/proveedor/Solicitudes'));
+const ProvESG             = lazy(() => import('./pages/proveedor/ESG'));
+const ProvPerfil          = lazy(() => import('./pages/proveedor/Perfil'));
 
 const R = ROUTES;
 
@@ -136,7 +144,15 @@ export default function App() {
           <Route path={R.empSettings}   element={<EmpSettings />} />
 
           {/* Proveedor */}
+          <Route path={R.provDash}            element={<ProvDash />} />
+          <Route path={R.provContratos}       element={<ProvContratos />} />
+          <Route path={R.provContratoDetalle} element={<ProvContratoDetalle />} />
           <Route path={R.provConfigurarContrato} element={<ProvConfigurarContrato />} />
+          <Route path={R.provFacturas}        element={<ProvFacturas />} />
+          <Route path={R.provSuministradores} element={<ProvSuministradores />} />
+          <Route path={R.provSolicitudes}     element={<ProvSolicitudes />} />
+          <Route path={R.provESG}             element={<ProvESG />} />
+          <Route path={R.provPerfil}          element={<ProvPerfil />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
