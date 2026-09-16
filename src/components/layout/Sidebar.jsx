@@ -1,7 +1,7 @@
 import {
   Home, Building2,
   ClipboardList, Users, Receipt,
-  User, LogOut, Leaf, X, Clock,
+  User, LogOut, Leaf, X, Clock, Landmark,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { logout } from '../../stores/authStore';
@@ -12,6 +12,7 @@ const NAV = {
     { id: 'adminConf',     Icon: ClipboardList, lbl: 'Contratos' },
     { id: 'adminEmpresas', Icon: Building2,     lbl: 'Empresas Contratantes' },
     { id: 'adminRisk',     Icon: Receipt,       lbl: 'Facturas' },
+    { id: 'adminGobierno', Icon: Landmark,      lbl: 'Información Gubernamental' },
   ],
   'empresa-pequena': [
     { id: 'epHome',          Icon: Home,       lbl: 'Inicio' },

@@ -21,6 +21,7 @@ const AdminContratos = lazy(() => import('./pages/admin/Contratos'));
 const AdminRisk      = lazy(() => import('./pages/admin/AdminRisk'));
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
 const AdminSettings  = lazy(() => import('./pages/admin/AdminSettings'));
+const AdminGobierno  = lazy(() => import('./pages/admin/InformacionGubernamental'));
 
 // Empresa Pequeña
 const EpHome                = lazy(() => import('./pages/empresa-pequena/Home'));
@@ -32,6 +33,7 @@ const EpPerfil              = lazy(() => import('./pages/empresa-pequena/Perfil'
 const EpDocumentos          = lazy(() => import('./pages/empresa-pequena/Documentos'));
 const EpProyectosAmbientales = lazy(() => import('./pages/empresa-pequena/ProyectosAmbientales'));
 const EpSolicitudes         = lazy(() => import('./pages/empresa-pequena/Solicitudes'));
+const EpConfigurarContrato  = lazy(() => import('./pages/empresa-pequena/EpConfigurarContrato'));
 
 // Contratante
 const EmpDash           = lazy(() => import('./pages/contratante/Dashboard'));
@@ -51,6 +53,10 @@ const EmpPymes          = lazy(() => import('./pages/contratante/EmpPymes'));
 const EmpSolicitudes    = lazy(() => import('./pages/contratante/EmpSolicitudes'));
 const EmpPerfil         = lazy(() => import('./pages/contratante/EmpPerfil'));
 const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDetalle'));
+const EmpConfigurarContrato = lazy(() => import('./pages/contratante/EmpConfigurarContrato'));
+
+// Proveedor (sin dashboard propio)
+const ProvConfigurarContrato = lazy(() => import('./pages/proveedor/ProvConfigurarContrato'));
 
 const R = ROUTES;
 
@@ -92,6 +98,7 @@ export default function App() {
           <Route path={R.adminRisk}       element={<AdminRisk />} />
           <Route path={R.adminAnalytics}  element={<AdminAnalytics />} />
           <Route path={R.adminSettings}   element={<AdminSettings />} />
+          <Route path={R.adminGobierno}   element={<AdminGobierno />} />
 
           {/* Empresa Pequeña */}
           <Route path={R.epHome}        element={<EpHome />} />
@@ -103,12 +110,14 @@ export default function App() {
           <Route path={R.epDocs}        element={<EpDocumentos />} />
           <Route path={R.epESG}         element={<EpProyectosAmbientales />} />
           <Route path={R.epSolicitudes} element={<EpSolicitudes />} />
+          <Route path={R.epConfigurarContrato} element={<EpConfigurarContrato />} />
           <Route path={R.epSolicitarContrato} element={<SolicitarContrato />} />
 
           {/* Contratante */}
           <Route path={R.empDash}            element={<EmpDash />} />
           <Route path={R.empContratos}       element={<EmpContratos />} />
           <Route path={R.empContratoDetalle} element={<EmpContratoDetalle />} />
+          <Route path={R.empConfigurarContrato} element={<EmpConfigurarContrato />} />
           <Route path={R.empFacturas}        element={<EmpFacturas />} />
           <Route path={R.empPymes}           element={<EmpPymes />} />
           <Route path={R.empSolicitudes}     element={<EmpSolicitudes />} />
@@ -125,6 +134,9 @@ export default function App() {
           <Route path={R.empRisk}       element={<EmpRisk />} />
           <Route path={R.empNotif}      element={<EmpNotif />} />
           <Route path={R.empSettings}   element={<EmpSettings />} />
+
+          {/* Proveedor */}
+          <Route path={R.provConfigurarContrato} element={<ProvConfigurarContrato />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

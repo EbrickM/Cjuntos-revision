@@ -297,12 +297,6 @@ export default function EmpDash() {
                       <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 mb-3 max-[765px]:justify-center">
-                      <button onClick={() => go('empSolicitarContrato', { returnTo: 'empDash' })}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-bold text-[12px] text-white cursor-pointer transition-opacity hover:opacity-90"
-                              style={{ background: ORA }}>
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                        Nueva Solicitud
-                      </button>
                       <button onClick={showDevToast}
                               className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
                         <Download className="w-3.5 h-3.5" />

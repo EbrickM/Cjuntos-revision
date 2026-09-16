@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -24,6 +26,13 @@ export default function EmpSolicitudes() {
   const [solModal, setSolModal] = useState(null);
 
   const closeModal = () => setSolModal(null);
+
+  // Sin delay artificial — la lógica de paginado queda lista para cuando
+  // haya suficientes registros reales del backend como para necesitarla.
+  const { visibleItems: pagedMisSolicitudes, hasMore: hasMoreMis, loading: loadingMis, sentinelRef: sentinelMisRef } =
+    useInfiniteScroll(misSolicitudes, { pageSize: 10, delay: 0 });
+  const { visibleItems: pagedSolicitudesPymes, hasMore: hasMorePymes, loading: loadingPymes, sentinelRef: sentinelPymesRef } =
+    useInfiniteScroll(solicitudesPymes, { pageSize: 10, delay: 0 });
 
   const timelineSteps = s => {
     const isAprobada  = s.estado === 'Aprobada';
@@ -59,7 +68,7 @@ export default function EmpSolicitudes() {
         {/* ── Mis solicitudes ── */}
         {tab === 'mis' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {misSolicitudes.map(s => {
+              {pagedMisSolicitudes.map(s => {
                 const cfg = solicIconCfg[s.tipo] ?? { Icon: ClipboardList, iconBg: '#FFF3E0', iconColor: ORA };
                 return (
                   <div key={s.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-3">
@@ -89,6 +98,7 @@ export default function EmpSolicitudes() {
                   </div>
                 );
               })}
+              <InfiniteScrollSentinel sentinelRef={sentinelMisRef} loading={loadingMis} hasMore={hasMoreMis} />
             </div>
         )}
 
@@ -102,7 +112,7 @@ export default function EmpSolicitudes() {
               </p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {solicitudesPymes.map(s => (
+              {pagedSolicitudesPymes.map(s => (
                 <div key={s.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-3">
                   <div className="flex items-center gap-3">
                     <IniAvatar ini={s.ini} size={44} />
@@ -123,6 +133,7 @@ export default function EmpSolicitudes() {
                   </div>
                 </div>
               ))}
+              <InfiniteScrollSentinel sentinelRef={sentinelPymesRef} loading={loadingPymes} hasMore={hasMorePymes} />
             </div>
           </div>
         )}

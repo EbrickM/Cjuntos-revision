@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Bell, LogOut, X, Menu, UserPlus, CheckCheck, Trash2 } from 'lucide-react';
+import { Bell, LogOut, X, Menu, CheckCheck, Trash2, ArrowRight } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useAuthStore, logout } from '../../stores/authStore';
+import { contratosMarco, fmt } from '../../pages/contratante/contratanteData';
+import { pymeContratosPendientes, fmt as fmtEp } from '../../pages/empresa-pequena/epData';
 import Logo from './Logo';
-import Button from '../ui/Button';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
 
 const ROLE_META = {
@@ -40,19 +41,54 @@ const notifs = [
   },
 ];
 
-export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
+export default function Topbar({ role, onMenuClick }) {
   const { go } = useApp();
   const session      = useAuthStore(s => s.session);
   const adminSession = useAuthStore(s => s.adminSession);
+
+  // Notificación de contrato recién encomendado por Bonafide/la Contratante, a
+  // la espera de que este rol lo configure repartiéndolo entre sus propias
+  // contrapartes (Subproceso 1 para la Contratante, Subproceso 2 para la
+  // PYME). Se antepone al resto de notificaciones, con su propio CTA.
+  const contratoNotifs = (() => {
+    if (role === 'contratante') {
+      return contratosMarco.filter(m => m.estado === 'Pendiente de Configuración').map(m => ({
+        id: `marco-${m.id}`,
+        titulo: 'Bonafide te asignó un nuevo contrato',
+        cuerpo: `Contrato ${m.id} por ${fmt(m.montoBase)} XAF, financiado por ${m.bancoFondeador}. Repártelo entre tus PYMEs para activarlo.`,
+        dt: m.fechaCreacion,
+        leida: false,
+        accion: { label: 'Proceder con el contrato', screenId: 'empConfigurarContrato', opts: { marcoId: m.id } },
+      }));
+    }
+    if (role === 'empresa-pequena') {
+      return pymeContratosPendientes.filter(c => c.estado === 'Pendiente de Configuración').map(c => ({
+        id: `pymeCt-${c.id}`,
+        titulo: `${c.contratanteNombre} te asignó un nuevo contrato`,
+        cuerpo: `Contrato ${c.id} por ${fmtEp(c.montoAsignado)} XAF. Acepta los términos y repártelo entre tus proveedores para activarlo.`,
+        dt: c.fechaAsignacion,
+        leida: false,
+        accion: { label: 'Proceder con el contrato', screenId: 'epConfigurarContrato', opts: { contratoId: c.id } },
+      }));
+    }
+    return [];
+  })();
+  const allNotifs = [...contratoNotifs, ...notifs];
+
   const [notifOpen, setNotifOpen] = useState(false);
-  const [leidas,    setLeidas]    = useState(new Set(notifs.filter(n => n.leida).map(n => n.id)));
+  const [leidas,    setLeidas]    = useState(new Set(allNotifs.filter(n => n.leida).map(n => n.id)));
   const [ocultas,   setOcultas]   = useState(new Set());
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const fullName    = session?.user?.fullName ?? adminSession?.admin?.fullName ?? '';
   const meta        = ROLE_META[role] ?? { roleLabel: 'Bonafide', pill: null };
-  const visibles    = notifs.filter(n => !ocultas.has(n.id));
+  const visibles    = allNotifs.filter(n => !ocultas.has(n.id));
   const pendientes  = visibles.filter(n => !leidas.has(n.id)).length;
+
+  const handleProceder = (accion) => {
+    setNotifOpen(false);
+    go(accion.screenId, accion.opts);
+  };
 
   return (
     <>
@@ -73,14 +109,6 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
         </button>
 
         <div className="flex-1" />
-
-        {/* Invitar PYME — solo contratante */}
-        {role === 'contratante' && (
-          <Button variant="primary" size="sm" className="hidden sm:inline-flex shrink-0" onClick={onInvitarPyme}>
-            <UserPlus className="w-3.5 h-3.5" />
-            Invitar PYME
-          </Button>
-        )}
 
         {/* Usuario */}
         <div className="flex items-center gap-2 sm:gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
@@ -137,7 +165,7 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
               <div className="flex items-center gap-1">
                 {pendientes > 0 && (
                   <button
-                    onClick={() => setLeidas(new Set(notifs.map(n => n.id)))}
+                    onClick={() => setLeidas(new Set(allNotifs.map(n => n.id)))}
                     className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-orange-dark hover:bg-orange-tint rounded-lg transition-colors cursor-pointer"
                     title="Marcar todas como leídas"
                   >
@@ -175,7 +203,18 @@ export default function Topbar({ role, onMenuClick, onInvitarPyme }) {
                           <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-text-1 text-sm mb-1">{n.titulo}</h3>
                             <p className="text-sm text-text-3 mb-2">{n.cuerpo}</p>
-                            <p className="text-xs text-text-4">{n.dt}</p>
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-xs text-text-4">{n.dt}</p>
+                              {n.accion && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleProceder(n.accion); }}
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-orange hover:underline cursor-pointer shrink-0"
+                                >
+                                  {n.accion.label}
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); setOcultas(prev => new Set(prev).add(n.id)); }}

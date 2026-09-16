@@ -39,9 +39,8 @@ export default function RoleSelect() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 
       {/* Mismo Topbar que el resto de la app — sin rol asignado aún, así que
-          no muestra ni el botón Invitar PYME ni el sidebar (RoleSelect es
-          previo a elegir uno de los dos). */}
-      <Topbar onMenuClick={() => {}} onInvitarPyme={() => {}} />
+          no muestra el sidebar (RoleSelect es previo a elegir uno). */}
+      <Topbar onMenuClick={() => {}} />
 
       {/* Contenido */}
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 sm:p-8">

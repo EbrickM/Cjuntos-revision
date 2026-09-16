@@ -2,12 +2,14 @@ import { useState, useRef } from 'react';
 import {
   FileText, Trash2, CheckCircle2, Pencil, Search, ChevronRight, Plus,
   Users, Package, Truck, Wrench, Receipt, Cpu, FolderOpen, Building2, CreditCard,
-  BarChart2, ScrollText, UserSquare, CalendarDays,
+  BarChart2, ScrollText, UserSquare, CalendarDays, Landmark,
   Upload, Paperclip,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -109,6 +111,11 @@ const initialContracts = [
   {
     id: 'CT-2026-0041', kyc: 'vigente', tipoFactoring: 'directo',
     monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000,
+    // Ficha fijada por Bonafide para este contrato-marco (mismo origen que
+    // CTM-2026-0002 del lado Contratante) y gestión de fondos que la PYME
+    // eligió al configurarlo (Subproceso 2 del BPMN).
+    plazoPago: 30, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
+    porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5, gestionFondos: 'billetera',
     contratante: {
       razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
@@ -177,6 +184,11 @@ export default function EpCreditos() {
         (c.contratante?.sectorProductivo || '').toLowerCase().includes(search.toLowerCase())
       )
     : contracts;
+
+  // Sin delay: en producción, en cuanto el backend devuelva la siguiente
+  // página se debe mostrar de inmediato, sin espera artificial del frontend.
+  const { visibleItems: pagedContracts, hasMore: hasMoreContracts, loading: loadingContracts, sentinelRef: contractsSentinelRef } =
+    useInfiniteScroll(filteredContracts, { pageSize: 10, delay: 0, resetKey: search });
 
   const updateContract = (id, patch) =>
     setContracts(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
@@ -382,7 +394,7 @@ export default function EpCreditos() {
 
               {/* Grid de tarjetas */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredContracts.map((contract, idx) => {
+              {pagedContracts.map((contract, idx) => {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));
                 const ctName = contract.contratante?.razonSocial || '—';
                 const sector = contract.contratante?.sectorProductivo || '';
@@ -444,6 +456,7 @@ export default function EpCreditos() {
                   No se encontraron contratos para "{search}".
                 </div>
               )}
+              <InfiniteScrollSentinel sentinelRef={contractsSentinelRef} loading={loadingContracts} hasMore={hasMoreContracts} />
               </div>
             </div>
           </div>
@@ -515,6 +528,22 @@ export default function EpCreditos() {
                       <InfoRow label="Fecha de inicio"    value={fmtDate(ct.fechaInicio)} />
                       <InfoRow label="Fecha de fin"       value={fmtDate(ct.fechaFin)} />
                       <InfoRow label="Plazo de ejecución" value={ct.plazosEjecucion} />
+                    </div>
+                  </div>
+
+                  {/* Ficha del contrato-marco — datos fijados por Bonafide y la
+                      gestión de fondos que la PYME eligió al configurarlo
+                      (Subproceso 2 del BPMN). */}
+                  <div className="bg-white rounded-[14px] border border-border p-5">
+                    <SectionHeader icon={Landmark} iconBg="#FFF3E0" iconColor="#EF7A2C"
+                      title="Ficha del Contrato" subtitle="Condiciones fijadas por Bonafide y gestión de fondos elegida." />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+                      <InfoRow label="Banco Fondeador"       value={detailContract.bancoFondeador} />
+                      <InfoRow label="Interés"               value={detailContract.interes} />
+                      <InfoRow label="% Retención"           value={detailContract.porcentajeRetencion != null ? `${detailContract.porcentajeRetencion}%` : '—'} />
+                      <InfoRow label="% Gestión de Cobranza" value={detailContract.porcentajeGestionCobranza != null ? `${detailContract.porcentajeGestionCobranza}%` : '—'} />
+                      <InfoRow label="Plazo de pago"         value={detailContract.plazoPago ? `${detailContract.plazoPago} días` : '—'} />
+                      <InfoRow label="Gestión de fondos"     value={detailContract.gestionFondos === 'billetera' ? 'Uso en Billetera Virtual' : detailContract.gestionFondos === 'retirar' ? 'Retirar todo' : '—'} />
                     </div>
                   </div>
 

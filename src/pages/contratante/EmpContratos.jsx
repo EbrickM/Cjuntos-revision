@@ -5,6 +5,8 @@ import {
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
@@ -26,6 +28,11 @@ export default function EmpContratos() {
     c.id.toLowerCase().includes(busqueda.toLowerCase()) ||
     c.sector.toLowerCase().includes(busqueda.toLowerCase())
   );
+
+  // Sin delay artificial: cuando exista backend, la siguiente página debe
+  // mostrarse en cuanto llegue, no tras una espera puesta a mano.
+  const { visibleItems: pagedContratos, hasMore, loading, sentinelRef } =
+    useInfiniteScroll(filtrados, { pageSize: 10, delay: 0, resetKey: busqueda });
 
   return (
     <AppShell active="empContratos" role="contratante" title="Mis Contratos" sub="Contratos activos con Bonafide" back>
@@ -67,7 +74,7 @@ export default function EmpContratos() {
 
         {/* Cards de contratos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtrados.map((c, idx) => {
+          {pagedContratos.map((c, idx) => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);
             const disp = c.asignado - c.utilizado;
             return (
@@ -121,6 +128,7 @@ export default function EmpContratos() {
               No se encontraron contratos para "{busqueda}".
             </div>
           )}
+          <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
         </div>
 
       </div>

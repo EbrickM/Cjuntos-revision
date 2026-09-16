@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X,
+  Receipt, ListFilter, Zap, X, Eye, Landmark,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -9,7 +9,11 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
-import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState } from './contratanteData';
+import { ORA, GREEN, TEXT4, fmt, facturas, pymes, contratos, facturaBadge, scoreColor, contratanteState } from './contratanteData';
+
+const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
+  ? 'Cuenta Bonafide existente'
+  : `Banco Fondeador · ${c.cuentaBancaria?.numero || '—'}`;
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
@@ -25,14 +29,20 @@ export default function EmpContratoDetalle() {
   const [ipiStep, setIpiStep]           = useState(null);
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
+  const [pymeDetalle, setPymeDetalle]   = useState(null);
   const c    = contratanteState.selectedContrato;
   const pct  = Math.round((c.utilizado / c.asignado) * 100);
   const disp = c.asignado - c.utilizado;
   const facturasContrato = facturas
     .filter(f => f.contrato === c.id)
     .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
-  const pyme    = pymes.find(p => p.ini === c.ini);
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
+
+  // PYMEs que comparten el mismo contrato-marco (Subproceso 1 del BPMN: la
+  // Contratante reparte un mismo monto base entre varias PYMEs) — si este
+  // contrato no tiene `marcoId` (dato legado), la tabla cae a mostrar solo
+  // esta PYME.
+  const hermanos = c.marcoId ? contratos.filter(x => x.marcoId === c.marcoId) : [c];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -105,12 +115,28 @@ export default function EmpContratoDetalle() {
 
             {/* Condiciones económicas y plazos */}
             <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
-              <SectionHeader title="Condiciones Económicas y Plazos" sub="Montos, fechas de vigencia y plazo de ejecución" Icon={Clock} />
+              <SectionHeader title="Condiciones Económicas y Plazos" sub="Monto asignado a esta PYME, vigencia y plazos" Icon={Clock} />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <InfoRow label="Monto global"       value={`${fmt(c.asignado)} XAF`} />
+                <InfoRow label="Monto asignado"     value={`${fmt(c.asignado)} XAF`} />
+                <InfoRow label="Plazo de pago"       value={c.plazoPago ? `${c.plazoPago} días` : '—'} />
                 <InfoRow label="Fecha de inicio"    value={c.fechaInicio} />
                 <InfoRow label="Fecha de fin"       value={c.fechaFin} />
                 <InfoRow label="Plazo de ejecución" value={c.plazo} />
+              </div>
+            </div>
+
+            {/* Ficha del contrato-marco — datos fijados por Bonafide y la
+                cuenta bancaria elegida por la Contratante al configurarlo
+                (Subproceso 1 del BPMN), compartidos por todas las PYMEs de
+                este mismo contrato-marco. */}
+            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '90ms' }}>
+              <SectionHeader title="Ficha del Contrato-Marco" sub="Condiciones fijadas por Bonafide para este contrato" Icon={Landmark} />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <InfoRow label="Banco Fondeador"              value={c.bancoFondeador} />
+                <InfoRow label="Interés"                      value={c.interes} />
+                <InfoRow label="% Retención"                  value={c.porcentajeRetencion != null ? `${c.porcentajeRetencion}%` : '—'} />
+                <InfoRow label="% Gestión de Cobranza"        value={c.porcentajeGestionCobranza != null ? `${c.porcentajeGestionCobranza}%` : '—'} />
+                <InfoRow label="Cuenta bancaria operativa"    value={cuentaLabel(c)} />
               </div>
             </div>
 
@@ -126,49 +152,81 @@ export default function EmpContratoDetalle() {
         )}
 
         {/* ── Tab: PYME ── */}
-        {tab === 'pyme' && pyme && (
-          <div className="space-y-4">
-
-            {/* Datos de Identidad */}
-            <div className="card-enter bg-white rounded-[14px] border border-border p-5">
-              <SectionHeader
-                title="Datos de Identidad"
-                sub="Información legal y fiscal de la PYME"
-                Icon={Building2}
-                right={
-                  <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: scoreColor(pyme.score) + '20' }}>
-                    <div className="hidden sm:flex items-center gap-1.5">
-                      <span className="text-[11px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score crediticio</span>
-                      <span className="text-[15px] font-extrabold" style={{ color: scoreColor(pyme.score) }}>{pyme.score}/1000</span>
-                    </div>
-                    <div className="flex flex-col items-center sm:hidden">
-                      <span className="text-[10px] font-semibold" style={{ color: scoreColor(pyme.score) }}>Score</span>
-                      <span className="text-[18px] font-extrabold leading-none mt-0.5" style={{ color: scoreColor(pyme.score) }}>{pyme.score}</span>
-                    </div>
-                  </div>
-                }
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                <InfoRow label="Razón Social"      value={pyme.nombre} />
-                <InfoRow label="Nombre Comercial"  value={pyme.nombreComercial} />
-                <InfoRow label="RUC / NIF"         value={pyme.ruc} />
-                <InfoRow label="Sector Productivo" value={pyme.sector} />
-                <InfoRow label="Teléfono"          value={pyme.telefono} />
-                <InfoRow label="Correo"            value={pyme.correo} />
+        {tab === 'pyme' && (
+          <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div>
+                <div className="text-[14px] font-bold text-text-1">PYMEs de este Contrato-Marco</div>
+                <div className="text-[11px] text-text-4">Empresas Contratadas y monto que la Contratante les asignó</div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Users className="w-4 h-4" style={{ color: ORA }} />
+                <span className="text-[11px] font-bold" style={{ color: ORA }}>{hermanos.length} PYME{hermanos.length === 1 ? '' : 's'}</span>
               </div>
             </div>
 
-            {/* Representante Legal */}
-            <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '60ms' }}>
-              <SectionHeader title="Representante Legal" sub="Persona autorizada para firmar y representar a la PYME" Icon={User} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                <InfoRow label="Nombre y Apellido"    value={pyme.repNombre} />
-                <InfoRow label="Tipo de Documento"    value={pyme.repTipoDoc} />
-                <InfoRow label="Nº de Identificación" value={pyme.repId} />
-                <InfoRow label="Cargo"                value={pyme.repCargo} />
-                <InfoRow label="Teléfono"             value={pyme.repTel} />
-                <InfoRow label="Correo"               value={pyme.repCorreo} />
-              </div>
+            {/* Móvil: cards */}
+            <div className="sm:hidden space-y-2">
+              {hermanos.map(h => (
+                <div key={h.id} className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-bold text-text-1 truncate">{h.pyme}</p>
+                      <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{h.id}</p>
+                    </div>
+                    <Badge variant={h.estado === 'Activo' ? 'green' : 'yellow'}>{h.estado}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <div>
+                      <p className="text-[9px] font-semibold uppercase tracking-wide mb-0.5" style={{ color: TEXT4 }}>Monto asignado</p>
+                      <p className="text-[13px] font-extrabold text-text-1">{fmt(h.asignado)} XAF</p>
+                    </div>
+                    <button onClick={() => setPymeDetalle(h)} className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: ORA }}>
+                      <Eye className="w-3.5 h-3.5" />Ver
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: tabla (mismo patrón que la tabla de Proyectos en Huella Verde) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead className="bg-page-bg">
+                  <tr className="border-b border-border">
+                    {['PYME', 'Contrato', 'Estado', 'Score', 'Monto asignado', ''].map((h, i) => (
+                      <th key={h || 'accion'} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 4 ? 'text-right' : i === 5 ? 'text-center' : 'text-left'}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {hermanos.map(h => {
+                    const hPyme = pymes.find(p => p.ini === h.ini);
+                    return (
+                      <tr key={h.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                        <td className="px-4 py-3 text-[12px] font-medium text-text-1">{h.pyme}</td>
+                        <td className="px-4 py-3 text-[12px] font-mono" style={{ color: TEXT4 }}>{h.id}</td>
+                        <td className="px-4 py-3"><Badge variant={h.estado === 'Activo' ? 'green' : 'yellow'}>{h.estado}</Badge></td>
+                        <td className="px-4 py-3">
+                          {hPyme ? (
+                            <span className="text-[12px] font-bold" style={{ color: scoreColor(hPyme.score) }}>{hPyme.score}</span>
+                          ) : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(h.asignado)} XAF</td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => setPymeDetalle(h)}
+                            title="Ver detalle de la PYME"
+                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -268,6 +326,63 @@ export default function EmpContratoDetalle() {
         })()}
 
       </div>
+
+      {/* ── Modal: Detalle de PYME (disparado por el ojo en la tabla) ── */}
+      {pymeDetalle && (() => {
+        const p = pymes.find(x => x.ini === pymeDetalle.ini);
+        if (!p) return null;
+        return (
+          <Modal title={`${p.nombre} · ${pymeDetalle.id}`} onClose={() => setPymeDetalle(null)} wide>
+            <div className="space-y-5">
+              <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+                <SectionHeader
+                  title="Datos de Identidad"
+                  sub="Información legal y fiscal de la PYME"
+                  Icon={Building2}
+                  right={
+                    <div className="shrink-0 px-2.5 py-1.5 rounded-[8px]" style={{ background: scoreColor(p.score) + '20' }}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-semibold" style={{ color: scoreColor(p.score) }}>Score crediticio</span>
+                        <span className="text-[15px] font-extrabold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
+                      </div>
+                    </div>
+                  }
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  <InfoRow label="Razón Social"      value={p.nombre} />
+                  <InfoRow label="Nombre Comercial"  value={p.nombreComercial} />
+                  <InfoRow label="RUC / NIF"         value={p.ruc} />
+                  <InfoRow label="Sector Productivo" value={p.sector} />
+                  <InfoRow label="Teléfono"          value={p.telefono} />
+                  <InfoRow label="Correo"            value={p.correo} />
+                </div>
+              </div>
+
+              <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+                <SectionHeader title="Representante Legal" sub="Persona autorizada para firmar y representar a la PYME" Icon={User} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                  <InfoRow label="Nombre y Apellido"    value={p.repNombre} />
+                  <InfoRow label="Tipo de Documento"    value={p.repTipoDoc} />
+                  <InfoRow label="Nº de Identificación" value={p.repId} />
+                  <InfoRow label="Cargo"                value={p.repCargo} />
+                  <InfoRow label="Teléfono"             value={p.repTel} />
+                  <InfoRow label="Correo"               value={p.repCorreo} />
+                </div>
+              </div>
+
+              <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+                <SectionHeader title="Este Contrato" sub="Condiciones específicas de la asignación a esta PYME" Icon={FileText} />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <InfoRow label="Contrato"        value={pymeDetalle.id} />
+                  <InfoRow label="Estado"          value={pymeDetalle.estado} />
+                  <InfoRow label="Monto asignado"  value={`${fmt(pymeDetalle.asignado)} XAF`} />
+                  <InfoRow label="Plazo de pago"   value={pymeDetalle.plazoPago ? `${pymeDetalle.plazoPago} días` : '—'} />
+                </div>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* ── Modal: Detalle de factura ── */}
       {modalFac && (

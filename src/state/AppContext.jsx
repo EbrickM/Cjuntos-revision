@@ -22,6 +22,7 @@ export const ROUTES = {
   adminRisk:          '/admin/riesgo',
   adminAnalytics:     '/admin/analiticas',
   adminSettings:      '/admin/configuracion',
+  adminGobierno:      '/admin/informacion-gubernamental',
 
   // Empresa Pequeña
   epHome:             '/pyme',
@@ -34,11 +35,13 @@ export const ROUTES = {
   epESG:              '/pyme/huella-verde',
   epSolicitudes:      '/pyme/solicitudes',
   epSolicitarContrato: '/pyme/solicitar-contrato',
+  epConfigurarContrato: '/pyme/contratos/configurar',
 
   // Contratante
   empDash:            '/contratante',
   empContratos:       '/contratante/contratos',
   empContratoDetalle: '/contratante/contratos/detalle',
+  empConfigurarContrato: '/contratante/contratos/configurar',
   empFacturas:        '/contratante/facturas',
   empPymes:           '/contratante/pymes',
   empSolicitudes:     '/contratante/solicitudes',
@@ -55,6 +58,10 @@ export const ROUTES = {
   empRisk:            '/contratante/riesgo',
   empNotif:           '/contratante/notificaciones',
   empSettings:        '/contratante/ajustes',
+
+  // Proveedor (sin dashboard propio — solo el wizard de configuración del
+  // Subproceso 3, accedido por enlace directo)
+  provConfigurarContrato: '/proveedor/contratos/configurar',
 };
 
 const PATH_TO_SCREEN = Object.fromEntries(

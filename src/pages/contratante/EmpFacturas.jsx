@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -31,6 +33,11 @@ export default function EmpFacturas() {
   const totalMonto  = facturasVivas.reduce((a, f) => a + f.monto, 0);
 
   const modalFac = facturaModal ? (facturasVivas.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
+
+  // Sin delay artificial: al conectar el backend, la siguiente página debe
+  // mostrarse en cuanto llegue, no tras una espera puesta a mano.
+  const { visibleItems: pagedFacturas, hasMore, loading, sentinelRef } =
+    useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: filtro });
 
   const closeModal         = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar    = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -68,7 +75,7 @@ export default function EmpFacturas() {
 
         {/* Cards de facturas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((f, idx) => {
+          {pagedFacturas.map((f, idx) => {
             const hasAction = f.estado === 'Recibida' || f.estado === 'Verificada';
             return (
               <div
@@ -116,6 +123,7 @@ export default function EmpFacturas() {
               </div>
             );
           })}
+          <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
         </div>
 
       </div>

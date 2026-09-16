@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -26,6 +28,11 @@ export default function EmpPymes() {
         p.sector.toLowerCase().includes(busqueda.toLowerCase())
       )
     : pymes;
+
+  // Sin delay artificial: al conectar el backend, la siguiente página debe
+  // mostrarse en cuanto llegue, no tras una espera puesta a mano.
+  const { visibleItems: pagedPymes, hasMore, loading, sentinelRef } =
+    useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
 
   return (
     <AppShell active="empPymes" role="contratante" title="PYMEs" sub="Empresas con contrato activo" back>
@@ -61,7 +68,7 @@ export default function EmpPymes() {
 
         {/* Grid de PYMEs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtradas.map((p, idx) => (
+          {pagedPymes.map((p, idx) => (
             <div
               key={p.nombre}
               onClick={() => setPymeModal(p)}
@@ -110,6 +117,7 @@ export default function EmpPymes() {
               Sin resultados para "{busqueda}".
             </div>
           )}
+          <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
         </div>
 
       </div>

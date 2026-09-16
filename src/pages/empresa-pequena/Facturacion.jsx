@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
@@ -117,6 +119,13 @@ export default function EpFacturacion() {
       )
     : proveedorInvoices;
 
+  // Sin delay artificial: cuando haya backend real, la siguiente página debe
+  // mostrarse en cuanto llegue, no después de una espera puesta a mano.
+  const { visibleItems: pagedCT, hasMore: hasMoreCT, loading: loadingCT, sentinelRef: sentinelCTRef } =
+    useInfiniteScroll(filteredCT, { pageSize: 10, delay: 0, resetKey: searchCT });
+  const { visibleItems: pagedPR, hasMore: hasMorePR, loading: loadingPR, sentinelRef: sentinelPRRef } =
+    useInfiniteScroll(filteredPR, { pageSize: 10, delay: 0, resetKey: searchPR });
+
   const nextInvoiceId = () => {
     const max = invoices.reduce((m, inv) => Math.max(m, parseInt(inv.id.replace('FAC-2026-', '')) || 0), 1044);
     return `FAC-2026-${max + 1}`;
@@ -208,7 +217,7 @@ export default function EpFacturacion() {
             }
           />
           <div className="space-y-3">
-            {filteredCT.map((inv, idx) => {
+            {pagedCT.map((inv, idx) => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               return (
                 <div key={inv.id} className="bg-white rounded-[16px] p-4 card-enter transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
@@ -268,6 +277,7 @@ export default function EpFacturacion() {
             {contratanteInvoices.length === 0 && (
               <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas al contratante.</div>
             )}
+            <InfiniteScrollSentinel sentinelRef={sentinelCTRef} loading={loadingCT} hasMore={hasMoreCT} className="" />
           </div>
         </div>
 
@@ -288,7 +298,7 @@ export default function EpFacturacion() {
             }
           />
           <div className="space-y-3">
-            {filteredPR.map((inv, idx) => {
+            {pagedPR.map((inv, idx) => {
               const contract = activeContracts.find(c => c.id === inv.contrato);
               const estadoStyle =
                 inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
@@ -350,6 +360,7 @@ export default function EpFacturacion() {
             {proveedorInvoices.length === 0 && (
               <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas.</div>
             )}
+            <InfiniteScrollSentinel sentinelRef={sentinelPRRef} loading={loadingPR} hasMore={hasMorePR} className="" />
           </div>
         </div>
 

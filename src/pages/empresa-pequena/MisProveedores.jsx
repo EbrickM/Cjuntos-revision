@@ -8,6 +8,8 @@ import { StatCard } from '../../components/common/StatCard';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import isotipoBlanco from '../../assets/isotipo-blanco.webp';
 
 const SECTORES = ['Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología', 'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio', 'Materiales', 'Otro'];
@@ -32,6 +34,9 @@ const MODAL_EMPTY = {
   telefono: '', correo: '', esClienteBonafide: false, kyc: 'pendiente', scoreCredito: '',
 };
 
+// 15 proveedores mock — usados para probar el scroll infinito (pageSize 10):
+// las primeras 10 cards se ven de una sola carga y las 5 restantes aparecen
+// al llegar al final, con un loader que simula la llamada a backend.
 const initialProviders = [
   {
     id: 'p1', razonSocial: 'Cemex GE', nombreComercial: 'Cemex GE',
@@ -48,11 +53,71 @@ const initialProviders = [
     ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888',
     contratos: 0, esClienteBonafide: false, kyc: 'pendiente', scoreCredito: 510,
   },
+  {
+    id: 'p4', razonSocial: 'Agroindustrial Bata', nombreComercial: 'Agrobata',
+    ruc: 'GE-2018-00981', sector: 'Agricultura', email: 'contacto@agrobata.gq', telefono: '+240 222 101 202',
+    contratos: 2, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 710,
+  },
+  {
+    id: 'p5', razonSocial: 'Constructora Malabo Norte', nombreComercial: 'Conmalnor',
+    ruc: 'GE-2017-00456', sector: 'Construcción', email: 'info@conmalnor.gq', telefono: '+240 222 303 404',
+    contratos: 1, esClienteBonafide: false, kyc: 'vencido', scoreCredito: 420,
+  },
+  {
+    id: 'p6', razonSocial: 'Minera Río Muni', nombreComercial: 'MinRíoMuni',
+    ruc: 'GE-2015-00223', sector: 'Minería', email: 'ventas@minriomuni.gq', telefono: '+240 222 505 606',
+    contratos: 0, esClienteBonafide: false, kyc: 'pendiente', scoreCredito: 560,
+  },
+  {
+    id: 'p7', razonSocial: 'Alimentos del Golfo', nombreComercial: 'AlimGolfo',
+    ruc: 'GE-2021-00778', sector: 'Alimentación', email: 'pedidos@alimgolfo.gq', telefono: '+240 222 707 808',
+    contratos: 3, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 690,
+  },
+  {
+    id: 'p8', razonSocial: 'Comercial Ebebiyín', nombreComercial: 'ComEbe',
+    ruc: 'GE-2019-00334', sector: 'Comercio', email: 'info@comebe.gq', telefono: '+240 222 909 010',
+    contratos: 1, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 615,
+  },
+  {
+    id: 'p9', razonSocial: 'Manufacturas Bioko', nombreComercial: 'ManufBioko',
+    ruc: 'GE-2016-00667', sector: 'Manufactura', email: 'contacto@manufbioko.gq', telefono: '+240 222 111 313',
+    contratos: 0, esClienteBonafide: false, kyc: 'pendiente', scoreCredito: null,
+  },
+  {
+    id: 'p10', razonSocial: 'Servicios Integrales GE', nombreComercial: 'SIGE',
+    ruc: 'GE-2020-00889', sector: 'Servicios', email: 'admin@sige.gq', telefono: '+240 222 212 414',
+    contratos: 2, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 735,
+  },
+  {
+    id: 'p11', razonSocial: 'Energía Solar Bata', nombreComercial: 'EnerSolBata',
+    ruc: 'GE-2022-00990', sector: 'Energía', email: 'info@enersolbata.gq', telefono: '+240 222 515 616',
+    contratos: 1, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 680,
+  },
+  {
+    id: 'p12', razonSocial: 'Transportes Litoral', nombreComercial: 'TransLitoral',
+    ruc: 'GE-2018-00112', sector: 'Transporte', email: 'ops@translitoral.gq', telefono: '+240 222 717 818',
+    contratos: 0, esClienteBonafide: false, kyc: 'vencido', scoreCredito: 395,
+  },
+  {
+    id: 'p13', razonSocial: 'Materiales del Este', nombreComercial: 'MatEste',
+    ruc: 'GE-2019-00556', sector: 'Materiales', email: 'ventas@mateste.gq', telefono: '+240 222 919 020',
+    contratos: 1, esClienteBonafide: true, kyc: 'vigente', scoreCredito: 660,
+  },
+  {
+    id: 'p14', razonSocial: 'Tech Solutions Malabo', nombreComercial: 'TechSol',
+    ruc: 'GE-2023-00121', sector: 'Tecnología', email: 'hola@techsol.gq', telefono: '+240 222 121 232',
+    contratos: 0, esClienteBonafide: false, kyc: 'pendiente', scoreCredito: 590,
+  },
+  {
+    id: 'p15', razonSocial: 'Construcciones Annobón', nombreComercial: 'ConAnnobón',
+    ruc: 'GE-2017-00789', sector: 'Construcción', email: 'contacto@conannobon.gq', telefono: '+240 222 323 434',
+    contratos: 2, esClienteBonafide: false, kyc: 'vigente', scoreCredito: 705,
+  },
 ];
 
 
 export default function EpMisProveedores() {
-  const [providers, setProviders] = useState(() => localDb.get('ep_providers', initialProviders, 2));
+  const [providers, setProviders] = useState(() => localDb.get('ep_providers', initialProviders, 3));
   const [modal, setModal]         = useState(MODAL_EMPTY);
   const [search, setSearch]       = useState('');
   const [toast, setToast]         = useState({ visible: false, message: '' });
@@ -67,6 +132,12 @@ export default function EpMisProveedores() {
         p.sector.toLowerCase().includes(search.toLowerCase())
       )
     : providers;
+
+  // Delay solo de prueba, para ver el loader funcionando con estos 15 mocks —
+  // en el resto de pantallas (y cuando esto se conecte a un backend real) el
+  // delay se deja en 0 para no meter una espera artificial desde el frontend.
+  const { visibleItems: pagedProviders, hasMore, loading, sentinelRef } =
+    useInfiniteScroll(filteredProviders, { pageSize: 10, delay: 900, resetKey: search });
 
   const showToast = (msg) => {
     setToast({ visible: true, message: msg });
@@ -153,7 +224,7 @@ export default function EpMisProveedores() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProviders.map((p, idx) => {
+            {pagedProviders.map((p, idx) => {
               const kycStyle = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
               const sStyle   = scoreStyle(p.scoreCredito);
               return (
@@ -224,6 +295,8 @@ export default function EpMisProveedores() {
                 {search.trim() ? `Sin resultados para "${search}".` : 'No hay proveedores registrados aún.'}
               </div>
             )}
+
+            <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
         </div>
       </div>
