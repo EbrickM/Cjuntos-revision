@@ -1,5 +1,7 @@
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
+import { facturaService } from '../../services/factura.service';
+import { INV } from '../../lib/invoiceStates';
 
 const txns = [
   ['💰','Pago contrato TotalEnerGE','TRX-0501','15/05/2026','+15,000,000','text-green-text'],
@@ -15,24 +17,51 @@ const cats = [
   ['📦','Materiales','3,500,000',12,'text-green-text'],
 ];
 
+const fmt = v => new Intl.NumberFormat('de-DE').format(v ?? 0);
+
 export default function EpBilletera() {
+  // Billetera Virtual (Ruta B del BPMN): fondos desbloqueados por el Fondeador
+  // vía Bonafide para distribuir a proveedores (Fase 2).
+  const billeteras = facturaService.listarBilleteras();
+  const mia = billeteras.find(b => b.pyme === 'TechBata PYME S.L.');
+  const desbloqueadas = facturaService.listar().filter(f => f.estado === INV.billetera);
+
   return (
     <AppShell active="epBilletera" role="empresa-pequena" title="Mi Billetera" sub="Saldo y movimientos">
       <div className="fade-in grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-5 items-start">
         {/* Izquierda */}
         <div>
-          {/* Wallet card */}
+          {/* Wallet card — Billetera Virtual */}
           <div className="bg-gradient-to-br from-orange to-orange-dark rounded-2xl p-6 text-white mb-4">
-            <div className="text-[11px] font-semibold opacity-80 uppercase tracking-[1px] mb-2">CUENTA B-MORÏ</div>
-            <div className="text-[11px] opacity-70 mb-1">Saldo disponible</div>
-            <div className="text-[32px] font-extrabold mb-2">XAF 85,000,000</div>
+            <div className="text-[11px] font-semibold opacity-80 uppercase tracking-[1px] mb-2">BILLETERA VIRTUAL · B-MORÏ</div>
+            <div className="text-[11px] opacity-70 mb-1">Saldo disponible (desbloqueado)</div>
+            <div className="text-[32px] font-extrabold mb-2">XAF {fmt(mia?.saldoDisponible ?? 0)}</div>
             <div className="bg-black/15 rounded-[8px] px-2.5 py-1.5 inline-flex items-center gap-1.5 text-[11px] font-semibold">
-              📊 Préstamo PRE-2026-001 activo
+              📊 Monto presupuestado: XAF {fmt(mia?.montoPresupuestado ?? 0)}
             </div>
             <div className="border-t border-white/20 mt-3.5 pt-3.5 flex justify-between text-[12px] opacity-80">
-              <span>Últimos 30 días</span><span>−XAF 29,000,000</span>
+              <span>Fondos del Fondeador vía Bonafide</span><span>{desbloqueadas.length} factura(s)</span>
             </div>
           </div>
+
+          {mia && mia.facturas && mia.facturas.length > 0 && (
+            <div className="bg-white rounded-[14px] border border-border p-5 mb-4">
+              <div className="text-[13px] font-bold mb-3">Facturas desbloqueadas</div>
+              {desbloqueadas.map(f => (
+                <div key={f.id} className="flex items-center gap-3 py-2 border-b border-page-bg last:border-0">
+                  <span className="text-[18px]">💳</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[12px] font-semibold truncate">{f.id}</div>
+                    <div className="text-[11px] text-text-4 truncate">{f.concepto}</div>
+                  </div>
+                  <span className="text-[12px] font-bold text-orange">XAF {fmt(f.monto)}</span>
+                </div>
+              ))}
+              <div className="text-[11px] text-text-4 mt-3">
+                Distribuí estos fondos pagando a tus proveedores (Fase 2). Sin cuenta bancaria → Cheque de Venta.
+              </div>
+            </div>
+          )}
 
           {/* Categorías de gasto */}
           <div className="bg-white rounded-[14px] border border-border p-5">

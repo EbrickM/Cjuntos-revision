@@ -28,7 +28,7 @@ const scoreStyle = (score) => {
 const ctBadgeStyle = (estado) =>
   estado === 'Pagada'      ? { background: '#E3F4EA', color: '#2E7D5B' } :
   estado === 'Validada'    ? { background: '#EFF6FF', color: '#3B82F6' } :
-  estado === 'IPI Emitido' ? { background: '#EFF6FF', color: '#3B82F6' } :
+  estado === 'Emitida'  ? { background: '#EFF6FF', color: '#3B82F6' } :
   estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
                              { background: '#F6F5F3', color: '#9CA3AF' };
 
@@ -83,7 +83,7 @@ const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: ''
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
 
-const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'IPI Emitido', 'Pagada'];
+const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'Emitida', 'Pagada'];
 const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
 
 const initialProviders = [

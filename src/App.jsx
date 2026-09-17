@@ -18,6 +18,7 @@ const AdminDash      = lazy(() => import('./pages/admin/Dashboard'));
 const AdminKYC       = lazy(() => import('./pages/admin/KYC'));
 const AdminEmpresas  = lazy(() => import('./pages/admin/Empresas'));
 const AdminContratos = lazy(() => import('./pages/admin/Contratos'));
+const AdminFacturas  = lazy(() => import('./pages/admin/FacturasAdmin'));
 const AdminRisk      = lazy(() => import('./pages/admin/AdminRisk'));
 const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
 const AdminSettings  = lazy(() => import('./pages/admin/AdminSettings'));
@@ -37,10 +38,7 @@ const EpConfigurarContrato  = lazy(() => import('./pages/empresa-pequena/EpConfi
 
 // Contratante
 const EmpDash           = lazy(() => import('./pages/contratante/Dashboard'));
-const EmpConf           = lazy(() => import('./pages/contratante/Confirming'));
-const EmpFactEP         = lazy(() => import('./pages/contratante/FacturasEmpresaPequena'));
 const EmpVerifContr     = lazy(() => import('./pages/contratante/VerifContratos'));
-const EmpConfDet        = lazy(() => import('./pages/contratante/EmpConfDet'));
 const EmpProv           = lazy(() => import('./pages/contratante/EmpProv'));
 const EmpProvPerfil     = lazy(() => import('./pages/contratante/EmpProvPerfil'));
 const EmpRisk           = lazy(() => import('./pages/contratante/EmpRisk'));
@@ -103,6 +101,7 @@ export default function App() {
           <Route path={R.adminKYC}        element={<AdminKYC />} />
           <Route path={R.adminConf}       element={<AdminContratos />} />
           <Route path={R.adminEmpresas}   element={<AdminEmpresas />} />
+          <Route path={R.adminFacturas}   element={<AdminFacturas />} />
           <Route path={R.adminRisk}       element={<AdminRisk />} />
           <Route path={R.adminAnalytics}  element={<AdminAnalytics />} />
           <Route path={R.adminSettings}   element={<AdminSettings />} />
@@ -133,9 +132,6 @@ export default function App() {
           <Route path={R.empPerfil}          element={<EmpPerfil />} />
           <Route path={R.empSolicitarContrato} element={<SolicitarContrato />} />
           {/* Legado */}
-          <Route path={R.empConf}       element={<EmpConf />} />
-          <Route path={R.empConfDet}    element={<EmpConfDet />} />
-          <Route path={R.empFactEP}     element={<EmpFactEP />} />
           <Route path={R.empVerifContr} element={<EmpVerifContr />} />
           <Route path={R.empProv}       element={<EmpProv />} />
           <Route path={R.empProvPerfil} element={<EmpProvPerfil />} />

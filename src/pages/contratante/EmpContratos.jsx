@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, MessageSquare,
+  Search, ChevronRight,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -8,8 +8,7 @@ import { StatCard } from '../../components/common/StatCard';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
+import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
@@ -17,7 +16,6 @@ import { TEXT4, fmt, contratos, contratanteState } from './contratanteData';
 export default function EmpContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
-  const [reqModal, setReqModal] = useState(null);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
   const totalUtilizado  = contratos.reduce((a, c) => a + c.utilizado, 0);
@@ -82,15 +80,10 @@ export default function EmpContratos() {
                 style={{ animationDelay: `${idx * 70}ms` }}
               >
                 {/* Ícono flotante: contrato con requerimiento de Bonafide */}
-                {c.requerimiento && (
-                  <button
-                    onClick={e => { e.stopPropagation(); setReqModal(c); }}
-                    title="Ver requerimiento"
-                    className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                )}
+                <RequerimientoBadge
+                  factura={c}
+                  cta={{ label: 'Reconfigurar Contrato', onClick: () => { const marcoId = c.requerimiento?.marcoId; go('empConfigurarContrato', { marcoId }); } }}
+                />
 
                 {/* ID + PYME + sector + estado */}
                 <div className="min-w-0">
@@ -141,28 +134,6 @@ export default function EmpContratos() {
 
       </div>
 
-      {/* ── Modal: Requerimiento de Bonafide ── */}
-      {reqModal && (
-        <Modal title={`Requerimiento · ${reqModal.id}`} onClose={() => setReqModal(null)}>
-          <div className="space-y-5">
-            <div className="flex items-start gap-3 p-4 rounded-[12px] bg-red-bg border border-red/20">
-              <MessageSquare className="w-5 h-5 shrink-0 mt-0.5 text-red-text" />
-              <div>
-                <p className="text-[13px] text-text-1 leading-relaxed">{reqModal.requerimiento?.mensaje}</p>
-                <p className="text-[11px] mt-2" style={{ color: TEXT4 }}>Reportado el {reqModal.requerimiento?.fecha}</p>
-              </div>
-            </div>
-            <Button
-              variant="primary"
-              full
-              className="h-[46px] justify-center"
-              onClick={() => { const marcoId = reqModal.requerimiento?.marcoId; setReqModal(null); go('empConfigurarContrato', { marcoId }); }}
-            >
-              Reconfigurar Contrato
-            </Button>
-          </div>
-        </Modal>
-      )}
     </AppShell>
   );
 }

@@ -19,6 +19,7 @@ export const ROUTES = {
   adminKYC:           '/admin/kyc',
   adminConf:          '/admin/contratos',
   adminEmpresas:      '/admin/empresas',
+  adminFacturas:      '/admin/facturas',
   adminRisk:          '/admin/riesgo',
   adminAnalytics:     '/admin/analiticas',
   adminSettings:      '/admin/configuracion',
@@ -49,9 +50,6 @@ export const ROUTES = {
   empPerfil:          '/contratante/perfil',
   empSolicitarContrato: '/contratante/solicitar-contrato',
   // legacy
-  empConf:            '/contratante/confirming',
-  empConfDet:         '/contratante/confirming/detalle',
-  empFactEP:          '/contratante/facturas-pyme',
   empVerifContr:      '/contratante/verificar-contratos',
   empProv:            '/contratante/proveedores-legacy',
   empProvPerfil:      '/contratante/proveedores-legacy/perfil',

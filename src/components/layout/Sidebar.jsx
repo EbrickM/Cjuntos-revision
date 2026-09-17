@@ -11,7 +11,8 @@ const NAV = {
     { id: 'adminDash',     Icon: Home,          lbl: 'Inicio' },
     { id: 'adminConf',     Icon: ClipboardList, lbl: 'Contratos' },
     { id: 'adminEmpresas', Icon: Building2,     lbl: 'Empresas Contratantes' },
-    { id: 'adminRisk',     Icon: Receipt,       lbl: 'Facturas' },
+    { id: 'adminFacturas', Icon: Receipt,       lbl: 'Facturas' },
+    { id: 'adminRisk',     Icon: ClipboardList, lbl: 'Riesgo' },
     { id: 'adminGobierno', Icon: Landmark,      lbl: 'Información Gubernamental' },
   ],
   'empresa-pequena': [
