@@ -14,6 +14,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
+import InvoiceCard from '../../components/invoices/InvoiceCard';
 
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
 const pct        = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
@@ -54,37 +55,9 @@ const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action 
   </div>
 );
 
-const CTPipeline = ({ estado, tipoFactoring }) => {
-  const steps = tipoFactoring === 'inverso' ? CT_ESTADOS_INVERSO : CT_ESTADOS_DIRECTO;
-  const currentIdx = steps.indexOf(estado);
-  const completed  = currentIdx === steps.length - 1;
-  return (
-    <div className="flex items-center gap-0.5 flex-wrap">
-      {steps.map((step, idx) => (
-        <div key={step} className="flex items-center gap-0.5">
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
-                style={
-                  completed || idx < currentIdx  ? { background: '#E3F4EA', color: '#2E7D5B' } :
-                  idx === currentIdx              ? { background: '#EF7A2C', color: '#ffffff', boxShadow: '0 0 0 2px rgba(239,122,44,0.25)' } :
-                                                    { background: '#F6F5F3', color: '#A9A6A1' }
-                }>
-            {step}
-          </span>
-          {idx < steps.length - 1 && (
-            <div className="w-3 h-px shrink-0" style={{ background: (completed || idx < currentIdx) ? '#A8D5BE' : '#ECEAE7' }} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const INV_CT_EMPTY        = { open: false, editId: null, monto: '', concepto: '', fechaVencimiento: '', documento: null };
 const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto: '', concepto: '', fecha: '', fechaVencimiento: '', documento: null };
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
-
-const CT_ESTADOS_INVERSO = ['Creada', 'Enviada', 'Validada', 'Emitida', 'Pagada'];
-const CT_ESTADOS_DIRECTO = ['Creada', 'Enviada', 'Validada', 'Pagada'];
 
 const initialProviders = [
   { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true, kyc: 'vigente',  scoreCredito: 780 },
@@ -686,56 +659,26 @@ export default function EpCreditos() {
                         </div>
                       }
                     />
-                    <div className="space-y-3">
-                      {contratanteInvoices.map(inv => (
-                        <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
-                          {/* Mobile */}
-                          <div className="sm:hidden">
-                            <div className="flex items-center gap-2.5 mb-2">
-                              <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                                <Building2 className="w-4 h-4" style={{ color: '#EF7A2C' }} />
-                              </div>
-                              <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
-                              {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
-                            </div>
-                            <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
-                            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full inline-block" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>
-                            <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
-                              <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
-                              <div className="flex items-center gap-1">
-                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                              </div>
-                            </div>
-                          </div>
-                          {/* Desktop */}
-                          <div className="hidden sm:flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                              <Building2 className="w-5 h-5" style={{ color: '#EF7A2C' }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                                {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
-                              </div>
-                              <div className="text-[12px] text-text-3 truncate mb-2">{inv.concepto}</div>
-                              <CTPipeline estado={inv.estado} tipoFactoring={detailContract.tipoFactoring} />
-                            </div>
-                            <div className="shrink-0 flex items-center gap-3">
-                              <div className="text-right">
-                                <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                                <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                              </div>
-                              <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                <button onClick={() => handleOpenEditCTInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                                <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {contratanteInvoices.map((inv, idx) => (
+                        <InvoiceCard
+                          key={inv.id}
+                          factura={inv}
+                          entidad={detailContract.contratante?.razonSocial}
+                          concepto={inv.concepto}
+                          badge={<span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>}
+                          extra={
+                            <>
+                              <button onClick={e => { e.stopPropagation(); handleOpenEditCTInvoice(inv); }} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                              <button onClick={e => { e.stopPropagation(); handleDeleteInvoice(inv.id); }} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </>
+                          }
+                          style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                          onClick={() => handleOpenEditCTInvoice(inv)}
+                        />
                       ))}
                       {contratanteInvoices.length === 0 && (
-                        <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas al contratante para este contrato.</div>
+                        <div className="col-span-full text-[12px] text-text-4 py-6 text-center">No hay facturas al contratante para este contrato.</div>
                       )}
                     </div>
                   </div>
@@ -758,64 +701,32 @@ export default function EpCreditos() {
                         </div>
                       }
                     />
-                    <div className="space-y-3">
-                      {proveedorInvoices.map(inv => {
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {proveedorInvoices.map((inv, idx) => {
                         const estadoStyle =
                           inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
                           inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
                           { background: '#FDF6E8', color: '#C68A1D' };
                         return (
-                          <div key={inv.id} className="bg-white rounded-[16px] p-4 border border-border">
-                            {/* Mobile */}
-                            <div className="sm:hidden">
-                              <div className="flex items-center gap-2.5 mb-2">
-                                <div className="w-9 h-9 rounded-[11px] bg-orange-tint flex items-center justify-center shrink-0">
-                                  <Truck className="w-4 h-4 text-orange" />
-                                </div>
-                                <span className="text-[13px] font-bold text-text-1 truncate">{inv.id}</span>
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={estadoStyle}>{inv.estado}</span>
-                                {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
-                              </div>
-                              <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto || inv.proveedorNombre}</div>
-                              {inv.proveedorNombre && <div className="text-[11px] text-text-5 mb-1">{inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}</div>}
-                              <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-border">
-                                <span className="text-[14px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
-                                <div className="flex items-center gap-1">
-                                  <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                                </div>
-                              </div>
-                            </div>
-                            {/* Desktop */}
-                            <div className="hidden sm:flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-[14px] bg-orange-tint flex items-center justify-center shrink-0">
-                                <Truck className="w-5 h-5 text-orange" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-0.5">
-                                  <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
-                                  {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
-                                </div>
-                                <div className="text-[12px] text-text-3 truncate">{inv.concepto || inv.proveedorNombre}</div>
-                                <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedorNombre}{inv.fechaVencimiento ? ` · Vence: ${inv.fechaVencimiento}` : ''}</div>
-                              </div>
-                              <div className="shrink-0 flex items-center gap-3">
-                                <div className="text-right">
-                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-                                  <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-                                </div>
-                                <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                  <button onClick={() => handleOpenEditPRInvoice(inv)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                                  <button onClick={() => handleDeleteInvoice(inv.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          <InvoiceCard
+                            key={inv.id}
+                            factura={inv}
+                            entidad={inv.proveedorNombre}
+                            concepto={inv.concepto || inv.proveedorNombre}
+                            badge={<span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>}
+                            extra={
+                              <>
+                                <button onClick={e => { e.stopPropagation(); handleOpenEditPRInvoice(inv); }} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                <button onClick={e => { e.stopPropagation(); handleDeleteInvoice(inv.id); }} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </>
+                            }
+                            style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                            onClick={() => handleOpenEditPRInvoice(inv)}
+                          />
                         );
                       })}
                       {proveedorInvoices.length === 0 && (
-                        <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas para este contrato.</div>
+                        <div className="col-span-full text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas para este contrato.</div>
                       )}
                     </div>
                   </div>
