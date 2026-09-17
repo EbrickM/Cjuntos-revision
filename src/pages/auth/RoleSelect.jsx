@@ -53,7 +53,7 @@ export default function RoleSelect() {
 
       {/* Mismo Topbar que el resto de la app — sin rol asignado aún, así que
           no muestra el sidebar (RoleSelect es previo a elegir uno). */}
-      <Topbar onMenuClick={() => {}} />
+      <Topbar onMenuClick={() => {}} hideNotifications />
 
       {/* Contenido */}
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4 sm:p-8">

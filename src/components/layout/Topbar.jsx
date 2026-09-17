@@ -43,7 +43,7 @@ const notifs = [
   },
 ];
 
-export default function Topbar({ role, onMenuClick }) {
+export default function Topbar({ role, onMenuClick, hideNotifications = false }) {
   const { go } = useApp();
   const session      = useAuthStore(s => s.session);
   const adminSession = useAuthStore(s => s.adminSession);
@@ -139,17 +139,19 @@ export default function Topbar({ role, onMenuClick }) {
         </div>
 
         {/* Notificaciones */}
-        <div className="relative">
-          <button
-            onClick={() => setNotifOpen(true)}
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-text-3"
-          >
-            <Bell className="w-5 h-5" />
-            {pendientes > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gradient-to-r from-orange to-orange-dark rounded-full" />
-            )}
-          </button>
-        </div>
+        {!hideNotifications && (
+          <div className="relative">
+            <button
+              onClick={() => setNotifOpen(true)}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer text-text-3"
+            >
+              <Bell className="w-5 h-5" />
+              {pendientes > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-gradient-to-r from-orange to-orange-dark rounded-full" />
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Cerrar sesión */}
         <button
