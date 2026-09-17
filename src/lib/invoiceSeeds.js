@@ -4,7 +4,7 @@
 // por un modelo único consumido por factura.service via localDb.
 import { INV, MODALIDAD } from './invoiceStates';
 
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 
 // ── Entidades de la narrativa ─────────────────────────────────────────────────
 const E = {
@@ -87,6 +87,13 @@ function historia(estado, extra = []) {
   return [...ev, ...extra];
 }
 
+// Banco Fondeador del que proviene cada contrato — se denormaliza en la factura
+// para que el portal del Fondeador (BGFI) pueda filtrar su propia cartera sin
+// tener que resolver el contrato.
+const BANCO_POR_CONTRATO = Object.fromEntries(
+  Object.values(CONTRATOS).map(c => [c.id, c.banco])
+);
+
 // Semilla base: facturas PYME → Contratante (Fase 1 del BPMN).
 const fac = (id, o) => ({
   id,
@@ -94,6 +101,7 @@ const fac = (id, o) => ({
   origen: 'contratante',           // factura al contratante
   modalidadPago: MODALIDAD.retiroTotal,
   estado: INV.creada,
+  bancoFondeador: BANCO_POR_CONTRATO[o.contrato] ?? null,
   ipi: null,
   requerimientos: null,
   documentos: [],
@@ -157,6 +165,15 @@ export const seedFacturas = [
     ipi: { numero: 'IPI-2026-0313', fechaEmision: D('11'), fechaValidacion: D('12') },
     requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado', fecha: D('12') },
   }),
+  fac('FAC-2026-1090', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
+    proveedor: E.proveedores.transge, modalidadPago: MODALIDAD.retiroTotal,
+    monto: 5_500_000, estado: INV.orden_fondeador, concepto: 'Servicios de movimiento de tierras – Lote 4',
+    fecha: D('10'), fechaVencimiento: D('10') + ' / 45 días',
+    ipi: { numero: 'IPI-2026-0318', fechaEmision: D('12'), fechaValidacion: D('14') },
+    requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado', fecha: D('14') },
+    condiciones: { retencion: 3, gestionCobranza: 1.5, interes: 5, neto: 4_977_500 },
+  }),
   fac('FAC-2026-1031', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c1.id, contratante: CONTRATOS.c1.nombre, pyme: CONTRATOS.c1.pyme,
     proveedor: E.proveedores.transge,
@@ -164,6 +181,7 @@ export const seedFacturas = [
     fecha: D('05'), fechaVencimiento: D('05') + ' / 45 días',
     ipi: { numero: 'IPI-2026-0314', fechaEmision: D('07'), fechaValidacion: D('09') },
     requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado', fecha: D('09') },
+    condiciones: { retencion: 3, gestionCobranza: 1.5, interes: 5, neto: 16_290_000 },
   }),
   fac('FAC-2026-1078', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
@@ -173,6 +191,7 @@ export const seedFacturas = [
     fecha: D('10'), fechaVencimiento: D('10') + ' / 30 días',
     ipi: { numero: 'IPI-2026-0315', fechaEmision: D('12'), fechaValidacion: D('14') },
     requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado', fecha: D('14') },
+    condiciones: { retencion: 3, gestionCobranza: 1.5, interes: 5, neto: 6_787_500 },
   }),
   fac('FAC-2026-1085', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c3.id, contratante: CONTRATOS.c3.nombre, pyme: CONTRATOS.c3.pyme,

@@ -53,6 +53,11 @@ const EmpPerfil         = lazy(() => import('./pages/contratante/EmpPerfil'));
 const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDetalle'));
 const EmpConfigurarContrato = lazy(() => import('./pages/contratante/EmpConfigurarContrato'));
 
+// Banco Fondeador
+const FondDash    = lazy(() => import('./pages/fondeador/Dashboard'));
+const FondOrdenes = lazy(() => import('./pages/fondeador/Ordenes'));
+const FondCartera = lazy(() => import('./pages/fondeador/Cartera'));
+
 // Proveedor
 const ProvDash            = lazy(() => import('./pages/proveedor/Dashboard'));
 const ProvContratos       = lazy(() => import('./pages/proveedor/Contratos'));
@@ -138,6 +143,11 @@ export default function App() {
           <Route path={R.empRisk}       element={<EmpRisk />} />
           <Route path={R.empNotif}      element={<EmpNotif />} />
           <Route path={R.empSettings}   element={<EmpSettings />} />
+
+          {/* Banco Fondeador */}
+          <Route path={R.fondDash}    element={<FondDash />} />
+          <Route path={R.fondOrdenes} element={<FondOrdenes />} />
+          <Route path={R.fondCartera} element={<FondCartera />} />
 
           {/* Proveedor */}
           <Route path={R.provDash}            element={<ProvDash />} />

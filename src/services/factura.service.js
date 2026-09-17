@@ -71,6 +71,24 @@ export const facturaService = {
     return this.listar().filter(f => f.tipoFactoring === 'inverso' && f.estado === INV.emitida);
   },
 
+  // ── Lecturas del Banco Fondeador ──
+  // Facturas cuyo Banco Fondeador es `banco` (denormalizado en la semilla).
+  listarPorBanco(banco) {
+    return this.listar().filter(f => f.bancoFondeador === banco);
+  },
+
+  // Bandeja del Fondeador: órdenes de fondeo pendientes de liquidar.
+  bandejaOrdenes(banco) {
+    return this.listarPorBanco(banco).filter(f => f.estado === INV.ordenFondeador);
+  },
+
+  // Cartera ya fondeada por el banco (en proceso de OTP / pago / billetera).
+  carteraFondeador(banco) {
+    return this.listarPorBanco(banco).filter(f =>
+      [INV.fondeado, INV.otpEnviada, INV.otpVerificada, INV.pagada, INV.billetera].includes(f.estado)
+    );
+  },
+
   // ── Operaciones PYME ──
   crear(data) {
     const lista = localDb.get(KEY_FACTURAS, seedFacturas, SEED_VERSION);
@@ -82,6 +100,7 @@ export const facturaService = {
       origen: 'contratante',
       modalidadPago: MODALIDAD.retiroTotal,
       estado: INV.creada,
+      bancoFondeador: null,
       ipi: null,
       requerimientos: null,
       documentos: [],
@@ -216,17 +235,17 @@ export const facturaService = {
     });
   },
 
-  // Fondeo: transiciones automáticas del lado del banco (Fondeo Recibido ->
-  // OTP Enviada). Se llama con `delayMs` para simular el procesamiento del
-  // core bancario; cuando haya backend real, esto pasará a ser un evento.
-  fondeoAutomatico(id, delayMs = 1400) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const fondeado = transicionarFactura(id, INV.fondeado, 'El Banco Fondeador transfirió y acreditó los fondos a Bonafide.');
-        const otp = transicionarFactura(id, INV.otpEnviada, 'Se envió un código de verificación (OTP) a la Empresa Contratante.');
-        resolve({ fondeado, otp });
-      }, delayMs);
-    });
+  // Liquidación del Banco Fondeador (Fondeo Recibido → OTP Enviada): transfiere
+  // y acredita los fondos a Bonafide y dispara el OTP a la Empresa Contratante.
+  // La ejecuta el propio Fondeador desde su portal — ya no es automática.
+  liquidarFondeo(id, { referencia = '' } = {}) {
+    transicionarFactura(id, INV.fondeado, 'El Banco Fondeador transfirió y acreditó los fondos a Bonafide.');
+    transicionarFactura(id, INV.otpEnviada, 'Se envió un código de verificación (OTP) a la Empresa Contratante.');
+    return mutarFactura(id, (f) => ({
+      ...f,
+      transferencia: { referencia: referencia.trim(), fecha: hoy(), banco: f.bancoFondeador ?? null },
+      historia: [...(f.historia ?? []), evento('Liquidación confirmada', referencia.trim() ? `Referencia bancaria ${referencia.trim()}.` : 'Transferencia ejecutada por el Banco Fondeador.')],
+    }));
   },
 
   // ── Billetera virtual y pagos a proveedores (Fase 2) ──

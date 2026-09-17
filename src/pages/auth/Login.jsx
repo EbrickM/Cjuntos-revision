@@ -23,6 +23,7 @@ export default function Login() {
     'informatica@lidershore.com': 'empDash',
     'lily.construcciones@gmail.com': 'epHome',
     'lilycg99@icloud.com': 'empDash',
+    'fondeador@gmail.com': 'fondDash',
   };
 
   const handleVerified = (email) => {

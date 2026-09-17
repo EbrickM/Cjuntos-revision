@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle, Zap, Banknote, Send, ShieldCheck, X, ChevronDown, Loader2,
+  CheckCircle, Zap, Banknote, Send, ShieldCheck, X, ChevronDown,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -25,7 +25,6 @@ export default function EmpFacturas() {
   const [detalle, setDetalle]         = useState(null); // factura seleccionada
   const [evaluando, setEvaluando]     = useState(null); // modal evaluar
   const [otpFactura, setOtpFactura]   = useState(null); // modal OTP Fondeador
-  const [fondeando, setFondeando]     = useState(false);
   const [, setTick]                   = useState(0);
   const bump = () => setTick(t => t + 1);
 
@@ -72,11 +71,9 @@ export default function EmpFacturas() {
     facturaService.pagarDirecta(f.id); bump();
   };
   const enviarFondeador = (f) => {
-    if (fondeando) return;
-    setFondeando(true);
+    // La orden queda en la bandeja del Banco Fondeador, que la liquida desde su
+    // propio portal (Fondeo Recibido → OTP) — ya no es un paso automático.
     facturaService.enviarOrdenFondeador(f.id); bump();
-    // SUBP 1 Fondeador — pasos automáticos del banco (Fondeo Recibido → OTP).
-    facturaService.fondeoAutomatico(f.id).then(() => { setFondeando(false); bump(); });
   };
   const confirmarOtp = () => {
     if (!otpFactura) return;
@@ -179,12 +176,6 @@ export default function EmpFacturas() {
         </div>
         </div>
 
-        {fondeando && (
-          <div className="flex items-center gap-2 text-[12px] font-semibold text-orange">
-            <Loader2 className="w-4 h-4 animate-spin" /> Procesando orden en el Banco Fondeador…
-          </div>
-        )}
-
       </div>
 
       {/* ── Modal: Detalle de factura ── */}
@@ -199,7 +190,7 @@ export default function EmpFacturas() {
               <>
                 <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
                 {a && (
-                  <Button variant="primary" size="sm" onClick={a.handler} disabled={fondeando}>
+                  <Button variant="primary" size="sm" onClick={a.handler}>
                     <a.Icon className="w-3.5 h-3.5 mr-1" />{a.lbl}
                   </Button>
                 )}

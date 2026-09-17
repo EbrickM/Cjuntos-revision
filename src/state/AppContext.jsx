@@ -57,6 +57,11 @@ export const ROUTES = {
   empNotif:           '/contratante/notificaciones',
   empSettings:        '/contratante/ajustes',
 
+  // Banco Fondeador
+  fondDash:           '/fondeador',
+  fondOrdenes:        '/fondeador/ordenes',
+  fondCartera:        '/fondeador/cartera',
+
   // Proveedor
   provDash:           '/proveedor',
   provContratos:      '/proveedor/contratos',
@@ -90,7 +95,8 @@ export function AppProvider({ children }) {
     if (p.startsWith('/pyme'))        return 'empresa-pequena';
     if (p.startsWith('/contratante')) return 'contratante';
     if (p.startsWith('/admin'))       return 'admin';
-    if (p.startsWith('/proveedor'))   return 'proveedor';
+    if (p.startsWith('/proveedor'))  return 'proveedor';
+    if (p.startsWith('/fondeador'))  return 'fondeador';
     return null;
   })();
   const effectiveRole = role ?? derivedRole;
@@ -102,6 +108,7 @@ export function AppProvider({ children }) {
     else if (screenId.startsWith('emp'))   setRole('contratante');
     else if (screenId.startsWith('admin')) setRole('admin');
     else if (screenId.startsWith('prov'))  setRole('proveedor');
+    else if (screenId.startsWith('fond'))  setRole('fondeador');
     else if (screenId === 'splash' || screenId === 'login') setRole(null);
     navigate(path);
     window.scrollTo(0, 0);

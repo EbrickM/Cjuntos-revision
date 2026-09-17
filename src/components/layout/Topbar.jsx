@@ -5,6 +5,8 @@ import { useAuthStore, logout } from '../../stores/authStore';
 import { contratosMarco, fmt } from '../../pages/contratante/contratanteData';
 import { pymeContratosPendientes, fmt as fmtEp } from '../../pages/empresa-pequena/epData';
 import { contratosPendientes as provContratosPendientes, fmt as fmtProv } from '../../pages/proveedor/provData';
+import { facturaService } from '../../services/factura.service';
+import { BANCO } from '../../pages/fondeador/fondeadorShared';
 import Logo from './Logo';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
 
@@ -13,6 +15,7 @@ const ROLE_META = {
   contratante:       { roleLabel: 'Empresa Contratante', pill: null },
   admin:             { roleLabel: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
   proveedor:         { roleLabel: 'Proveedor',           pill: { lbl: 'Proveedor', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
+  fondeador:         { roleLabel: 'Banco Fondeador · BGFI', pill: { lbl: 'Fondeador', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
 };
 
 function getInitials(fullName = '') {
@@ -81,6 +84,16 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
         dt: c.fechaAsignacion,
         leida: false,
         accion: { label: 'Proceder con el contrato', screenId: 'provConfigurarContrato', opts: { contratoId: c.id } },
+      }));
+    }
+    if (role === 'fondeador') {
+      return facturaService.bandejaOrdenes(BANCO).map(f => ({
+        id: `fondOrd-${f.id}`,
+        titulo: 'Nueva orden de fondeo recibida',
+        cuerpo: `${f.contratante} envió la orden del IPI ${f.ipi?.numero ?? f.id} por ${fmt(f.monto)} XAF. Confirma la transferencia a Bonafide.`,
+        dt: f.ipi?.fechaEmision ?? f.fecha,
+        leida: false,
+        accion: { label: 'Ir a Órdenes de Fondeo', screenId: 'fondOrdenes' },
       }));
     }
     return [];
