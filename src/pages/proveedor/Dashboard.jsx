@@ -480,14 +480,23 @@ export default function ProvDash() {
         {tab === 'medioambiental' && (
           <div key="medioambiental" className="fade-in space-y-5">
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-7">
-              {envKpis.map(({ value, label, Icon, iconColor }) => (
-                <div key={label} className="text-left pb-2.5 border-b-2" style={{ borderColor: iconColor }}>
-                  <div className="flex items-center gap-1.5">
-                    <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{value}</span>
+            {/* KPIs — cards blancas */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
+              {envKpis.map(({ value, label, sub, Icon, iconColor, trend, tUp }) => (
+                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
+                    <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                   </div>
-                  <div className="text-xs text-text-4 mt-1.5">{label}</div>
+                  <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
+                  {sub && <span className="text-[10px] text-text-5 leading-snug">{sub}</span>}
+                  {trend && (
+                    <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      tUp === true ? 'bg-green-bg text-green-text' :
+                      tUp === false ? 'bg-red-bg text-red-text' :
+                      'bg-orange-tint text-orange-dark'
+                    }`}>{trend}</span>
+                  )}
                 </div>
               ))}
             </div>
