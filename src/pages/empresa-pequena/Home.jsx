@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TrendingUp, Leaf, ChevronRight, CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
+import { TrendingUp, Leaf, ChevronRight, CheckCircle, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -154,7 +154,6 @@ const CONTRATOS_ACTIVOS    = 1;
 const SCORE                = 820;
 const FACTURAS_TOTAL_COUNT = 2;
 const FACTURAS_TOTAL_MONTO = 47_500_000;
-const NUEVOS_CONTRATOS     = 1;
 const NUEVOS_PROVEEDORES   = 3;
 const SOLICITUDES_PEND     = 1;
 const SOLICITUDES_XAF      = 50_000_000;
@@ -333,6 +332,16 @@ export default function EpHome() {
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIVOS} contratos activos
                       </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#F2F2F3', color: '#5B5B5F', border: '1px solid rgba(91,91,95,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#5B5B5F' }} />
+                        {NUEVOS_PROVEEDORES} proveedores
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                        {FACTURAS_TOTAL_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
+                      </span>
                     </div>
                   </div>
 
@@ -376,32 +385,6 @@ export default function EpHome() {
                 </div>
               </div>
 
-              {/* KPIs integrados — tiles subrayadas, sin card propia */}
-              <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
-                <button onClick={() => go('epCreditos')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <FilePlus className="w-3.5 h-3.5" style={{ color: ORA }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_CONTRATOS}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Contratos en cartera</div>
-                </button>
-                <button onClick={() => go('epProveedores')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: '#5B5B5F' }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <Users className="w-3.5 h-3.5" style={{ color: '#5B5B5F' }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{NUEVOS_PROVEEDORES}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Mis proveedores</div>
-                </button>
-                <button onClick={() => go('epFacturacion')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <FileCheck className="w-3.5 h-3.5" style={{ color: GREEN }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{FACTURAS_TOTAL_COUNT}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>
-                    Facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
-                  </div>
-                </button>
-              </div>
             </div>
 
             {/* ── Panel 2: Actividad financiera + Riesgo y solicitudes, en una sola card ── */}

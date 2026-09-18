@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import {
   TrendingUp, TreePine, Download, ArrowUpRight,
-  CheckCircle, FilePlus, Users, FileCheck, CreditCard, Shield,
+  CheckCircle, CreditCard, Shield,
   Wind
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 
@@ -211,7 +210,6 @@ const riesgoBadge = r => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 're
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function ProvDash() {
-  const { go } = useApp();
   const [tab, setTab] = useState('fondos');
   const [activityView, setActivityView] = useState('evolucion');
   const [devToast, setDevToast] = useState(false);
@@ -302,6 +300,11 @@ export default function ProvDash() {
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
                         {SUMINISTRADORES_ASIGNADOS} Suministradores asignados
                       </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
+                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                        {FACTURAS_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_MONTO)} XAF
+                      </span>
                     </div>
                   </div>
 
@@ -342,31 +345,6 @@ export default function ProvDash() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
-                <button onClick={() => go('provSuministradores')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <Users className="w-3.5 h-3.5" style={{ color: GREEN }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{SUMINISTRADORES_ASIGNADOS}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Suministradores asignados</div>
-                </button>
-                <button onClick={() => go('provContratos')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: ORA }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <FilePlus className="w-3.5 h-3.5" style={{ color: ORA }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{CONTRATOS_ACTIV}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>Contratos activos</div>
-                </button>
-                <button onClick={() => go('provFacturas')} className="text-left max-[765px]:text-center pb-2 border-b-2 cursor-pointer transition-opacity hover:opacity-80" style={{ borderColor: GREEN }}>
-                  <div className="flex items-center gap-1.5 max-[765px]:justify-center">
-                    <FileCheck className="w-3.5 h-3.5" style={{ color: GREEN }} />
-                    <span className="text-2xl font-bold leading-none text-text-1">{FACTURAS_COUNT}</span>
-                  </div>
-                  <div className="text-[10px] mt-1.5" style={{ color: TEXT4 }}>
-                    Facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_MONTO)} XAF
-                  </div>
-                </button>
-              </div>
             </div>
 
             {/* ── Panel 2: Actividad del fondo + Distribución/Solicitudes/Tipo ── */}
