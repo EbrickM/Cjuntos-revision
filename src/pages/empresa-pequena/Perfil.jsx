@@ -15,6 +15,10 @@ function getInitials(name = '') {
 }
 
 const SCORE            = 820;
+const scoreZone = SCORE < 400 ? { label: 'Crítico', color: '#B8352A' }
+  : SCORE < 600 ? { label: 'Alto',  color: '#EF7A2C' }
+  : SCORE < 750 ? { label: 'Medio', color: '#C68A1D' }
+  : { label: 'Bajo', color: '#2E7D5B' };
 const KYC_VENCIMIENTO  = '31/12/2026';
 const ULTIMA_AUDITORIA = '15/03/2026';
 
@@ -108,9 +112,9 @@ export default function EpPerfil() {
             {/* Score crediticio prominente */}
             <div className="shrink-0 flex flex-col items-center sm:items-end">
               <div className="text-[9px] font-bold uppercase tracking-widest text-text-4 mb-1">Score Crediticio</div>
-              <div className="text-[32px] sm:text-[48px] font-extrabold leading-none" style={{ color: '#2E7D5B' }}>{SCORE}</div>
+              <div className="text-[32px] sm:text-[48px] font-extrabold leading-none" style={{ color: scoreZone.color }}>{SCORE}</div>
               <div className="text-[11px] text-text-4 mt-1.5">
-                / 1000 · <span className="font-semibold" style={{ color: '#2E7D5B' }}>Riesgo Bajo</span>
+                / 1000 · <span className="font-semibold" style={{ color: scoreZone.color }}>Riesgo {scoreZone.label}</span>
               </div>
             </div>
           </div>

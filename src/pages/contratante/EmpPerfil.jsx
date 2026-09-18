@@ -5,7 +5,7 @@ import {
 import AppShell from '../../components/layout/AppShell';
 import FormGroup, { Input } from '../../components/ui/FormGroup';
 import { HeroBadge, SectionHeader, ComplianceItem } from './contratanteShared';
-import { GREEN } from './contratanteData';
+import { ORA, GREEN, WARN, ERR } from './contratanteData';
 import { useAuthStore } from '../../stores/authStore';
 
 function getInitials(name = '') {
@@ -16,6 +16,10 @@ function getInitials(name = '') {
 }
 
 const SCORE_CT   = 720;
+const scoreZone = SCORE_CT < 400 ? { label: 'Crítico', color: ERR }
+  : SCORE_CT < 600 ? { label: 'Alto',  color: ORA }
+  : SCORE_CT < 750 ? { label: 'Medio', color: WARN }
+  : { label: 'Bajo', color: GREEN };
 const KYC_VENC   = '31/12/2026';
 const ULTIMA_AUD = '15/03/2026';
 
@@ -65,9 +69,9 @@ export default function EmpPerfil() {
             {/* Score */}
             <div className="shrink-0 flex flex-col items-center sm:items-end">
               <div className="text-[9px] font-bold uppercase tracking-widest text-text-4 mb-1">Score Crediticio</div>
-              <div className="text-[32px] sm:text-[48px] font-extrabold leading-none" style={{ color: GREEN }}>{SCORE_CT}</div>
+              <div className="text-[32px] sm:text-[48px] font-extrabold leading-none" style={{ color: scoreZone.color }}>{SCORE_CT}</div>
               <div className="text-[11px] text-text-4 mt-1.5">
-                / 1000 · <span className="font-semibold" style={{ color: GREEN }}>Riesgo Bajo</span>
+                / 1000 · <span className="font-semibold" style={{ color: scoreZone.color }}>Riesgo {scoreZone.label}</span>
               </div>
             </div>
           </div>

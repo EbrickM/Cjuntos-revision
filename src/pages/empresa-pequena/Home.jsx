@@ -152,6 +152,10 @@ const LIMITE               = 180_000_000;
 const USADO                = 47_500_000;
 const CONTRATOS_ACTIVOS    = 1;
 const SCORE                = 820;
+const scoreZone = SCORE < 400 ? { label: 'Crítico', color: ERR }
+  : SCORE < 600 ? { label: 'Alto',  color: ORA }
+  : SCORE < 750 ? { label: 'Medio', color: WARN }
+  : { label: 'Bajo', color: GREEN };
 const FACTURAS_TOTAL_COUNT = 2;
 const FACTURAS_TOTAL_MONTO = 47_500_000;
 const NUEVOS_PROVEEDORES   = 3;
@@ -378,9 +382,9 @@ export default function EpHome() {
                 {/* Score Crediticio — mismo formato prominente que en Mi Perfil */}
                 <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
-                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: GREEN }}>{SCORE}</p>
+                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: scoreZone.color }}>{SCORE}</p>
                   <p className="text-[12px] text-text-4">
-                    / 1000 · <span className="font-semibold" style={{ color: GREEN }}>Riesgo Bajo</span>
+                    / 1000 · <span className="font-semibold" style={{ color: scoreZone.color }}>Riesgo {scoreZone.label}</span>
                   </p>
                 </div>
               </div>
