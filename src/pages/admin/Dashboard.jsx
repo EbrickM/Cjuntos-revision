@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BarChart2, ShieldAlert, TrendingUp, AlertTriangle } from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -9,8 +9,8 @@ const fmt = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'general', line1: 'Dashboard', line2: 'General',  Icon: BarChart2   },
-  { id: 'riesgo',  line1: 'Dashboard de', line2: 'Riesgo', Icon: ShieldAlert },
+  { id: 'general', lbl: 'Dashboard General' },
+  { id: 'riesgo',  lbl: 'Dashboard de Riesgo' },
 ];
 
 // ── General tab data ──────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ const riesgoKpis = [
 ];
 
 const riesgoDona = [
-  { tipo: 'Bajo riesgo', pct: 100, color: '#00C853' },
+  { tipo: 'Bajo riesgo', pct: 100, color: '#059669' },
 ];
 
 const exposicionBars = [
@@ -79,12 +79,12 @@ export default function AdminDash() {
   const [tab, setTab] = useState('general');
 
   return (
-    <AppShell active="adminDash" role="admin" title="Inicio" sub="Vista general Bonafide">
+    <AppShell active="adminDash" role="admin">
       <div className="fade-in space-y-5">
 
         {/* Header */}
         <div>
-          <div className="text-[20px] font-bold text-text-1">Bienvenida, Ana 👋</div>
+          <div className="text-[20px] font-bold text-text-1">Bienvenida, Ana</div>
           <div className="text-[13px] text-text-4">Panel de dirección Bonafide Microbank · Agosto 2026</div>
         </div>
 
@@ -92,14 +92,10 @@ export default function AdminDash() {
         <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 sm:flex-none flex flex-col items-center gap-1 px-3 sm:px-4 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
+              className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
-              <t.Icon className="w-3.5 h-3.5" />
-              <span className="leading-[1.25]">
-                <span className="block">{t.line1}</span>
-                <span className="block">{t.line2}</span>
-              </span>
+              {t.lbl}
             </button>
           ))}
         </div>

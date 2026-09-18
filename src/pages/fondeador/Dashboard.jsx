@@ -19,7 +19,7 @@ export default function FondDash() {
   const cartera = facturaService.carteraFondeador(BANCO);
 
   const porLiquidar = ordenes.reduce((a, f) => a + netoFactura(f), 0);
-  const fondeado = cartera.reduce((a, f) => a + f.monto, 0);
+  const fondeado = cartera.reduce((a, f) => a + netoFactura(f), 0);
 
   const serie = MESES.map((mes, i) => {
     const mm = String(i + 1).padStart(2, '0');
@@ -144,7 +144,7 @@ export default function FondDash() {
                       </td>
                       <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
                       <td className="px-4 py-3"><InvoiceStatusBadge estado={f.estado} /></td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
+                      <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(netoFactura(f))} XAF</td>
                       <td className="px-4 py-3 text-[11px] text-text-5 whitespace-nowrap">{f.fecha ?? '—'}</td>
                     </tr>
                   ))}

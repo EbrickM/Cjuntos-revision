@@ -17,6 +17,9 @@ import { contratosMarco, montoDisponibleMarco, pymes, fmt } from './contratanteD
 const STEPS  = ['Cuenta bancaria', 'PYMEs y montos', 'Revisión y envío'];
 const PLAZOS = [30, 60, 90];
 
+const EMAIL_REGEX  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PREFIJO_TEL  = '+240';
+
 const ASIGNACION_EMPTY = {
   open: false, editId: null, pymeSel: '', pymeNombreLibre: '',
   plazoPago: 30, email: '', telefono: '', monto: '', documentoNombre: '',
@@ -89,7 +92,16 @@ export default function EmpConfigurarContrato() {
   const montoNumLive       = parseMonto(modal.monto);
   const disponibleParaModal = montoDisponibleMarco({ ...marco, pymesAsignadas: asignaciones }, modal.editId);
   const montoInvalido      = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
-  const puedeGuardar       = !!pymeNombreResuelto && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
+
+  const emailLimpio        = modal.email.trim();
+  const emailValido        = EMAIL_REGEX.test(emailLimpio);
+  const emailInvalido      = emailLimpio !== '' && !emailValido;
+
+  const telefonoLocal      = modal.telefono.replace(/\D/g, '');
+  const telefonoValido     = /^\d{7,9}$/.test(telefonoLocal);
+  const telefonoInvalido   = telefonoLocal !== '' && !telefonoValido;
+
+  const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
 
   const openAdd = () => setModal({
     ...ASIGNACION_EMPTY, open: true,
@@ -101,7 +113,8 @@ export default function EmpConfigurarContrato() {
     open: true, editId: a.id,
     pymeSel: a.pymeId ?? '__nueva__',
     pymeNombreLibre: a.pymeId ? '' : a.pymeNombre,
-    plazoPago: a.plazoPago, email: a.email, telefono: a.telefono,
+    plazoPago: a.plazoPago, email: a.email,
+    telefono: (a.telefono ?? '').replace(/^\+?\s*240\s*/, ''),
     monto: String(a.monto), documentoNombre: a.documentoNombre ?? '',
   });
 
@@ -116,7 +129,7 @@ export default function EmpConfigurarContrato() {
       monto: montoNumLive,
       plazoPago: modal.plazoPago,
       email: modal.email.trim(),
-      telefono: modal.telefono.trim(),
+      telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       documentoNombre: modal.documentoNombre || null,
     };
     setAsignaciones(prev => modal.editId ? prev.map(a => a.id === modal.editId ? nueva : a) : [...prev, nueva]);
@@ -391,12 +404,29 @@ export default function EmpConfigurarContrato() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <FormGroup label="Email" required className="mb-0">
-                <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@pyme.gq" />
-              </FormGroup>
-              <FormGroup label="Teléfono" required className="mb-0">
-                <Input value={modal.telefono} onChange={e => setModal(m => ({ ...m, telefono: e.target.value }))} placeholder="+240 222 XXX XXX" />
-              </FormGroup>
+              <div>
+                <FormGroup label="Email" required className="mb-0">
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@pyme.gq" className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
+                </FormGroup>
+                {emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
+              </div>
+              <div>
+                <FormGroup label="Teléfono" required className="mb-0">
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel" inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
+              </div>
             </div>
 
             <FormGroup label="Contrato Comercial (documentación adjunta)">

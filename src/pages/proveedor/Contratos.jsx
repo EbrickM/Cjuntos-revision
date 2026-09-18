@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, MessageSquare,
+  Search, ChevronRight, MessageSquare, ListFilter,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -10,13 +10,14 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { TEXT4, fmt, contratos, provState } from './provData';
+import { TEXT4, fmt, contratos, provState, contratoBadge } from './provData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 
 export default function ProvContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [reqModal, setReqModal] = useState(null);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
@@ -24,11 +25,14 @@ export default function ProvContratos() {
   const totalDisponible = totalAsignado - totalUtilizado;
   const activos         = contratos.filter(c => c.estado === 'Activo').length;
 
+  const ESTADOS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean)))];
+
   const filtrados = contratos.filter(c =>
-    !busqueda ||
+    (filtroEstado === 'Todos' || c.estado === filtroEstado) &&
+    (!busqueda ||
     c.pyme.toLowerCase().includes(busqueda.toLowerCase()) ||
     c.id.toLowerCase().includes(busqueda.toLowerCase()) ||
-    c.sector.toLowerCase().includes(busqueda.toLowerCase())
+    c.sector.toLowerCase().includes(busqueda.toLowerCase()))
   );
 
   // Sin delay artificial: cuando exista backend, la siguiente página debe
@@ -58,19 +62,31 @@ export default function ProvContratos() {
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
-          <div className="relative w-full sm:w-52">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-            <input
-              value={busqueda}
-              onChange={e => setBusqueda(e.target.value)}
-              placeholder="Buscar contrato, PYME…"
-              className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar contrato, PYME…"
+                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              />
+            </div>
+            <div className="relative flex items-center shrink-0">
+              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+              <select
+                value={filtroEstado}
+                onChange={e => setFiltroEstado(e.target.value)}
+                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+              >
+                {ESTADOS.map(e => <option key={e}>{e}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
         {/* Cards de contratos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {pagedContratos.map((c, idx) => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);
             const disp = c.asignado - c.utilizado;
@@ -96,7 +112,7 @@ export default function ProvContratos() {
                 <div className="min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
-                    <Badge variant={c.estado === 'Activo' ? 'green' : 'yellow'}>{c.estado}</Badge>
+                    <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
                   </div>
                   <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
                   {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
@@ -133,7 +149,7 @@ export default function ProvContratos() {
           })}
           {filtrados.length === 0 && (
             <div className="col-span-full text-[13px] text-text-4 text-center py-12">
-              No se encontraron contratos para "{busqueda}".
+              No se encontraron contratos con los filtros aplicados.
             </div>
           )}
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />

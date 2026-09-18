@@ -27,7 +27,7 @@ export const contratos = [
   { id: 'CT-2026-0041', pyme: 'Const. Silva Ltd.', ini: 'CS', sector: 'Construcción', asignado: 180_000_000, utilizado: 47_500_000, facturas: 2, estado: 'Activo',
     objeto: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.', fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses', plazoPago: 30,
     ...FICHA_CTM_2026_0002 },
-  { id: 'CT-2026-0052', pyme: 'AgroSur GE S.L.', ini: 'AS', sector: 'Agroindustria', asignado: 60_000_000, utilizado: 12_000_000, facturas: 0, estado: 'Activo',
+  { id: 'CT-2026-0052', pyme: 'AgroSur GE S.L.', ini: 'AS', sector: 'Agroindustria', asignado: 60_000_000, utilizado: 12_000_000, facturas: 0, estado: 'Con Requerimientos',
     objeto: 'Suministro de insumos agrícolas para plantaciones de cacao y café en la región continental.', fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses', plazoPago: 45,
     // Bonafide encontró una observación en la reconfiguración de este
     // contrato (Fase 3 del proceso maestro) — `marcoId` apunta al
@@ -70,6 +70,9 @@ export const solicitudesPymes = [
 export const facturaBadge = e => ({ 'Recibida': 'orange', 'En revisión': 'yellow', 'Verificada': 'blue', 'Emitida': 'green', 'Pagada': 'green' }[e] ?? 'gray');
 export const solicBadge   = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
 export const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'yellow' : 'red';
+// Badge de estado de contrato (todas las secciones): un contrato con
+// requerimiento de Bonafide se pinta en naranja Bonafide, no en verde.
+export const contratoBadge = e => e === 'Activo' ? 'green' : e === 'Con Requerimientos' ? 'orange' : 'yellow';
 export const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
 export const scoreColor   = n => n >= 750 ? GREEN : n >= 500 ? WARN : ERR;
 

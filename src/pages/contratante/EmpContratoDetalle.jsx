@@ -10,7 +10,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
-import { ORA, GREEN, TEXT4, fmt, facturas, pymes, contratos, facturaBadge, scoreColor, contratanteState } from './contratanteData';
+import { ORA, GREEN, TEXT4, fmt, facturas, pymes, contratos, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -175,7 +175,7 @@ export default function EmpContratoDetalle() {
                       <p className="text-[13px] font-bold text-text-1 truncate">{h.pyme}</p>
                       <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{h.id}</p>
                     </div>
-                    <Badge variant={h.estado === 'Activo' ? 'green' : 'yellow'}>{h.estado}</Badge>
+                    <Badge variant={contratoBadge(h.estado)}>{h.estado}</Badge>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <div>
@@ -207,7 +207,7 @@ export default function EmpContratoDetalle() {
                       <tr key={h.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
                         <td className="px-4 py-3 text-[12px] font-medium text-text-1">{h.pyme}</td>
                         <td className="px-4 py-3 text-[12px] font-mono" style={{ color: TEXT4 }}>{h.id}</td>
-                        <td className="px-4 py-3"><Badge variant={h.estado === 'Activo' ? 'green' : 'yellow'}>{h.estado}</Badge></td>
+                        <td className="px-4 py-3"><Badge variant={contratoBadge(h.estado)}>{h.estado}</Badge></td>
                         <td className="px-4 py-3">
                           {hPyme ? (
                             <span className="text-[12px] font-bold" style={{ color: scoreColor(hPyme.score) }}>{hPyme.score}</span>
@@ -399,7 +399,7 @@ export default function EmpContratoDetalle() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setIpiStep(null)}>
           <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
-            <div className="bg-white rounded-2xl p-8 relative">
+            <div className="bg-white rounded-2xl p-8 relative max-h-[90vh] overflow-y-auto">
               <button onClick={() => setIpiStep(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
                 <X className="w-5 h-5 text-text-3" />
               </button>

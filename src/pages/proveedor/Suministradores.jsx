@@ -11,7 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, ComplianceItem, IniAvatar } from './provShared';
-import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores, semBadge, semColor, scoreColor } from './provData';
+import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
 
 // ── SUMINISTRADORES ───────────────────────────────────────────────────────────
 export default function ProvSuministradores() {
@@ -237,7 +237,7 @@ export default function ProvSuministradores() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <span className="text-[12px] font-bold text-text-1 font-mono">{c.id}</span>
-                            <Badge variant={c.estado === 'Activo' ? 'green' : 'yellow'}>{c.estado}</Badge>
+                            <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
                           </div>
                           <p className="text-[11px] truncate" style={{ color: TEXT4 }}>{c.objeto}</p>
                         </div>

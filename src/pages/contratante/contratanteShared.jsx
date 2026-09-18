@@ -85,7 +85,7 @@ export const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
          onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
-        <div className="bg-white rounded-2xl p-8 relative">
+        <div className="bg-white rounded-2xl p-8 relative max-h-[90vh] overflow-y-auto">
           <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
             <X className="w-5 h-5 text-text-3" />
           </button>

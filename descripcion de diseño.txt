@@ -1,0 +1,174 @@
+# ANEXO DIGITAL DEL MIC PARA INTERFAZ DE USUARIO
+
+**Resoluciones de Comunicación y Marca para el equipo de Desarrollo Frontend**
+
+Junio 2026 | Versión 1.0
+
+---
+
+## 0. Propósito de este documento
+
+Este anexo responde a la solicitud formal del equipo de Desarrollo Frontend para disponer de una resolución unificada sobre los puntos donde el MIC v1.0 y la Auditoría UX/UI de la app entran en tensión.
+
+Establece las decisiones vinculantes para la codificación de la interfaz de usuario de la app Bonafide.
+
+Prevalece sobre cualquier código HEX presente en plantillas intermedias que no coincida con lo aquí definido.
+
+**Alcance:** exclusivamente la interfaz de usuario de la app móvil. El MIC v1.0 sigue siendo el documento rector para soportes impresos, señalética, papelería y comunicaciones de marketing.
+
+---
+
+## 1. Tipografía: marca impresa vs. interfaz digital
+
+### Decisión
+
+- La tipografía de interfaz será **Poppins** (licencia libre SIL, Google Fonts).
+- **Century Gothic** queda reservada exclusivamente para el logotipo.
+
+### Comparativa
+
+| Tipografía | Uso | Características |
+|---|---|---|
+| **Century Gothic** | Solo para el logotipo | Diseñada para impresión. En pantallas pequeñas (12-15 px) presenta problemas de legibilidad, especialmente en dispositivos de gama media. |
+| **Poppins** | Fuente de interfaz (UI) | Geométrica sans con proporciones próximas a Century Gothic. Mantiene coherencia estética sin sacrificar legibilidad. Licencia libre, optimizada para renderizado web y móvil. |
+
+### Familia tipográfica para desarrollo
+
+```css
+font-family: 'Poppins', 'Century Gothic', 'Avenir Next', 'Futura', system-ui, sans-serif;
+```
+
+### Escala tipográfica para desarrollo
+
+| Rol | Familia | Peso | Tamaño | Dónde se usa |
+|---|---|---|---|---|
+| Display / hero | Poppins | 700 Bold | 30-40 px | Onboarding, splash, cifra de saldo |
+| Título sección | Poppins | 600 Semi | 17-19 px | Cabeceras de pantalla, nombre |
+| Cuerpo | Poppins | 400 Regular | 14-15 px | Texto general, microcopy |
+| Caption / label | Poppins | 500 Medium | 11-13 px | Etiquetas, estados, fechas |
+| Cifras financieras | Poppins | 700 Bold | 24-31 px | Saldo, importes, cuota |
+| Logotipo | Century Gothic | Bold | Según MIC | Marca en logotipo, nunca como UI |
+
+---
+
+## 2. Rojo corporativo vs. rojo de error
+
+### Decisión
+
+Se definen dos rojos distintos con funciones separadas. **No son intercambiables.**
+
+| Color | HEX | Uso | Restricciones |
+|---|---|---|---|
+| **Rojo Bonafide** | `#E0201C` | Exclusivamente para identidad de marca: isotipo, degradado de la tarjeta de saldo, botón de envío central. | Nunca en contextos de error. |
+| **Rojo Error** | `#B8352A` | Exclusivamente para estados de error y alertas críticas. Más oscuro y desaturado, cumple WCAG AA. | Nunca en contextos de marca. |
+
+---
+
+## 3. Paleta semántica para interfaz
+
+| Estado | HEX principal | HEX fondo | Uso |
+|---|---|---|---|
+| **Éxito** | `#2E7D5B` | `#E3F4EA` | Operación completada, estado activo, confirmaciones |
+| **Proceso** | `#C68A1D` | `#FDF6E8` | Solicitud en curso, advertencia leve |
+| **Error** | `#B8352A` | `#FDEEEB` | Error de operación, alertas críticas |
+
+Estos colores no sustituyen la paleta del MIC. Operan en una capa funcional exclusiva de la interfaz.
+
+---
+
+## 4. ¿Por qué `#2E7D5B` y no un verde puro?
+
+- El verde puro `#00C853` choca con la paleta cálida de la marca.
+- El **Verde Bonafide** `#2E7D5B` es un verde bosque / salvia con suficiente saturación para leerse como «éxito» sin competir con los naranjas y rojos cálidos de la marca.
+- Cumple WCAG AA sobre blanco y sobre el fondo claro `#F6F5F3`.
+- Armoniza cromáticamente con la paleta de marca.
+
+---
+
+## 5. Unificación de códigos HEX
+
+El MIC v1.0 es la fuente de verdad. Los códigos `#D6191F`, `#E6932D` y `#616878` de plantillas intermedias quedan descartados.
+
+| Color | HEX | Uso |
+|---|---|---|
+| **Rojo Bonafide** | `#E0201C` | Isotipo, degradado, momentos de marca |
+| **Naranja marca** | `#E04E14` | Degradado del isotipo |
+| **Naranja CTA** | `#EF7A2C` | Botones primarios, enlaces, acentos |
+| **Gris marca** | `#5B5B5F` | Texto secundario, subtítulos |
+| **Tinta** | `#26262B` | Texto principal, títulos, cifras |
+
+---
+
+## 6. Neutros y fondos de interfaz
+
+El gris del MIC (`#5B5B5F`) se usa para texto secundario, **nunca para fondos**. Los fondos emplean neutros cálidos:
+
+| Elemento | HEX | Uso |
+|---|---|---|
+| **Fondo app** | `#F6F5F3` | Fondo general detrás de tarjetas |
+| **Línea / divisor** | `#ECEAE7` | Bordes de tarjetas, separadores |
+| **Gris suave** | `#A9A6A1` | Placeholders, íconos inactivos, nav inactiva |
+| **Fondo pulsado** | `#F0EEEB` | Estado `:active` de botones secundarios |
+
+**Nota:** el `#F8F8F7` de la plantilla corporativa es prácticamente idéntico al `#F6F5F3`. Se unifica en `#F6F5F3` (más cálido, coherente con la paleta del MIC). No usar ambos.
+
+---
+
+## 7. Degradados: dónde sí y dónde no
+
+**Degradado:** 135° de `#E0201C` a `#EF7A2C`.
+
+| Sí usa degradado | NO usa degradado |
+|---|---|
+| Tarjeta de saldo | Botones CTA (plano `#EF7A2C`) |
+| Botón Enviar (nav central) | Fondos de pantalla |
+| Anillo de éxito | Cabeceras / nav bar |
+| Isotipo en splash/login | Alertas / estados |
+
+---
+
+## 8. Variables CSS / Design tokens
+
+Bloque listo para copiar en el archivo de configuración del proyecto:
+
+```css
+:root {
+  /* Marca (MIC v1.0) */
+  --color-brand-red: #E0201C;
+  --color-brand-orange: #EF7A2C;
+  --color-brand-gradient: linear-gradient(135deg, #E0201C, #EF7A2C);
+
+  /* Semánticos */
+  --color-success: #2E7D5B;
+  --color-success-bg: #E3F4EA;
+  --color-warning: #C68A1D;
+  --color-warning-bg: #FDF6E8;
+  --color-error: #B8352A;
+  --color-error-bg: #FDEEEE;
+
+  /* Neutros */
+  --color-ink: #26262B;
+  --color-bg-app: #F6F5F3;
+  --color-line: #ECEAE7;
+
+  /* Tipografia */
+  --font-ui: 'Poppins', 'Century Gothic', system-ui, sans-serif;
+}
+```
+
+---
+
+## 9. Alcance y vigencia
+
+- Este anexo es vinculante para la interfaz de la app **B-Morí / Bonafide** a partir de su aprobación.
+- El **MIC v1.0** sigue siendo rector para soportes no digitales y para el logotipo.
+- **Pendiente:** incorporar la paleta semántica y la tipografía digital en una futura versión 2.0 del MIC.
+- **Iconografía:** fuera de este alcance.
+
+---
+
+## Notas de fidelidad al documento
+
+- En la página 6, el fondo de error se lista como `#FDEEEB`; en el bloque CSS de la página 11 aparece como `#FDEEEE`. El documento muestra ambos valores, por lo que conviene unificarlos antes de implementar.
+- El stack tipográfico de la página 3 incluye `'Avenir Next'` y `'Futura'`; el token CSS de la página 11 usa un stack más corto: `'Poppins', 'Century Gothic', system-ui, sans-serif`.
+- Algunos colores definidos en páginas anteriores, como `#E04E14`, `#A9A6A1` y `#F0EEEB`, no aparecen como variables en el bloque CSS de la página 11.

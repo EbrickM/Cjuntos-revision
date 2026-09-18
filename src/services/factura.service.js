@@ -2,11 +2,11 @@
 // Capa de datos única sobre localDb (patrón de authService/adminService): hoy
 // lee/escribe el mock local; cuando exista `apiUrl` de b-mori, solo cambia la
 // implementación interna de cada método. La lógica de negocio del BPMN
-// (máquina de estados, fondeo automático, modalidad de desembolso) vive aquí.
+// (máquina de estados, liquidación del fondeo, modalidad de desembolso) vive aquí.
 import { localDb } from '../lib/localDb';
 import { INV, MODALIDAD, TRANSICIONES, estadoLabel } from '../lib/invoiceStates';
 import {
-  SEED_VERSION, seedFacturas, seedPagos, seedBilleteras,
+  SEED_VERSION, seedFacturas, seedPagos, seedBilleteras, BANCO_POR_CONTRATO,
 } from '../lib/invoiceSeeds';
 
 const KEY_FACTURAS  = 'facturas';
@@ -45,7 +45,32 @@ export const facturaService = {
   hasBackend: false,
 
   listar() {
-    return localDb.get(KEY_FACTURAS, seedFacturas, SEED_VERSION);
+    const guardadas = localDb.get(KEY_FACTURAS, seedFacturas, SEED_VERSION);
+    let lista = Array.isArray(guardadas) ? guardadas : seedFacturas.map(f => ({ ...f }));
+    const ids = new Set(lista.map(f => f?.id));
+    const faltantes = seedFacturas.filter(s => !ids.has(s.id));
+    if (faltantes.length) {
+      lista = [...lista, ...faltantes.map(s => ({ ...s }))];
+      localDb.set(KEY_FACTURAS, lista);
+    }
+    // Auto-reparación: las facturas seed con con_requerimientos que quedaron
+    // persistidas con estado undefined/roto (bug de semilla anterior) se
+    // re-aplican al estado correcto para que el demo siempre las muestre.
+    const reqSeeds = seedFacturas.filter(s => s.estado === INV.conRequerimientos);
+    const reqIds = new Set(reqSeeds.map(s => s.id));
+    const roto = lista.some(f => reqIds.has(f?.id) && !f?.estado);
+    if (roto) {
+      lista = lista.map(f => {
+        if (reqIds.has(f?.id) && !f?.estado) {
+          const s = reqSeeds.find(x => x.id === f.id);
+          return { ...f, ...s };
+        }
+        return f;
+      });
+      localDb.set(KEY_FACTURAS, lista);
+    }
+    // Normaliza estados en blanco (dato viejo en localDb) a "Emitida".
+    return lista.map(f => (f?.estado ? f : { ...f, estado: INV.emitida }));
   },
 
   obtener(id) {
@@ -77,14 +102,23 @@ export const facturaService = {
     return this.listar().filter(f => f.bancoFondeador === banco);
   },
 
+  // El Fondeador solo interviene en Factoring Inverso emitido al Contratante
+  // (la facturación directa y la de suministradores no pasan por el banco).
+  esOperacionDeFondeo(f) {
+    return f.tipoFactoring === 'inverso' && f.origen === 'contratante';
+  },
+
   // Bandeja del Fondeador: órdenes de fondeo pendientes de liquidar.
   bandejaOrdenes(banco) {
-    return this.listarPorBanco(banco).filter(f => f.estado === INV.ordenFondeador);
+    return this.listarPorBanco(banco).filter(f =>
+      this.esOperacionDeFondeo(f) && f.estado === INV.ordenFondeador
+    );
   },
 
   // Cartera ya fondeada por el banco (en proceso de OTP / pago / billetera).
   carteraFondeador(banco) {
     return this.listarPorBanco(banco).filter(f =>
+      this.esOperacionDeFondeo(f) &&
       [INV.fondeado, INV.otpEnviada, INV.otpVerificada, INV.pagada, INV.billetera].includes(f.estado)
     );
   },
@@ -100,7 +134,9 @@ export const facturaService = {
       origen: 'contratante',
       modalidadPago: MODALIDAD.retiroTotal,
       estado: INV.creada,
-      bancoFondeador: null,
+      // El banco se resuelve del contrato para que la factura llegue al portal
+      // del Fondeador cuando avance a `orden_fondeador`.
+      bancoFondeador: BANCO_POR_CONTRATO[data?.contrato] ?? null,
       ipi: null,
       requerimientos: null,
       documentos: [],
@@ -189,11 +225,14 @@ export const facturaService = {
     const modalidad = next.modalidadPago || MODALIDAD.retiroTotal;
     // Fondeador ya acreditó: según la modalidad de la PYME (Ruta A / Ruta B).
     const terminal = modalidad === MODALIDAD.billeteraVirtual ? INV.billetera : INV.pagada;
-    return transicionarFactura(id, terminal,
+    const next2 = transicionarFactura(id, terminal,
       terminal === INV.billetera
         ? 'Fondos desbloqueados en la Billetera Virtual de la PYME.'
         : 'Los fondos fueron transferidos a la PYME (retiro total).'
     );
+    // Ruta B: acredita el neto fondeado en el saldo disponible de la PYME.
+    if (terminal === INV.billetera) this.desbloquearBilletera(id);
+    return next2;
   },
 
   // Directa (sin IPI): la Contratante paga directamente al aprobar.
@@ -284,15 +323,18 @@ export const facturaService = {
   // Desbloquea el monto de una factura en estado 'billetera' hacia el saldo
   // disponible de la PYME (Ruta B del subproceso Fondeador).
   desbloquearBilletera(facturaId) {
-    const facturas = this.listar();
-    const f = facturas.find(x => x.id === facturaId);
+    const f = this.obtener(facturaId);
     if (!f || f.estado !== INV.billetera) return this.listarBilleteras();
+    // Lo que el Fondeador acreditó es el neto (IPI − retención − cobranza − interés).
+    const neto = f.condiciones?.neto ?? f.monto;
     const billeteras = localDb.get(KEY_BILLETERAS, seedBilleteras, SEED_VERSION);
     const idx = billeteras.findIndex(b => b.pyme === f.pyme);
     if (idx >= 0) {
-      billeteras[idx] = { ...billeteras[idx], saldoDisponible: (f.billetera?.saldoDisponible ?? f.monto) };
-      localDb.set(KEY_BILLETERAS, billeteras);
+      billeteras[idx] = { ...billeteras[idx], saldoDisponible: (billeteras[idx].saldoDisponible ?? 0) + neto };
+    } else {
+      billeteras.push({ pyme: f.pyme, montoPresupuestado: neto, saldoDisponible: neto, totalDistribuido: 0 });
     }
+    localDb.set(KEY_BILLETERAS, billeteras);
     return this.listarBilleteras();
   },
 };

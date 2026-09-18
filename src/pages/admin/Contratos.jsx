@@ -29,7 +29,7 @@ const pct = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.
 const contractBadge = (estado) => ({
   'Pendiente de Configuración': { variant: 'yellow', label: 'Pend. Configuración' },
   'Pendiente de Revisión':      { variant: 'blue',   label: 'Pend. Revisión' },
-  'Con Requerimientos':         { variant: 'red',    label: 'Con Requerimientos' },
+  'Con Requerimientos':         { variant: 'orange', label: 'Con Requerimientos' },
   'En Discusión de Términos':   { variant: 'orange', label: 'En Discusión' },
   'Activo':                     { variant: 'green',  label: 'Activo' },
 }[estado] ?? { variant: 'yellow', label: estado || 'Pendiente' });

@@ -16,7 +16,8 @@ import { fmt } from '../../pages/empresa-pequena/epData';
 
 // ── Admin: Centro de Operaciones de Facturación (rol Bonafide/Fondeador) ──────
 // Bonafide valida IPIs, define la modalidad de desembolso y monitorea toda la
-// cadena. Los pasos del banco (Fondeo Recibido → OTP) son automáticos.
+// cadena. Los pasos del banco (Fondeo Recibido → OTP) los ejecuta el portal del
+// Banco Fondeador desde su bandeja de órdenes.
 // El diseño (stats, buscador+filtro, tablas por pestaña) es el mismo que el de
 // la sección Admin de Contratos.
 
@@ -240,7 +241,7 @@ export default function FacturasAdmin() {
               <div className="flex flex-col sm:flex-row gap-2 text-[11px] text-text-3">
                 <span className="px-2.5 py-1.5 rounded-full bg-page-bg">1 · Bonafide valida IPI</span>
                 <span className="px-2.5 py-1.5 rounded-full bg-page-bg">2 · Contratante envía orden al Fondeador</span>
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">3 · Fondeo Recibido (auto)</span>
+                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">3 · Fondeo Recibido (Banco Fondeador)</span>
                 <span className="px-2.5 py-1.5 rounded-full bg-page-bg">4 · OTP a la Contratante</span>
                 <span className="px-2.5 py-1.5 rounded-full bg-page-bg">5 · Pago / Billetera</span>
               </div>

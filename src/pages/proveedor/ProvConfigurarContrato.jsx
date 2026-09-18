@@ -7,16 +7,20 @@ import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import FormGroup, { Input } from '../../components/ui/FormGroup';
-import { contratosPendientes, montoDisponibleProveedores, fmt } from './provData';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+import { contratosPendientes, montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
 
 const STEPS = ['Cuenta bancaria', 'Suministradores', 'Revisión y envío'];
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PREFIJO_TEL = '+240';
+
 const SUMINISTRADOR_EMPTY = {
-  open: false, editId: null, nombre: '', email: '', telefono: '', monto: '', cargaNomina: false,
+  open: false, editId: null, sumSel: '', suministradorLibre: '',
+  email: '', telefono: '', monto: '', cargaNomina: false,
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
@@ -82,13 +86,33 @@ export default function ProvConfigurarContrato() {
   const montoNumLive        = parseMonto(modal.monto);
   const disponibleParaModal = montoDisponibleProveedores({ ...contrato, suministradoresAsignados: suministradores }, modal.editId);
   const montoInvalido       = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
-  const puedeGuardar        = modal.nombre.trim() && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
 
-  const openAdd  = () => setModal({ ...SUMINISTRADOR_EMPTY, open: true });
-  const openEdit = (s) => setModal({
-    open: true, editId: s.id, nombre: s.nombre, email: s.email, telefono: s.telefono,
-    monto: String(s.monto), cargaNomina: s.cargaNomina,
+  const suministradorNombreResuelto = modal.sumSel === '__nueva__' ? modal.suministradorLibre.trim() : modal.sumSel;
+
+  const emailLimpio        = modal.email.trim();
+  const emailValido        = EMAIL_REGEX.test(emailLimpio);
+  const emailInvalido      = emailLimpio !== '' && !emailValido;
+
+  const telefonoLocal      = modal.telefono.replace(/\D/g, '');
+  const telefonoValido     = /^\d{7,9}$/.test(telefonoLocal);
+  const telefonoInvalido   = telefonoLocal !== '' && !telefonoValido;
+
+  const puedeGuardar = !!suministradorNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
+
+  const openAdd  = () => setModal({
+    ...SUMINISTRADOR_EMPTY, open: true,
+    sumSel: directorioSuministradores[0]?.nombre ?? '__nueva__',
   });
+  const openEdit = (s) => {
+    const enDirectorio = directorioSuministradores.some(x => x.nombre === s.nombre);
+    setModal({
+      open: true, editId: s.id,
+      sumSel: enDirectorio ? s.nombre : '__nueva__',
+      suministradorLibre: enDirectorio ? '' : s.nombre,
+      email: s.email, telefono: (s.telefono ?? '').replace(/^\+?\s*240\s*/, ''),
+      monto: String(s.monto), cargaNomina: s.cargaNomina,
+    });
+  };
 
   const handleEliminar = (id) => setSuministradores(prev => prev.filter(s => s.id !== id));
 
@@ -96,7 +120,8 @@ export default function ProvConfigurarContrato() {
     if (!puedeGuardar) return;
     const nuevo = {
       id: modal.editId ?? `SUM-${Date.now()}`,
-      nombre: modal.nombre.trim(), email: modal.email.trim(), telefono: modal.telefono.trim(),
+      nombre: suministradorNombreResuelto, email: modal.email.trim(),
+      telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       monto: montoNumLive, cargaNomina: modal.cargaNomina,
     };
     setSuministradores(prev => modal.editId ? prev.map(s => s.id === modal.editId ? nuevo : s) : [...prev, nuevo]);
@@ -318,17 +343,43 @@ export default function ProvConfigurarContrato() {
           }
         >
           <div className="space-y-4">
-            <FormGroup label="Nombre del suministrador" required>
-              <Input value={modal.nombre} onChange={e => setModal(m => ({ ...m, nombre: e.target.value }))} placeholder="Nombre o razón social" />
+            <FormGroup label="Suministrador" required>
+              <Select value={modal.sumSel} onChange={e => setModal(m => ({ ...m, sumSel: e.target.value }))}>
+                {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
+                <option value="__nueva__">Otro (nuevo)…</option>
+              </Select>
             </FormGroup>
 
+            {modal.sumSel === '__nueva__' && (
+              <FormGroup label="Nombre del nuevo suministrador" required>
+                <Input value={modal.suministradorLibre} onChange={e => setModal(m => ({ ...m, suministradorLibre: e.target.value }))} placeholder="Nombre o razón social" />
+              </FormGroup>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
-              <FormGroup label="Email" required className="mb-0">
-                <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@suministrador.gq" />
-              </FormGroup>
-              <FormGroup label="Teléfono" required className="mb-0">
-                <Input value={modal.telefono} onChange={e => setModal(m => ({ ...m, telefono: e.target.value }))} placeholder="+240 222 XXX XXX" />
-              </FormGroup>
+              <div>
+                <FormGroup label="Email" required className="mb-0">
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@suministrador.gq" className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
+                </FormGroup>
+                {emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
+              </div>
+              <div>
+                <FormGroup label="Teléfono" required className="mb-0">
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel" inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
+              </div>
             </div>
 
             <FormGroup label="Presupuesto / Factura (XAF)" required>

@@ -8,12 +8,18 @@ import { createPortal } from 'react-dom';
 import { MessageSquare } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import { INV } from '../../lib/invoiceStates';
 
 export default function RequerimientoBadge({ factura, variant = 'card', cta }) {
   const [open, setOpen] = useState(false);
 
   const req = factura?.requerimientos ?? factura?.requerimiento;
-  if (!req) return null;
+  // El icono solo aparece cuando el estado es realmente "Con Requerimientos"
+  // (mismo criterio que en los contratos): si la factura ya avanzó
+  // (orden_fondeador → pagada/billetera), ya no es un requerimiento activo.
+  const esRequerimientoActivo =
+    factura?.estado === INV.conRequerimientos || factura?.estado === 'Con Requerimientos';
+  if (!req || !esRequerimientoActivo) return null;
 
   const btnCls = variant === 'inline'
     ? 'inline-flex items-center justify-center shrink-0 w-6 h-6 rounded-full bg-orange-dark text-white shadow-md animate-bounce cursor-pointer'

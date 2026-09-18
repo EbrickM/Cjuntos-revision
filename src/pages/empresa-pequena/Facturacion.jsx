@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Pencil, Trash2, Building2, Upload, Paperclip, Search, Send, BadgeCheck, Wallet as WalletIcon, X, ChevronDown,
+  Pencil, Trash2, Building2, Upload, Paperclip, Search, Send, BadgeCheck, Wallet as WalletIcon, X, ChevronDown, ListFilter,
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
@@ -16,11 +16,9 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import { facturaService } from '../../services/factura.service';
 import { seedContratosActivos } from '../../lib/invoiceSeeds';
-import { INV } from '../../lib/invoiceStates';
+import { INV, estadoLabel } from '../../lib/invoiceStates';
 
 const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
-
-const FILTROS = ['Todas', 'Enviadas', 'Emitidas', 'Pagadas', 'Billetera'];
 
 const BADGE_VARIANT = {
   [INV.creada]: 'yellow',
@@ -45,7 +43,7 @@ const BADGE_LABEL = {
   [INV.conCorrecciones]: 'Con correcciones',
   [INV.aprobada]: 'Aprobada',
   [INV.emitida]: 'Emitida',
-  [INV.conRequerimientos]: 'Con requerimientos',
+  [INV.conRequerimientos]: 'Con Requerimientos',
   [INV.ordenFondeador]: 'Orden al Fondeador',
   [INV.fondeado]: 'Fondeado',
   [INV.otpEnviada]: 'OTP enviada',
@@ -96,20 +94,27 @@ export default function EpFacturacion() {
   const [prModal, setPrModal]        = useState(INIT_CT_EMPTY);
   const [detalle, setDetalle]        = useState(null);
   const [confirmEnvio, setConfirmEnvio] = useState(null);
-  const [filtro, setFiltro]          = useState('Todas');
-  const [searchPr, setSearchPr]      = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [searchCT, setSearchCT]         = useState('');
+  const [searchPr, setSearchPr]         = useState('');
 
   const bump = () => setFacturas(facturaService.listarPorRol('empresa-pequena'));
 
   const contratanteInvoices = facturas;
   const proveedorInvoices   = invoicesPr;
 
-  const filteredCT = filtro === 'Todas'             ? contratanteInvoices
-    : filtro === 'Enviadas'                         ? contratanteInvoices.filter(f => f.estado === INV.enviada || f.estado === INV.enEvaluacion || f.estado === INV.conCorrecciones)
-    : filtro === 'Emitidas'                         ? contratanteInvoices.filter(f => f.estado === INV.emitida || f.estado === INV.conRequerimientos || f.estado === INV.ordenFondeador || f.estado === INV.fondeado || f.estado === INV.otpEnviada || f.estado === INV.otpVerificada)
-    : filtro === 'Pagadas'                          ? contratanteInvoices.filter(f => f.estado === INV.pagada)
-    : filtro === 'Billetera'                        ? contratanteInvoices.filter(f => f.estado === INV.billetera)
-    : contratanteInvoices;
+  const labelDe    = (f) => BADGE_LABEL[f.estado] ?? f.estado ?? 'Emitida';
+  const ESTADOS    = ['Todos', ...Array.from(new Set(contratanteInvoices.map(labelDe)))];
+
+  const filteredCT = contratanteInvoices.filter(f =>
+    (filtroEstado === 'Todos' || labelDe(f) === filtroEstado) &&
+    (!searchCT.trim() ||
+      f.id.toLowerCase().includes(searchCT.toLowerCase()) ||
+      (f.contratante || '').toLowerCase().includes(searchCT.toLowerCase()) ||
+      (f.contrato || '').toLowerCase().includes(searchCT.toLowerCase()) ||
+      (f.concepto || '').toLowerCase().includes(searchCT.toLowerCase()) ||
+      (f.pyme || '').toLowerCase().includes(searchCT.toLowerCase()))
+  );
 
   const filteredPr = searchPr.trim()
     ? proveedorInvoices.filter(inv =>
@@ -119,7 +124,7 @@ export default function EpFacturacion() {
     : proveedorInvoices;
 
   const { visibleItems: pagedCT, hasMore: hasMoreCT, loading: loadingCT, sentinelRef: sentinelCTRef } =
-    useInfiniteScroll(filteredCT, { pageSize: 10, delay: 0, resetKey: filtro });
+    useInfiniteScroll(filteredCT, { pageSize: 10, delay: 0, resetKey: `${searchCT}|${filtroEstado}` });
   const { visibleItems: pagedPR, hasMore: hasMorePR, loading: loadingPR, sentinelRef: sentinelPRRef } =
     useInfiniteScroll(filteredPr, { pageSize: 10, delay: 0, resetKey: searchPr });
 
@@ -169,11 +174,6 @@ export default function EpFacturacion() {
     open: true, editId: f.id, contratoId: f.contrato, monto: String(f.monto), concepto: f.concepto || '',
     fechaVencimiento: f.fechaVencimiento || '', documento: null,
   });
-
-  const handleDeleteCt = (f) => {
-    facturaService.eliminar(f.id);
-    bump();
-  };
 
   const handleSavePr = () => {
     const monto = Number(prModal.monto.replace?.(/[^0-9]/g, '') ?? prModal.monto) || 0;
@@ -227,21 +227,31 @@ export default function EpFacturacion() {
             }
           />
 
-          {/* Filtros */}
-          <div className="overflow-x-auto max-w-full mb-4">
-            <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit min-w-max">
-              {FILTROS.map(f => (
-                <button key={f} onClick={() => setFiltro(f)}
-                  className={`px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                    filtro === f ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
-                  }`}>{f}
-                </button>
-              ))}
+          {/* Filtros: búsqueda + estado */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={searchCT}
+                onChange={e => setSearchCT(e.target.value)}
+                placeholder="Buscar factura, contrato, PYME…"
+                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              />
+            </div>
+            <div className="relative flex items-center shrink-0">
+              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+              <select
+                value={filtroEstado}
+                onChange={e => setFiltroEstado(e.target.value)}
+                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+              >
+                {ESTADOS.map(e => <option key={e}>{e}</option>)}
+              </select>
             </div>
           </div>
 
           {/* Cards de facturas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
             {pagedCT.map((f, idx) => {
               const accion = ctAction(f);
               const hasAction = !!accion;
@@ -249,7 +259,7 @@ export default function EpFacturacion() {
                 <div
                   key={f.id}
                   onClick={() => { setDetalle(f); }}
-                  className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                  className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                   style={{ animationDelay: `${(idx % 8) * 60}ms` }}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -258,17 +268,8 @@ export default function EpFacturacion() {
                       <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Badge variant={BADGE_VARIANT[f.estado] ?? 'orange'}>{BADGE_LABEL[f.estado] ?? f.estado}</Badge>
-                      <RequerimientoBadge factura={f} variant="inline" />
-                      {f.estado === INV.creada && (
-                        <button
-                          onClick={e => { e.stopPropagation(); handleDeleteCt(f); }}
-                          title="Eliminar"
-                          className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      <Badge variant={BADGE_VARIANT[f.estado] ?? 'orange'}>{estadoLabel(f.estado)}</Badge>
+                      <RequerimientoBadge factura={f} />
                     </div>
                   </div>
 
@@ -452,7 +453,7 @@ export default function EpFacturacion() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setConfirmEnvio(null)}>
           <div className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]">
-            <div className="bg-white rounded-2xl p-8 relative">
+            <div className="bg-white rounded-2xl p-8 relative max-h-[90vh] overflow-y-auto">
               <button onClick={() => setConfirmEnvio(null)} className="absolute top-4 right-4 p-2 hover:bg-page-bg rounded-lg transition-colors cursor-pointer">
                 <X className="w-5 h-5 text-text-3" />
               </button>

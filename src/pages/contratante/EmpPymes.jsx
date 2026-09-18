@@ -11,7 +11,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
-import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor } from './contratanteData';
+import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
 
 // ── PYMEs ─────────────────────────────────────────────────────────────────────
 export default function EmpPymes() {
@@ -235,7 +235,7 @@ export default function EmpPymes() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="text-[12px] font-bold text-text-1 font-mono">{c.id}</span>
-                              <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
+                              <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
                             </div>
                             <p className="text-[11px] truncate" style={{ color: TEXT4 }}>{c.objeto}</p>
                           </div>

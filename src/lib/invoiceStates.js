@@ -4,7 +4,7 @@
 //   PYME crea → envía a Contratante → Contratante evalúa (corrige/aprueba)
 //   → aprobada emite IPI → Bonafide (admin) valida → Con Requerimientos
 //   → PYME notifica → Contratante envía Orden/IPI al Fondeador
-//   → Fondeo Recibido (auto) → OTP (auto) → Contratante verifica
+//   → Fondeador liquida (Fondeo Recibido) → OTP → Contratante verifica
 //   → Pagada (Retiro Total) | Saldo en Billetera (Billetera Virtual)
 
 export const INV = {
@@ -53,7 +53,7 @@ export const ESTADO_BADGE = {
   con_correcciones:  'red',
   aprobada:          'blue',
   emitida:           'orange',
-  con_requerimientos:'yellow',
+  con_requerimientos:'orange',
   orden_fondeador:   'blue',
   fondeado:          'blue',
   otp_enviada:       'orange',

@@ -24,7 +24,7 @@ export const contratos = [
       { id: 'SUM-001', nombre: 'Combustibles Bata S.L.', email: 'ventas@combata.gq', telefono: '+240 222 606 707', monto: 9_500_000, cargaNomina: false, kyc: 'vigente', scoreCredito: 705 },
     ],
   },
-  { id: 'CT-2026-0088', pyme: 'Const. Silva Ltd.', ini: 'CS', sector: 'Transporte', asignado: 9_000_000, utilizado: 4_500_000, facturas: 1, estado: 'Activo',
+  { id: 'CT-2026-0088', pyme: 'Const. Silva Ltd.', ini: 'CS', sector: 'Transporte', asignado: 9_000_000, utilizado: 4_500_000, facturas: 1, estado: 'Con Requerimientos',
     objeto: 'Transporte de materiales de construcción para obras en Malabo.', fechaInicio: '01/05/2026', fechaFin: '30/04/2027', plazo: '12 meses', plazoPago: 30,
     bancoFondeador: 'BGFI Bank Guinea Ecuatorial', interes: '5% anual', porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5,
     cuentaBancaria: { tipo: 'bonafide', numero: null },
@@ -72,6 +72,9 @@ export const solicitudesSuministradores = [
 export const facturaBadge = e => ({ 'Recibida': 'orange', 'En revisión': 'yellow', 'Verificada': 'blue', 'Emitida': 'green', 'Pagada': 'green' }[e] ?? 'gray');
 export const solicBadge   = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
 export const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'yellow' : 'red';
+// Badge de estado de contrato (todas las secciones): un contrato con
+// requerimiento de Bonafide se pinta en naranja Bonafide, no en verde.
+export const contratoBadge = e => e === 'Activo' ? 'green' : e === 'Con Requerimientos' ? 'orange' : 'yellow';
 export const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
 export const scoreColor   = n => n >= 750 ? GREEN : n >= 500 ? WARN : ERR;
 export const kycBadge     = k => ({ vigente: 'green', pendiente: 'yellow', vencido: 'red' }[k] ?? 'yellow');

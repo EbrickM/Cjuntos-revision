@@ -174,7 +174,7 @@ export default function AdminLoginModal({ onClose, onVerify }) {
       <div
         className="bona-gradient-shadow w-full max-w-md rounded-2xl p-[2px]"
       >
-      <div className="bg-white rounded-2xl p-5 sm:p-8 relative">
+      <div className="bg-white rounded-2xl p-5 sm:p-8 relative max-h-[90vh] overflow-y-auto">
 
         {/* Cerrar */}
         <button

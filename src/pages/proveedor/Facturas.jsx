@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ChevronRight, FileText, Banknote, ScrollText,
+  ChevronRight, FileText, Banknote, ScrollText, Search, ListFilter, Receipt,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -10,18 +10,52 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
+import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import { facturaService } from '../../services/factura.service';
 import { INV } from '../../lib/invoiceStates';
 
-const FILTROS = ['Todas', 'Aprobadas', 'En pago', 'Pagadas'];
+const ESTADO_LABEL = {
+  [INV.creada]: 'Creada',
+  [INV.enviada]: 'Enviada',
+  [INV.enEvaluacion]: 'En evaluación',
+  [INV.conCorrecciones]: 'Con correcciones',
+  [INV.aprobada]: 'Aprobada',
+  [INV.emitida]: 'Emitida',
+  [INV.conRequerimientos]: 'Con Requerimientos',
+  [INV.ordenFondeador]: 'Orden al Fondeador',
+  [INV.fondeado]: 'Fondeado',
+  [INV.otpEnviada]: 'OTP enviada',
+  [INV.otpVerificada]: 'Verificada',
+  [INV.pagada]: 'Pagada',
+  [INV.billetera]: 'Billetera',
+};
+const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
+
+const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+    <div className="flex items-start gap-3">
+      {Icon && (
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
+          <Icon className="w-4 h-4" style={{ color: iconColor }} />
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <div className="text-[14px] font-bold text-text-1">{title}</div>
+        {subtitle && <div className="text-[12px] text-text-4">{subtitle}</div>}
+      </div>
+    </div>
+    {action && <div>{action}</div>}
+  </div>
+);
 
 // ── MIS FACTURAS (portal Proveedor) ───────────────────────────────────────────
 // Fase 2 del BPMN: el Proveedor recibe facturas de sus suministradores; el
 // Banco Fondeador (core) paga por transferencia, o emite Cheque de Venta para
 // proveedores sin cuenta bancaria. Los comprobantes se consultan aquí.
 export default function ProvFacturas() {
-  const [filtro, setFiltro]     = useState('Todas');
-  const [detalle, setDetalle]   = useState(null);
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [busqueda, setBusqueda]         = useState('');
+  const [detalle, setDetalle]           = useState(null);
 
   const facturas   = facturaService.listarPorRol('proveedor');
   const pagos      = facturaService.listarPagos();
@@ -29,17 +63,24 @@ export default function ProvFacturas() {
 
   const pagoDe = (id) => pagos.find(p => p.facturaId === id);
 
-  const filtered = filtro === 'Todas'    ? facturas
-    : filtro === 'Aprobadas'             ? facturas.filter(f => f.estado === INV.aprobada)
-    : filtro === 'En pago'               ? facturas.filter(f => [INV.conRequerimientos, INV.ordenFondeador, INV.fondeado, INV.otpEnviada, INV.otpVerificada].includes(f.estado))
-    : facturas.filter(f => f.estado === INV.pagada);
+  const ESTADOS = ['Todos', ...Array.from(new Set(facturas.map(labelDe)))];
+
+  const filtered = facturas.filter(f =>
+    (filtroEstado === 'Todos' || labelDe(f) === filtroEstado) &&
+    (!busqueda.trim() ||
+      f.id.toLowerCase().includes(busqueda.toLowerCase()) ||
+      (f.suministrador || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+      (f.contrato || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+      (f.contratante || '').toLowerCase().includes(busqueda.toLowerCase()) ||
+      (f.concepto || '').toLowerCase().includes(busqueda.toLowerCase()))
+  );
 
   const aprobadas = facturas.filter(f => f.estado === INV.aprobada).length;
   const pagadas   = facturas.filter(f => f.estado === INV.pagada).length;
   const totalMonto = facturas.reduce((a, f) => a + f.monto, 0);
 
   const { visibleItems: paged, hasMore, loading, sentinelRef } =
-    useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: filtro });
+    useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}` });
 
   const accion = (f) =>
     f.estado === INV.aprobada ? { lbl: 'Ver condiciones', Icon: ScrollText, handler: () => setDetalle(f) } : null;
@@ -60,21 +101,38 @@ export default function ProvFacturas() {
           ))}
         </div>
 
-        {/* Filtros */}
-        <div className="overflow-x-auto max-w-full">
-          <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit min-w-max">
-            {FILTROS.map(f => (
-              <button key={f} onClick={() => setFiltro(f)}
-                className={`px-3 py-1.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  filtro === f ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
-                }`}>{f}
-              </button>
-            ))}
+        {/* Filtros + Cards */}
+        <div className="bg-white rounded-[14px] border border-border p-5">
+          {/* Título + buscador + estado */}
+          <SectionHeader
+            icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
+            title="Facturas de Suministradores"
+            subtitle="Recibidas de tus suministradores; el Banco Fondeador paga por transferencia o Cheque de Venta."
+          />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar factura, suministrador, contrato…"
+                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              />
+            </div>
+            <div className="relative flex items-center shrink-0">
+              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+              <select
+                value={filtroEstado}
+                onChange={e => setFiltroEstado(e.target.value)}
+                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+              >
+                {ESTADOS.map(e => <option key={e}>{e}</option>)}
+              </select>
+            </div>
           </div>
-        </div>
 
-        {/* Cards de facturas */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Cards de facturas */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {paged.map((f, idx) => {
             const pago = pagoDe(f.id);
             const a = accion(f);
@@ -82,7 +140,7 @@ export default function ProvFacturas() {
               <div
                 key={f.id}
                 onClick={() => setDetalle(f)}
-                className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                 style={{ animationDelay: `${(idx % 8) * 60}ms` }}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -90,7 +148,10 @@ export default function ProvFacturas() {
                     <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
                     <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                   </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
                   <InvoiceStatusBadge estado={f.estado} />
+                </div>
+                <RequerimientoBadge factura={f} />
                 </div>
 
                 <div>
@@ -129,7 +190,11 @@ export default function ProvFacturas() {
               </div>
             );
           })}
+          {filtered.length === 0 && (
+            <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas con los filtros aplicados.</div>
+          )}
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
+        </div>
         </div>
 
       </div>

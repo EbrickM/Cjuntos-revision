@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  FileText, Trash2, Pencil, Search, ChevronRight, Plus,
+  FileText, Trash2, Pencil, Search, ChevronRight, Plus, ListFilter,
   Truck, Receipt, Building2, CreditCard,
   ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare, Eye,
   Upload, Paperclip,
@@ -32,6 +32,12 @@ const ctBadgeStyle = (estado) =>
   estado === 'Emitida'  ? { background: '#EFF6FF', color: '#3B82F6' } :
   estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
                              { background: '#F6F5F3', color: '#9CA3AF' };
+
+// Badge de estado de contrato (mismo criterio que los otros portales):
+// "Con Requerimientos" en naranja Bonafide, "Activo" en verde.
+const contratoBadge = (estado) =>
+  estado === 'Activo' ? 'green' :
+  estado === 'Con Requerimientos' ? 'orange' : 'yellow';
 
 const InfoRow = ({ label, value }) => (
   <div>
@@ -70,7 +76,7 @@ const KYC_BADGE = { vigente: 'green', pendiente: 'yellow', vencido: 'red' };
 const initialContracts = [
   {
     id: 'CT-2026-0041', kyc: 'vigente', tipoFactoring: 'directo',
-    monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000,
+    monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000, estado: 'Con Requerimientos',
     // Ficha fijada por Bonafide para este contrato-marco (mismo origen que
     // CTM-2026-0002 del lado Contratante) y gestión de fondos que la PYME
     // eligió al configurarlo (Subproceso 2 del BPMN).
@@ -101,7 +107,7 @@ const initialContracts = [
   },
   {
     id: 'CT-2026-0059', kyc: 'vigente', tipoFactoring: 'directo',
-    monto: 95_000_000, asignado: 30_000_000, disponible: 65_000_000,
+    monto: 95_000_000, asignado: 30_000_000, disponible: 65_000_000, estado: 'Activo',
     plazoPago: 60, interes: '4.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
     porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1, gestionFondos: 'retirar',
     contratante: {
@@ -144,6 +150,7 @@ export default function EpCreditos() {
   const [invoices, setInvoices]                   = useState(initialInvoices);
   const [pagos, setPagos]                         = useState(initialPagos);
   const [search, setSearch]                       = useState('');
+  const [filtroEstado, setFiltroEstado]           = useState('Todos');
   const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
@@ -157,18 +164,20 @@ export default function EpCreditos() {
   const disponibleTotal  = contracts.reduce((s, c) => s + c.disponible, 0);
   const kycVigentes      = contracts.filter(c => c.kyc === 'vigente').length;
 
-  const filteredContracts = search.trim()
-    ? contracts.filter(c =>
-        c.id.toLowerCase().includes(search.toLowerCase()) ||
-        (c.contratante?.razonSocial || '').toLowerCase().includes(search.toLowerCase()) ||
-        (c.contratante?.sectorProductivo || '').toLowerCase().includes(search.toLowerCase())
-      )
-    : contracts;
+  const filteredContracts = contracts.filter(c =>
+    (filtroEstado === 'Todos' || c.estado === filtroEstado) &&
+    (!search.trim() ||
+      c.id.toLowerCase().includes(search.toLowerCase()) ||
+      (c.contratante?.razonSocial || '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.contratante?.sectorProductivo || '').toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const ESTADOS = ['Todos', ...Array.from(new Set(contracts.map(c => c.estado).filter(Boolean)))];
 
   // Sin delay: en producción, en cuanto el backend devuelva la siguiente
   // página se debe mostrar de inmediato, sin espera artificial del frontend.
   const { visibleItems: pagedContracts, hasMore: hasMoreContracts, loading: loadingContracts, sentinelRef: contractsSentinelRef } =
-    useInfiniteScroll(filteredContracts, { pageSize: 10, delay: 0, resetKey: search });
+    useInfiniteScroll(filteredContracts, { pageSize: 10, delay: 0, resetKey: `${search}|${filtroEstado}` });
 
   // ── Facturas handlers ──
 
@@ -290,7 +299,7 @@ export default function EpCreditos() {
             <div className="bg-white rounded-[14px] border border-border p-5">
 
               {/* Cabecera: título + buscador */}
-              <div className="mb-5">
+              <div className="mb-7">
                 <div className="mb-3">
                   <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
                   <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
@@ -305,6 +314,16 @@ export default function EpCreditos() {
                       onChange={e => setSearch(e.target.value)}
                       className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
                     />
+                  </div>
+                  <div className="relative flex items-center shrink-0">
+                    <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+                    <select
+                      value={filtroEstado}
+                      onChange={e => setFiltroEstado(e.target.value)}
+                      className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                    >
+                      {ESTADOS.map(e => <option key={e}>{e}</option>)}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -337,7 +356,10 @@ export default function EpCreditos() {
 
                     {/* ID + empresa + sector + score */}
                     <div className="min-w-0">
-                      <div className="text-[10px] font-semibold text-text-4 mb-0.5">{contract.id}</div>
+                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                        <div className="text-[10px] font-semibold text-text-4">{contract.id}</div>
+                        <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
+                      </div>
                       <div className="flex items-center gap-1.5 min-w-0">
                         <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
                         {sStyle && (

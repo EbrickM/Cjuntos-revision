@@ -4,7 +4,7 @@
 // por un modelo único consumido por factura.service via localDb.
 import { INV, MODALIDAD } from './invoiceStates';
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 7;
 
 // ── Entidades de la narrativa ─────────────────────────────────────────────────
 const E = {
@@ -90,7 +90,7 @@ function historia(estado, extra = []) {
 // Banco Fondeador del que proviene cada contrato — se denormaliza en la factura
 // para que el portal del Fondeador (BGFI) pueda filtrar su propia cartera sin
 // tener que resolver el contrato.
-const BANCO_POR_CONTRATO = Object.fromEntries(
+export const BANCO_POR_CONTRATO = Object.fromEntries(
   Object.values(CONTRATOS).map(c => [c.id, c.banco])
 );
 
@@ -151,11 +151,29 @@ export const seedFacturas = [
   fac('FAC-2026-1065', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
     proveedor: E.proveedores.transge,
-    monto: 10_000_000, estado: INV.con_requerimientos, modalidadPago: MODALIDAD.retiroTotal,
+    monto: 10_000_000, estado: INV.conRequerimientos, modalidadPago: MODALIDAD.retiroTotal,
     concepto: 'Suministro de materiales de construcción – Lote 3',
     fecha: D('07'), fechaVencimiento: D('07') + ' / 45 días',
     ipi: { numero: 'IPI-2026-0312', fechaEmision: D('08'), fechaValidacion: D('10') },
     requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado. Condición: % de retención y cobranza según Matriz de Riesgo.', fecha: D('10') },
+  }),
+  fac('FAC-2026-1075', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c3.id, contratante: CONTRATOS.c3.nombre, pyme: CONTRATOS.c3.pyme,
+    proveedor: E.proveedores.servtec,
+    monto: 11_500_000, estado: INV.conRequerimientos,
+    concepto: 'Instalación y puesta en marcha de sistemas eléctricos – Fase 3',
+    fecha: D('08'), fechaVencimiento: D('08') + ' / 45 días',
+    ipi: { numero: 'IPI-2026-0319', fechaEmision: D('09'), fechaValidacion: D('11') },
+    requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado. Condición: % de retención y cobranza según Matriz de Riesgo.', fecha: D('11') },
+  }),
+  fac('FAC-2026-1082', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c4.id, contratante: CONTRATOS.c4.nombre, pyme: CONTRATOS.c4.pyme,
+    proveedor: E.proveedores.cemex,
+    monto: 7_200_000, estado: INV.conRequerimientos,
+    concepto: 'Suministro e instalación de iluminación portuaria – Fachada A',
+    fecha: D('08'), fechaVencimiento: D('08') + ' / 30 días',
+    ipi: { numero: 'IPI-2026-0321', fechaEmision: D('10'), fechaValidacion: D('12') },
+    requerimientos: { entidades: ['Bonafide'], mensaje: 'IPI validado. Se requiere actualizar la póliza de seguros del suministro ante la Contratante.', fecha: D('12') },
   }),
   fac('FAC-2026-1071', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c4.id, contratante: CONTRATOS.c4.nombre, pyme: CONTRATOS.c4.pyme,
@@ -236,6 +254,20 @@ export const seedFacturas = [
     suministrador: E.suministradores.repuestos,
     monto: 4_500_000, estado: INV.pagada, concepto: 'Repuestos y mantenimiento de unidades de transporte',
     fecha: D('07'), fechaVencimiento: D('07') + ' / 30 días',
+  }),
+  fac('FAC-2026-2110', {
+    origen: 'suministrador', contrato: CONTRATOS.p1.id, contratante: CONTRATOS.p1.nombre, pyme: CONTRATOS.p1.pyme,
+    suministrador: E.suministradores.combustibles,
+    monto: 6_800_000, estado: INV.conRequerimientos, concepto: 'Combustible para flota de transporte – julio 2026',
+    fecha: D('08'), fechaVencimiento: D('08') + ' / 30 días',
+    requerimientos: { entidades: ['Bonafide'], mensaje: 'Falta adjuntar el comprobante fiscal del suministro. Requiere coordinación con la Contratante.', fecha: D('09') },
+  }),
+  fac('FAC-2026-2112', {
+    origen: 'suministrador', contrato: CONTRATOS.p2.id, contratante: CONTRATOS.p2.nombre, pyme: CONTRATOS.p2.pyme,
+    suministrador: E.suministradores.repuestos,
+    monto: 3_600_000, estado: INV.conRequerimientos, concepto: 'Repuestos y mantenimiento de unidades – julio 2026',
+    fecha: D('08'), fechaVencimiento: D('08') + ' / 30 días',
+    requerimientos: { entidades: ['Bonafide'], mensaje: 'El RUC del suministrador no está vigente; actualizar el KYC ante Bonafide.', fecha: D('10') },
   }),
 ];
 
