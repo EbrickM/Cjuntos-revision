@@ -82,43 +82,84 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
   </div>
 );
 
-const FatCard = ({ inv, onDetalle }) => (
-  <div className="bg-white rounded-[16px] p-4 flex items-start gap-4 shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)]">
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-        <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-        <Badge variant={estadoVariant(inv.estado)}>{inv.estado}</Badge>
-      </div>
-      <div className="text-[12px] text-text-3 truncate mb-1">{inv.concepto}</div>
-      <div className="text-[11px] text-text-5 mb-1.5">
-        {inv.tipo === 'proveedor' && inv.proveedor
-          ? <span>Proveedor: <span className="font-medium text-text-4">{inv.proveedor}</span> · </span>
-          : null
-        }
-        PYME: <span className="font-medium text-text-4">{inv.pyme}</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] font-semibold text-orange-dark bg-orange-tint px-2 py-0.5 rounded-full">{inv.contrato}</span>
-        <span className="text-[11px] text-text-5 truncate">· {contratos[inv.contrato]}</span>
-      </div>
+// ── Tabla estilo Admin (igual que Contratos/FacturasAdmin) ────────────────────
+const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetalle, proveedor }) => (
+  <>
+    <SearchBar
+      value={busqueda}
+      onChange={setBusqueda}
+      placeholder={proveedor ? 'Buscar por Nº, proveedor, PYME o concepto…' : 'Buscar por Nº, contratante, PYME o concepto…'}
+      compact
+      withEstado
+      estado={filtro}
+      onEstado={setFiltro}
+      estados={FILTROS_ESTADO}
+    />
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[820px]">
+        <thead className="bg-page-bg">
+          <tr className="border-b border-border">
+            {[
+              'Nº Factura',
+              proveedor ? 'Proveedor' : 'Contratante',
+              'PYME', 'Estado', 'Monto', 'Fecha', 'Detalle',
+            ].map((h, i) => (
+              <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
+                ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
+              `}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {invs.map(inv => (
+            <tr key={inv.id} onClick={() => onDetalle(inv)}
+              className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40">
+              <td className="px-4 py-3 whitespace-nowrap">
+                <span className="text-[12px] font-bold text-text-1">{inv.id}</span>
+                <div className="text-[10px] text-text-5 max-w-[220px] truncate">{inv.concepto}</div>
+              </td>
+              <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">
+                {proveedor ? inv.proveedor : contratos[inv.contrato]}
+              </td>
+              <td className="px-4 py-3 text-[12px] text-text-4 whitespace-nowrap">{inv.pyme}</td>
+              <td className="px-4 py-3 text-center"><Badge variant={estadoVariant(inv.estado)}>{inv.estado}</Badge></td>
+              <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{formatXaf(inv.monto)}</td>
+              <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{inv.fecha}</td>
+              <td className="px-4 py-3 text-center">
+                <div onClick={e => e.stopPropagation()}>
+                  <button onClick={() => onDetalle(inv)} title="Ver detalle"
+                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {invs.length === 0 && (
+            <tr>
+              <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
+                No hay {proveedor ? 'facturas de proveedores' : 'facturas al contratante'} que coincidan.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
-    <div className="shrink-0 text-right">
-      <button onClick={() => onDetalle(inv)} title="Ver detalle"
-        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer ml-auto">
-        <Eye className="w-3.5 h-3.5" />
-      </button>
-      <div className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</div>
-      <div className="text-[11px] text-text-5 mt-0.5">{inv.fecha}</div>
-    </div>
-  </div>
+  </>
 );
 
 export default function AdminRisk() {
-  const [detalle, setDetalle]       = useState(null);
-  const [busquedaCt, setBusquedaCt] = useState('');
-  const [filtroCt, setFiltroCt]     = useState('Todos');
+  const [tab, setTab]                 = useState('ct');
+  const [detalle, setDetalle]         = useState(null);
+  const [busquedaCt, setBusquedaCt]   = useState('');
+  const [filtroCt, setFiltroCt]       = useState('Todos');
   const [busquedaProv, setBusquedaProv] = useState('');
-  const [filtroProv, setFiltroProv] = useState('Todos');
+  const [filtroProv, setFiltroProv]   = useState('Todos');
+
+  const TABS = [
+    { id: 'ct',   lbl: 'Pagadas por el contratante' },
+    { id: 'prov', lbl: 'Fondos liberados a proveedores' },
+  ];
 
   const ctFacturas   = allInvoices.filter(inv => inv.tipo === 'contratante');
   const provFacturas = allInvoices.filter(inv => inv.tipo === 'proveedor');
@@ -129,7 +170,7 @@ export default function AdminRisk() {
   const provFiltradas = pesquisa(provFacturas, busquedaProv, filtroProv);
 
   return (
-    <AppShell active="adminRisk" role="admin" title="Facturas" sub="Todas las facturas de la plataforma">
+    <AppShell active="adminRisk" role="admin" title="Riesgo" sub="Seguimiento de pagos de la contratante y liberación de fondos a proveedores">
       <div className="fade-in space-y-5">
 
         {/* Resumen */}
@@ -146,55 +187,57 @@ export default function AdminRisk() {
           ))}
         </div>
 
-        {/* Pagadas por el contratante */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
-          {header(
-            'Pagadas por el contratante',
-            'Ingresos cobrados por la plataforma — dinero que entra al banco.',
-            <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{ctFacturas.length} facturas</span>
-          )}
-          <SearchBar
-            value={busquedaCt}
-            onChange={setBusquedaCt}
-            placeholder="Buscar por Nº, contratante, PYME o concepto…"
-            compact
-            withEstado
-            estado={filtroCt}
-            onEstado={setFiltroCt}
-            estados={FILTROS_ESTADO}
-          />
-          <div className="space-y-3">
-            {ctFiltradas.map(inv => <FatCard key={inv.id} inv={inv} onDetalle={setDetalle} />)}
-            {ctFiltradas.length === 0 && (
-              <div className="text-[12px] text-text-4 text-center py-8">No hay facturas al contratante que coincidan.</div>
-            )}
-          </div>
+        {/* Selector superior entre las dos tablas */}
+        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
+                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              }`}>
+              {t.lbl}
+            </button>
+          ))}
         </div>
 
-        {/* Fondos liberados a proveedores */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
-          {header(
-            'Fondos liberados a proveedores',
-            'Pagos realizados a proveedores desde el crédito de cada PYME.',
-            <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{provFacturas.length} facturas</span>
-          )}
-          <SearchBar
-            value={busquedaProv}
-            onChange={setBusquedaProv}
-            placeholder="Buscar por Nº, proveedor, PYME o concepto…"
-            compact
-            withEstado
-            estado={filtroProv}
-            onEstado={setFiltroProv}
-            estados={FILTROS_ESTADO}
-          />
-          <div className="space-y-3">
-            {provFiltradas.map(inv => <FatCard key={inv.id} inv={inv} onDetalle={setDetalle} />)}
-            {provFiltradas.length === 0 && (
-              <div className="text-[12px] text-text-4 text-center py-8">No hay facturas de proveedores que coincidan.</div>
+        {/* ── Tab: Pagadas por el contratante ── */}
+        {tab === 'ct' && (
+          <div className="bg-white rounded-[14px] border border-border p-5">
+            {header(
+              'Pagadas por el contratante',
+              'Ingresos cobrados por la plataforma — dinero que entra al banco.',
+              <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{ctFacturas.length} facturas</span>
             )}
+            <TablaFacturas
+              invs={ctFiltradas}
+              busqueda={busquedaCt}
+              setBusqueda={setBusquedaCt}
+              filtro={filtroCt}
+              setFiltro={setFiltroCt}
+              onDetalle={setDetalle}
+              proveedor={false}
+            />
           </div>
-        </div>
+        )}
+
+        {/* ── Tab: Fondos liberados a proveedores ── */}
+        {tab === 'prov' && (
+          <div className="bg-white rounded-[14px] border border-border p-5">
+            {header(
+              'Fondos liberados a proveedores',
+              'Pagos realizados a proveedores desde el crédito de cada PYME.',
+              <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{provFacturas.length} facturas</span>
+            )}
+            <TablaFacturas
+              invs={provFiltradas}
+              busqueda={busquedaProv}
+              setBusqueda={setBusquedaProv}
+              filtro={filtroProv}
+              setFiltro={setFiltroProv}
+              onDetalle={setDetalle}
+              proveedor
+            />
+          </div>
+        )}
 
       </div>
 

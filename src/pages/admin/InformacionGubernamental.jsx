@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import {
   Coins, Percent, Building2, Users, FileCheck2, Receipt,
-  FileBarChart, Send, CheckCircle2,
+  FileBarChart, Send, CheckCircle2, Eye,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
+import InfoRow from '../../components/ui/InfoRow';
+import Modal from '../../components/ui/Modal';
 import { Select } from '../../components/ui/FormGroup';
 
 // ── INFORMACIÓN GUBERNAMENTAL ──────────────────────────────────────────────
@@ -65,11 +67,32 @@ const INFORMES_INICIALES = {
 
 const informeBadge = (estado) => estado === 'Notificado' ? 'green' : 'yellow';
 
+// Contenido que se exporta en la notificación de cada informe, por ministerio.
+const contenidoExport = (ministerio) =>
+  ministerio === 'hidrocarburos'
+    ? [
+        { label: '% Contenido Nacional Promedio',             value: '62%' },
+        { label: 'PYMEs Locales Certificadas',                value: '18' },
+        { label: 'Empleo Local Generado',                     value: '340 personas' },
+        { label: 'Contratos con Cláusula de Contenido Nacional', value: '27' },
+        { label: 'Monto total facturado a hidrocarburos',     value: `${fmt(96_000_000)} XAF` },
+        { label: 'Proveedores locales registrados',           value: '23' },
+      ]
+    : [
+        { label: 'Recaudación Fiscal Facilitada',   value: `${fmt(210_000_000)} XAF` },
+        { label: 'Retenciones Reportadas',          value: `${fmt(12_500_000)} XAF` },
+        { label: '% Transacciones Digitalizadas',   value: '78%' },
+        { label: 'Empresas Bancarizadas vía Plataforma', value: '46' },
+        { label: 'Facturas digitalizadas en el período', value: '38' },
+        { label: 'Nuevas empresas bancarizadas',    value: '9' },
+      ];
+
 export default function AdminInformacionGubernamental() {
   const [ministerio, setMinisterio] = useState('hidrocarburos');
   const [periodicidad, setPeriodicidad] = useState('Mensual');
   const [informes, setInformes] = useState(INFORMES_INICIALES);
   const [toast, setToast] = useState({ visible: false, message: '' });
+  const [detalleInf, setDetalleInf] = useState(null);
 
   const showToast = (message) => {
     setToast({ visible: true, message });
@@ -176,7 +199,13 @@ export default function AdminInformacionGubernamental() {
                     <div className="text-[13px] font-bold text-text-1">{inf.periodo}</div>
                     <div className="text-[11px] text-text-4">{inf.tipo} · Generado {inf.fechaGeneracion}</div>
                   </div>
-                  <Badge variant={informeBadge(inf.estado)}>{inf.estado}</Badge>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setDetalleInf(inf)} title="Ver detalles a exportar"
+                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <Badge variant={informeBadge(inf.estado)}>{inf.estado}</Badge>
+                  </div>
                 </div>
                 {inf.estado === 'Generado' ? (
                   <Button variant="primary" size="sm" onClick={() => handleNotificar(inf.id)} className="justify-center">
@@ -197,8 +226,8 @@ export default function AdminInformacionGubernamental() {
             <table className="w-full min-w-[640px]">
               <thead className="bg-page-bg">
                 <tr className="border-b border-border">
-                  {['Periodo', 'Tipo', 'Fecha de Generación', 'Estado', ''].map((h, i) => (
-                    <th key={h || 'accion'} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 4 ? 'text-center' : 'text-left'}`}>{h}</th>
+                  {['Periodo', 'Tipo', 'Fecha de Generación', 'Estado', 'Detalle', ''].map((h, i) => (
+                    <th key={h || 'accion'} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i >= 4 ? 'text-center' : 'text-left'}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -210,6 +239,12 @@ export default function AdminInformacionGubernamental() {
                     <td className="px-4 py-3 text-[12px] text-text-4 whitespace-nowrap">{inf.fechaGeneracion}</td>
                     <td className="px-4 py-3">
                       <Badge variant={informeBadge(inf.estado)}>{inf.estado}</Badge>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button onClick={() => setDetalleInf(inf)} title="Ver detalles a exportar"
+                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                        <Eye className="w-4 h-4" />
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {inf.estado === 'Generado' ? (
@@ -228,7 +263,7 @@ export default function AdminInformacionGubernamental() {
                 ))}
                 {informesList.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-[12px] text-text-4">Aún no se generó ningún informe.</td>
+                    <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">Aún no se generó ningún informe.</td>
                   </tr>
                 )}
               </tbody>
@@ -237,6 +272,40 @@ export default function AdminInformacionGubernamental() {
         </div>
 
       </div>
+
+      {/* ── Modal: Detalle del informe (contenido a exportar) ── */}
+      {detalleInf && (
+        <Modal
+          title={`Detalle del Informe · ${detalleInf.id}`}
+          onClose={() => setDetalleInf(null)}
+          footer={<Button variant="ghost" onClick={() => setDetalleInf(null)}>Cerrar</Button>}
+          wide
+        >
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <InfoRow label="Periodo" value={detalleInf.periodo} />
+              <InfoRow label="Tipo" value={detalleInf.tipo} />
+              <InfoRow label="Estado" value={detalleInf.estado} />
+              <InfoRow label="Fecha de Generación" value={detalleInf.fechaGeneracion} />
+              {detalleInf.fechaNotificacion && (
+                <InfoRow label="Fecha de Notificación" value={detalleInf.fechaNotificacion} />
+              )}
+            </div>
+
+            <div>
+              <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Contenido a exportar · {ministerioLbl}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {contenidoExport(ministerio).map(({ label, value }) => (
+                  <div key={label} className="rounded-[10px] border border-border p-3 flex items-center justify-between gap-2 bg-page-bg/40">
+                    <span className="text-[12px] text-text-4">{label}</span>
+                    <span className="text-[13px] font-extrabold text-text-1 whitespace-nowrap">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Toast ── */}
       <div className={`fixed bottom-6 right-6 z-50 w-[340px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
