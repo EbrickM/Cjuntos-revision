@@ -53,15 +53,15 @@ const Header = ({ title, sub, Icon, right }) => (
   </div>
 );
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados }) => (
+const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, compact = false }) => (
   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className="relative flex-1">
+    <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+        className={`w-full pl-8 pr-3 rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
       />
     </div>
     {withEstado && (
@@ -83,12 +83,16 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
 export default function FacturasAdmin() {
   const [tab, setTab]                 = useState('bandeja');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [filtroBandeja, setFiltroBandeja] = useState('Todos');
+  const [filtroBilletera, setFiltroBilletera] = useState('Todos');
   const [busqueda, setBusqueda]       = useState('');
   const [detalle, setDetalle]         = useState(null);
   const [validando, setValidando]     = useState(null);
   const [ponerReq, setPonerReq]       = useState(false);
   const [reqMensaje, setReqMensaje]   = useState('');
   const [requerimiento, setRequerimiento] = useState(null);
+  const [detalleBilletera, setDetalleBilletera] = useState(null);
+  const [detallePago, setDetallePago] = useState(null);
   const [, setTick]                   = useState(0);
 
   const bump = () => setTick(t => t + 1);
@@ -105,9 +109,13 @@ export default function FacturasAdmin() {
     ? facturas
     : facturas.filter(f => f.estado === FILTROS_ESTADO_KEY[filtroEstado]);
 
-  const bandejaFiltrada = bandeja.filter(f => matchesQ(f, [f.id, f.ipi?.numero, f.pyme, f.contratante]));
+  const bandejaFiltrada = bandeja
+    .filter(f => (filtroBandeja === 'Todos' ? true : f.estado === FILTROS_ESTADO_KEY[filtroBandeja]))
+    .filter(f => matchesQ(f, [f.id, f.ipi?.numero, f.pyme, f.contratante]));
   const facturasFiltradas = filtradas.filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]));
-  const billeterasFiltradas = billeteras.filter(b => matchesQ(b, [b.pyme]));
+  const billeterasFiltradas = billeteras
+    .filter(b => (filtroBilletera === 'Todos' ? true : (b.estado ?? INV.billetera) === FILTROS_ESTADO_KEY[filtroBilletera]))
+    .filter(b => matchesQ(b, [b.pyme]));
   const pagosFiltrados = pagos.filter(p => matchesQ(p, [p.id, p.proveedor, p.facturaId]));
 
   const kpis = [
@@ -186,16 +194,25 @@ export default function FacturasAdmin() {
                 Icon={ShieldCheck}
                 right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{bandeja.length} pendientes</span>}
               />
-              <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por Nº, IPI, PYME o contratante…" />
+              <SearchBar
+                value={busqueda}
+                onChange={setBusqueda}
+                placeholder="Buscar…"
+                compact
+                withEstado
+                estado={filtroBandeja}
+                onEstado={setFiltroBandeja}
+                estados={FILTROS_ESTADO}
+              />
 
               {/* Tabla */}
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[960px]">
+                <table className="w-full min-w-[760px]">
                   <thead className="bg-page-bg">
                     <tr className="border-b border-border">
-                      {['IPI', 'PYME', 'Contratante', 'Monto', 'Emisión', 'Estado', 'Acción'].map((h, i) => (
-                        <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                          ${i === 0 ? 'text-left' : i === 3 ? 'text-right' : i === 6 ? 'text-center' : 'text-center'}
+                      {['IPI', 'PYME', 'Contratante', 'Monto', 'Emisión', 'Estado', 'Detalle', 'Acción'].map((h, i) => (
+                        <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-3 py-3
+                          ${i === 0 ? 'text-left' : i === 3 ? 'text-right' : 'text-center'}
                         `}>{h}</th>
                       ))}
                     </tr>
@@ -203,47 +220,44 @@ export default function FacturasAdmin() {
                   <tbody>
                     {bandejaFiltrada.map(f => (
                       <tr key={f.id} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                        <td className="px-4 py-3 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <div className="text-[12px] font-bold text-text-1">{f.id}</div>
                           <div className="text-[10px] font-mono text-text-4">{f.ipi?.numero}</div>
                         </td>
-                        <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
-                        <td className="px-4 py-3 text-[12px] text-text-4 max-w-[240px]">
+                        <td className="px-3 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
+                        <td className="px-3 py-3 text-[12px] text-text-4 max-w-[180px]">
                           <span className="block truncate">{f.contratante}</span>
                         </td>
-                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
-                        <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.ipi?.fechaEmision}</td>
+                        <td className="px-3 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
+                        <td className="px-3 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.ipi?.fechaEmision}</td>
                         <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.emitida} /></td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-2 whitespace-nowrap">
-                            <Button variant="secondary" size="sm" onClick={() => setRequerimiento(f)}>
-                              <MessageSquare className="w-3.5 h-3.5 mr-1" />Poner requerimiento
-                            </Button>
-                            <Button variant="primary" size="sm" onClick={() => setValidando(f)}>
-                              <Zap className="w-3.5 h-3.5 mr-1" />Validar IPI
-                            </Button>
+                        <td className="px-3 py-3 text-center">
+                          <button onClick={() => setValidando(f)} title="Ver detalle"
+                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                            <button onClick={() => setRequerimiento(f)} title="Poner requerimiento"
+                              className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                              <MessageSquare className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setValidando(f)} title="Validar IPI"
+                              className="p-1.5 rounded-[8px] hover:bg-green-bg transition text-green-text cursor-pointer">
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
                     ))}
                     {bandejaFiltrada.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">No hay IPIs pendientes que coincidan.</td>
+                        <td colSpan={8} className="px-4 py-8 text-center text-[12px] text-text-4">No hay IPIs pendientes que coincidan.</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="text-[13px] font-bold mb-3">Flujo del IPI</div>
-              <div className="flex flex-col sm:flex-row gap-2 text-[11px] text-text-3">
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">1 · Bonafide valida IPI</span>
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">2 · Contratante envía orden al Fondeador</span>
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">3 · Fondeo Recibido (Banco Fondeador)</span>
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">4 · OTP a la Contratante</span>
-                <span className="px-2.5 py-1.5 rounded-full bg-page-bg">5 · Pago / Billetera</span>
               </div>
             </div>
           </div>
@@ -262,6 +276,7 @@ export default function FacturasAdmin() {
               value={busqueda}
               onChange={setBusqueda}
               placeholder="Buscar por Nº, PYME, contratante, contrato o concepto…"
+              compact
               withEstado
               estado={filtroEstado}
               onEstado={setFiltroEstado}
@@ -331,7 +346,16 @@ export default function FacturasAdmin() {
               Icon={Wallet}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} PYMEs</span>}
             />
-            <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por PYME…" />
+            <SearchBar
+              value={busqueda}
+              onChange={setBusqueda}
+              placeholder="Buscar por PYME…"
+              compact
+              withEstado
+              estado={filtroBilletera}
+              onEstado={setFiltroBilletera}
+              estados={FILTROS_ESTADO}
+            />
 
             {billeterasFiltradas.length === 0 && (
               <div className="text-[13px] text-text-4 py-10 text-center">
@@ -344,7 +368,7 @@ export default function FacturasAdmin() {
               <table className="w-full min-w-[760px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['PYME', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado'].map((h, i) => (
+                    {['PYME', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
                       <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                         ${i === 0 ? 'text-left' : i >= 1 && i <= 3 ? 'text-right' : 'text-center'}
                       `}>{h}</th>
@@ -360,6 +384,12 @@ export default function FacturasAdmin() {
                       <td className="px-4 py-3 text-right text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
                       <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
                       <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
+                      <td className="px-4 py-3 text-center">
+                        <button onClick={() => setDetalleBilletera(b)} title="Ver detalle"
+                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -377,14 +407,14 @@ export default function FacturasAdmin() {
               Icon={Banknote}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{pagos.length} pagos</span>}
             />
-            <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por proveedor, Nº de pago o factura…" />
+            <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por proveedor, Nº de pago o factura…" compact />
 
             {/* Tabla */}
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['Proveedor', 'Nº Pago', 'Factura', 'Método', 'Monto', 'Fecha'].map((h, i) => (
+                    {['Proveedor', 'Nº Pago', 'Factura', 'Método', 'Monto', 'Fecha', 'Detalle'].map((h, i) => (
                       <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                         ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
                       `}>{h}</th>
@@ -409,11 +439,17 @@ export default function FacturasAdmin() {
                       </td>
                       <td className="px-4 py-3 text-right text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(pago.monto)} XAF</td>
                       <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{pago.fechaPago}</td>
+                      <td className="px-4 py-3 text-center">
+                        <button onClick={() => setDetallePago(pago)} title="Ver detalle"
+                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                   {pagosFiltrados.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">No hay pagos que coincidan.</td>
+                      <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">No hay pagos que coincidan.</td>
                     </tr>
                   )}
                 </tbody>
@@ -482,6 +518,24 @@ export default function FacturasAdmin() {
           )}
         </InvoiceDetailModal>
       )}
+
+      {/* ── Modal: Detalle de billetera virtual ── */}
+      {detalleBilletera && (
+        <DetalleBilleteraModal
+          billetera={detalleBilletera}
+          facturas={facturas}
+          onClose={() => setDetalleBilletera(null)}
+        />
+      )}
+
+      {/* ── Modal: Detalle de pago ── */}
+      {detallePago && (
+        <DetallePagoModal
+          pago={detallePago}
+          facturas={facturas}
+          onClose={() => setDetallePago(null)}
+        />
+      )}
     </AppShell>
   );
 }
@@ -526,10 +580,10 @@ function RequerimientoIpiModal({ factura, onClose, onConfirm }) {
   );
 }
 
-// ── Modal: validación del IPI con condiciones financieras y modalidad ─────────
+// ── Modal: validación del IPI con condiciones financieras ─────────
 function ValidacionIpiModal({ factura, onClose, onConfirm }) {
   const ctx = contratosCtx[factura.contrato] ?? { retencion: 3, gestionCobranza: 1.5, interes: 5 };
-  const [modalidad, setModalidad] = useState(MODALIDAD.retiroTotal);
+  const [modalidad] = useState(MODALIDAD.retiroTotal);
   const [retencion, setRetencion] = useState(ctx.retencion);
   const [gestion, setGestion]     = useState(ctx.gestionCobranza);
   const [interes, setInteres]     = useState(ctx.interes);
@@ -544,7 +598,7 @@ function ValidacionIpiModal({ factura, onClose, onConfirm }) {
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={() => onConfirm(factura, { modalidadPago: modalidad, retencion, gestionCobranza: gestion, interes, observacion })}>
+          <Button variant="success" onClick={() => onConfirm(factura, { modalidadPago: modalidad, retencion, gestionCobranza: gestion, interes, observacion })}>
             <CheckCircle className="w-3.5 h-3.5 mr-1" />Validar y enviar
           </Button>
         </>
@@ -557,36 +611,6 @@ function ValidacionIpiModal({ factura, onClose, onConfirm }) {
           <InfoRow label="Contrato" value={factura.contrato} />
           <InfoRow label="Monto IPI" value={`${fmt(factura.monto)} XAF`} />
           <InfoRow label="Vence" value={factura.fechaVencimiento ?? '—'} />
-        </div>
-
-        <div>
-          <div className="text-[12px] font-semibold text-text-3 mb-2">Modalidad de desembolso de la PYME</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button onClick={() => setModalidad(MODALIDAD.retiroTotal)}
-              className={`flex items-center gap-3 p-4 rounded-[12px] border-2 text-left transition cursor-pointer ${
-                modalidad === MODALIDAD.retiroTotal ? 'border-orange bg-orange-tint/30' : 'border-border hover:border-orange/40'
-              }`}>
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: 'var(--color-orange-tint)' }}>
-                <Banknote className="w-4 h-4 text-orange" />
-              </div>
-              <div>
-                <div className="text-[13px] font-bold">Retirar Todo</div>
-                <div className="text-[11px] text-text-4">Transferencia directa a la cuenta de la PYME.</div>
-              </div>
-            </button>
-            <button onClick={() => setModalidad(MODALIDAD.billeteraVirtual)}
-              className={`flex items-center gap-3 p-4 rounded-[12px] border-2 text-left transition cursor-pointer ${
-                modalidad === MODALIDAD.billeteraVirtual ? 'border-orange bg-orange-tint/30' : 'border-border hover:border-orange/40'
-              }`}>
-              <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: 'var(--color-orange-tint)' }}>
-                <Wallet className="w-4 h-4 text-orange" />
-              </div>
-              <div>
-                <div className="text-[13px] font-bold">Billetera Virtual</div>
-                <div className="text-[11px] text-text-4">Fondos desbloqueados para distribuir a proveedores.</div>
-              </div>
-            </button>
-          </div>
         </div>
 
         <div>
@@ -646,6 +670,100 @@ function ValidacionIpiModal({ factura, onClose, onConfirm }) {
             className="w-full h-11 px-3 rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none text-[13px]"
           />
         </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal: detalle de billetera virtual ───────────────────────────────────────
+function DetalleBilleteraModal({ billetera, facturas, onClose }) {
+  const facturasDeBilletera = (billetera.facturas ?? [])
+    .map(id => facturas.find(f => f.id === id))
+    .filter(Boolean);
+
+  return (
+    <Modal
+      title={`Billetera Virtual · ${billetera.pyme}`}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cerrar</Button>
+        </>
+      }
+      wide
+    >
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <InfoRow label="PYME" value={billetera.pyme} />
+          <InfoRow label="Monto presupuestado" value={`${fmt(billetera.montoPresupuestado ?? 0)} XAF`} />
+          <InfoRow label="Saldo disponible" value={`${fmt(billetera.saldoDisponible ?? 0)} XAF`} />
+          <InfoRow label="Total distribuido" value={`${fmt(billetera.totalDistribuido ?? 0)} XAF`} />
+        </div>
+
+        <div>
+          <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Facturas en esta billetera ({facturasDeBilletera.length})</div>
+          {facturasDeBilletera.length > 0 ? (
+            <div className="space-y-2">
+              {facturasDeBilletera.map(f => (
+                <div key={f.id} className="flex items-center justify-between gap-3 p-3 rounded-[10px] border border-border">
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-bold text-text-1 font-mono">{f.id}</div>
+                    <div className="text-[11px] text-text-4 truncate">{f.concepto}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[12px] font-extrabold text-text-1">{fmt(f.monto)} XAF</div>
+                    <InvoiceStatusBadge estado={f.estado} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-[12px] text-text-4 py-6 text-center border border-border rounded-[10px]">Sin facturas asociadas.</div>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Modal: detalle de pago ────────────────────────────────────────────────────
+function DetallePagoModal({ pago, facturas, onClose }) {
+  const factura = facturas.find(f => f.id === pago.facturaId) ?? null;
+
+  return (
+    <Modal
+      title={`Pago · ${pago.id}`}
+      onClose={onClose}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>Cerrar</Button>
+        </>
+      }
+      wide
+    >
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <InfoRow label="Proveedor" value={pago.proveedor} />
+          <InfoRow label="Nº Pago" value={pago.id} />
+          <InfoRow label="Método" value={pago.metodo === 'cheque' ? 'Cheque de Venta' : 'Transferencia'} />
+          <InfoRow label="Estado" value={pago.estado} />
+          <InfoRow label="Monto" value={`${fmt(pago.monto)} XAF`} />
+          <InfoRow label="Fecha de pago" value={pago.fechaPago} />
+          <InfoRow label={pago.metodo === 'cheque' ? 'Cheque' : 'Cuenta'} value={pago.cheque ?? pago.cuenta ?? '—'} />
+          <InfoRow label="Factura" value={pago.facturaId} />
+        </div>
+
+        {factura && (
+          <div className="rounded-[12px] border border-border p-4" style={{ background: '#F8F7F5' }}>
+            <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Factura asociada</div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <InfoRow label="Concepto" value={factura.concepto} />
+              <InfoRow label="Monto" value={`${fmt(factura.monto)} XAF`} />
+              <InfoRow label="Contratante" value={factura.contratante} />
+              <InfoRow label="Estado" value={factura.estado} />
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   );
