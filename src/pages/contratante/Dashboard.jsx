@@ -171,7 +171,7 @@ const PYMES_FINANC      = 1;
 const CONTRATOS_ACTIV   = 1;
 const SCORE             = 720;
 const scoreZone = SCORE < 400 ? { label: 'Crítico', color: ERR }
-  : SCORE < 600 ? { label: 'Alto',  color: ORA }
+  : SCORE < 600 ? { label: 'Alto',  color: ERR }
   : SCORE < 750 ? { label: 'Medio', color: WARN }
   : { label: 'Bajo', color: GREEN };
 const FACTURAS_COUNT    = 2;

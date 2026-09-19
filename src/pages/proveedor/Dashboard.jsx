@@ -171,7 +171,7 @@ const SUMINISTRADORES_ASIGNADOS = 2;
 const CONTRATOS_ACTIV   = 2;
 const SCORE             = 690;
 const scoreZone = SCORE < 400 ? { label: 'Crítico', color: ERR }
-  : SCORE < 600 ? { label: 'Alto',  color: ORA }
+  : SCORE < 600 ? { label: 'Alto',  color: ERR }
   : SCORE < 750 ? { label: 'Medio', color: WARN }
   : { label: 'Bajo', color: GREEN };
 const FACTURAS_COUNT    = 2;
