@@ -9,11 +9,21 @@ import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGrou
 
 const BANCO_FONDEADORES = ['Bonafide', 'VistaBank', 'CCEIBank', 'Vigifi Bange', 'ECOBank'];
 
-const formatDateDDMMYYYY = () => {
-  const d = new Date();
+const EMPRESAS_CONTRATANTES = ['TotalEnerGE SA', 'Infraconst. SA', 'MinGE Sociedad Est.', 'AgroGE Holdings'];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PREFIJO_TEL_GQ = '+240';
+
+const formatDateDDMMYYYY = (d = new Date()) => {
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   return `${dd}/${mm}/${d.getFullYear()}`;
+};
+
+const formatDateAddDays = (days) => {
+  const d = new Date();
+  d.setDate(d.getDate() + (Number(days) || 0));
+  return formatDateDDMMYYYY(d);
 };
 
 const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
@@ -213,7 +223,10 @@ export default function AdminContratos() {
   const handleCreateContract = () => {
     const { monto, intereses, plazoPago, retencion, gestionCobranza } = newModal;
     const montoNum = Number(monto) || 0;
-    if (montoNum <= 0 || !newModal.empresaContratante || !newModal.email) return;
+    const emailValido = EMAIL_RE.test((newModal.email || '').trim());
+    const telDgts = (newModal.telefono || '').replace(/\D/g, '');
+    const telValido = !newModal.telefono || (telDgts.length >= 7 && telDgts.length <= 9);
+    if (montoNum <= 0 || !newModal.empresaContratante || !newModal.email || !emailValido || !telValido || !newModal.bancoFondeador) return;
 
     const lastId = contracts
       .map(c => parseInt((c.id.match(/(\d+)$/) || [])[1], 10))
@@ -229,7 +242,7 @@ export default function AdminContratos() {
       contratante: {
         razonSocial: newModal.empresaContratante, nombreComercial: '',
         ruc: '', sectorProductivo: '',
-        telefonoCorporativo: newModal.telefono, correoCorporativo: newModal.email,
+        telefonoCorporativo: newModal.telefono ? `${PREFIJO_TEL_GQ} ${telDgts}` : '', correoCorporativo: newModal.email,
         objetoTrabajo: '', documentoContrato: null, montoGlobal: String(montoNum),
         fechaInicio: '', fechaFin: '', plazosEjecucion: `${plazoPago} días`,
         repNombre: '', repTipoDoc: '', repIdentificacion: '', repCargo: '', repTelefono: '', repCorreo: '',
@@ -250,6 +263,17 @@ export default function AdminContratos() {
     setNewModal({ open: false });
     showToast(`Contrato ${newId} creado. Pendiente de configuración por la Empresa Contratante.`);
   };
+
+  const newEmailValido = EMAIL_RE.test((newModal.email || '').trim());
+  const newTelDgts = (newModal.telefono || '').replace(/\D/g, '');
+  const newTelValido = newTelDgts.length >= 7 && newTelDgts.length <= 9;
+  const newFormValido = Boolean(
+    newModal.empresaContratante &&
+    newModal.bancoFondeador &&
+    Number(newModal.monto) > 0 &&
+    newModal.email && newEmailValido &&
+    (!newModal.telefono || newTelValido)
+  );
 
   const detailContract = detailId ? (contracts.find(c => c.id === detailId) ?? null) : null;
 
@@ -972,7 +996,7 @@ export default function AdminContratos() {
           footer={
             <>
               <Button variant="ghost" onClick={closeNewModal}>Cancelar</Button>
-              <Button variant="primary" onClick={handleCreateContract}>
+              <Button variant="primary" onClick={handleCreateContract} disabled={!newFormValido}>
                 <Plus className="w-4 h-4" />
                 Crear contrato
               </Button>
@@ -982,11 +1006,13 @@ export default function AdminContratos() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-1">
             <div className="md:col-span-2">
               <FormGroup label="Empresa contratante" required>
-                <Input
-                  placeholder="Razón social de la empresa"
+                <Select
                   value={newModal.empresaContratante || ''}
                   onChange={e => setNewModal({ ...newModal, empresaContratante: e.target.value })}
-                />
+                >
+                  <option value="">Seleccionar empresa…</option>
+                  {EMPRESAS_CONTRATANTES.map(n => <option key={n}>{n}</option>)}
+                </Select>
               </FormGroup>
             </div>
 
@@ -1024,14 +1050,26 @@ export default function AdminContratos() {
                 type="email" placeholder="admin@empresa.gq"
                 value={newModal.email || ''}
                 onChange={e => setNewModal({ ...newModal, email: e.target.value })}
+                style={newModal.email && !newEmailValido ? { borderColor: 'var(--color-red-text)' } : undefined}
               />
+              {newModal.email && !newEmailValido && (
+                <span className="text-[11px] text-red-text">Introduce un correo válido, ej: nombre@empresa.gq</span>
+              )}
             </FormGroup>
             <FormGroup label="Teléfono">
-              <Input
-                type="tel" placeholder="+240 222 000 000"
-                value={newModal.telefono || ''}
-                onChange={e => setNewModal({ ...newModal, telefono: e.target.value })}
-              />
+              <div className="relative">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[14px] font-semibold text-text-3 select-none">{PREFIJO_TEL_GQ}</span>
+                <Input
+                  inputMode="numeric" placeholder="222 000 000"
+                  value={newTelDgts}
+                  onChange={e => setNewModal({ ...newModal, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                  className="pl-14"
+                  style={newModal.telefono && !newTelValido ? { borderColor: 'var(--color-red-text)' } : undefined}
+                />
+              </div>
+              {newModal.telefono && !newTelValido && (
+                <span className="text-[11px] text-red-text">El número debe tener entre 7 y 9 dígitos ({PREFIJO_TEL_GQ}).</span>
+              )}
             </FormGroup>
 
             <FormGroup label="% de retención" required>
@@ -1049,9 +1087,9 @@ export default function AdminContratos() {
               />
             </FormGroup>
 
-            <FormGroup label="Fecha" className="md:col-span-2">
-              <Input value={formatDateDDMMYYYY()} readOnly title="Fecha generada automáticamente" />
-              <span className="text-[11px] text-text-5">Generada automáticamente en formato DD/MM/AAAA.</span>
+            <FormGroup label="Fecha de vencimiento" className="md:col-span-2">
+              <Input value={formatDateAddDays(newModal.plazoPago || 30)} readOnly title="Se calcula con el plazo de pago seleccionado" />
+              <span className="text-[11px] text-text-5">Se calcula automáticamente: hoy + plazo de pago (DD/MM/AAAA).</span>
             </FormGroup>
           </div>
         </Modal>
