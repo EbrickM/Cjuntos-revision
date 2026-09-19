@@ -17,7 +17,7 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
-import { seedContratosActivos } from '../../lib/invoiceSeeds';
+import { contratoService } from '../../services/contrato.service';
 import { INV, estadoLabel } from '../../lib/invoiceStates';
 
 const BADGE_VARIANT = {
@@ -156,7 +156,7 @@ export default function EpFacturacion() {
   const handleSaveCt = () => {
     const monto = Number(ctModal.monto.replace?.(/[^0-9]/g, '') ?? ctModal.monto) || 0;
     if (monto <= 0 || !ctModal.concepto.trim() || !ctModal.contratoId) return;
-    const contrato = seedContratosActivos.find(c => c.id === ctModal.contratoId);
+    const contrato = contratoService.listarFactoring().find(c => c.id === ctModal.contratoId);
     if (contrato?.montoMax && monto > contrato.montoMax) return;
     if (ctModal.editId) {
       facturaService.corregirYReenviar(ctModal.editId, {
@@ -166,7 +166,7 @@ export default function EpFacturacion() {
     } else {
       facturaService.crear({
         contrato: ctModal.contratoId,
-        contratante: contrato?.contratante ?? 'TotalEnerGE S.A.',
+        contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
         tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
         pyme: 'Const. Silva Ltd.',
         monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,

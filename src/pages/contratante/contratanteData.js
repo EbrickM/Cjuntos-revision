@@ -134,6 +134,10 @@ export const montoDisponibleMarco = (marco, excluirAsignacionId = null) =>
 // al montar la pantalla destino). Si esto pasa a venir de la API real, ahí sí
 // migrar a Zustand (loading/error/refetch), igual que authStore.
 export const contratanteState = {
-  selectedContrato: contratos[0],
+  // Guarda el registro elegido por la Contratante al hacer clic en un contrato
+  // (handoff), y hoy también el primer registro de `listarPorVista` en el
+  // detalle cuando se entra directo por URL. `contracts` canónicos vienen del
+  // store local (contrato.service.js) — no dejar residuos del mock estático.
+  selectedContrato: null,
   solicitudPyme: null,
 };

@@ -10,7 +10,9 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
-import { ORA, GREEN, TEXT4, fmt, facturas, pymes, contratos, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
+import { contratoService } from '../../services/contrato.service';
+import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -31,24 +33,32 @@ export default function EmpContratoDetalle() {
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
   const [pymeDetalle, setPymeDetalle]   = useState(null);
-  const c    = contratanteState.selectedContrato;
-  const pct  = Math.round((c.utilizado / c.asignado) * 100);
-  const disp = c.asignado - c.utilizado;
-  const facturasContrato = facturas
-    .filter(f => f.contrato === c.id)
-    .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
+  const pymesDe = (nombre) => pymes.find(p => p.nombre === nombre) ?? null;
+  const c    = contratanteState.selectedContrato
+    ?? contratoService.listarPorVista('contratante').filter(x => x.tipo !== 'marco')[0] ?? null;
+  const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
+  const disp = c ? c.asignado - c.utilizado : 0;
+  const facturasContrato = c
+    ? facturas
+        .filter(f => f.contrato === c.id)
+        .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }))
+    : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
   // PYMEs que comparten el mismo contrato-marco (Subproceso 1 del BPMN: la
   // Contratante reparte un mismo monto base entre varias PYMEs) — si este
   // contrato no tiene `marcoId` (dato legado), la tabla cae a mostrar solo
   // esta PYME.
-  const hermanos = c.marcoId ? contratos.filter(x => x.marcoId === c.marcoId) : [c];
+  const hermanos = c?.marcoId
+    ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
+    : c ? [c] : [];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
+
+  if (!c) return <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub="—" back />;
 
   return (
     <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub={`${c.pyme} · ${c.id}`}>
@@ -202,7 +212,7 @@ export default function EmpContratoDetalle() {
                 </thead>
                 <tbody>
                   {hermanos.map(h => {
-                    const hPyme = pymes.find(p => p.ini === h.ini);
+                    const hPyme = pymesDe(h.pyme);
                     return (
                       <tr key={h.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
                         <td className="px-4 py-3 text-[12px] font-medium text-text-1">{h.pyme}</td>
@@ -289,7 +299,7 @@ export default function EmpContratoDetalle() {
 
       {/* ── Modal: Detalle de PYME (disparado por el ojo en la tabla) ── */}
       {pymeDetalle && (() => {
-        const p = pymes.find(x => x.ini === pymeDetalle.ini);
+        const p = pymesDe(pymeDetalle.pyme);
         if (!p) return null;
         return (
           <Modal title={`${p.nombre} · ${pymeDetalle.id}`} onClose={() => setPymeDetalle(null)} wide>

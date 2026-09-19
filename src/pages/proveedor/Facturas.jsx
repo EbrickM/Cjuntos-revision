@@ -14,7 +14,7 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
-import { seedContratosActivos } from '../../lib/invoiceSeeds';
+import { contratoService } from '../../services/contrato.service';
 import { INV } from '../../lib/invoiceStates';
 
 const ESTADO_LABEL = {
@@ -74,11 +74,11 @@ export default function ProvFacturas() {
   const handleGuardar = () => {
     const monto = Number(facModal.monto.replace?.(/[^0-9]/g, '') ?? facModal.monto) || 0;
     if (monto <= 0 || !facModal.concepto.trim() || !facModal.contratoId) return;
-    const contrato = seedContratosActivos.find(c => c.id === facModal.contratoId);
+    const contrato = contratoService.listarFactoring().find(c => c.id === facModal.contratoId);
     if (contrato?.montoMax && monto > contrato.montoMax) return;
     facturaService.crear({
       contrato: facModal.contratoId,
-      contratante: contrato?.contratante ?? 'TotalEnerGE S.A.',
+      contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
       tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
       pyme: 'Const. Silva Ltd.',
       origen: 'suministrador',

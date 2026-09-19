@@ -17,6 +17,7 @@ import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGrou
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
+import { contratoService } from '../../services/contrato.service';
 
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
 const pct        = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
@@ -75,59 +76,6 @@ const initialProviders = [
 
 const KYC_BADGE = { vigente: 'green', pendiente: 'yellow', vencido: 'red' };
 
-const initialContracts = [
-  {
-    id: 'CT-2026-0041', kyc: 'vigente', tipoFactoring: 'directo',
-    monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000, estado: 'Con Requerimientos',
-    // Ficha fijada por Bonafide para este contrato-marco (mismo origen que
-    // CTM-2026-0002 del lado Contratante) y gestión de fondos que la PYME
-    // eligió al configurarlo (Subproceso 2 del BPMN).
-    plazoPago: 30, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
-    porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5, gestionFondos: 'billetera',
-    // Bonafide encontró una observación en la reconfiguración de este
-    // contrato (Fase 3 del proceso maestro) — `contratoId` apunta al ítem en
-    // `pymeContratosPendientes` (epData.js) que el wizard debe reabrir.
-    requerimiento: {
-      entidades: ['PYME'],
-      mensaje: 'El proveedor "Suministros del Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
-      fecha: '21/06/2026',
-      contratoId: 'CT-2026-0066',
-    },
-    contratante: {
-      razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
-      telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
-      objetoTrabajo: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.',
-      documentoContrato: null, montoGlobal: '180000000',
-      fechaInicio: '2026-03-01', fechaFin: '2027-02-28', plazosEjecucion: '12 meses',
-      repNombre: 'Pedro Ondo Mangue', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1978-00231',
-      repCargo: 'Director General', repTelefono: '+240 222 100 201', repCorreo: 'pondo@conmalabo.gq',
-    },
-    distribucion: [
-      { id: 'dist-001', concepto: 'Compra de Materiales', monto: 21_500_000, providerId: '',   providerName: '',            providerSector: '' },
-      { id: 'dist-002', concepto: 'Pago a Proveedor',     monto: 26_000_000, providerId: 'p1', providerName: 'Cemex GE',    providerSector: 'Materiales' },
-    ],
-  },
-  {
-    id: 'CT-2026-0059', kyc: 'vigente', tipoFactoring: 'directo',
-    monto: 95_000_000, asignado: 30_000_000, disponible: 65_000_000, estado: 'Activo',
-    plazoPago: 60, interes: '4.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
-    porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1, gestionFondos: 'retirar',
-    contratante: {
-      razonSocial: 'TotalEnerGE S.A.', nombreComercial: 'TotalEnerGE', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
-      telefonoCorporativo: '+240 222 300 400', correoCorporativo: 'contratos@totalenerge.gq',
-      objetoTrabajo: 'Suministro y mantenimiento de equipos de perforación para operaciones costa afuera en el bloque de Punta Europa.',
-      documentoContrato: null, montoGlobal: '95000000',
-      fechaInicio: '2026-04-01', fechaFin: '2027-03-31', plazosEjecucion: '12 meses',
-      repNombre: 'Ricardo Nsue Obama', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1975-00456',
-      repCargo: 'Gerente de Operaciones', repTelefono: '+240 222 300 401', repCorreo: 'rnsue@totalenerge.gq',
-    },
-    distribucion: [
-      { id: 'dist-201', concepto: 'Pago a Proveedor',     monto: 18_000_000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
-      { id: 'dist-202', concepto: 'Compra de Materiales', monto: 12_000_000, providerId: '',   providerName: '',             providerSector: '' },
-    ],
-  },
-];
-
 const initialInvoices = [
   { id: 'FAC-2026-0911', tipo: 'contratante', contrato: 'CT-2026-0041', monto: 21_500_000, estado: 'Enviada', concepto: 'Obras de estructura fase 2 — planta baja y primer piso', fecha: '28/06/2026', fechaVencimiento: '28/07/2026', documento: null },
   { id: 'FAC-2026-0918', tipo: 'contratante', contrato: 'CT-2026-0041', monto: 26_000_000, estado: 'Enviada', concepto: 'Acabados interiores y carpintería — módulos A y B',      fecha: '05/07/2026', fechaVencimiento: '05/08/2026', documento: null },
@@ -145,7 +93,7 @@ const TABS = [
 
 export default function EpCreditos() {
   const { go } = useApp();
-  const contracts = initialContracts;
+  const contracts = contratoService.listarPorVista('pyme');
   const providers = initialProviders;
   const [detailId, setDetailId]                   = useState(null);
   const [activeTab, setActiveTab]                 = useState('contrato');
@@ -334,7 +282,7 @@ export default function EpCreditos() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {pagedContracts.map((contract, idx) => {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));
-                const ctName = contract.contratante?.razonSocial || '—';
+                const ctName = contract.contratante?.razonSocial || contract.contratanteNombre || '—';
                 const sector = contract.contratante?.sectorProductivo || '';
                 const score  = contract.contratante?.scoreCredito ?? null;
                 const sStyle = score !== null ? scoreStyle(score) : null;
@@ -461,7 +409,12 @@ export default function EpCreditos() {
 
             {/* ── TAB: Contrato ── */}
             {activeTab === 'contrato' && (() => {
-              const ct = detailContract.contratante;
+              const ct = detailContract.contratante ?? {
+                razonSocial: detailContract.contratanteNombre ?? '—',
+                sectorProductivo: detailContract.sector ?? '',
+                scoreCredito: detailContract.scoreCredito ?? null,
+                montoGlobal: detailContract.montoGlobal ?? String(detailContract.monto ?? ''),
+              };
               return (
                 <div className="space-y-5">
                   {/* Objeto del trabajo */}
@@ -527,7 +480,11 @@ export default function EpCreditos() {
 
             {/* ── TAB: Contratante ── */}
             {activeTab === 'contratante' && (() => {
-              const ct = detailContract.contratante;
+              const ct = detailContract.contratante ?? {
+                razonSocial: detailContract.contratanteNombre ?? '—',
+                sectorProductivo: detailContract.sector ?? '',
+                scoreCredito: detailContract.scoreCredito ?? null,
+              };
               const score  = ct.scoreCredito ?? null;
               const sStyle = score !== null ? scoreStyle(score) : null;
               return (
@@ -1069,7 +1026,7 @@ export default function EpCreditos() {
               variant="primary"
               full
               className="h-[46px] justify-center"
-              onClick={() => { const contratoId = reqModal.requerimiento?.contratoId; setReqModal(null); go('epConfigurarContrato', { contratoId }); }}
+              onClick={() => { const contratoId = reqModal.requerimiento?.contratoId ?? reqModal.id; setReqModal(null); go('epConfigurarContrato', { contratoId }); }}
             >
               Reconfigurar Contrato
             </Button>

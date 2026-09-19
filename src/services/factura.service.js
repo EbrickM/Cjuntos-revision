@@ -5,9 +5,8 @@
 // (máquina de estados, liquidación del fondeo, modalidad de desembolso) vive aquí.
 import { localDb } from '../lib/localDb';
 import { INV, MODALIDAD, TRANSICIONES, estadoLabel } from '../lib/invoiceStates';
-import {
-  SEED_VERSION, seedFacturas, seedPagos, seedBilleteras, BANCO_POR_CONTRATO,
-} from '../lib/invoiceSeeds';
+import { SEED_VERSION, seedFacturas, seedPagos, seedBilleteras } from '../lib/invoiceSeeds';
+import { contratoService } from './contrato.service';
 
 const KEY_FACTURAS  = 'facturas';
 const KEY_PAGOS     = 'factura_pagos';
@@ -134,9 +133,9 @@ export const facturaService = {
       origen: 'contratante',
       modalidadPago: MODALIDAD.retiroTotal,
       estado: INV.creada,
-      // El banco se resuelve del contrato para que la factura llegue al portal
-      // del Fondeador cuando avance a `orden_fondeador`.
-      bancoFondeador: BANCO_POR_CONTRATO[data?.contrato] ?? null,
+      // El banco se resuelve del contrato (contratoService) para que la factura
+      // llegue al portal del Fondeador cuando avance a `orden_fondeador`.
+      bancoFondeador: data?.contrato ? (contratoService.obtener(data.contrato)?.bancoFondeador ?? null) : null,
       ipi: null,
       requerimientos: null,
       documentos: [],

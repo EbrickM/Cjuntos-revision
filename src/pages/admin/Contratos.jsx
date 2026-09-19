@@ -6,6 +6,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
+import { contratoService } from '../../services/contrato.service';
 
 const BANCO_FONDEADORES = ['Bonafide', 'VistaBank', 'CCEIBank', 'Vigifi Bange', 'ECOBank'];
 
@@ -55,127 +56,6 @@ const TABS = [
   { id: 'facturas',     label: 'Facturas' },
 ];
 
-const initialContracts = [
-  {
-    id: 'CTR-2026-001', pymeNombre: 'Construcciones Silva Ltd.',
-    monto: 58000000, asignado: 0, disponible: 58000000,
-    estado: 'Pendiente de Configuración',
-    nota: 'Contrato registrado por Bonafide. En espera de que la Empresa Contratante lo configure y lo reparta entre sus PYMEs.',
-    contratante: {
-      razonSocial: '', nombreComercial: '', ruc: '', sectorProductivo: '',
-      telefonoCorporativo: '', correoCorporativo: '', objetoTrabajo: '',
-      documentoContrato: null, montoGlobal: '', fechaInicio: '', fechaFin: '', plazosEjecucion: '',
-      repNombre: '', repTipoDoc: '', repIdentificacion: '', repCargo: '', repTelefono: '', repCorreo: '',
-      confirmado: false,
-    },
-    distribucion: [], facturas: [],
-  },
-  {
-    id: 'CTR-2026-003', pymeNombre: 'Pinturas Bata SL',
-    monto: 31000000, asignado: 0, disponible: 31000000,
-    estado: 'En Discusión de Términos',
-    nota: 'La PYME rechazó los términos del contrato. Bonafide debe contactar a ambas partes para resolver el desacuerdo.',
-    contratante: {
-      razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía',
-      telefonoCorporativo: '+240 222 456 789', correoCorporativo: 'contratos@petroguinea.gq',
-      objetoTrabajo: 'Suministro de combustible y lubricantes industriales para operaciones en tierra y plataformas offshore.',
-      documentoContrato: null, montoGlobal: '31000000',
-      fechaInicio: '2026-03-01', fechaFin: '2026-12-31', plazosEjecucion: '10 meses',
-      repNombre: 'Carlos Obiang Mba', repTipoDoc: 'Pasaporte', repIdentificacion: 'GE-1985-00234',
-      repCargo: 'Director Comercial', repTelefono: '+240 222 456 780', repCorreo: 'cobiang@petroguinea.gq',
-      confirmado: false,
-    },
-    distribucion: [], facturas: [],
-  },
-  {
-    id: 'CTR-2026-004', pymeNombre: 'LogiRapid GE',
-    monto: 75000000, asignado: 0, disponible: 75000000,
-    estado: 'Pendiente de Revisión',
-    nota: 'La Empresa Contratante ya configuró el contrato. Revisa los datos y autorízalo para activarlo.',
-    // Un mismo contrato-marco puede repartirse entre varias PYMEs
-    // (Subproceso 1), por eso un requerimiento dirigido a "PYME" debe poder
-    // apuntar a una o más de ellas, no asumir que solo hay una.
-    pymesAsignadas: ['LogiRapid GE', 'Transportes Ecuato SL'],
-    contratante: {
-      razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción',
-      telefonoCorporativo: '+240 222 001 002', correoCorporativo: 'adm@obras.gob.gq',
-      objetoTrabajo: 'Construcción y pavimentación de 12 km de infraestructura vial en la zona norte de Malabo, incluyendo drenajes y señalización.',
-      documentoContrato: null, montoGlobal: '75000000',
-      fechaInicio: '2026-01-15', fechaFin: '2027-01-15', plazosEjecucion: '12 meses',
-      repNombre: 'Eugenio Ndong Esono', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1972-00089',
-      repCargo: 'Secretario General', repTelefono: '+240 222 001 003', repCorreo: 'endong@obras.gob.gq',
-      confirmado: true,
-    },
-    distribucion: [
-      { id: 'dist-101', concepto: 'Pago a Proveedor', monto: 12_000_000, providerId: 'p10', providerName: 'ViaLogix GE',         providerSector: 'Logística' },
-      { id: 'dist-102', concepto: 'Pago a Proveedor', monto: 8_000_000,  providerId: 'p11', providerName: 'Materiales del Norte', providerSector: 'Materiales' },
-    ],
-    facturas: [],
-  },
-  {
-    id: 'CTR-2026-007', pymeNombre: 'ServTec GE',
-    monto: 18500000, asignado: 0, disponible: 18500000,
-    estado: 'Con Requerimientos',
-    nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
-    // Todo contrato "Con Requerimientos" trae un mensaje del admin dirigido a
-    // una o más entidades (Contratante/PYME/Proveedor) indicando qué corregir.
-    requerimiento: {
-      entidades: ['PYME'],
-      mensaje: 'La PYME ServTec GE no adjuntó la documentación de respaldo requerida para validar el monto asignado por el contratante. Favor de adjuntar el contrato comercial actualizado antes de continuar con la autorización.',
-      fecha: '11/07/2026',
-    },
-    contratante: {
-      razonSocial: 'GEPetrol S.A.', nombreComercial: 'GEPetrol', ruc: 'GE-2010-00056', sectorProductivo: 'Energía',
-      telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@gepetrol.gq',
-      objetoTrabajo: 'Mantenimiento y soporte técnico de sistemas informáticos y redes de comunicación en las instalaciones de GEPetrol en Malabo.',
-      documentoContrato: null, montoGlobal: '18500000',
-      fechaInicio: '2026-05-01', fechaFin: '2026-10-31', plazosEjecucion: '6 meses',
-      repNombre: 'Anastasio Ndong Ela', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1981-00203',
-      repCargo: 'Director de Operaciones', repTelefono: '+240 222 100 201', repCorreo: 'andong@gepetrol.gq',
-      confirmado: true,
-    },
-    distribucion: [], facturas: [],
-  },
-  {
-    id: 'CTR-2026-002', pymeNombre: 'Construcciones Silva Ltd.',
-    monto: 42000000, asignado: 9000000, disponible: 33000000,
-    estado: 'Activo', nota: '',
-    contratante: {
-      razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción',
-      telefonoCorporativo: '+240 222 909 111', correoCorporativo: 'admin@evans.gq',
-      objetoTrabajo: 'Obras de edificación, remodelación integral y adecuación de oficinas corporativas en el complejo empresarial de Sipopo.',
-      documentoContrato: null, montoGlobal: '42000000',
-      fechaInicio: '2026-02-01', fechaFin: '2026-08-01', plazosEjecucion: '6 meses',
-      repNombre: 'John Evans Jr.', repTipoDoc: 'Pasaporte', repIdentificacion: 'GE-1980-00145',
-      repCargo: 'CEO & Representante Legal', repTelefono: '+240 222 909 112', repCorreo: 'jevans@evans.gq',
-      confirmado: true,
-    },
-    distribucion: [
-      { id: 'dist-001', concepto: 'Pago a Proveedor', monto: 9000000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
-    ],
-    facturas: [
-      { id: 'FAC-2026-1025', tipo: 'proveedor',   monto: 4500000,  estado: 'Enviada', concepto: 'Transporte de materiales al sitio de obra',          fecha: '01/05/2026', proveedor: 'TransGE S.L.' },
-      { id: 'FAC-2026-1031', tipo: 'contratante', monto: 18000000, estado: 'Pagada',  concepto: 'Avance de obra fase 1 – Cimentación y estructura',   fecha: '10/05/2026' },
-    ],
-  },
-  {
-    id: 'CTR-2026-005', pymeNombre: 'TransGE S.L.',
-    monto: 25000000, asignado: 0, disponible: 25000000,
-    estado: 'Activo', nota: '',
-    contratante: {
-      razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte',
-      telefonoCorporativo: '+240 222 654 321', correoCorporativo: 'admin@bataporto.gq',
-      objetoTrabajo: 'Gestión operativa, mantenimiento preventivo y correctivo de instalaciones y equipos en el Puerto de Bata.',
-      documentoContrato: null, montoGlobal: '25000000',
-      fechaInicio: '2026-04-01', fechaFin: '2027-03-31', plazosEjecucion: '12 meses',
-      repNombre: 'María Esono Nguema', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1979-00312',
-      repCargo: 'Directora General', repTelefono: '+240 222 654 322', repCorreo: 'mesono@bataporto.gq',
-      confirmado: true,
-    },
-    distribucion: [], facturas: [],
-  },
-];
-
 const ReadField = ({ label, value, multiline = false }) => (
   <div>
     <div className="text-[11px] font-semibold text-text-5 uppercase tracking-[0.5px] mb-1">{label}</div>
@@ -201,7 +81,7 @@ const CardHeader = ({ title, sub, Icon, right }) => (
 );
 
 export default function AdminContratos() {
-  const [contracts, setContracts] = useState(initialContracts);
+  const [contracts, setContracts] = useState(() => contratoService.listar());
   const [detailId, setDetailId]   = useState(null);
   const [activeTab, setActiveTab] = useState('contratante');
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
@@ -229,16 +109,8 @@ export default function AdminContratos() {
     const telValido = !newModal.telefono || (telDgts.length >= 7 && telDgts.length <= 9);
     if (montoNum <= 0 || !newModal.empresaContratante || !newModal.email || !emailValido || !telValido || !newModal.bancoFondeador) return;
 
-    const lastId = contracts
-      .map(c => parseInt((c.id.match(/(\d+)$/) || [])[1], 10))
-      .filter(n => !Number.isNaN(n))
-      .sort((a, b) => b - a)[0] || 0;
-    const newId = `CTR-2026-${String(lastId + 1).padStart(3, '0')}`;
-
-    const nuevoContrato = {
-      id: newId, pymeNombre: '—',
-      monto: montoNum, asignado: 0, disponible: montoNum,
-      estado: 'Pendiente de Configuración',
+    const creado = contratoService.crear('admin', {
+      monto: montoNum,
       nota: 'Contrato creado por el administrador. En espera de que la Empresa Contratante lo configure y lo reparta entre sus PYMEs.',
       contratante: {
         razonSocial: newModal.empresaContratante, nombreComercial: '',
@@ -250,6 +122,17 @@ export default function AdminContratos() {
         confirmado: false,
       },
       distribucion: [], facturas: [],
+      // Datos planos del marco: `EmpConfigurarContrato` (portal Contratante)
+      // lee estos campos directamente para precargar el formulario cuando
+      // Bonafide le "baja" un contrato creado desde el admin.
+      montoBase: montoNum,
+      plazoPagoDefault: plazoPago,
+      interes: `${Number(intereses) || 0}% anual`,
+      bancoFondeador: newModal.bancoFondeador,
+      porcentajeRetencion: Number(retencion) || 0,
+      porcentajeGestionCobranza: Number(gestionCobranza) || 0,
+      fechaCreacion: formatDateDDMMYYYY(),
+      pymesAsignadas: [], cuentaBancaria: null,
       financiero: {
         intereses: Number(intereses) || 0,
         plazoPago,
@@ -258,11 +141,11 @@ export default function AdminContratos() {
         gestionCobranza: Number(gestionCobranza) || 0,
         fecha: formatDateDDMMYYYY(),
       },
-    };
+    });
 
-    setContracts(prev => [nuevoContrato, ...prev]);
+    setContracts(contratoService.listar());
     setNewModal({ open: false });
-    showToast(`Contrato ${newId} creado. Pendiente de configuración por la Empresa Contratante.`);
+    showToast(`Contrato ${creado.id} creado. Pendiente de configuración por la Empresa Contratante.`);
   };
 
   const newEmailValido = EMAIL_RE.test((newModal.email || '').trim());
@@ -279,7 +162,8 @@ export default function AdminContratos() {
   const detailContract = detailId ? (contracts.find(c => c.id === detailId) ?? null) : null;
 
   const handleAuthorize = (id) => {
-    setContracts(prev => prev.map(c => c.id === id ? { ...c, estado: 'Activo', nota: '' } : c));
+    try { contratoService.autorizar(id); } catch { /* el contrato ya no admite esta transición */ }
+    setContracts(contratoService.listar());
     showToast(`Contrato ${id} autorizado. La PYME ya puede distribuir el crédito.`);
   };
 
@@ -309,27 +193,30 @@ export default function AdminContratos() {
   const handleEnviarRequerimiento = () => {
     if (!reqPuedeEnviar) return;
     const mensaje = reqModal.mensaje.trim();
-    setContracts(prev => prev.map(c => c.id === reqModal.contractId ? {
-      ...c,
-      estado: 'Con Requerimientos',
-      nota: mensaje,
-      requerimiento: {
+    try {
+      contratoService.ponerRequerimiento(reqModal.contractId, {
         entidades: reqModal.entidades,
         pymes: reqModal.pymes,
         proveedores: reqModal.proveedores,
         mensaje,
-        fecha: formatDateDDMMYYYY(),
-      },
-    } : c));
+      });
+    } catch { /* el contrato ya no admite esta transición */ }
+    setContracts(contratoService.listar());
     showToast(`Requerimiento enviado para el contrato ${reqModal.contractId}.`);
     setReqModal(REQ_MODAL_EMPTY);
   };
 
   const handleDelete = (id) => {
-    setContracts(prev => prev.filter(c => c.id !== id));
-    if (detailId === id) setDetailId(null);
-    setDeleteModal({ open: false, id: null });
-    showToast(`Contrato ${id} eliminado.`);
+    try {
+      contratoService.eliminar(id);
+      setContracts(contratoService.listar());
+      if (detailId === id) setDetailId(null);
+      setDeleteModal({ open: false, id: null });
+      showToast(`Contrato ${id} eliminado.`);
+    } catch (e) {
+      setDeleteModal({ open: false, id: null });
+      showToast(e?.message || `No se pudo eliminar el contrato ${id}.`);
+    }
   };
 
   const openDetail = (id) => { setDetailId(id); setActiveTab('contratante'); };

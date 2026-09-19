@@ -8,7 +8,8 @@ import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Textarea } from '../../components/ui/FormGroup';
-import { pymeContratosPendientes, montoDisponibleProveedores, fmt } from './epData';
+import { montoDisponibleProveedores, fmt } from './epData';
+import { contratoService } from '../../services/contrato.service';
 
 // ── CONFIGURAR CONTRATO (Subproceso 2 del BPMN: la PYME acepta los términos,
 // decide cómo gestiona sus fondos y reparte el monto asignado entre sus
@@ -58,7 +59,7 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 
 export default function EpConfigurarContrato() {
   const { go, opts } = useApp();
-  const contrato = pymeContratosPendientes.find(c => c.id === opts?.contratoId) ?? pymeContratosPendientes[0];
+  const contrato = contratoService.obtener(opts?.contratoId) ?? contratoService.listarPendientes('pyme')[0] ?? null;
 
   const [modo, setModo]                 = useState('wizard'); // 'wizard' | 'rechazado' | 'enviado'
   const [step, setStep]                 = useState(0);
@@ -115,11 +116,9 @@ export default function EpConfigurarContrato() {
 
   const handleConfirmarRechazo = () => {
     if (!comentarioRechazo.trim()) return;
-    const idx = pymeContratosPendientes.findIndex(c => c.id === contrato.id);
-    if (idx !== -1) {
-      pymeContratosPendientes[idx].estado = 'En Discusión de Términos';
-      pymeContratosPendientes[idx].comentarioRechazo = comentarioRechazo.trim();
-    }
+    try {
+      contratoService.rechazarTerminos(contrato.id, comentarioRechazo.trim());
+    } catch { /* la transición ya no aplica; se conserva el estado actual */ }
     setModo('rechazado');
   };
 
@@ -129,12 +128,9 @@ export default function EpConfigurarContrato() {
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
-    const idx = pymeContratosPendientes.findIndex(c => c.id === contrato.id);
-    if (idx !== -1) {
-      pymeContratosPendientes[idx].gestionFondos = gestionFondos;
-      pymeContratosPendientes[idx].proveedoresAsignados = proveedores;
-      pymeContratosPendientes[idx].estado = 'Pendiente de Revisión';
-    }
+    try {
+      contratoService.configurar(contrato.id, { gestionFondos, proveedoresAsignados: proveedores });
+    } catch { /* la transición ya no aplica; se conserva el estado actual */ }
     setModo('enviado');
   };
 

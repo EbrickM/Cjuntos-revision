@@ -14,6 +14,8 @@ import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './provShared';
 import { ORA, GREEN, TEXT4, fmt, facturas, suministradores, facturaBadge, scoreColor, kycBadge, provState } from './provData';
+import { contratoService } from '../../services/contrato.service';
+import { aViewContrato } from '../../components/contratos/contratoUtils';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -39,18 +41,21 @@ export default function ProvContratoDetalle() {
   const [facCtModal, setFacCtModal]     = useState(INIT_FAC_EMPTY);
   const [, setTick] = useState(0);
   const bump = () => setTick(t => t + 1);
-  const c    = provState.selectedContrato;
-  const pct  = Math.round((c.utilizado / c.asignado) * 100);
-  const disp = c.asignado - c.utilizado;
-  const facturasContrato = facturas
-    .filter(f => f.contrato === c.id)
-    .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
+  const c    = provState.selectedContrato
+    ?? contratoService.listarPorVista('proveedor').map(aViewContrato)[0] ?? null;
+  const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
+  const disp = c ? c.asignado - c.utilizado : 0;
+  const facturasContrato = c
+    ? facturas
+        .filter(f => f.contrato === c.id)
+        .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }))
+    : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
   // Suministradores que este Proveedor registró bajo este contrato
   // (Subproceso 3 del BPMN: el Proveedor reparte el monto que la PYME le
   // asignó entre sus propios Suministradores).
-  const misSuministradores = c.suministradores ?? [];
+  const misSuministradores = c?.suministradores ?? c?.suministradoresAsignados ?? [];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -90,6 +95,8 @@ export default function ProvContratoDetalle() {
     setFacCtModal(INIT_FAC_EMPTY);
     bump();
   };
+
+  if (!c) return <AppShell active="provContratos" role="proveedor" title="Detalle de Contrato" sub="—" back />;
 
   return (
     <AppShell active="provContratos" role="proveedor" title="Detalle de Contrato" sub={`${c.pyme} · ${c.id}`}>

@@ -8,7 +8,8 @@ import { Upload, Paperclip } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import FormGroup, { Input, Select, Textarea } from '../ui/FormGroup';
-import { seedContratosActivos } from '../../lib/invoiceSeeds';
+import { contratoService } from '../../services/contrato.service';
+import { aFactoring } from '../contratos/contratoUtils';
 import { formatXaf, defaultVencimiento, pad2, parseFecha } from './facturaUtils';
 
 // Conversión DD/MM/AAAA ↔ YYYY-MM-DD (formato que entiende <input type="date">)
@@ -48,7 +49,8 @@ function FechaVencimientoInput({ value, onChange }) {
 export default function FacturaContratanteModal({ modal, onChange, onSave, onCancel, contratoFijo }) {
   const { editId, contratoId, monto, concepto, fechaVencimiento, documento } = modal;
 
-  const fuente      = contratoFijo ?? (contratoId ? seedContratosActivos.find(c => c.id === contratoId) ?? null : null);
+  const contratosFactoring = contratoService.listarFactoring().map(aFactoring);
+  const fuente      = contratoFijo ?? (contratoId ? contratosFactoring.find(c => c.id === contratoId) ?? null : null);
   const max         = Number(fuente?.montoMax) || Number(fuente?.disponible) || 0;
   const montoNum    = Number(String(monto || '').replace(/[^0-9]/g, '')) || 0;
   const excede      = max > 0 && montoNum > max;
@@ -102,7 +104,7 @@ export default function FacturaContratanteModal({ modal, onChange, onSave, onCan
               disabled={!!editId}
             >
               <option value="">Seleccionar contrato</option>
-              {seedContratosActivos.map(c => (
+              {contratosFactoring.map(c => (
                 <option key={c.id} value={c.id}>{c.id} · {c.contratante} · {c.tipoFactoring === 'directo' ? 'Directo' : 'Inverso'}</option>
               ))}
             </Select>

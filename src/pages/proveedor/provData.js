@@ -121,5 +121,8 @@ export const montoDisponibleProveedores = (item, excluirId = null) =>
 
 // ── Estado compartido entre pantallas (selección de contrato) ─────────────────
 export const provState = {
-  selectedContrato: contratos[0],
+  // Guarda el registro elegido por el Proveedor al hacer clic en un contrato
+  // (handoff); si se entra directo por URL, el detalle usa el primer registro
+  // de `listarPorVista('proveedor')` del store local (contrato.service.js).
+  selectedContrato: null,
 };

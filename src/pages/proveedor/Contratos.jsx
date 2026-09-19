@@ -10,7 +10,9 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import { TEXT4, fmt, contratos, provState, contratoBadge } from './provData';
+import { TEXT4, fmt, provState, contratoBadge } from './provData';
+import { contratoService } from '../../services/contrato.service';
+import { aViewContrato } from '../../components/contratos/contratoUtils';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 
@@ -19,6 +21,9 @@ export default function ProvContratos() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [reqModal, setReqModal] = useState(null);
+
+  // Vista "Mis Contratos" del Proveedor (mismo store local que admin/portales).
+  const contratos = contratoService.listarPorVista('proveedor').map(aViewContrato);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
   const totalUtilizado  = contratos.reduce((a, c) => a + c.utilizado, 0);
@@ -88,7 +93,7 @@ export default function ProvContratos() {
         {/* Cards de contratos */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {pagedContratos.map((c, idx) => {
-            const pct  = Math.round((c.utilizado / c.asignado) * 100);
+            const pct  = c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
             const disp = c.asignado - c.utilizado;
             return (
               <div
@@ -172,7 +177,7 @@ export default function ProvContratos() {
               variant="primary"
               full
               className="h-[46px] justify-center"
-              onClick={() => { const contratoId = reqModal.requerimiento?.contratoId; setReqModal(null); go('provConfigurarContrato', { contratoId }); }}
+              onClick={() => { const contratoId = reqModal.requerimiento?.contratoId ?? reqModal.id; setReqModal(null); go('provConfigurarContrato', { contratoId }); }}
             >
               Reconfigurar Contrato
             </Button>

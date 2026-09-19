@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Bell, LogOut, X, Menu, CheckCheck, Trash2, ArrowRight } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useAuthStore, logout } from '../../stores/authStore';
-import { contratosMarco, fmt } from '../../pages/contratante/contratanteData';
-import { pymeContratosPendientes, fmt as fmtEp } from '../../pages/empresa-pequena/epData';
-import { contratosPendientes as provContratosPendientes, fmt as fmtProv } from '../../pages/proveedor/provData';
+import { fmt } from '../../pages/contratante/contratanteData';
+import { contratoService } from '../../services/contrato.service';
 import { facturaService } from '../../services/factura.service';
 import { BANCO } from '../../pages/fondeador/fondeadorShared';
 import Logo from './Logo';
@@ -57,7 +56,7 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
   // PYME). Se antepone al resto de notificaciones, con su propio CTA.
   const contratoNotifs = (() => {
     if (role === 'contratante') {
-      return contratosMarco.filter(m => m.estado === 'Pendiente de Configuración').map(m => ({
+      return contratoService.listarPendientes('contratante').map(m => ({
         id: `marco-${m.id}`,
         titulo: 'Bonafide te asignó un nuevo contrato',
         cuerpo: `Contrato ${m.id} por ${fmt(m.montoBase)} XAF, financiado por ${m.bancoFondeador}. Repártelo entre tus PYMEs para activarlo.`,
@@ -67,20 +66,20 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
       }));
     }
     if (role === 'empresa-pequena') {
-      return pymeContratosPendientes.filter(c => c.estado === 'Pendiente de Configuración').map(c => ({
+      return contratoService.listarPendientes('pyme').map(c => ({
         id: `pymeCt-${c.id}`,
         titulo: `${c.contratanteNombre} te asignó un nuevo contrato`,
-        cuerpo: `Contrato ${c.id} por ${fmtEp(c.montoAsignado)} XAF. Acepta los términos y repártelo entre tus proveedores para activarlo.`,
+        cuerpo: `Contrato ${c.id} por ${fmt(c.montoAsignado)} XAF. Acepta los términos y repártelo entre tus proveedores para activarlo.`,
         dt: c.fechaAsignacion,
         leida: false,
         accion: { label: 'Proceder con el contrato', screenId: 'epConfigurarContrato', opts: { contratoId: c.id } },
       }));
     }
     if (role === 'proveedor') {
-      return provContratosPendientes.filter(c => c.estado === 'Pendiente de Configuración').map(c => ({
+      return contratoService.listarPendientes('proveedor').map(c => ({
         id: `provCt-${c.id}`,
         titulo: `${c.pymeNombre} te asignó un nuevo contrato`,
-        cuerpo: `Contrato ${c.id} por ${fmtProv(c.montoAsignado)} XAF. Repártelo entre tus suministradores para activarlo.`,
+        cuerpo: `Contrato ${c.id} por ${fmt(c.montoAsignado)} XAF. Repártelo entre tus suministradores para activarlo.`,
         dt: c.fechaAsignacion,
         leida: false,
         accion: { label: 'Proceder con el contrato', screenId: 'provConfigurarContrato', opts: { contratoId: c.id } },

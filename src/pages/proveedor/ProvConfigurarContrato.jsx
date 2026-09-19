@@ -8,7 +8,8 @@ import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
-import { contratosPendientes, montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
+import { montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
+import { contratoService } from '../../services/contrato.service';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
@@ -58,12 +59,15 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 
 export default function ProvConfigurarContrato() {
   const { go, opts } = useApp();
-  const contrato = contratosPendientes.find(c => c.id === opts?.contratoId) ?? contratosPendientes[0];
+  const contrato = contratoService.obtener(opts?.contratoId)
+    ?? contratoService.listarPendientes('proveedor')[0]
+    ?? contratoService.listarPorVista('proveedor')[0]
+    ?? null;
 
   const [step, setStep]                 = useState(0);
-  const [cuentaTipo, setCuentaTipo]     = useState(contrato.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaNumero, setCuentaNumero] = useState(contrato.cuentaBancaria?.numero ?? '');
-  const [suministradores, setSuministradores] = useState(contrato.suministradoresAsignados);
+  const [cuentaTipo, setCuentaTipo]     = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
+  const [cuentaNumero, setCuentaNumero] = useState(contrato?.cuentaBancaria?.numero ?? '');
+  const [suministradores, setSuministradores] = useState(contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
   const [confirmado, setConfirmado]     = useState(false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
@@ -134,17 +138,14 @@ export default function ProvConfigurarContrato() {
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
-    // Se muta por índice sobre `contratosPendientes` (el binding importado)
-    // en vez de sobre la constante local `contrato` derivada en el render,
-    // para no romper la regla de lint react-hooks de inmutabilidad.
-    const idx = contratosPendientes.findIndex(c => c.id === contrato.id);
-    if (idx !== -1) {
-      contratosPendientes[idx].cuentaBancaria = cuentaTipo === 'bonafide'
-        ? { tipo: 'bonafide', numero: null }
-        : { tipo: 'banco', numero: cuentaNumero };
-      contratosPendientes[idx].suministradoresAsignados = suministradores;
-      contratosPendientes[idx].estado = 'Pendiente de Revisión';
-    }
+    try {
+      contratoService.configurar(contrato.id, {
+        cuentaBancaria: cuentaTipo === 'bonafide'
+          ? { tipo: 'bonafide', numero: null }
+          : { tipo: 'banco', numero: cuentaNumero },
+        suministradoresAsignados: suministradores,
+      });
+    } catch { /* la transición ya no aplica; se conserva el estado actual */ }
     setEnviado(true);
   };
 

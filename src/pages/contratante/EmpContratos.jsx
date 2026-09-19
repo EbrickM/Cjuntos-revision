@@ -9,7 +9,9 @@ import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentin
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
-import { TEXT4, fmt, contratos, contratanteState, contratoBadge } from './contratanteData';
+import { contratoService } from '../../services/contrato.service';
+import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { TEXT4, fmt, contratanteState, contratoBadge } from './contratanteData';
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 
@@ -17,6 +19,12 @@ export default function EmpContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+
+  // Vista "Mis Contratos": asignaciones a PYMEs (los contratos-marco en
+  // pendiente viven en notificaciones / wizard, no en este listado).
+  const contratos = contratoService.listarPorVista('contratante')
+    .filter(c => c.tipo !== 'marco')
+    .map(aViewContrato);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
   const totalUtilizado  = contratos.reduce((a, c) => a + c.utilizado, 0);
@@ -98,7 +106,7 @@ export default function EmpContratos() {
                 {/* Ícono flotante: contrato con requerimiento de Bonafide */}
                 <RequerimientoBadge
                   factura={c}
-                  cta={{ label: 'Reconfigurar Contrato', onClick: () => { const marcoId = c.requerimiento?.marcoId; go('empConfigurarContrato', { marcoId }); } }}
+                  cta={{ label: 'Reconfigurar Contrato', onClick: () => { const marcoId = c.requerimiento?.marcoId ?? c.marcoId; go('empConfigurarContrato', { marcoId }); } }}
                 />
 
                 {/* ID + PYME + sector + estado */}

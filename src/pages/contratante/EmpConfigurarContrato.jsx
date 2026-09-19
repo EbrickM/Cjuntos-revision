@@ -9,7 +9,8 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow } from './contratanteShared';
-import { contratosMarco, montoDisponibleMarco, pymes, fmt } from './contratanteData';
+import { montoDisponibleMarco, pymes, fmt } from './contratanteData';
+import { contratoService } from '../../services/contrato.service';
 
 // ── CONFIGURAR CONTRATO (Subproceso 1 del BPMN: Contratante reparte el
 // contrato-marco entre sus PYMEs y les asigna monto) ──────────────────────────
@@ -63,7 +64,7 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 
 export default function EmpConfigurarContrato() {
   const { go, opts } = useApp();
-  const marco = contratosMarco.find(m => m.id === opts?.marcoId) ?? contratosMarco[0];
+  const marco = contratoService.obtener(opts?.marcoId) ?? contratoService.listarPendientes('contratante')[0] ?? null;
 
   const [step, setStep]               = useState(0);
   const [cuentaTipo, setCuentaTipo]   = useState(marco?.cuentaBancaria?.tipo ?? 'bonafide');
@@ -142,17 +143,14 @@ export default function EmpConfigurarContrato() {
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
-    // Se muta por índice sobre `contratosMarco` (el binding importado, mismo
-    // patrón que `contratanteState.selectedContrato = c`) en vez de sobre la
-    // constante local `marco` derivada en el render.
-    const idx = contratosMarco.findIndex(m => m.id === marco.id);
-    if (idx !== -1) {
-      contratosMarco[idx].cuentaBancaria = cuentaTipo === 'bonafide'
-        ? { tipo: 'bonafide', numero: null }
-        : { tipo: 'fondeador', numero: cuentaNumero };
-      contratosMarco[idx].pymesAsignadas = asignaciones;
-      contratosMarco[idx].estado = 'Pendiente de Revisión';
-    }
+    try {
+      contratoService.configurar(marco.id, {
+        cuentaBancaria: cuentaTipo === 'bonafide'
+          ? { tipo: 'bonafide', numero: null }
+          : { tipo: 'fondeador', numero: cuentaNumero },
+        pymesAsignadas: asignaciones,
+      });
+    } catch { /* la transición ya no aplica; se conserva el estado actual */ }
     setEnviado(true);
   };
 
