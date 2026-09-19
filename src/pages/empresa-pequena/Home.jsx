@@ -35,7 +35,7 @@ function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW =
   const isIn = (key, i) => i >= windowStart && data[i][key] >= minValue;
   const inWindow = i => i >= windowStart;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
       {yTicks.map(t => (
         <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
           stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
@@ -93,7 +93,7 @@ function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 5
     ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
     : new Intl.NumberFormat('de-DE').format(Math.round(v));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
       {[0, 0.33, 0.67, 1].map(p => (
         <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
           stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
@@ -126,14 +126,17 @@ function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 5
 // ── MiniRangeInput — slider horizontal de una sola esfera, apilado en el
 // lateral de cada gráfica, con etiqueta arriba y valor actual debajo ─────────
 function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) {
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0;
   return (
     <div>
       <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-1">{label}</p>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full cursor-pointer"
-        style={{ accentColor: 'var(--bonafide-orange)' }}
+        className="rng-clean w-full cursor-pointer"
+        style={{
+          background: `linear-gradient(to right, var(--bonafide-orange) ${pct}%, var(--rng-track, #D3D0CA) ${pct}%)`,
+        }}
       />
       <p className="text-[10px] font-bold text-text-1 mt-0.5">{format ? format(value) : value}</p>
     </div>
@@ -450,7 +453,7 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {evolucionHasData
-                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} />
+                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={860} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
@@ -479,7 +482,7 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {flujoHasData
-                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={240} />
+                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={240} vbW={860} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
@@ -541,20 +544,20 @@ export default function EpHome() {
                 </div>
 
                 {/* Solicitudes Pendientes */}
-                <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
-                  <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-3">Solicitudes Pendientes</p>
+                <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border flex flex-col items-center md:justify-center text-center">
+                  <p className="text-[11px] font-semibold text-text-4 uppercase tracking-widest mb-4">Solicitudes Pendientes</p>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
-                      <Clock className="w-6 h-6" style={{ color: ORA }} />
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                      <Clock className="w-7 h-7" style={{ color: ORA }} />
                     </div>
-                    <p className="text-[28px] font-extrabold leading-none text-text-1">{SOLICITUDES_PEND}</p>
+                    <p className="text-[40px] font-extrabold leading-none text-text-1 tabular-nums">{SOLICITUDES_PEND}</p>
                   </div>
-                  <p className="text-[10px] mb-3" style={{ color: TEXT4 }}>
+                  <p className="text-xs mb-3 font-medium" style={{ color: TEXT4 }}>
                     {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
                   </p>
-                  <button onClick={() => go('epSolicitudes')} className="text-[11px] font-semibold flex items-center gap-0.5 cursor-pointer hover:opacity-75 transition"
+                  <button onClick={() => go('epSolicitudes')} className="text-[12px] font-semibold flex items-center gap-1 cursor-pointer hover:opacity-75 transition"
                           style={{ color: ORA }}>
-                    Ver solicitudes <ChevronRight className="w-3.5 h-3.5" />
+                    Ver solicitudes <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
 

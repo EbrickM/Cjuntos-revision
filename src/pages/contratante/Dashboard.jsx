@@ -17,45 +17,45 @@ const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
 
 // ── MultiLineChart ────────────────────────────────────────────────────────────
-function MultiLineChart({ data, series, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const allVals = data.flatMap(d => series.map(s => d[s.key] || 0));
   const maxV = Math.max(...allVals) * 1.12;
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map(p => Math.round(maxV * p));
-  const xPos = i => PL + (i / (data.length - 1)) * cW;
+  const isIn = (key, i) => i >= windowStart && (data[i][key] || 0) >= minValue;
+  const inWindow = i => i >= windowStart;
+  const xPos = i => data.length > 1 ? PL + (i / (data.length - 1)) * cW : PL + cW / 2;
   const yPos = v => PT + cH - (v / maxV) * cH;
-
-  function bezierPath(pts) {
-    if (pts.length < 2) return '';
-    let d = `M${pts[0][0]},${pts[0][1]}`;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[Math.max(0, i - 1)];
-      const p1 = pts[i], p2 = pts[i + 1];
-      const p3 = pts[Math.min(pts.length - 1, i + 2)];
-      const cp1 = [p1[0] + (p2[0] - p0[0]) / 4, p1[1] + (p2[1] - p0[1]) / 4];
-      const cp2 = [p2[0] - (p3[0] - p1[0]) / 4, p2[1] - (p3[1] - p1[1]) / 4];
-      d += ` C${cp1[0].toFixed(1)},${cp1[1].toFixed(1)} ${cp2[0].toFixed(1)},${cp2[1].toFixed(1)} ${p2[0]},${p2[1]}`;
-    }
-    return d;
-  }
-
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
       {yTicks.map(t => (
         <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
           stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
       ))}
       {series.map((s, si) => {
-        const pts = data.map((d, i) => [xPos(i), yPos(d[s.key] || 0)]);
-        return (
-          <path key={si} d={bezierPath(pts)} fill="none" stroke={s.color}
+        const segments = [];
+        let current = [];
+        data.forEach((d, i) => {
+          if (isIn(s.key, i)) {
+            current.push([xPos(i), yPos(d[s.key] || 0)]);
+          } else if (current.length) {
+            segments.push(current);
+            current = [];
+          }
+        });
+        if (current.length) segments.push(current);
+        return segments.map((seg, segI) => (
+          <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        );
+        ));
       })}
+      {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
+        <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key] || 0)} r="3" fill={s.color} />
+      )))}
       {data.map((d, i) => (
         <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
-          fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+          fontSize={fxSz} fill={inWindow(i) ? TEXT4 : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.label}</text>
       ))}
       {yTicks.map(t => (
         <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
@@ -89,15 +89,17 @@ function HBarChart({ data, fmtVal = v => `${v}M` }) {
 }
 
 // ── VBarChart ─────────────────────────────────────────────────────────────────
-function VBarChart({ id, data, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 10, rotateLabels = false, labelKey = 'label' }) {
+function VBarChart({ id, data, windowStart = 0, minValue = 0, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 10, rotateLabels = false, labelKey = 'label' }) {
   const W = vbW, H = h, PL = 32, PR = 12, PT = 28;
   const PB = rotateLabels ? 62 : 32;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.map(d => d.value)) * 1.12;
   const slot = cW / data.length, bW = slot * 0.52;
   const gId = `vb-${id}`;
+  const inWindow = i => i >= windowStart;
+  const isIn = (d, i) => inWindow(i) && d.value >= minValue;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full">
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
       <defs>
         <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={ORA} />
@@ -116,10 +118,10 @@ function VBarChart({ id, data, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 1
         const y = PT + cH - bH;
         const fill = d.color ?? `url(#${gId})`;
         return (
-          <g key={i}>
-            <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />
+          <g key={i} opacity={inWindow(i) ? 1 : 0.15}>
+            {d.value > 0 && isIn(d, i) && <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />}
             <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize={fvSz} fontWeight="700"
-              fill={d.color ?? ORA} fontFamily="Poppins,sans-serif">{d.value}{unit}</text>
+              fill={isIn(d, i) ? (d.color ?? ORA) : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.value}{unit}</text>
             <text x={lx} y={ly}
               textAnchor="middle"
               fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif"
@@ -130,6 +132,26 @@ function VBarChart({ id, data, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 1
         );
       })}
     </svg>
+  );
+}
+
+// ── MiniRangeInput — slider horizontal de una sola esfera, apilado en el
+// lateral de cada gráfica, con etiqueta arriba y valor actual debajo ─────────
+function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) {
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0;
+  return (
+    <div>
+      <p className="text-[9px] font-semibold text-text-4 uppercase tracking-wide mb-1">{label}</p>
+      <input
+        type="range" min={min} max={max} step={step} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="rng-clean w-full cursor-pointer"
+        style={{
+          background: `linear-gradient(to right, var(--bonafide-orange) ${pct}%, var(--rng-track, #D3D0CA) ${pct}%)`,
+        }}
+      />
+      <p className="text-[10px] font-bold text-text-1 mt-0.5">{format ? format(value) : value}</p>
+    </div>
   );
 }
 
@@ -184,8 +206,13 @@ const estadoOps = [
 ];
 
 const tipoBarData = [
-  { label: 'Construcción', shortLabel: 'Construcc.', value: 180, color: RED },
+  { label: 'Construcción', shortLabel: 'Construcc.', value: 180, color: RED   },
+  { label: 'Energía',      shortLabel: 'Energía',    value: 120, color: ORA   },
+  { label: 'Transporte',   shortLabel: 'Transporte', value:  90, color: WARN  },
+  { label: 'Agroindustria', shortLabel: 'Agroindust.', value: 60, color: GREEN },
 ];
+
+const EVO_MAX = Math.max(...evolucionFondoData.map(d => d.asignado));
 
 // ── Medioambiental data ───────────────────────────────────────────────────────
 const envKpis = [
@@ -216,6 +243,12 @@ export default function EmpDash() {
   const [activityView, setActivityView] = useState('evolucion');
   const [devToast, setDevToast] = useState(false);
   const showDevToast = () => { setDevToast(true); setTimeout(() => setDevToast(false), 3500); };
+
+  const [evoPeriodo, setEvoPeriodo] = useState(evolucionFondoData.length);
+  const [evoMonto, setEvoMonto]     = useState(0);
+  const evoWindowStart = evolucionFondoData.length - evoPeriodo;
+  const evolucionHasData = evolucionFondoData.some((d, i) =>
+    i >= evoWindowStart && evolucionFondoSeries.some(s => d[s.key] >= evoMonto));
 
   return (
     <AppShell active="empDash" role="contratante" back>
@@ -405,25 +438,42 @@ export default function EmpDash() {
                   </div>
                 </div>
                 {activityView === 'evolucion' ? (
-                  <>
-                    {/* Desktop */}
-                    <div className="hidden md:block h-[240px] w-full">
-                      <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={240} vbW={480} pl={48} />
+                  <div className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
+                    <div className="w-full md:flex-1 md:min-w-0">
+                      {/* Desktop */}
+                      <div className="hidden md:block h-[240px] w-full">
+                        {evolucionHasData
+                          ? <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={1000} pl={48} />
+                          : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                      </div>
+                      {/* Móvil */}
+                      <div className="block md:hidden h-[280px] w-full">
+                        {evolucionHasData
+                          ? <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
+                          : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
+                      </div>
                     </div>
-                    {/* Móvil */}
-                    <div className="block md:hidden h-[280px] w-full">
-                      <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
+                    {/* Filtros — en móvil debajo de la gráfica uno al lado del otro; en desktop apilados en el lateral */}
+                    <div className="flex flex-row gap-4 md:flex-col md:justify-center md:gap-6 md:w-44 lg:w-56 md:shrink-0">
+                      <div className="flex-1 min-w-0 md:flex-none">
+                        <MiniRangeInput label="Periodo" min={2} max={evolucionFondoData.length} value={evoPeriodo}
+                          onChange={setEvoPeriodo} format={v => `${v} meses`} />
+                      </div>
+                      <div className="flex-1 min-w-0 md:flex-none">
+                        <MiniRangeInput label="Monto mín." min={0} max={EVO_MAX} step={5} value={evoMonto}
+                          onChange={setEvoMonto} format={v => `${v}M`} />
+                      </div>
                     </div>
-                  </>
+                  </div>
                 ) : (
                   <>
                     {/* Desktop */}
                     <div className="hidden sm:block h-[240px] w-full">
-                      <VBarChart id="ct-tipo" data={tipoBarData} h={240} unit="M" />
+                      <VBarChart id="ct-tipo" data={tipoBarData} h={240} vbW={1000} unit="M" />
                     </div>
                     {/* Móvil */}
                     <div className="block sm:hidden h-[260px] w-full">
-                      <VBarChart id="ct-tipo-m" data={tipoBarData} h={260} vbW={300} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
+                      <VBarChart id="ct-tipo-m" data={tipoBarData} h={260} vbW={340} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
                     </div>
                   </>
                 )}
@@ -453,17 +503,17 @@ export default function EmpDash() {
                   </div>
 
                   {/* Estado de Contratos */}
-                  <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border">
-                    <p className="text-[13px] font-bold text-text-1 mb-1">Estado de Contratos</p>
+                  <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border flex flex-col items-center md:justify-center text-center">
+                    <p className="text-[14px] font-bold text-text-1 mb-1">Estado de Contratos</p>
                     <p className="text-[11px] text-text-4 mb-4">{SOLICITUDES_TOTAL} solicitudes</p>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 w-full">
                       {estadoOps.map(d => (
-                        <div key={d.tipo} className="flex items-center justify-between rounded-[10px] border border-border bg-page-bg px-3 py-2.5">
+                        <div key={d.tipo} className="flex items-center justify-between rounded-[10px] border border-border bg-page-bg px-4 py-3">
                           <div className="flex items-center gap-2 min-w-0">
                             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                            <span className="text-[12px] font-semibold text-text-1 truncate">{d.tipo}</span>
+                            <span className="text-[13px] font-semibold text-text-1 truncate">{d.tipo}</span>
                           </div>
-                          <span className="text-[11px] font-bold shrink-0" style={{ color: d.color }}>
+                          <span className="text-[12px] font-bold shrink-0" style={{ color: d.color }}>
                             {d.count} · {d.pct}%
                           </span>
                         </div>

@@ -210,6 +210,7 @@ export default function AdminContratos() {
   const [search, setSearch]             = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [reviewModal, setReviewModal]   = useState(null);
+  const [detalleModal, setDetalleModal] = useState(null);
   const [reqModal, setReqModal]         = useState(REQ_MODAL_EMPTY);
 
   const showToast = (message) => {
@@ -393,13 +394,13 @@ export default function AdminContratos() {
 
               {/* Buscador + filtro de estado */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-                <div className="relative flex-1">
+                <div className="relative w-full max-w-[300px]">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
                   <input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Buscar por Nº de contrato, PYME o contratante…"
-                    className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+                    placeholder="Buscar contrato…"
+                    className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
                   />
                 </div>
                 <div className="relative flex items-center shrink-0">
@@ -446,15 +447,13 @@ export default function AdminContratos() {
                       </div>
                       <div className="shrink-0 flex items-center gap-1.5">
                         <div onClick={e => e.stopPropagation()}>
-                          {c.estado === 'Pendiente de Revisión' && (
-                            <button
-                              onClick={() => setReviewModal(c)}
-                              title="Ver detalles y revisar"
-                              className="p-1.5 rounded-[8px] hover:bg-blue-bg transition text-text-4 hover:text-blue-text cursor-pointer"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          <button
+                            onClick={() => setDetalleModal(c)}
+                            title="Ver detalles del contrato"
+                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => setDeleteModal({ open: true, id: c.id })}
                             title="Eliminar contrato"
@@ -478,7 +477,7 @@ export default function AdminContratos() {
                 <table className="w-full min-w-[820px]">
                   <thead className="bg-page-bg">
                     <tr className="border-b border-border">
-                      {['Contrato', 'PYME', 'Contratante', 'Estado', 'Monto', 'Asignado', 'Acciones'].map((h, i) => (
+                      {['Contrato', 'PYME', 'Contratante', 'Estado', 'Monto', 'Acciones'].map((h, i) => (
                         <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                           ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
                         `}>{h}</th>
@@ -488,7 +487,6 @@ export default function AdminContratos() {
                   <tbody>
                     {sortedContracts.map(c => {
                       const badge  = contractBadge(c.estado);
-                      const pctVal = parseFloat(pct(c.asignado, c.monto));
                       return (
                         <tr
                           key={c.id}
@@ -514,28 +512,14 @@ export default function AdminContratos() {
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
-                            {c.estado === 'Activo' ? (
-                              <div className="flex items-center justify-center gap-2">
-                                <div className="w-20 h-[5px] bg-page-bg rounded-full overflow-hidden">
-                                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pctVal, 100)}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
-                                </div>
-                                <span className="text-[10px] font-bold text-orange-dark shrink-0">{pctVal}%</span>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-text-5">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
                             <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
-                              {c.estado === 'Pendiente de Revisión' && (
-                                <button
-                                  onClick={() => setReviewModal(c)}
-                                  title="Ver detalles y revisar"
-                                  className="p-1.5 rounded-[8px] hover:bg-blue-bg transition text-text-4 hover:text-blue-text cursor-pointer"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                              )}
+                              <button
+                                onClick={() => setDetalleModal(c)}
+                                title="Ver detalles del contrato"
+                                className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
                               <button
                                 onClick={() => setDeleteModal({ open: true, id: c.id })}
                                 title="Eliminar contrato"
@@ -550,7 +534,7 @@ export default function AdminContratos() {
                     })}
                     {sortedContracts.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">No se encontraron contratos con los filtros aplicados.</td>
+                        <td colSpan={5} className="px-4 py-8 text-center text-[12px] text-text-4">No se encontraron contratos con los filtros aplicados.</td>
                       </tr>
                     )}
                   </tbody>
@@ -858,6 +842,86 @@ export default function AdminContratos() {
                 <ReadField label="Correo"   value={reviewModal.contratante.repCorreo} />
               </div>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal: Detalles del contrato (ojo) ── */}
+      {detalleModal && (
+        <Modal
+          title={`Detalles del contrato · ${detalleModal.id}`}
+          onClose={() => setDetalleModal(null)}
+          wide
+          footer={<Button variant="ghost" onClick={() => setDetalleModal(null)}>Cerrar</Button>}
+        >
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <ReadField label="PYME" value={detalleModal.pymeNombre} />
+              <ReadField label="Monto" value={formatXaf(detalleModal.monto)} />
+              <ReadField label="Asignado" value={formatXaf(detalleModal.asignado)} />
+              <ReadField label="Disponible" value={formatXaf(detalleModal.disponible)} />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+                <div className="text-[13px] font-bold text-text-1">Estado</div>
+                <Badge variant={contractBadge(detalleModal.estado).variant}>{detalleModal.estado}</Badge>
+              </div>
+              {detalleModal.nota && (
+                <div className="bg-blue-bg border border-blue-text/20 rounded-[12px] px-4 py-3 text-[12px] text-text-4">{detalleModal.nota}</div>
+              )}
+            </div>
+
+            <div>
+              <div className="text-[13px] font-bold text-text-1 mb-3 pb-2 border-b border-border">Contratante</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <ReadField label="Razón Social" value={detalleModal.contratante?.razonSocial} />
+                <ReadField label="Nombre Comercial" value={detalleModal.contratante?.nombreComercial} />
+                <ReadField label="RUC / NIF" value={detalleModal.contratante?.ruc} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <ReadField label="Sector Productivo" value={detalleModal.contratante?.sectorProductivo} />
+                <ReadField label="Teléfono" value={detalleModal.contratante?.telefonoCorporativo} />
+                <ReadField label="Correo" value={detalleModal.contratante?.correoCorporativo} />
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[13px] font-bold text-text-1 mb-3 pb-2 border-b border-border">Datos del Contrato</div>
+              <ReadField label="Objeto del Trabajo" value={detalleModal.contratante?.objetoTrabajo} multiline />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                <ReadField label="Monto Global" value={detalleModal.contratante?.montoGlobal ? formatXaf(detalleModal.contratante?.montoGlobal) : ''} />
+                <ReadField label="Fecha de Inicio" value={detalleModal.contratante?.fechaInicio} />
+                <ReadField label="Fecha de Fin" value={detalleModal.contratante?.fechaFin} />
+                <ReadField label="Plazo de Ejecución" value={detalleModal.contratante?.plazosEjecucion} />
+              </div>
+            </div>
+
+            {detalleModal.financiero && (
+              <div>
+                <div className="text-[13px] font-bold text-text-1 mb-3 pb-2 border-b border-border">Condiciones financieras</div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+                  <ReadField label="Intereses" value={detalleModal.financiero.intereses != null ? `${detalleModal.financiero.intereses}%` : ''} />
+                  <ReadField label="Plazo de pago" value={detalleModal.financiero.plazoPago ? `${detalleModal.financiero.plazoPago} días` : ''} />
+                  <ReadField label="Banco fondeador" value={detalleModal.financiero.bancoFondeador} />
+                  <ReadField label="Retención" value={detalleModal.financiero.retencion != null ? `${detalleModal.financiero.retencion}%` : ''} />
+                  <ReadField label="Gestión cobranza" value={detalleModal.financiero.gestionCobranza != null ? `${detalleModal.financiero.gestionCobranza}%` : ''} />
+                </div>
+              </div>
+            )}
+
+            {detalleModal.requerimiento && (
+              <div>
+                <div className="text-[13px] font-bold text-text-1 mb-3 pb-2 border-b border-border">Requerimiento</div>
+                <div className="bg-red-bg border border-red/20 rounded-[12px] px-4 py-3 text-[12px] text-text-4">
+                  <div className="flex flex-wrap gap-1 mb-1.5">
+                    {(detalleModal.requerimiento.entidades || []).map(e => <Badge key={e} variant="orange">{e}</Badge>)}
+                  </div>
+                  <div>{detalleModal.requerimiento.mensaje}</div>
+                  <div className="text-[11px] text-text-5 mt-1">Fecha: {detalleModal.requerimiento.fecha}</div>
+                </div>
+              </div>
+            )}
           </div>
         </Modal>
       )}

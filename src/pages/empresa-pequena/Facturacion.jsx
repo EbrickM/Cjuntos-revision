@@ -68,6 +68,8 @@ const initialInvoicesPr = [
     fecha: '10/07/2026', fechaVencimiento: '10/08/2026', documento: null },
 ];
 
+const SELECT_ARROW = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`;
+
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
     <div className="flex items-start gap-3">
@@ -87,6 +89,7 @@ const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action 
 
 export default function EpFacturacion() {
   const { go }                        = useApp();
+  const [vista, setVista]             = useState('contratante');
   const [facturas, setFacturas]       = useState(() => facturaService.listarPorRol('empresa-pequena'));
   const [invoicesPr, setInvoicesPr]   = useState(() => localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
   const [providers]                  = useState(initialProviders);
@@ -95,6 +98,7 @@ export default function EpFacturacion() {
   const [detalle, setDetalle]        = useState(null);
   const [confirmEnvio, setConfirmEnvio] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [filtroEstadoPr, setFiltroEstadoPr] = useState('Todos');
   const [searchCT, setSearchCT]         = useState('');
   const [searchPr, setSearchPr]         = useState('');
 
@@ -105,6 +109,7 @@ export default function EpFacturacion() {
 
   const labelDe    = (f) => BADGE_LABEL[f.estado] ?? f.estado ?? 'Emitida';
   const ESTADOS    = ['Todos', ...Array.from(new Set(contratanteInvoices.map(labelDe)))];
+  const ESTADOS_PR = ['Todos', ...Array.from(new Set(proveedorInvoices.map(inv => inv.estado)))];
 
   const filteredCT = contratanteInvoices.filter(f =>
     (filtroEstado === 'Todos' || labelDe(f) === filtroEstado) &&
@@ -116,17 +121,18 @@ export default function EpFacturacion() {
       (f.pyme || '').toLowerCase().includes(searchCT.toLowerCase()))
   );
 
-  const filteredPr = searchPr.trim()
-    ? proveedorInvoices.filter(inv =>
-        inv.id.toLowerCase().includes(searchPr.toLowerCase()) ||
-        (inv.concepto || '').toLowerCase().includes(searchPr.toLowerCase()) ||
-        (inv.proveedorNombre || '').toLowerCase().includes(searchPr.toLowerCase()))
-    : proveedorInvoices;
+  const filteredPr = proveedorInvoices.filter(inv =>
+    (filtroEstadoPr === 'Todos' || inv.estado === filtroEstadoPr) &&
+    (!searchPr.trim() ||
+      inv.id.toLowerCase().includes(searchPr.toLowerCase()) ||
+      (inv.concepto || '').toLowerCase().includes(searchPr.toLowerCase()) ||
+      (inv.proveedorNombre || '').toLowerCase().includes(searchPr.toLowerCase()))
+  );
 
   const { visibleItems: pagedCT, hasMore: hasMoreCT, loading: loadingCT, sentinelRef: sentinelCTRef } =
     useInfiniteScroll(filteredCT, { pageSize: 10, delay: 0, resetKey: `${searchCT}|${filtroEstado}` });
   const { visibleItems: pagedPR, hasMore: hasMorePR, loading: loadingPR, sentinelRef: sentinelPRRef } =
-    useInfiniteScroll(filteredPr, { pageSize: 10, delay: 0, resetKey: searchPr });
+    useInfiniteScroll(filteredPr, { pageSize: 10, delay: 0, resetKey: `${searchPr}|${filtroEstadoPr}` });
 
   // ── Acción según el estado del BPMN (lado PYME) ──
   const ctAction = (f) => {
@@ -215,14 +221,33 @@ export default function EpFacturacion() {
           ))}
         </div>
 
-        {/* Facturas al Contratante (Fase 1 BPMN) */}
+        {/* Mis facturas: Contratante / Proveedores */}
         <div className="bg-white rounded-[14px] border border-border p-5">
           <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
-            title="Facturas al Contratante"
-            subtitle="La PYME emite → la Contratante evalúa → IPI → Billetera/Pago. Bonafide valida el IPI."
+            title={vista === 'contratante' ? 'Facturas al Contratante' : 'Facturas de Proveedores'}
+            subtitle={
+              vista === 'contratante'
+                ? 'La PYME emite → la Contratante evalúa → IPI → Billetera/Pago. Bonafide valida el IPI.'
+                : 'Recibidas de proveedores. Importadas para control interno de pagos.'
+            }
             action={
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={() => setCtModal({ ...INIT_CT_EMPTY, open: true })}>Nueva Factura</Button>
+                <div className="relative flex items-center shrink-0">
+                  <Building2 className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+                  <select
+                    value={vista}
+                    onChange={e => setVista(e.target.value)}
+                    className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                    style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+                  >
+                    <option value="contratante">Facturas al contratante</option>
+                    <option value="proveedor">Facturas de proveedores</option>
+                  </select>
+                </div>
+                <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last"
+                  onClick={() => vista === 'contratante' ? setCtModal({ ...INIT_CT_EMPTY, open: true }) : setPrModal({ ...INIT_CT_EMPTY, open: true })}>
+                  {vista === 'contratante' ? 'Nueva Factura' : 'Importar Factura'}
+                </Button>
               </div>
             }
           />
@@ -232,144 +257,141 @@ export default function EpFacturacion() {
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
-                value={searchCT}
-                onChange={e => setSearchCT(e.target.value)}
-                placeholder="Buscar factura, contrato, PYME…"
+                value={vista === 'contratante' ? searchCT : searchPr}
+                onChange={e => vista === 'contratante' ? setSearchCT(e.target.value) : setSearchPr(e.target.value)}
+                placeholder={vista === 'contratante' ? 'Buscar factura, contrato, PYME…' : 'Buscar por Nº, proveedor o concepto…'}
                 className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
               />
             </div>
             <div className="relative flex items-center shrink-0">
               <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
               <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
+                value={vista === 'contratante' ? filtroEstado : filtroEstadoPr}
+                onChange={e => vista === 'contratante' ? setFiltroEstado(e.target.value) : setFiltroEstadoPr(e.target.value)}
                 className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
               >
-                {ESTADOS.map(e => <option key={e}>{e}</option>)}
+                {(vista === 'contratante' ? ESTADOS : ESTADOS_PR).map(e => <option key={e}>{e}</option>)}
               </select>
             </div>
           </div>
 
           {/* Cards de facturas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
-            {pagedCT.map((f, idx) => {
-              const accion = ctAction(f);
-              const hasAction = !!accion;
-              return (
-                <div
-                  key={f.id}
-                  onClick={() => { setDetalle(f); }}
-                  className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                >
-                  <div className="flex items-start justify-between gap-2">
+          {vista === 'contratante' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
+              {pagedCT.map((f, idx) => {
+                const accion = ctAction(f);
+                const hasAction = !!accion;
+                return (
+                  <div
+                    key={f.id}
+                    onClick={() => { setDetalle(f); }}
+                    className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                    style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant={BADGE_VARIANT[f.estado] ?? 'orange'}>{estadoLabel(f.estado)}</Badge>
+                        <RequerimientoBadge factura={f} />
+                      </div>
+                    </div>
+
                     <div>
-                      <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+                      <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.contratante}</p>
+                      <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{f.contrato}</p>
+                      {f.documentos?.length > 0 && (
+                        <span className="flex items-center gap-0.5 text-[10px] text-text-4 mt-1"><Paperclip className="w-3 h-3" /> Documento</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant={BADGE_VARIANT[f.estado] ?? 'orange'}>{estadoLabel(f.estado)}</Badge>
-                      <RequerimientoBadge factura={f} />
+
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
+                      <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(f.monto)}</div>
+                    </div>
+
+                    <div className="mt-auto pt-1 flex items-center justify-between">
+                      {hasAction ? (
+                        <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
+                          <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
+                          Acción requerida
+                        </span>
+                      ) : <span />}
+                      <button
+                        onClick={e => { e.stopPropagation(); setDetalle(f); }}
+                        className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
+                      >
+                        Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
+                      </button>
                     </div>
                   </div>
-
-                  <div>
-                    <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.contratante}</p>
-                    <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{f.contrato}</p>
-                    {f.documentos?.length > 0 && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-text-4 mt-1"><Paperclip className="w-3 h-3" /> Documento</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
-                    <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(f.monto)}</div>
-                  </div>
-
-                  <div className="mt-auto pt-1 flex items-center justify-between">
-                    {hasAction ? (
-                      <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
-                        <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
-                        Acción requerida
-                      </span>
-                    ) : <span />}
-                    <button
-                      onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                      className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
-                    >
-                      Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            {filteredCT.length === 0 && (
-              <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas en este estado.</div>
-            )}
-            <InfiniteScrollSentinel sentinelRef={sentinelCTRef} loading={loadingCT} hasMore={hasMoreCT} className="col-span-full" />
-          </div>
-        </div>
-
-        {/* Facturas de Proveedores (control interno) */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
-          <SectionHeader
-            title="Facturas de Proveedores"
-            subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
-            action={
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-                <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last" onClick={() => setPrModal({ ...INIT_CT_EMPTY, open: true })}>Importar Factura</Button>
-                <div className="relative w-full sm:w-auto order-last sm:order-first">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
-                  <input type="text" placeholder="Buscar…" value={searchPr} onChange={e => setSearchPr(e.target.value)}
-                    className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4" />
-                </div>
-              </div>
-            }
-          />
-          <div className="space-y-3">
-            {pagedPR.map((inv, idx) => {
-              const estadoStyle =
-                inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
-                inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
-                { background: '#FDF6E8', color: '#C68A1D' };
-              return (
-                <div key={inv.id} className="bg-white rounded-[16px] p-4 card-enter transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
-                     style={{ animationDelay: `${(idx % 8) * 50}ms` }}>
-                  <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                        <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
+                );
+              })}
+              {filteredCT.length === 0 && (
+                <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas en este estado.</div>
+              )}
+              <InfiniteScrollSentinel sentinelRef={sentinelCTRef} loading={loadingCT} hasMore={hasMoreCT} className="col-span-full" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
+              {pagedPR.map((inv, idx) => {
+                const estadoStyle =
+                  inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
+                  inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
+                  { background: '#FDF6E8', color: '#C68A1D' };
+                return (
+                  <div key={inv.id}
+                       className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+                       style={{ animationDelay: `${(idx % 8) * 50}ms` }}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[13px] font-mono font-bold text-text-1">{inv.id}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{inv.fecha}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
-                        {inv.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
+                        {inv.documento && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
+                        )}
                       </div>
-                      <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
-                      <div className="text-[11px] text-text-5 mt-0.5">{inv.proveedorNombre} · {inv.contrato} · Vence: {inv.fechaVencimiento}</div>
                     </div>
-                    <div className="shrink-0 flex items-center gap-3">
-                      <span className="text-[15px] font-extrabold text-text-1">{formatXaf(inv.monto)}</span>
-                      <div className="flex items-center gap-1 border-l border-border pl-3">
-                        <button onClick={() => setPrModal({
-                          open: true, editId: inv.id, contratoId: inv.contrato, proveedorId: inv.proveedorId || '', monto: inv.monto.toString(),
-                          concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null,
-                        })}
-                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => {
-                          const rest = localDb.get('ep_invoices_pr', initialInvoicesPr, 1).filter(x => x.id !== inv.id);
-                          localDb.set('ep_invoices_pr', rest);
-                          setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
-                        }}
-                          className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
+
+                    <div>
+                      <p className="text-[12px] font-semibold text-text-1 leading-snug">{inv.proveedorNombre}</p>
+                      <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{inv.contrato} · Vence: {inv.fechaVencimiento}</p>
+                      <p className="text-[11px] text-text-3 mt-1 truncate">{inv.concepto}</p>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
+                      <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(inv.monto)}</div>
+                    </div>
+
+                    <div className="mt-auto pt-1 flex items-center justify-end gap-1">
+                      <button onClick={() => setPrModal({
+                        open: true, editId: inv.id, contratoId: inv.contrato, proveedorId: inv.proveedorId || '', monto: inv.monto.toString(),
+                        concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null,
+                      })}
+                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => {
+                        const rest = localDb.get('ep_invoices_pr', initialInvoicesPr, 1).filter(x => x.id !== inv.id);
+                        localDb.set('ep_invoices_pr', rest);
+                        setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
+                      }}
+                        className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-            {proveedorInvoices.length === 0 && (
-              <div className="text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas.</div>
-            )}
-            <InfiniteScrollSentinel sentinelRef={sentinelPRRef} loading={loadingPR} hasMore={hasMorePR} className="" />
-          </div>
+                );
+              })}
+              {proveedorInvoices.length === 0 && (
+                <div className="col-span-full text-[12px] text-text-4 py-6 text-center">No hay facturas de proveedores importadas.</div>
+              )}
+              <InfiniteScrollSentinel sentinelRef={sentinelPRRef} loading={loadingPR} hasMore={hasMorePR} className="col-span-full" />
+            </div>
+          )}
         </div>
 
       </div>

@@ -216,6 +216,34 @@
 }
 .toast-in { animation: toastIn 0.22s ease; }
 
+/* Sliders de rango (MiniRangeInput) — pista gris clara en vez del negro nativo */
+input[type='range'].rng-clean {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--rng-track, #D3D0CA);
+  outline: none;
+}
+input[type='range'].rng-clean::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bonafide-orange);
+  cursor: pointer;
+  border: none;
+}
+input[type='range'].rng-clean::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bonafide-orange);
+  cursor: pointer;
+  border: none;
+}
+
 /* Cursor pointer en todos los botones habilitados */
 button:not([disabled]) {
   cursor: pointer;
