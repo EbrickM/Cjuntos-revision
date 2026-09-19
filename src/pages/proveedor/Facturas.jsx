@@ -11,7 +11,10 @@ import Button from '../../components/ui/Button';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
+import { seedContratosActivos } from '../../lib/invoiceSeeds';
 import { INV } from '../../lib/invoiceStates';
 
 const ESTADO_LABEL = {
@@ -30,6 +33,8 @@ const ESTADO_LABEL = {
   [INV.billetera]: 'Billetera',
 };
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
+
+const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
@@ -56,12 +61,33 @@ export default function ProvFacturas() {
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda]         = useState('');
   const [detalle, setDetalle]           = useState(null);
+  const [facModal, setFacModal]         = useState(INIT_CT_EMPTY);
+  const [, setTick]                     = useState(0);
+  const bump = () => setTick(t => t + 1);
 
   const facturas   = facturaService.listarPorRol('proveedor');
   const pagos      = facturaService.listarPagos();
   const fmt        = v => new Intl.NumberFormat('de-DE').format(v ?? 0);
 
   const pagoDe = (id) => pagos.find(p => p.facturaId === id);
+
+  const handleGuardar = () => {
+    const monto = Number(facModal.monto.replace?.(/[^0-9]/g, '') ?? facModal.monto) || 0;
+    if (monto <= 0 || !facModal.concepto.trim() || !facModal.contratoId) return;
+    const contrato = seedContratosActivos.find(c => c.id === facModal.contratoId);
+    if (contrato?.montoMax && monto > contrato.montoMax) return;
+    facturaService.crear({
+      contrato: facModal.contratoId,
+      contratante: contrato?.contratante ?? 'TotalEnerGE S.A.',
+      tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
+      pyme: 'Const. Silva Ltd.',
+      origen: 'suministrador',
+      monto, concepto: facModal.concepto, fechaVencimiento: facModal.fechaVencimiento,
+      documentos: facModal.documento ? [{ name: facModal.documento.name, url: facModal.documento.url }] : [],
+    });
+    setFacModal(INIT_CT_EMPTY);
+    bump();
+  };
 
   const ESTADOS = ['Todos', ...Array.from(new Set(facturas.map(labelDe)))];
 
@@ -108,6 +134,12 @@ export default function ProvFacturas() {
             icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de Suministradores"
             subtitle="Recibidas de tus suministradores; el Banco Fondeador paga por transferencia o Cheque de Venta."
+            action={
+              <Button variant="primary" className="w-full sm:w-auto"
+                onClick={() => setFacModal({ ...INIT_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
+                Nueva Factura
+              </Button>
+            }
           />
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
             <div className="relative flex-1 sm:max-w-xs">
@@ -198,6 +230,16 @@ export default function ProvFacturas() {
         </div>
 
       </div>
+
+      {/* ── Modal: Nueva Factura al Contratante ── */}
+      {facModal.open && (
+        <FacturaContratanteModal
+          modal={facModal}
+          onChange={p => setFacModal(prev => ({ ...prev, ...p }))}
+          onSave={handleGuardar}
+          onCancel={() => setFacModal(INIT_CT_EMPTY)}
+        />
+      )}
 
       {/* ── Modal: Detalle de factura ── */}
       {detalle && (

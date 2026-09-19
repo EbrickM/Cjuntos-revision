@@ -9,12 +9,17 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
+import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import { defaultVencimiento } from '../../components/invoices/facturaUtils';
+import { facturaService } from '../../services/factura.service';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './provShared';
 import { ORA, GREEN, TEXT4, fmt, facturas, suministradores, facturaBadge, scoreColor, kycBadge, provState } from './provData';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
   : `Cuenta en mi Banco · ${c.cuentaBancaria?.numero || '—'}`;
+
+const INIT_FAC_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
@@ -31,6 +36,9 @@ export default function ProvContratoDetalle() {
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
   const [sumDetalle, setSumDetalle]     = useState(null);
+  const [facCtModal, setFacCtModal]     = useState(INIT_FAC_EMPTY);
+  const [, setTick] = useState(0);
+  const bump = () => setTick(t => t + 1);
   const c    = provState.selectedContrato;
   const pct  = Math.round((c.utilizado / c.asignado) * 100);
   const disp = c.asignado - c.utilizado;
@@ -48,6 +56,40 @@ export default function ProvContratoDetalle() {
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
+
+  // Nueva factura al Contratante con este contrato fijo (mismos validadores que
+  // el resto de secciones: monto/concepto obligatorios y tope = saldo disponible).
+  const handleCrearFacCt = () => {
+    const monto = Number((facCtModal.monto || '').replace(/[^0-9]/g, '')) || 0;
+    if (monto <= 0 || !facCtModal.concepto.trim()) return;
+    if (disp > 0 && monto > disp) return;
+    const maxId = facturaService.listar().reduce((m, f) => Math.max(m, Number(String(f.id).replace('FAC-2026-', '')) || 0), 2108);
+    const id = `FAC-2026-${maxId + 1}`;
+    facturaService.crear({
+      id,
+      contrato: c.id,
+      contratante: c.pyme,
+      pyme: c.pyme,
+      tipoFactoring: 'inverso',
+      origen: 'suministrador',
+      monto,
+      concepto: facCtModal.concepto,
+      fechaVencimiento: facCtModal.fechaVencimiento,
+      fecha: new Date().toLocaleDateString('en-GB'),
+      documentos: facCtModal.documento ? [{ name: facCtModal.documento.name, url: facCtModal.documento.url }] : [],
+    });
+    facturas.push({
+      id,
+      contrato: c.id,
+      suministrador: '—',
+      monto,
+      fecha: new Date().toLocaleDateString('es-ES'),
+      estado: 'Recibida',
+      concepto: facCtModal.concepto,
+    });
+    setFacCtModal(INIT_FAC_EMPTY);
+    bump();
+  };
 
   return (
     <AppShell active="provContratos" role="proveedor" title="Detalle de Contrato" sub={`${c.pyme} · ${c.id}`}>
@@ -249,16 +291,24 @@ export default function ProvContratoDetalle() {
                   <div className="text-[12px] text-text-4">Emitidas por el Suministrador en este contrato</div>
                 </div>
               </div>
-              <div className="relative flex items-center self-center sm:self-auto">
-                <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
-                <select
-                  value={filtroFac}
-                  onChange={e => setFiltroFac(e.target.value)}
-                  className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
-                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+              <div className="flex items-center gap-2">
+                <div className="relative flex items-center self-center sm:self-auto">
+                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
+                  <select
+                    value={filtroFac}
+                    onChange={e => setFiltroFac(e.target.value)}
+                    className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+                  >
+                    {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
+                  </select>
+                </div>
+                <Button
+                  onClick={() => setFacCtModal({ ...INIT_FAC_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}
+                  className="w-full sm:w-auto"
                 >
-                  {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
-                </select>
+                  Nueva Factura
+                </Button>
               </div>
             </div>
             {(() => {
@@ -288,6 +338,17 @@ export default function ProvContratoDetalle() {
         })()}
 
       </div>
+
+      {/* ── Modal: Nueva Factura al Contratante (este contrato pre-seleccionado) ── */}
+      {facCtModal.open && (
+        <FacturaContratanteModal
+          modal={facCtModal}
+          contratoFijo={{ id: c.id, contratante: c.pyme, tipoFactoring: 'inverso', disponible: disp }}
+          onChange={p => setFacCtModal(prev => ({ ...prev, ...p }))}
+          onSave={handleCrearFacCt}
+          onCancel={() => setFacCtModal(INIT_FAC_EMPTY)}
+        />
+      )}
 
       {/* ── Modal: Detalle de Suministrador (disparado por el ojo en la tabla) ── */}
       {sumDetalle && (() => {

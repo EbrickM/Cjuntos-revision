@@ -14,59 +14,11 @@ import Badge from '../../components/ui/Badge';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { seedContratosActivos } from '../../lib/invoiceSeeds';
 import { INV, estadoLabel } from '../../lib/invoiceStates';
-
-const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
-
-const pad2 = n => String(n).padStart(2, '0');
-
-const parseFecha = v => {
-  const m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(v || '');
-  return m ? { d: +m[1], mo: +m[2], y: +m[3] } : null;
-};
-
-
-const defaultVencimiento = () => {
-  const t = new Date();
-  t.setDate(t.getDate() + 30);
-  return `${pad2(t.getDate())}/${pad2(t.getMonth() + 1)}/${t.getFullYear()}`;
-};
-
-// â”€â”€ ConversiÃ³n DD/MM/AAAA â†” YYYY-MM-DD (formato que entiende <input type="date">)
-const toIso = v => {
-  const p = parseFecha(v);
-  return p ? `${p.y}-${pad2(p.mo)}-${pad2(p.d)}` : '';
-};
-const fromIso = v => {
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v || '');
-  return m ? `${+m[3]}/${+m[2]}/${m[1]}` : defaultVencimiento();
-};
-
-// â”€â”€ FechaVencimientoInput â€” campo de fecha compacto (una sola lÃ­nea).
-// Es un <input type="date"> nativo: el icono de calendario que trae incorporado
-// el campo abre el calendario del navegador para elegir el dÃ­a. La escritura
-// manual estÃ¡ bloqueada a nivel de teclado: solo se puede cambiar con el
-// calendario o con las flechas â†‘/â†“ del propio campo. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function FechaVencimientoInput({ value, onChange }) {
-  return (
-    <input
-      type="date"
-      value={toIso(value) || toIso(defaultVencimiento())}
-      onChange={e => onChange(e.target.value ? fromIso(e.target.value) : defaultVencimiento())}
-      onKeyDown={e => {
-        // Bloquea escribir letras/nÃºmeros a mano; deja pasar flechas, Tab, Enter y Escape.
-        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) e.preventDefault();
-      }}
-      onPaste={e => e.preventDefault()}
-      onDrop={e => e.preventDefault()}
-      className="h-10 w-44 border-2 border-gray-200 rounded-[8px] bg-[#fafafa] px-2
-        text-[13px] font-semibold text-text-1 cursor-pointer outline-none transition-all
-        focus:bg-white focus:shadow-[0_0_0_3px_rgba(239,122,44,0.12)] focus:ring-1 focus:ring-orange"
-    />
-  );
-}
 
 const BADGE_VARIANT = {
   [INV.creada]: 'yellow',
@@ -253,11 +205,6 @@ export default function EpFacturacion() {
     setFacturas(facturaService.listarPorRol('empresa-pequena'));
     setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
   };
-
-  const ctContrato   = ctModal.contratoId ? seedContratosActivos.find(c => c.id === ctModal.contratoId) ?? null : null;
-  const ctMax        = ctContrato?.montoMax ?? 0;
-  const ctMontoNum   = Number(String(ctModal.monto || '').replace(/[^0-9]/g, '')) || 0;
-  const ctExcede     = ctMax > 0 && ctMontoNum > ctMax;
 
   return (
     <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos" back>
@@ -454,87 +401,16 @@ export default function EpFacturacion() {
 
       {/* â”€â”€ Modal: Nueva / Editar factura al Contratante â”€â”€ */}
       {ctModal.open && (
-        <Modal
-          title={ctModal.editId ? `Corregir factura ${ctModal.editId}` : 'Nueva Factura al Contratante'}
-          onClose={() => setCtModal(INIT_CT_EMPTY)}
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setCtModal(INIT_CT_EMPTY)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleSaveCt} disabled={ctExcede}>{ctModal.editId ? 'Guardar y reenviar' : 'Crear factura'}</Button>
-            </>
-          }
-          wide
-        >
-          <div className="space-y-4">
-            {ctModal.editId && (
-              <div className="rounded-[12px] p-4 text-[12px]" style={{ background: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,0.25)' }}>
-                La Contratante devolvió la factura con correcciones. Editala y vuelve a enviarla.
-              </div>
-            )}
-            <FormGroup label="Contrato" required>
-              <Select
-                value={ctModal.contratoId}
-                onChange={e => setCtModal({ ...ctModal, contratoId: e.target.value })}
-                disabled={!!ctModal.editId}
-              >
-                <option value="">Seleccionar contrato</option>
-                {seedContratosActivos.map(c => (
-                  <option key={c.id} value={c.id}>{c.id} · {c.contratante} · {c.tipoFactoring === 'directo' ? 'Directo' : 'Inverso'}</option>
-                ))}
-              </Select>
-            </FormGroup>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Monto (XAF)" required>
-                <Input
-                  type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
-                  value={ctModal.monto}
-                  onChange={e => setCtModal({ ...ctModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-                />
-                {ctModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(ctModal.monto)}</div>}
-                {ctMax > 0 && (
-                  <div className="text-[11px] text-text-4 mt-1">Monto máximo del contrato: {formatXaf(ctMax)}</div>
-                )}
-                {ctExcede && (
-                  <div className="text-[11px] font-semibold mt-1" style={{ color: '#B8352A' }}>
-                    Este monto supera el lí­mite del contrato ({formatXaf(ctMax)}).
-                  </div>
-                )}
-              </FormGroup>
-              <FormGroup label="Fecha de vencimiento">
-                <FechaVencimientoInput value={ctModal.fechaVencimiento} onChange={v => setCtModal({ ...ctModal, fechaVencimiento: v })} />
-              </FormGroup>
-            </div>
-            <FormGroup label="Concepto" required>
-              <Textarea
-                value={ctModal.concepto}
-                onChange={e => setCtModal({ ...ctModal, concepto: e.target.value })}
-                placeholder="Descripción del servicio o hito facturado."
-              />
-            </FormGroup>
-            <div>
-              <div className="text-[12px] font-medium text-text-3 mb-1.5">Adjuntar documento</div>
-              {ctModal.documento ? (
-                <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
-                  <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
-                  <span className="flex-1 truncate">{ctModal.documento.name}</span>
-                  <button onClick={() => setCtModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">a—</button>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
-                  <Upload className="w-3.5 h-3.5 shrink-0" />
-                  Seleccionar archivo (PDF, imagen)
-                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) setCtModal(p => ({ ...p, documento: { name: file.name, url: URL.createObjectURL(file) } }));
-                  }} />
-                </label>
-              )}
-            </div>
-          </div>
-        </Modal>
+        <FacturaContratanteModal
+          modal={ctModal}
+          onChange={p => setCtModal(prev => ({ ...prev, ...p }))}
+          onSave={handleSaveCt}
+          onCancel={() => setCtModal(INIT_CT_EMPTY)}
+        />
       )}
 
-      {/* â”€â”€ Modal: Confirmar envÃ­o de factura â”€â”€ */}
+      {/* -- Modal: Confirmar envio de factura -- */}
+
       {confirmEnvio && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setConfirmEnvio(null)}>

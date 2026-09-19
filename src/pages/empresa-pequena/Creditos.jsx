@@ -15,6 +15,8 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
+import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
 const pct        = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
@@ -671,12 +673,12 @@ export default function EpCreditos() {
                       action={
                         <div className="flex items-center">
                           <div className="sm:hidden">
-                            <Button variant="primary" size="sm" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>
+                            <Button variant="primary" size="sm" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
                               <Plus className="w-4 h-4" />
                             </Button>
                           </div>
                           <div className="hidden sm:block">
-                            <Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true })}>Nueva Factura</Button>
+                            <Button variant="primary" onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>Nueva Factura</Button>
                           </div>
                         </div>
                       }
@@ -869,59 +871,13 @@ export default function EpCreditos() {
 
       {/* ── Modal: Nueva / Editar factura al Contratante ── */}
       {invCtModal.open && (
-        <Modal
-          title={invCtModal.editId ? `Editar factura ${invCtModal.editId}` : 'Nueva Factura al Contratante'}
-          onClose={() => setInvCtModal(INV_CT_EMPTY)}
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setInvCtModal(INV_CT_EMPTY)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleSaveCTInvoice}>{invCtModal.editId ? 'Guardar cambios' : 'Crear factura'}</Button>
-            </>
-          }
-          wide
-        >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Monto (XAF)" required>
-                <Input
-                  type="text" inputMode="numeric" placeholder="Ej: 18,000,000"
-                  value={invCtModal.monto}
-                  onChange={e => setInvCtModal({ ...invCtModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
-                />
-                {invCtModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(invCtModal.monto)}</div>}
-              </FormGroup>
-              <FormGroup label="Fecha de vencimiento">
-                <Input type="text" placeholder="DD/MM/AAAA" value={invCtModal.fechaVencimiento} onChange={e => setInvCtModal({ ...invCtModal, fechaVencimiento: e.target.value })} />
-              </FormGroup>
-            </div>
-            <FormGroup label="Concepto" required>
-              <Textarea
-                value={invCtModal.concepto}
-                onChange={e => setInvCtModal({ ...invCtModal, concepto: e.target.value })}
-                placeholder="Descripción del servicio o hito facturado…"
-              />
-            </FormGroup>
-            <div>
-              <div className="text-[12px] font-medium text-text-3 mb-1.5">Adjuntar documento</div>
-              {invCtModal.documento ? (
-                <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
-                  <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
-                  <span className="flex-1 truncate">{invCtModal.documento.name}</span>
-                  <button onClick={() => setInvCtModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
-                  <Upload className="w-3.5 h-3.5 shrink-0" />
-                  Seleccionar archivo (PDF, imagen)
-                  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) setInvCtModal(p => ({ ...p, documento: { name: file.name, url: URL.createObjectURL(file) } }));
-                  }} />
-                </label>
-              )}
-            </div>
-          </div>
-        </Modal>
+        <FacturaContratanteModal
+          modal={invCtModal}
+          contratoFijo={detailContract}
+          onChange={p => setInvCtModal(prev => ({ ...prev, ...p }))}
+          onSave={handleSaveCTInvoice}
+          onCancel={() => setInvCtModal(INV_CT_EMPTY)}
+        />
       )}
 
       {/* ── Modal: Importar / Editar factura de Proveedor ── */}
