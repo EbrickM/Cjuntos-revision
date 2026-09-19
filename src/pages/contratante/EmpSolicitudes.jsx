@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import {
-  TrendingUp, FilePlus, ClipboardList, ArrowUpRight, ChevronRight, ShieldCheck, CheckCircle2, AlertCircle,
+  TrendingUp, FilePlus, ClipboardList, ChevronRight, ShieldCheck, CheckCircle2, AlertCircle,
 } from 'lucide-react';
-import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -21,7 +20,6 @@ const solicIconCfg = {
 
 
 export default function EmpSolicitudes() {
-  const { go } = useApp();
   const [tab, setTab]         = useState('mis');
   const [solModal, setSolModal] = useState(null);
 
@@ -49,11 +47,8 @@ export default function EmpSolicitudes() {
     <AppShell active="empSolicitudes" role="contratante" title="Solicitudes" sub="Mis solicitudes y oportunidades de PYMEs" back>
       <div className="fade-in space-y-4">
 
-        {/* Tabs + acción */}
+        {/* Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <Button variant="primary" size="sm" className="w-full sm:w-auto sm:order-last justify-center" onClick={() => go('empNuevaSolicitud')}>
-            <ArrowUpRight className="w-3.5 h-3.5 mr-1" />Nueva solicitud
-          </Button>
           <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
             {[{ id: 'mis', lbl: 'Mis solicitudes' }, { id: 'pymes', lbl: 'Solicitudes de PYMEs' }].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}

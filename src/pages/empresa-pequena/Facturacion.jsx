@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   Pencil, Trash2, Building2, Upload, Paperclip, Search, Send, BadgeCheck, Wallet as WalletIcon, X, ChevronDown, ListFilter,
 } from 'lucide-react';
@@ -19,6 +19,54 @@ import { seedContratosActivos } from '../../lib/invoiceSeeds';
 import { INV, estadoLabel } from '../../lib/invoiceStates';
 
 const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
+
+const pad2 = n => String(n).padStart(2, '0');
+
+const parseFecha = v => {
+  const m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(v || '');
+  return m ? { d: +m[1], mo: +m[2], y: +m[3] } : null;
+};
+
+
+const defaultVencimiento = () => {
+  const t = new Date();
+  t.setDate(t.getDate() + 30);
+  return `${pad2(t.getDate())}/${pad2(t.getMonth() + 1)}/${t.getFullYear()}`;
+};
+
+// â”€â”€ ConversiÃ³n DD/MM/AAAA â†” YYYY-MM-DD (formato que entiende <input type="date">)
+const toIso = v => {
+  const p = parseFecha(v);
+  return p ? `${p.y}-${pad2(p.mo)}-${pad2(p.d)}` : '';
+};
+const fromIso = v => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v || '');
+  return m ? `${+m[3]}/${+m[2]}/${m[1]}` : defaultVencimiento();
+};
+
+// â”€â”€ FechaVencimientoInput â€” campo de fecha compacto (una sola lÃ­nea).
+// Es un <input type="date"> nativo: el icono de calendario que trae incorporado
+// el campo abre el calendario del navegador para elegir el dÃ­a. La escritura
+// manual estÃ¡ bloqueada a nivel de teclado: solo se puede cambiar con el
+// calendario o con las flechas â†‘/â†“ del propio campo. â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+function FechaVencimientoInput({ value, onChange }) {
+  return (
+    <input
+      type="date"
+      value={toIso(value) || toIso(defaultVencimiento())}
+      onChange={e => onChange(e.target.value ? fromIso(e.target.value) : defaultVencimiento())}
+      onKeyDown={e => {
+        // Bloquea escribir letras/nÃºmeros a mano; deja pasar flechas, Tab, Enter y Escape.
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) e.preventDefault();
+      }}
+      onPaste={e => e.preventDefault()}
+      onDrop={e => e.preventDefault()}
+      className="h-10 w-44 border-2 border-gray-200 rounded-[8px] bg-[#fafafa] px-2
+        text-[13px] font-semibold text-text-1 cursor-pointer outline-none transition-all
+        focus:bg-white focus:shadow-[0_0_0_3px_rgba(239,122,44,0.12)] focus:ring-1 focus:ring-orange"
+    />
+  );
+}
 
 const BADGE_VARIANT = {
   [INV.creada]: 'yellow',
@@ -57,14 +105,14 @@ const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', co
 const initialProviders = [
   { id: 'p1', razonSocial: 'Cemex GE',     sector: 'Materiales' },
   { id: 'p2', razonSocial: 'TransGE S.L.', sector: 'Transporte' },
-  { id: 'p3', razonSocial: 'ServTec GE',   sector: 'Tecnología' },
+  { id: 'p3', razonSocial: 'ServTec GE',   sector: 'TecnologÃ­a' },
 ];
 
-// Facturas de proveedores (control interno) — registro local independiente del
-// BPMN de facturación al contratante (Fase 2 se tramita vía billetera/pagos).
+// Facturas de proveedores (control interno) â€” registro local independiente del
+// BPMN de facturaciÃ³n al contratante (Fase 2 se tramita vÃ­a billetera/pagos).
 const initialInvoicesPr = [
   { id: 'PR-2026-0231', tipo: 'proveedor', contrato: 'CT-2026-0041', proveedorId: 'p1', proveedorNombre: 'Cemex GE',
-    monto: 8_000_000, estado: 'Pendiente', concepto: 'Suministro de cemento y áridos – Lote 7',
+    monto: 8_000_000, estado: 'Pendiente', concepto: 'Suministro de cemento y añadidos al Lote 7',
     fecha: '10/07/2026', fechaVencimiento: '10/08/2026', documento: null },
 ];
 
@@ -134,7 +182,7 @@ export default function EpFacturacion() {
   const { visibleItems: pagedPR, hasMore: hasMorePR, loading: loadingPR, sentinelRef: sentinelPRRef } =
     useInfiniteScroll(filteredPr, { pageSize: 10, delay: 0, resetKey: `${searchPr}|${filtroEstadoPr}` });
 
-  // ── Acción según el estado del BPMN (lado PYME) ──
+  // â”€â”€ AcciÃ³n segÃºn el estado del BPMN (lado PYME) â”€â”€
   const ctAction = (f) => {
     switch (f.estado) {
       case INV.creada:
@@ -152,11 +200,12 @@ export default function EpFacturacion() {
     }
   };
 
-  // ── CT handlers (mediante factura.service sobre localDb) ──
+  // â”€â”€ CT handlers (mediante factura.service sobre localDb) â”€â”€
   const handleSaveCt = () => {
     const monto = Number(ctModal.monto.replace?.(/[^0-9]/g, '') ?? ctModal.monto) || 0;
     if (monto <= 0 || !ctModal.concepto.trim() || !ctModal.contratoId) return;
     const contrato = seedContratosActivos.find(c => c.id === ctModal.contratoId);
+    if (contrato?.montoMax && monto > contrato.montoMax) return;
     if (ctModal.editId) {
       facturaService.corregirYReenviar(ctModal.editId, {
         monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
@@ -205,6 +254,11 @@ export default function EpFacturacion() {
     setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
   };
 
+  const ctContrato   = ctModal.contratoId ? seedContratosActivos.find(c => c.id === ctModal.contratoId) ?? null : null;
+  const ctMax        = ctContrato?.montoMax ?? 0;
+  const ctMontoNum   = Number(String(ctModal.monto || '').replace(/[^0-9]/g, '')) || 0;
+  const ctExcede     = ctMax > 0 && ctMontoNum > ctMax;
+
   return (
     <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos" back>
       <div className="fade-in space-y-5">
@@ -227,7 +281,7 @@ export default function EpFacturacion() {
             title={vista === 'contratante' ? 'Facturas al Contratante' : 'Facturas de Proveedores'}
             subtitle={
               vista === 'contratante'
-                ? 'La PYME emite → la Contratante evalúa → IPI → Billetera/Pago. Bonafide valida el IPI.'
+                ? 'La PYME emite al contratante la factura ipi o Billetera/Pago. Bonafide valida el IPI.'
                 : 'Recibidas de proveedores. Importadas para control interno de pagos.'
             }
             action={
@@ -245,21 +299,23 @@ export default function EpFacturacion() {
                   </select>
                 </div>
                 <Button variant="primary" className="w-full sm:w-auto order-first sm:order-last"
-                  onClick={() => vista === 'contratante' ? setCtModal({ ...INIT_CT_EMPTY, open: true }) : setPrModal({ ...INIT_CT_EMPTY, open: true })}>
+                  onClick={() => vista === 'contratante'
+                    ? setCtModal({ ...INIT_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })
+                    : setPrModal({ ...INIT_CT_EMPTY, open: true })}>
                   {vista === 'contratante' ? 'Nueva Factura' : 'Importar Factura'}
                 </Button>
               </div>
             }
           />
 
-          {/* Filtros: búsqueda + estado */}
+          {/* Filtros: bÃºsqueda + estado */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={vista === 'contratante' ? searchCT : searchPr}
                 onChange={e => vista === 'contratante' ? setSearchCT(e.target.value) : setSearchPr(e.target.value)}
-                placeholder={vista === 'contratante' ? 'Buscar factura, contrato, PYME…' : 'Buscar por Nº, proveedor o concepto…'}
+                placeholder={vista === 'contratante' ? 'Buscar factura, contrato, PYMEâ€¦' : 'Buscar por , proveedor o concepto'}
                 className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
               />
             </div>
@@ -361,7 +417,7 @@ export default function EpFacturacion() {
 
                     <div>
                       <p className="text-[12px] font-semibold text-text-1 leading-snug">{inv.proveedorNombre}</p>
-                      <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{inv.contrato} · Vence: {inv.fechaVencimiento}</p>
+                      <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{inv.contrato} Vence: {inv.fechaVencimiento}</p>
                       <p className="text-[11px] text-text-3 mt-1 truncate">{inv.concepto}</p>
                     </div>
 
@@ -396,7 +452,7 @@ export default function EpFacturacion() {
 
       </div>
 
-      {/* ── Modal: Nueva / Editar factura al Contratante ── */}
+      {/* â”€â”€ Modal: Nueva / Editar factura al Contratante â”€â”€ */}
       {ctModal.open && (
         <Modal
           title={ctModal.editId ? `Corregir factura ${ctModal.editId}` : 'Nueva Factura al Contratante'}
@@ -404,7 +460,7 @@ export default function EpFacturacion() {
           footer={
             <>
               <Button variant="ghost" onClick={() => setCtModal(INIT_CT_EMPTY)}>Cancelar</Button>
-              <Button variant="primary" onClick={handleSaveCt}>{ctModal.editId ? 'Guardar y reenviar' : 'Crear factura'}</Button>
+              <Button variant="primary" onClick={handleSaveCt} disabled={ctExcede}>{ctModal.editId ? 'Guardar y reenviar' : 'Crear factura'}</Button>
             </>
           }
           wide
@@ -412,7 +468,7 @@ export default function EpFacturacion() {
           <div className="space-y-4">
             {ctModal.editId && (
               <div className="rounded-[12px] p-4 text-[12px]" style={{ background: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,0.25)' }}>
-                La Contratante devolvió la factura con correcciones. Editala y volvés a enviarla.
+                La Contratante devolvió la factura con correcciones. Editala y vuelve a enviarla.
               </div>
             )}
             <FormGroup label="Contrato" required>
@@ -421,7 +477,7 @@ export default function EpFacturacion() {
                 onChange={e => setCtModal({ ...ctModal, contratoId: e.target.value })}
                 disabled={!!ctModal.editId}
               >
-                <option value="">Seleccionar contrato…</option>
+                <option value="">Seleccionar contrato</option>
                 {seedContratosActivos.map(c => (
                   <option key={c.id} value={c.id}>{c.id} · {c.contratante} · {c.tipoFactoring === 'directo' ? 'Directo' : 'Inverso'}</option>
                 ))}
@@ -435,16 +491,24 @@ export default function EpFacturacion() {
                   onChange={e => setCtModal({ ...ctModal, monto: e.target.value.replace(/[^0-9]/g, '') })}
                 />
                 {ctModal.monto && <div className="text-[11px] text-text-4 mt-1">{formatXaf(ctModal.monto)}</div>}
+                {ctMax > 0 && (
+                  <div className="text-[11px] text-text-4 mt-1">Monto máximo del contrato: {formatXaf(ctMax)}</div>
+                )}
+                {ctExcede && (
+                  <div className="text-[11px] font-semibold mt-1" style={{ color: '#B8352A' }}>
+                    Este monto supera el lí­mite del contrato ({formatXaf(ctMax)}).
+                  </div>
+                )}
               </FormGroup>
               <FormGroup label="Fecha de vencimiento">
-                <Input type="text" placeholder="DD/MM/AAAA" value={ctModal.fechaVencimiento} onChange={e => setCtModal({ ...ctModal, fechaVencimiento: e.target.value })} />
+                <FechaVencimientoInput value={ctModal.fechaVencimiento} onChange={v => setCtModal({ ...ctModal, fechaVencimiento: v })} />
               </FormGroup>
             </div>
             <FormGroup label="Concepto" required>
               <Textarea
                 value={ctModal.concepto}
                 onChange={e => setCtModal({ ...ctModal, concepto: e.target.value })}
-                placeholder="Descripción del servicio o hito facturado…"
+                placeholder="Descripción del servicio o hito facturado."
               />
             </FormGroup>
             <div>
@@ -453,7 +517,7 @@ export default function EpFacturacion() {
                 <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
                   <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
                   <span className="flex-1 truncate">{ctModal.documento.name}</span>
-                  <button onClick={() => setCtModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
+                  <button onClick={() => setCtModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">a—</button>
                 </div>
               ) : (
                 <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
@@ -470,7 +534,7 @@ export default function EpFacturacion() {
         </Modal>
       )}
 
-      {/* ── Modal: Confirmar envío de factura ── */}
+      {/* â”€â”€ Modal: Confirmar envÃ­o de factura â”€â”€ */}
       {confirmEnvio && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
              onClick={e => e.target === e.currentTarget && setConfirmEnvio(null)}>
@@ -486,7 +550,7 @@ export default function EpFacturacion() {
               </div>
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-text-1 mb-1">Enviar factura</h2>
-                <p className="text-sm text-text-3">{confirmEnvio.id} · {confirmEnvio.contratante}</p>
+                <p className="text-sm text-text-3">{confirmEnvio.id} a {confirmEnvio.contratante}</p>
               </div>
               <div className="rounded-[14px] border border-border p-4 mb-6" style={{ background: '#F8F7F5' }}>
                 <div className="flex items-center justify-between">
@@ -497,7 +561,7 @@ export default function EpFacturacion() {
                 </div>
               </div>
               <Button onClick={() => { facturaService.enviar(confirmEnvio.id); setConfirmEnvio(null); bump(); }} full className="h-[48px] mb-3">
-                Confirmar envío
+                Confirmar enví­o
               </Button>
               <button onClick={() => setConfirmEnvio(null)} className="w-full text-sm text-center font-medium text-text-3 hover:text-text-1 transition-colors cursor-pointer">
                 Cancelar
@@ -507,7 +571,7 @@ export default function EpFacturacion() {
         </div>
       )}
 
-      {/* ── Modal: Detalle de factura ── */}
+      {/* â”€â”€ Modal: Detalle de factura â”€â”€ */}
       {detalle && (() => {
         const viva = facturaService.obtener(detalle.id) ?? detalle;
         const a = ctAction(viva);
@@ -529,7 +593,7 @@ export default function EpFacturacion() {
         );
       })()}
 
-      {/* ── Modal: Importar / Editar factura de Proveedor ── */}
+      {/* â”€â”€ Modal: Importar / Editar factura de Proveedor â”€â”€ */}
       {prModal.open && (
         <Modal
           title={prModal.editId ? `Editar factura ${prModal.editId}` : 'Importar Factura de Proveedor'}
@@ -547,7 +611,7 @@ export default function EpFacturacion() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormGroup label="Proveedor" required>
                 <Select value={prModal.proveedorId} onChange={e => setPrModal({ ...prModal, proveedorId: e.target.value })}>
-                  <option value="">Seleccionar proveedor…</option>
+                  <option value="">Seleccionar proveedor</option>
                   {providers.map(p => <option key={p.id} value={p.id}>{p.razonSocial} · {p.sector}</option>)}
                 </Select>
               </FormGroup>
@@ -572,7 +636,7 @@ export default function EpFacturacion() {
               <Textarea
                 value={prModal.concepto}
                 onChange={e => setPrModal({ ...prModal, concepto: e.target.value })}
-                placeholder="Descripción del servicio o producto facturado…"
+                placeholder="Descripción del servicio o producto facturado"
               />
             </FormGroup>
             <div>
@@ -581,7 +645,7 @@ export default function EpFacturacion() {
                 <div className="flex items-center gap-2 bg-page-bg rounded-[8px] px-3 py-2 text-[12px] text-text-3 border border-border">
                   <Paperclip className="w-3.5 h-3.5 text-text-4 shrink-0" />
                   <span className="flex-1 truncate">{prModal.documento.name}</span>
-                  <button onClick={() => setPrModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">×</button>
+                  <button onClick={() => setPrModal(p => ({ ...p, documento: null }))} className="text-text-4 hover:text-red-text text-[14px] leading-none">a—</button>
                 </div>
               ) : (
                 <label className="flex items-center gap-2 border border-dashed border-border rounded-[8px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">

@@ -287,8 +287,8 @@ export const seedBilleteras = [
 
 // Contratos de ejemplo para los formularios PYME (directo/inverso).
 export const seedContratosActivos = [
-  { id: 'CT-2026-0041', tipoFactoring: 'directo', contratante: E.contratantes.totalenerge, bancoFondeador: 'BGFI Bank Guinea Ecuatorial' },
-  { id: 'CT-2026-0052', tipoFactoring: 'inverso', contratante: E.contratantes.totalenerge, bancoFondeador: 'BGFI Bank Guinea Ecuatorial' },
+  { id: 'CT-2026-0041', tipoFactoring: 'directo', contratante: E.contratantes.totalenerge, bancoFondeador: 'BGFI Bank Guinea Ecuatorial', montoMax: 50_000_000 },
+  { id: 'CT-2026-0052', tipoFactoring: 'inverso', contratante: E.contratantes.totalenerge, bancoFondeador: 'BGFI Bank Guinea Ecuatorial', montoMax: 30_000_000 },
 ];
 
 export const seedProveedores = [
