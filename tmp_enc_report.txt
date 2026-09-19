@@ -1,9 +1,0 @@
-archivos: 113 ; NO-UTF8-estricto: 0
-lista:
-
-== index.html charset ==
-  UTF-8
-
-== mojibake tipico en Facturacion.jsx (UTF-8 mal decodificado: Ã± Ã© Ã) … ==
-  longitud chars: 37052 ; contiene 'Ã' tal cual: True
-  contiene 'Ñ' tal cual: False ; contiene 'ñ': False
