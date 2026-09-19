@@ -125,6 +125,12 @@ export default function AdminInformacionGubernamental() {
     showToast(`Informe notificado al ${ministerioLbl}.`);
   };
 
+  // Notificar desde el modal de detalle (sin cerrarlo) — refleja el cambio en vivo.
+  const handleNotificarDesdeDetalle = () => {
+    handleNotificar(detalleInf.id);
+    setDetalleInf(prev => prev && { ...prev, estado: 'Notificado', fechaNotificacion: formatDateDDMMYYYY() });
+  };
+
   return (
     <AppShell active="adminGobierno" role="admin" title="Información Gubernamental" sub="Contenido Nacional y Recaudación/Digitalización, para los ministerios correspondientes">
       <div className="fade-in space-y-5">
@@ -248,13 +254,9 @@ export default function AdminInformacionGubernamental() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {inf.estado === 'Generado' ? (
-                        <button
-                          onClick={() => handleNotificar(inf.id)}
-                          title="Notificar al Ministerio"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange hover:underline cursor-pointer"
-                        >
+                        <Button variant="primary" size="sm" onClick={() => handleNotificar(inf.id)}>
                           <Send className="w-3.5 h-3.5" />Notificar
-                        </button>
+                        </Button>
                       ) : (
                         <span className="text-[11px] text-text-5 whitespace-nowrap">{inf.fechaNotificacion}</span>
                       )}
@@ -278,7 +280,16 @@ export default function AdminInformacionGubernamental() {
         <Modal
           title={`Detalle del Informe · ${detalleInf.id}`}
           onClose={() => setDetalleInf(null)}
-          footer={<Button variant="ghost" onClick={() => setDetalleInf(null)}>Cerrar</Button>}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setDetalleInf(null)}>Cerrar</Button>
+              {detalleInf.estado !== 'Notificado' && (
+                <Button variant="primary" onClick={handleNotificarDesdeDetalle}>
+                  <Send className="w-4 h-4" />Notificar al Ministerio
+                </Button>
+              )}
+            </>
+          }
           wide
         >
           <div className="space-y-5">
