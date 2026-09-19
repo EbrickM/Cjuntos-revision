@@ -12,6 +12,14 @@ const KEY_FACTURAS  = 'facturas';
 const KEY_PAGOS     = 'factura_pagos';
 const KEY_BILLETERAS = 'factura_billeteras';
 
+// Orden de presentación: el registro más reciente primero. La recencia se
+// deduce del id (correlativo `FAC/PAG-2026-XXXX`): cuanto mayor, más nuevo,
+// así una factura/pago recién creado aparece arriba de cards y tablas.
+const porRecencia = (a, b) => {
+  const n = (x) => Number(String(x?.id ?? '').match(/(\d+)$/)?.[1] ?? 0);
+  return n(b) - n(a);
+};
+
 const hoy = () => new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const evento = (titulo, detalle) => ({ titulo, detalle, fecha: hoy(), actor: 'Sistema' });
@@ -69,7 +77,7 @@ export const facturaService = {
       localDb.set(KEY_FACTURAS, lista);
     }
     // Normaliza estados en blanco (dato viejo en localDb) a "Emitida".
-    return lista.map(f => (f?.estado ? f : { ...f, estado: INV.emitida }));
+    return lista.map(f => (f?.estado ? f : { ...f, estado: INV.emitida })).sort(porRecencia);
   },
 
   obtener(id) {
@@ -297,7 +305,7 @@ export const facturaService = {
   },
 
   listarPagos() {
-    return localDb.get(KEY_PAGOS, seedPagos, SEED_VERSION);
+    return localDb.get(KEY_PAGOS, seedPagos, SEED_VERSION).sort(porRecencia);
   },
 
   // Emite el pago de la factura al proveedor/suministrador (transferencia core

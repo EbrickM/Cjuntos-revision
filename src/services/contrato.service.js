@@ -9,6 +9,14 @@ import { SEED_VERSION, seedContratos } from '../lib/contractSeeds';
 
 const KEY_CONTRATOS = 'contratos';
 
+// Orden de presentación: el registro más reciente primero. La recencia se
+// deduce del id (correlativo `CT/CTM-2026-XXXX`): cuanto mayor, más nuevo, así
+// un contrato recién creado aparece arriba de cards/tablas en todos los portales.
+const porRecencia = (a, b) => {
+  const n = (x) => Number(String(x?.id ?? '').match(/(\d+)$/)?.[1] ?? 0);
+  return n(b) - n(a);
+};
+
 const hoy = () => new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const evento = (titulo, detalle) => ({ titulo, detalle, fecha: hoy(), actor: 'Sistema' });
@@ -58,7 +66,7 @@ export const contratoService = {
       lista = [...lista, ...faltantes.map(s => ({ ...s }))];
       localDb.set(KEY_CONTRATOS, lista);
     }
-    return lista.map(normalizar);
+    return lista.map(normalizar).sort(porRecencia);
   },
 
   obtener(id) {
