@@ -50,7 +50,7 @@ export const ESTADO_LABEL = {
 // distinguirse de un vistazo en cards y tablas.
 export const ESTADO_BADGE = {
   creada:            'muted',     // borrador
-  enviada:           'gray',      // en tránsito a la contraparte
+  enviada:           'slate',     // en tránsito a la contraparte
   en_evaluacion:     'amber',     // proceso
   con_correcciones:  'red',       // error / devolución
   aprobada:          'blue',      // decisión OK
@@ -61,7 +61,7 @@ export const ESTADO_BADGE = {
   otp_enviada:       'gold',      // esperando verificación
   otp_verificada:    'terra',     // verificación completada
   pagada:            'green',     // éxito terminal (retiro)
-  billetera:         'slate',     // fondos en billetera
+  billetera:         'green',     // éxito terminal (billetera virtual)
 };
 
 // Transiciones válidas entre estados (machine state).
