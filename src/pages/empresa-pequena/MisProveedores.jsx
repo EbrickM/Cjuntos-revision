@@ -278,7 +278,7 @@ export default function EpMisProveedores() {
         </div>
 
         {/* Directorio */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
+        <div className="rounded-[14px] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <div>
               <div className="text-[14px] font-bold text-text-1">Directorio</div>

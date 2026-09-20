@@ -248,7 +248,7 @@ export default function EpCreditos() {
             </div>
 
             {/* Contenedor principal */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="rounded-[14px] p-5">
 
               {/* Cabecera: título + buscador */}
               <div className="mb-7">

@@ -128,7 +128,7 @@ export default function ProvFacturas() {
         </div>
 
         {/* Filtros + Cards */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
+        <div className="rounded-[14px] p-5">
           {/* Título + buscador + estado */}
           <SectionHeader
             icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
@@ -164,7 +164,8 @@ export default function ProvFacturas() {
           </div>
 
           {/* Cards de facturas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
+          <div className="rounded-[14px] px-5 pt-2 pb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {paged.map((f, idx) => {
             const pago = pagoDe(f.id);
             const a = accion(f);
@@ -226,6 +227,7 @@ export default function ProvFacturas() {
             <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas con los filtros aplicados.</div>
           )}
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
+          </div>
         </div>
         </div>
 

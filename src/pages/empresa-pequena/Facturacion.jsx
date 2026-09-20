@@ -207,7 +207,7 @@ export default function EpFacturacion() {
         </div>
 
         {/* Mis facturas: Contratante / Proveedores */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
+        <div className="rounded-[14px] p-5">
           <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title={vista === 'contratante' ? 'Facturas al Contratante' : 'Facturas de Proveedores'}
             subtitle={

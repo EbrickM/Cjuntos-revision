@@ -92,7 +92,8 @@ export default function EmpContratos() {
         </div>
 
         {/* Cards de contratos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+        <div className="rounded-[14px] px-5 pt-2 pb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedContratos.map((c, idx) => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);
             const disp = c.asignado - c.utilizado;
@@ -154,6 +155,7 @@ export default function EmpContratos() {
             </div>
           )}
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
+          </div>
         </div>
 
       </div>
