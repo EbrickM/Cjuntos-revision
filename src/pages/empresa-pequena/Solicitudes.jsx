@@ -19,7 +19,7 @@ const BORDER = '#E5E7EB';
 
 const fmt = n => `${new Intl.NumberFormat('de-DE').format(n)} XAF`;
 
-const solicBadge = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
+const solicBadge = e => ({ 'En revisión': 'amber', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
 
 const solicIconCfg = {
   'Solicitud de crédito':   { Icon: CreditCard,    iconBg: '#FFF3E0', iconColor: ORA       },

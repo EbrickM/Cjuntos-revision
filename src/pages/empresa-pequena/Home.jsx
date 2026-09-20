@@ -231,7 +231,7 @@ const proyectos = [
   { nombre: 'Reforestación Annobon',        estado: 'Suspendido',   riesgo: 'Medio', fin: '22.000.000 XAF' },
 ];
 
-const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
+const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
 // ── Componente principal ──────────────────────────────────────────────────────

@@ -89,6 +89,25 @@
   --color-blue-bg:      #EFF6FF;
   --color-blue-text:    #3B82F6;
 
+  /* ── Escala de estados (Anexo Digital MIC v1.0): cada estado con color propio ──
+     Colores semánticos del MIC (success/process/error) + derivados cálidos de la
+     marca para no repetir tonalidad entre estados del mismo flujo. */
+  --color-brand-bg:     #FCEAE9;             /* Rojo Bonafide MIC (marca)       */
+  --color-terra:        #E04E14;             /* Naranja marca MIC               */
+  --color-terra-bg:     #FBE9DF;
+  --color-gold:         #D99E07;             /* Ámbar intenso (transición/OTP)  */
+  --color-gold-bg:      #FAEFD3;
+  --color-copper:       #8A4A1F;             /* Cobre (fondeo acreditado)       */
+  --color-copper-bg:    #F5E6D7;
+  --color-gray-bg:      #ECEAE6;             /* Gris marca MIC                  */
+  --color-gray-text:    #5B5B5F;
+  --color-ink-bg:       #ECEAE7;             /* Tinta MIC                       */
+  --color-ink-text:     #26262B;
+  --color-muted-bg:     #F0EEEB;             /* Gris suave / pulsado MIC        */
+  --color-muted-text:   #A9A6A1;
+  --color-slate-text:   #55606E;             /* Neutro frío (billetera)         */
+  --color-slate-bg:     #EDF0F3;
+
   /* ── Charts ──────────────────────────────────── */
   --color-chart-1: #e0201c;
   --color-chart-2: #ef7a2c;

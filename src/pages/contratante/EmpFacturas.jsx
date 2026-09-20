@@ -12,7 +12,7 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import FondeadorOtpModal from '../../components/invoices/FondeadorOtpModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import { facturaService } from '../../services/factura.service';
-import { INV, estadoLabel } from '../../lib/invoiceStates';
+import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 
 const ESTADO_LABEL = {
   [INV.creada]: 'Creada',
@@ -181,7 +181,7 @@ export default function EmpFacturas() {
                     <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
                     <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                   </div>
-                  <Badge variant={{ [INV.enviada]: 'yellow', [INV.enEvaluacion]: 'blue', [INV.otpEnviada]: 'orange', [INV.otpVerificada]: 'orange', [INV.pagada]: 'green', [INV.billetera]: 'green' }[f.estado] ?? 'orange'}>
+                  <Badge variant={estadoBadge(f.estado)}>
                     {estadoLabel(f.estado)}
                   </Badge>
                   <RequerimientoBadge factura={f} />

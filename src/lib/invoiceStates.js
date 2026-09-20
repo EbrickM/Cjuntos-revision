@@ -45,21 +45,23 @@ export const ESTADO_LABEL = {
   billetera:         'Saldo en Billetera',
 };
 
-// Variante de Badge (ver src/components/ui/Badge.jsx) por estado.
+// Variante de Badge (ver src/components/ui/Badge.jsx) por estado. Cada estado
+// del pipeline tiene una variante distinta (Anexo Digital MIC v1.0) para poder
+// distinguirse de un vistazo en cards y tablas.
 export const ESTADO_BADGE = {
-  creada:            'yellow',
-  enviada:           'blue',
-  en_evaluacion:     'yellow',
-  con_correcciones:  'red',
-  aprobada:          'blue',
-  emitida:           'orange',
-  con_requerimientos:'orange',
-  orden_fondeador:   'blue',
-  fondeado:          'blue',
-  otp_enviada:       'orange',
-  otp_verificada:    'green',
-  pagada:            'green',
-  billetera:         'green',
+  creada:            'muted',     // borrador
+  enviada:           'gray',      // en tránsito a la contraparte
+  en_evaluacion:     'amber',     // proceso
+  con_correcciones:  'red',       // error / devolución
+  aprobada:          'blue',      // decisión OK
+  emitida:           'orange',    // IPI emitido (CTA)
+  con_requerimientos:'brand',     // alerta marca (revisión de Bonafide)
+  orden_fondeador:   'ink',       // orden al banco
+  fondeado:          'copper',    // fondos acreditados
+  otp_enviada:       'gold',      // esperando verificación
+  otp_verificada:    'terra',     // verificación completada
+  pagada:            'green',     // éxito terminal (retiro)
+  billetera:         'slate',     // fondos en billetera
 };
 
 // Transiciones válidas entre estados (machine state).
@@ -104,7 +106,17 @@ export const PASOS_DIRECTO = [
 
 export const estadoLabel = (estado) => ESTADO_LABEL[estado] ?? estado ?? ESTADO_LABEL[INV.emitida];
 
-export const estadoBadge = (estado) => ESTADO_BADGE[estado] ?? 'yellow';
+const LABEL_TO_KEY = Object.fromEntries(Object.entries(ESTADO_LABEL).map(([k, l]) => [String(l).toLowerCase(), k]));
+
+// Resuelve la variante de Badge aceptando tanto la clave interna (INV.*) como la
+// etiqueta legible ('Enviada', 'Pagada'). Fallback neutro (gris) para estados
+// desconocidos, de modo que dos estados nunca colapsen a un mismo color.
+export const estadoBadge = (estado) => {
+  const direct = ESTADO_BADGE[estado];
+  if (direct) return direct;
+  const key = LABEL_TO_KEY[String(estado ?? '').trim().toLowerCase()];
+  return ESTADO_BADGE[key] ?? 'muted';
+};
 
 // Pasos del pipeline resuelto para una factura concreta (el paso terminal
 // "Pagada" pasa a "Saldo en Billetera" cuando la factura terminó en billetera).

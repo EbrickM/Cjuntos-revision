@@ -15,8 +15,8 @@ const ESTADO_CLS = {
   'Aprobado':               'green',
   'Desestimado':            'red',
   'En revisión':            'blue',
-  'Pendiente':              'yellow',
-  'Documentos incompletos': 'red',
+  'Pendiente':              'amber',
+  'Documentos incompletos': 'gold',
 };
 
 const ESTADOS_TERMINALES = new Set(['Aprobado', 'Desestimado']);

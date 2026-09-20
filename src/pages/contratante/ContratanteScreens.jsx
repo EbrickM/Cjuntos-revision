@@ -185,9 +185,9 @@ const solicitudesPymes = [
 ];
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
-const facturaBadge = e => ({ 'Recibida': 'orange', 'En revisión': 'yellow', 'Verificada': 'blue', 'IPI emitido': 'green', 'Pagada': 'green' }[e] ?? 'gray');
-const solicBadge   = e => ({ 'En revisión': 'yellow', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
-const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'yellow' : 'red';
+const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'IPI emitido': 'terra', 'Pagada': 'green' }[e] ?? 'gray');
+  const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
+  const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'amber' : 'red';
 const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
 const scoreColor   = n => n >= 750 ? GREEN : n >= 500 ? WARN : ERR;
 

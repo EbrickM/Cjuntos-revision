@@ -44,7 +44,7 @@ const header = (title, sub, right) => (
 );
 
 const estadoVariant = (estado) => (
-  estado === 'Pagada' ? 'green' : estado === 'Enviada' ? 'blue' : 'yellow'
+  estado === 'Pagada' ? 'green' : estado === 'Aprobada' ? 'terra' : estado === 'Enviada' ? 'blue' : 'amber'
 );
 
 const pesquisa = (rows, q, filtro) => {

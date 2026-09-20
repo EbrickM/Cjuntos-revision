@@ -24,12 +24,14 @@ export const ESTADO_LABEL_CT = {
   [CST.activo]:                 'Activo',
 };
 
-// Variante de Badge (ver src/components/ui/Badge.jsx) por estado.
+// Variante de Badge (ver src/components/ui/Badge.jsx) por estado. Cada estado
+// tiene una variante distinta (Anexo Digital MIC v1.0): proceso → revisión →
+// alerta, con Activo en el verde semántico de éxito.
 export const ESTADO_BADGE_CT = {
-  [CST.pendienteConfiguracion]: 'yellow',
-  [CST.pendienteRevision]:      'blue',
-  [CST.conRequerimientos]:      'orange',
-  [CST.enDiscusionTerminos]:    'red',
+  [CST.pendienteConfiguracion]: 'amber',
+  [CST.pendienteRevision]:      'orange',
+  [CST.conRequerimientos]:      'red',
+  [CST.enDiscusionTerminos]:    'brand',
   [CST.activo]:                 'green',
 };
 

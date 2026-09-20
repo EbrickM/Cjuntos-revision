@@ -36,11 +36,13 @@ const ctBadgeStyle = (estado) =>
   estado === 'Enviada'     ? { background: '#FDF6E8', color: '#C68A1D' } :
                              { background: '#F6F5F3', color: '#9CA3AF' };
 
-// Badge de estado de contrato (mismo criterio que los otros portales):
-// "Con Requerimientos" en naranja Bonafide, "Activo" en verde.
+// Badge de estado de contrato (mismo criterio que los otros portales): cada
+// estado del ciclo de vida con su color distinto (Anexo Digital MIC v1.0).
 const contratoBadge = (estado) =>
   estado === 'Activo' ? 'green' :
-  estado === 'Con Requerimientos' ? 'orange' : 'yellow';
+  estado === 'Con Requerimientos' ? 'red' :
+  estado === 'En Discusión de Términos' ? 'brand' :
+  estado === 'Pendiente de Revisión' ? 'orange' : 'amber';
 
 const InfoRow = ({ label, value }) => (
   <div>

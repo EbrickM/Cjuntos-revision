@@ -18,23 +18,7 @@ import FacturaContratanteModal from '../../components/invoices/FacturaContratant
 import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { contratoService } from '../../services/contrato.service';
-import { INV, estadoLabel } from '../../lib/invoiceStates';
-
-const BADGE_VARIANT = {
-  [INV.creada]: 'yellow',
-  [INV.enviada]: 'yellow',
-  [INV.enEvaluacion]: 'blue',
-  [INV.conCorrecciones]: 'yellow',
-  [INV.aprobada]: 'blue',
-  [INV.emitida]: 'orange',
-  [INV.conRequerimientos]: 'orange',
-  [INV.ordenFondeador]: 'orange',
-  [INV.fondeado]: 'orange',
-  [INV.otpEnviada]: 'orange',
-  [INV.otpVerificada]: 'orange',
-  [INV.pagada]: 'green',
-  [INV.billetera]: 'green',
-};
+import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 
 const BADGE_LABEL = {
   [INV.creada]: 'Creada',
@@ -298,7 +282,7 @@ export default function EpFacturacion() {
                         <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <Badge variant={BADGE_VARIANT[f.estado] ?? 'orange'}>{estadoLabel(f.estado)}</Badge>
+                        <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
                         <RequerimientoBadge factura={f} />
                       </div>
                     </div>

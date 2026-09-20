@@ -232,7 +232,7 @@ const proyectos = [
   { nombre: 'Mantenimiento Preventivo de Flota',  estado: 'En ejecución', riesgo: 'Bajo',  fin: '3 200 000 XAF'  },
 ];
 
-const estadoBadge = e => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
+const estadoBadge = e => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = r => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
 // ── Component ─────────────────────────────────────────────────────────────────

@@ -82,7 +82,7 @@ const empProyectos = [
   { nombre: 'Huella Cero 2027',        estado: 'Planificado',  riesgo: 'Bajo',  cert: 'Verde Neutro',   fin: 'XAF 200M' },
 ];
 
-const estadoBadge = (e) => e === 'En ejecución' ? 'blue' : e === 'Planificado' ? 'orange' : e === 'Finalizado' ? 'green' : 'yellow';
+const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
 export default function EmpESG() {

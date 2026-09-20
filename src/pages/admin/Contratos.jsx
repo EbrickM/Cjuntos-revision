@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import { contratoService } from '../../services/contrato.service';
+import { estadoBadge } from '../../lib/invoiceStates';
 
 const BANCO_FONDEADORES = ['Bonafide', 'VistaBank', 'CCEIBank', 'Vigifi Bange', 'ECOBank'];
 
@@ -38,12 +39,12 @@ const pct = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.
 // 'Con Requerimientos' y 'En Discusión de Términos' son las dos ramas de
 // rechazo del diagrama (Bonafide pide corrección / la PYME rechaza términos).
 const contractBadge = (estado) => ({
-  'Pendiente de Configuración': { variant: 'yellow', label: 'Pend. Configuración' },
-  'Pendiente de Revisión':      { variant: 'blue',   label: 'Pend. Revisión' },
-  'Con Requerimientos':         { variant: 'orange', label: 'Con Requerimientos' },
-  'En Discusión de Términos':   { variant: 'orange', label: 'En Discusión' },
-  'Activo':                     { variant: 'green',  label: 'Activo' },
-}[estado] ?? { variant: 'yellow', label: estado || 'Pendiente' });
+  'Pendiente de Configuración': { variant: 'amber', label: 'Pend. Configuración' },
+  'Pendiente de Revisión':      { variant: 'orange', label: 'Pend. Revisión' },
+  'Con Requerimientos':         { variant: 'red', label: 'Con Requerimientos' },
+  'En Discusión de Términos':   { variant: 'brand', label: 'En Discusión' },
+  'Activo':                     { variant: 'green', label: 'Activo' },
+}[estado] ?? { variant: 'amber', label: estado || 'Pendiente' });
 
 const ESTADOS_FILTRO = ['Todos', 'Pendiente de Configuración', 'Pendiente de Revisión', 'Con Requerimientos', 'En Discusión de Términos', 'Activo'];
 
@@ -605,7 +606,7 @@ export default function AdminContratos() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-[13px] font-bold text-text-1">{inv.id}</span>
-                      <Badge variant={inv.estado === 'Pagada' ? 'green' : inv.estado === 'Enviada' ? 'blue' : 'yellow'}>{inv.estado}</Badge>
+                      <Badge variant={estadoBadge(inv.estado)}>{inv.estado}</Badge>
                     </div>
                     <div className="text-[12px] text-text-3 truncate">{inv.concepto}</div>
                     {inv.tipo === 'proveedor' && inv.proveedor && (
