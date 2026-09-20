@@ -57,7 +57,7 @@ const pesquisa = (rows, q, filtro) => {
 
 const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, compact = false }) => (
   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
+    <div className={`relative ${compact ? 'w-full max-w-[380px]' : 'flex-1'}`}>
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
       <input
         value={value}

@@ -115,13 +115,13 @@ export default function AdminEmpresas() {
           </div>
 
           {/* Buscador */}
-          <div className="relative mb-4">
+          <div className="relative w-full max-w-[380px] mb-4">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por empresa, RUC, sector o contrato…"
-              className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
             />
           </div>
 
