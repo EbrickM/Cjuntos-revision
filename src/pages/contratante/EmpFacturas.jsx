@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle, Banknote, Send, ShieldCheck, Check, X, ChevronDown, Search, ListFilter, Building2,
+  CheckCircle, Banknote, Send, ShieldCheck, Check, X, ChevronDown, Search, ListFilter,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';

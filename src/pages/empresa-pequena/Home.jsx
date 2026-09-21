@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import { TrendingUp, Leaf, ChevronRight, CheckCircle, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -234,17 +235,63 @@ const proyectos = [
 const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
+// ── Score gauge — arco SVG de 270° estilo velocímetro ────────────────────────
+function ScoreGauge({ score, maxScore = 1000, color }) {
+  const R    = 52, C = 65;
+  const circ = 2 * Math.PI * R;
+  const arc  = circ * (270 / 360);   // 245.0 px — el tramo visible
+  const fill = arc  * (score / maxScore);
+  return (
+    <svg width="130" height="130" viewBox="0 0 130 130">
+      {/* Pista gris */}
+      <circle cx={C} cy={C} r={R} fill="none" stroke="#ECEAE7" strokeWidth="9"
+        strokeDasharray={`${arc} ${circ - arc}`} strokeLinecap="round"
+        transform={`rotate(135 ${C} ${C})`} />
+      {/* Arco relleno — crece junto con animScore */}
+      <circle cx={C} cy={C} r={R} fill="none" stroke={color} strokeWidth="9"
+        strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round"
+        transform={`rotate(135 ${C} ${C})`} />
+    </svg>
+  );
+}
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function EpHome() {
   const { go } = useApp();
-  const [tab, setTab]                 = useState('financiacion');
+  const [tab, setTab]                   = useState('financiacion');
   const [activityView, setActivityView] = useState('evolucion');
-  const [evoPeriodo, setEvoPeriodo] = useState(evolucionData.length);
-  const [evoMonto, setEvoMonto]     = useState(0);
+  const [evoPeriodo, setEvoPeriodo]     = useState(evolucionData.length);
+  const [evoMonto, setEvoMonto]         = useState(0);
   const [flujoPeriodo, setFlujoPeriodo] = useState(flujoData.length);
   const [flujoMonto, setFlujoMonto]     = useState(0);
-  const pctUsado      = Math.round((USADO  / LIMITE) * 100);
-  const pctDisponible = 100 - pctUsado;
+
+  // ── Contadores animados ───────────────────────────────────────────────────
+  const animLimite      = useCountUp(LIMITE,                1800, 200);
+  const animUsado       = useCountUp(USADO,                 1600, 400);
+  const animDisponible  = useCountUp(DISPONIBLE,            1600, 400);
+  const animScore       = useCountUp(SCORE,                 1500, 300);
+  const animSolXaf      = useCountUp(SOLICITUDES_XAF,      1400, 500);
+  const animFactMonto   = useCountUp(FACTURAS_TOTAL_MONTO, 1400, 350);
+
+  // Zona del score calculada sobre el valor animado — los colores cambian
+  // en tiempo real al cruzar los umbrales (Crítico → Alto → Medio → Bajo).
+  const animZone = animScore < 400 ? { label: 'Crítico', color: ERR  }
+    : animScore < 600              ? { label: 'Alto',    color: ORA  }
+    : animScore < 750              ? { label: 'Medio',   color: WARN }
+    :                                { label: 'Bajo',    color: GREEN };
+
+  const animPctUsado      = LIMITE > 0 ? Math.round((animUsado / LIMITE) * 100) : 0;
+  const animPctDisponible = 100 - animPctUsado;
+
+  // Clase de destello — derivada directamente; se activa al cruzar el umbral final
+  const scoreDone = animScore >= SCORE;
+
+  // Trigger para barras de riesgo: arranca en 0 y se anima al valor real
+  const [barsVisible, setBarsVisible] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setBarsVisible(true), 450);
+    return () => clearTimeout(id);
+  }, []);
 
   const evoWindowStart = evolucionData.length - evoPeriodo;
   const evolucionHasData = evolucionData.some((d, i) =>
@@ -327,9 +374,9 @@ export default function EpHome() {
                       MI BILLETERA
                     </p>
                     <div className="flex items-baseline gap-2 mb-4 max-[765px]:justify-center">
-                      <span className="font-extrabold text-text-1 leading-none"
+                      <span className="font-extrabold text-text-1 leading-none tabular-nums"
                             style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
-                        {new Intl.NumberFormat('de-DE').format(LIMITE)}
+                        {new Intl.NumberFormat('de-DE').format(animLimite)}
                       </span>
                       <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
@@ -347,7 +394,7 @@ export default function EpHome() {
                       <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
                             style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
-                        {FACTURAS_TOTAL_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_TOTAL_MONTO)} XAF
+                        {FACTURAS_TOTAL_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF
                       </span>
                     </div>
                   </div>
@@ -359,10 +406,10 @@ export default function EpHome() {
                         <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                       </div>
-                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1">
-                        {new Intl.NumberFormat('de-DE').format(USADO)} XAF
+                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1 tabular-nums">
+                        {new Intl.NumberFormat('de-DE').format(animUsado)} XAF
                       </p>
-                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{pctUsado}%</p>
+                      <p className="text-xs max-[765px]:text-sm tabular-nums" style={{ color: TEXT4 }}>{animPctUsado}%</p>
                     </div>
                     <div className="h-px w-full bg-border" />
                     <div>
@@ -370,10 +417,10 @@ export default function EpHome() {
                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                       </div>
-                      <p className="text-lg max-[765px]:text-xl font-extrabold" style={{ color: ORA }}>
-                        {new Intl.NumberFormat('de-DE').format(DISPONIBLE)} XAF
+                      <p className="text-lg max-[765px]:text-xl font-extrabold tabular-nums" style={{ color: ORA }}>
+                        {new Intl.NumberFormat('de-DE').format(animDisponible)} XAF
                       </p>
-                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{pctDisponible}%</p>
+                      <p className="text-xs max-[765px]:text-sm tabular-nums" style={{ color: TEXT4 }}>{animPctDisponible}%</p>
                     </div>
                   </div>
                 </div>
@@ -382,10 +429,19 @@ export default function EpHome() {
                 <div className="hidden lg:block w-px bg-border" />
                 <div className="lg:hidden h-px bg-border" />
 
-                {/* Score Crediticio — mismo formato prominente que en Mi Perfil */}
-                <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
+                {/* Score Crediticio — gauge SVG animado */}
+                <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
-                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: scoreZone.color }}>{SCORE}</p>
+                  {/* Gauge: el arco y el número cuentan juntos; el color cambia al cruzar umbrales */}
+                  <div className="relative w-[130px] h-[130px]">
+                    <ScoreGauge score={animScore} color={animZone.color} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`text-[40px] font-extrabold leading-none tabular-nums ${scoreDone ? 'score-settled' : ''}`}
+                            style={{ color: animZone.color }}>
+                        {animScore}
+                      </span>
+                    </div>
+                  </div>
                   <p className="text-[12px] text-text-4">
                     / 1000 · <span className="font-semibold" style={{ color: scoreZone.color }}>Riesgo {scoreZone.label}</span>
                   </p>
@@ -528,15 +584,19 @@ export default function EpHome() {
                     <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
                   </div>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2.5">
-                    {riesgoOps.map(r => (
+                    {riesgoOps.map((r, i) => (
                       <div key={r.label}>
                         <div className="flex justify-between items-center mb-1">
                           <span className="text-[10px] font-medium text-text-2">{r.label}</span>
                           <span className="text-[10px] font-bold tabular-nums" style={{ color: r.color }}>{r.pct}%</span>
                         </div>
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                          <div className="h-full rounded-full transition-all"
-                               style={{ background: r.color, width: `${r.pct}%` }} />
+                          <div className="h-full rounded-full"
+                               style={{
+                                 background: r.color,
+                                 width: barsVisible ? `${r.pct}%` : '0%',
+                                 transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 160}ms`,
+                               }} />
                         </div>
                       </div>
                     ))}
@@ -552,8 +612,8 @@ export default function EpHome() {
                     </div>
                     <p className="text-[40px] font-extrabold leading-none text-text-1 tabular-nums">{SOLICITUDES_PEND}</p>
                   </div>
-                  <p className="text-xs mb-3 font-medium" style={{ color: TEXT4 }}>
-                    {new Intl.NumberFormat('de-DE').format(SOLICITUDES_XAF)} XAF
+                  <p className="text-xs mb-3 font-medium tabular-nums" style={{ color: TEXT4 }}>
+                    {new Intl.NumberFormat('de-DE').format(animSolXaf)} XAF
                   </p>
                   <button onClick={() => go('epSolicitudes')} className="text-[12px] font-semibold flex items-center gap-1 cursor-pointer hover:opacity-75 transition"
                           style={{ color: ORA }}>
@@ -577,7 +637,7 @@ export default function EpHome() {
             {/* KPIs — cards blancas */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
               {envKpis.map(({ value, label, sub, Icon, iconColor, trend, tUp }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
+                <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
