@@ -69,7 +69,7 @@ export default function EmpContratos() {
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input

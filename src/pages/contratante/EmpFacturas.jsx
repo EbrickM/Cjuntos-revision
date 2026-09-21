@@ -138,17 +138,16 @@ export default function EmpFacturas() {
         {/* Filtros + Cards */}
         {/* Título + buscador + estado */}
         <SectionHeader
-            icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de PYMEs"
           />
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar factura, PYME, contrato…"
-                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
             <div className="relative flex items-center shrink-0">
@@ -156,7 +155,7 @@ export default function EmpFacturas() {
               <select
                 value={filtroEstado}
                 onChange={e => setFiltroEstado(e.target.value)}
-                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
                 style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
               >
                 {ESTADOS.map(e => <option key={e}>{e}</option>)}
