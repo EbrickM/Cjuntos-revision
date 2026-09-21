@@ -98,7 +98,7 @@ export const facturaService = {
     return this.listar().filter(f => f.tipoFactoring === 'inverso' && f.estado === INV.aprobada);
   },
 
-  // Bandeja del admin: IPIs emitidos pendientes de validación de Bonafide.
+  // Bandeja del Banco Fondeador: IPIs emitidos pendientes de validación.
   bandejaIpis() {
     return this.listar().filter(f => f.tipoFactoring === 'inverso' && f.estado === INV.emitida);
   },
@@ -298,7 +298,7 @@ export const facturaService = {
     return transicionarFactura(id, INV.pagada, 'La Empresa Contratante pagó la factura directamente (modalidad directa).');
   },
 
-  // ── Operaciones Admin / Bonafide ──
+  // ── Operaciones del Banco Fondeador ──
   validarIPI(id, { modalidadPago = MODALIDAD.retiroTotal, retencion = 0, gestionCobranza = 0, interes = 0, observacion = '' }) {
     return mutarFactura(id, (f) => {
       if (f.estado !== INV.emitida) return f;
@@ -307,10 +307,10 @@ export const facturaService = {
         ...f,
         estado: INV.conRequerimientos,
         modalidadPago,
-        requerimientos: { entidades: ['Bonafide'], mensaje: observacion || 'IPI validado.', fecha: hoy() },
+        requerimientos: { entidades: ['Banco Fondeador'], mensaje: observacion || 'IPI validado.', fecha: hoy() },
         condiciones: { retencion, gestionCobranza, interes, neto },
         pymeNotifico: false,
-        historia: [...(f.historia ?? []), evento('Validado por Bonafide', `IPI validado — modalidad ${modalidadPago === MODALIDAD.billeteraVirtual ? 'Billetera Virtual' : 'Retiro Total'}.`)],
+        historia: [...(f.historia ?? []), evento('Validado por el Banco Fondeador', `IPI validado — modalidad ${modalidadPago === MODALIDAD.billeteraVirtual ? 'Billetera Virtual' : 'Retiro Total'}.`)],
       };
     });
   },
@@ -324,8 +324,8 @@ export const facturaService = {
         ...f,
         estado: INV.conRequerimientos,
         pymeNotifico: false,
-        requerimientos: { entidades: ['Bonafide'], mensaje: (mensaje || '').trim() || 'Se señalaron requisitos a la factura.', fecha: hoy() },
-        historia: [...(f.historia ?? []), evento('Requerimiento enviado', 'Bonafide puso un requerimiento a la factura.')],
+        requerimientos: { entidades: ['Banco Fondeador'], mensaje: (mensaje || '').trim() || 'Se señalaron requisitos a la factura.', fecha: hoy() },
+        historia: [...(f.historia ?? []), evento('Requerimiento enviado', 'El Banco Fondeador puso un requerimiento a la factura.')],
       };
     });
   },

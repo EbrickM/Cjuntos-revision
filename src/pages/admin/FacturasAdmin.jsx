@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
-  Zap, Receipt, Wallet, CheckCircle,
-  Banknote, ShieldCheck, Search, ListFilter, Eye, MessageSquare, Send,
+  Receipt, Wallet, Banknote, Search, ListFilter, Eye,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -11,18 +10,17 @@ import Badge from '../../components/ui/Badge';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import { facturaService } from '../../services/factura.service';
-import { INV, MODALIDAD } from '../../lib/invoiceStates';
+import { INV } from '../../lib/invoiceStates';
 import { fmt } from '../../pages/empresa-pequena/epData';
 
-// ── Admin: Centro de Operaciones de Facturación (rol Bonafide/Fondeador) ──────
-// Bonafide valida IPIs, define la modalidad de desembolso y monitorea toda la
-// cadena. Los pasos del banco (Fondeo Recibido → OTP) los ejecuta el portal del
-// Banco Fondeador desde su bandeja de órdenes.
+// ── Admin: Centro de Operaciones de Facturación (rol Bonafide) ────────────────
+// Bonafide monitorea toda la cadena de facturación. La validación de IPIs y la
+// definición de la modalidad de desembolso las ejecuta el portal del Banco
+// Fondeador desde su bandeja de órdenes.
 // El diseño (stats, buscador+filtro, tablas por pestaña) es el mismo que el de
 // la sección Admin de Contratos.
 
 const TABS = [
-  { id: 'bandeja',  lbl: 'Bandeja IPIs', Icon: Zap },
   { id: 'facturas', lbl: 'Facturas',     Icon: Receipt },
   { id: 'billeteras', lbl: 'Billeteras', Icon: Wallet },
   { id: 'pagos',    lbl: 'Pagos y Cheques', Icon: Banknote },
@@ -30,13 +28,6 @@ const TABS = [
 
 const FILTROS_ESTADO = ['Todos', 'Enviada', 'En Evaluación', 'Emitida', 'Con Requerimientos', 'OTP Enviada', 'Pagada', 'Saldo en Billetera'];
 const FILTROS_ESTADO_KEY = { 'Enviada': INV.enviada, 'En Evaluación': INV.enEvaluacion, 'Emitida': INV.emitida, 'Con Requerimientos': INV.conRequerimientos, 'OTP Enviada': INV.otpEnviada, 'Pagada': INV.pagada, 'Saldo en Billetera': INV.billetera };
-
-const contratosCtx = {
-  'CT-2026-0041': { retencion: 3, gestionCobranza: 1.5, interes: 5 },
-  'CT-2026-0052': { retencion: 3, gestionCobranza: 1.5, interes: 5 },
-  'CT-2026-0021': { retencion: 2, gestionCobranza: 1, interes: 6 },
-  'CT-2026-0033': { retencion: 2.5, gestionCobranza: 1, interes: 5.5 },
-};
 
 const Header = ({ title, sub, Icon, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
@@ -81,24 +72,16 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
 );
 
 export default function FacturasAdmin() {
-  const [tab, setTab]                 = useState('bandeja');
+  const [tab, setTab]                 = useState('facturas');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
-  const [filtroBandeja, setFiltroBandeja] = useState('Todos');
   const [filtroBilletera, setFiltroBilletera] = useState('Todos');
   const [busqueda, setBusqueda]       = useState('');
   const [detalle, setDetalle]         = useState(null);
-  const [validando, setValidando]     = useState(null);
-  const [ponerReq, setPonerReq]       = useState(false);
-  const [reqMensaje, setReqMensaje]   = useState('');
-  const [requerimiento, setRequerimiento] = useState(null);
   const [detalleBilletera, setDetalleBilletera] = useState(null);
   const [detallePago, setDetallePago] = useState(null);
-  const [, setTick]                   = useState(0);
 
-  const bump = () => setTick(t => t + 1);
   const facturas = facturaService.listar();
 
-  const bandeja = facturas.filter(f => f.tipoFactoring === 'inverso' && f.estado === INV.emitida);
   const billeteras = facturaService.listarBilleteras();
   const pagos      = facturaService.listarPagos();
 
@@ -109,9 +92,6 @@ export default function FacturasAdmin() {
     ? facturas
     : facturas.filter(f => f.estado === FILTROS_ESTADO_KEY[filtroEstado]);
 
-  const bandejaFiltrada = bandeja
-    .filter(f => (filtroBandeja === 'Todos' ? true : f.estado === FILTROS_ESTADO_KEY[filtroBandeja]))
-    .filter(f => matchesQ(f, [f.id, f.ipi?.numero, f.pyme, f.contratante]));
   const facturasFiltradas = filtradas.filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]));
   const billeterasFiltradas = billeteras
     .filter(b => (filtroBilletera === 'Todos' ? true : (b.estado ?? INV.billetera) === FILTROS_ESTADO_KEY[filtroBilletera]))
@@ -119,47 +99,14 @@ export default function FacturasAdmin() {
   const pagosFiltrados = pagos.filter(p => matchesQ(p, [p.id, p.proveedor, p.facturaId]));
 
   const kpis = [
-    { value: facturas.filter(f => f.estado === INV.emitida).length, label: 'IPIs por validar', numCls: 'text-orange' },
+    { value: facturas.filter(f => f.estado === INV.ordenFondeador).length, label: 'Órdenes al Fondeador', numCls: 'text-orange' },
     { value: facturas.filter(f => ![INV.pagada, INV.billetera].includes(f.estado)).length, label: 'En proceso', numCls: 'text-blue-text' },
     { value: facturas.filter(f => f.estado === INV.pagada).length, label: 'Pagadas', numCls: 'text-green-text' },
     { value: fmt(billeteras.reduce((a, b) => a + (b.saldoDisponible ?? 0), 0)) + ' XAF', label: 'Saldo en Billetera', numCls: 'text-yellow-text' },
   ];
 
-  const handleConfirmarValidacion = (f, data) => {
-    facturaService.validarIPI(f.id, {
-      modalidadPago: data.modalidadPago,
-      retencion: data.retencion,
-      gestionCobranza: data.gestionCobranza,
-      interes: data.interes,
-      observacion: data.observacion,
-    });
-    setValidando(null);
-    bump();
-  };
-
-  const handlePonerRequerimiento = () => {
-    if (!detalle) return;
-    facturaService.ponerRequerimiento(detalle.id, reqMensaje);
-    setPonerReq(false);
-    setReqMensaje('');
-    setDetalle(null);
-    bump();
-  };
-
-  const handleConfirmarRequerimiento = (f, mensaje) => {
-    facturaService.ponerRequerimiento(f.id, mensaje);
-    setRequerimiento(null);
-    bump();
-  };
-
-  const handleCloseDetalle = () => {
-    setPonerReq(false);
-    setReqMensaje('');
-    setDetalle(null);
-  };
-
   return (
-    <AppShell active="adminFacturas" role="admin" title="Operaciones de Facturación" sub="Bonafide: valida IPIs, define modalidad y monitorea la cadena completa">
+    <AppShell active="adminFacturas" role="admin" title="Operaciones de Facturación" sub="Bonafide: monitorea la cadena completa de facturación">
       <div className="fade-in space-y-5">
 
         {/* Stats */}
@@ -183,85 +130,6 @@ export default function FacturasAdmin() {
             </button>
           ))}
         </div>
-
-        {/* ── Tab: Bandeja IPIs ── */}
-        {tab === 'bandeja' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <Header
-                title="IPIs pendientes de validación"
-                sub="Emitidos por las Contratantes; validá, aplicá la Matriz de Riesgo y definí la modalidad de desembolso."
-                Icon={ShieldCheck}
-                right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{bandeja.length} pendientes</span>}
-              />
-              <SearchBar
-                value={busqueda}
-                onChange={setBusqueda}
-                placeholder="Buscar…"
-                compact
-                withEstado
-                estado={filtroBandeja}
-                onEstado={setFiltroBandeja}
-                estados={FILTROS_ESTADO}
-              />
-
-              {/* Tabla */}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px]">
-                  <thead className="bg-page-bg">
-                    <tr className="border-b border-border">
-                      {['IPI', 'PYME', 'Contratante', 'Monto', 'Emisión', 'Estado', 'Detalle', 'Acción'].map((h, i) => (
-                        <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-3 py-3
-                          ${i === 0 ? 'text-left' : i === 3 ? 'text-right' : 'text-center'}
-                        `}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bandejaFiltrada.map(f => (
-                      <tr key={f.id} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <div className="text-[12px] font-bold text-text-1">{f.id}</div>
-                          <div className="text-[10px] font-mono text-text-4">{f.ipi?.numero}</div>
-                        </td>
-                        <td className="px-3 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
-                        <td className="px-3 py-3 text-[12px] text-text-4 max-w-[180px]">
-                          <span className="block truncate">{f.contratante}</span>
-                        </td>
-                        <td className="px-3 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
-                        <td className="px-3 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.ipi?.fechaEmision}</td>
-                        <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.emitida} /></td>
-                        <td className="px-3 py-3 text-center">
-                          <button onClick={() => setValidando(f)} title="Ver detalle"
-                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </td>
-                        <td className="px-3 py-3">
-                          <div className="flex items-center justify-center gap-1 whitespace-nowrap">
-                            <button onClick={() => setRequerimiento(f)} title="Poner requerimiento"
-                              className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                              <MessageSquare className="w-4 h-4" />
-                            </button>
-                            <button onClick={() => setValidando(f)} title="Validar IPI"
-                              className="p-1.5 rounded-[8px] hover:bg-green-bg transition text-green-text cursor-pointer">
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {bandejaFiltrada.length === 0 && (
-                      <tr>
-                        <td colSpan={8} className="px-4 py-8 text-center text-[12px] text-text-4">No hay IPIs pendientes que coincidan.</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ── Tab: Facturas (historial) ── */}
         {tab === 'facturas' && (
@@ -460,63 +328,17 @@ export default function FacturasAdmin() {
 
       </div>
 
-      {/* ── Modal: Validar IPI (Bonafide) ── */}
-      {validando && (
-        <ValidacionIpiModal
-          factura={validando}
-          onClose={() => setValidando(null)}
-          onConfirm={handleConfirmarValidacion}
-        />
-      )}
-
-      {/* ── Modal: Poner requerimiento (Bonafide) ── */}
-      {requerimiento && (
-        <RequerimientoIpiModal
-          factura={requerimiento}
-          onClose={() => setRequerimiento(null)}
-          onConfirm={handleConfirmarRequerimiento}
-        />
-      )}
-
       {/* ── Modal: Detalle de factura ── */}
       {detalle && (
         <InvoiceDetailModal
           factura={detalle}
-          onClose={handleCloseDetalle}
+          onClose={() => setDetalle(null)}
           footer={
             <>
-              <Button variant="ghost" size="sm" onClick={handleCloseDetalle}>Cerrar</Button>
-              {detalle.estado === INV.emitida && !ponerReq && (
-                <div className="flex items-center gap-2">
-                  <Button variant="secondary" size="sm" onClick={() => setPonerReq(true)}>
-                    <MessageSquare className="w-3.5 h-3.5 mr-1" />Poner requerimiento
-                  </Button>
-                  <Button variant="primary" size="sm" onClick={() => { const f = detalle; handleCloseDetalle(); setValidando(f); }}>
-                    <Zap className="w-3.5 h-3.5 mr-1" />Validar IPI
-                  </Button>
-                </div>
-              )}
+              <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
             </>
           }
-        >
-          {ponerReq && (
-            <div className="rounded-[12px] border border-orange/40 bg-orange-tint/10 p-4">
-              <div className="text-[12px] font-semibold text-text-1 mb-2">Poner requerimiento a la PYME</div>
-              <textarea
-                value={reqMensaje}
-                onChange={e => setReqMensaje(e.target.value)}
-                rows={3}
-                placeholder="Escribe el requerimiento que debe corregir la PYME…"
-                className="w-full rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none px-3 py-2 text-[13px] resize-none"
-              />
-              <div className="flex justify-end mt-3">
-                <Button variant="danger" size="sm" onClick={handlePonerRequerimiento} disabled={!reqMensaje.trim()}>
-                  <Send className="w-3.5 h-3.5 mr-1" />Enviar requerimiento
-                </Button>
-              </div>
-            </div>
-          )}
-        </InvoiceDetailModal>
+        />
       )}
 
       {/* ── Modal: Detalle de billetera virtual ── */}
@@ -537,141 +359,6 @@ export default function FacturasAdmin() {
         />
       )}
     </AppShell>
-  );
-}
-
-// ── Modal: poner requerimiento a la PYME desde la Bandeja IPIs ────────────────
-function RequerimientoIpiModal({ factura, onClose, onConfirm }) {
-  const [mensaje, setMensaje] = useState('');
-
-  return (
-    <Modal
-      title={`Poner requerimiento · ${factura.id}`}
-      onClose={onClose}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={() => onConfirm(factura, mensaje)} disabled={!mensaje.trim()}>
-            <Send className="w-3.5 h-3.5 mr-1" />Enviar
-          </Button>
-        </>
-      }
-    >
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <InfoRow label="PYME" value={factura.pyme} />
-          <InfoRow label="Contrato" value={factura.contrato} />
-          <InfoRow label="Monto IPI" value={`${fmt(factura.monto)} XAF`} />
-          <InfoRow label="Vence" value={factura.fechaVencimiento ?? '—'} />
-        </div>
-
-        <div>
-          <label className="text-[11px] text-text-4 mb-1 block">Mensaje para la PYME</label>
-          <textarea
-            value={mensaje}
-            onChange={e => setMensaje(e.target.value)}
-            rows={4}
-            placeholder="Escribe el requerimiento que debe corregir la PYME…"
-            className="w-full rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none px-3 py-2 text-[13px] resize-none"
-          />
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// ── Modal: validación del IPI con condiciones financieras ─────────
-function ValidacionIpiModal({ factura, onClose, onConfirm }) {
-  const ctx = contratosCtx[factura.contrato] ?? { retencion: 3, gestionCobranza: 1.5, interes: 5 };
-  const [modalidad] = useState(MODALIDAD.retiroTotal);
-  const [retencion, setRetencion] = useState(ctx.retencion);
-  const [gestion, setGestion]     = useState(ctx.gestionCobranza);
-  const [interes, setInteres]     = useState(ctx.interes);
-  const [observacion, setObservacion] = useState('');
-
-  const neto = Math.round(factura.monto * (1 - (retencion + gestion + interes) / 100));
-
-  return (
-    <Modal
-      title={`Validar IPI · ${factura.id}`}
-      onClose={onClose}
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="success" onClick={() => onConfirm(factura, { modalidadPago: modalidad, retencion, gestionCobranza: gestion, interes, observacion })}>
-            <CheckCircle className="w-3.5 h-3.5 mr-1" />Validar y enviar
-          </Button>
-        </>
-      }
-      wide
-    >
-      <div className="space-y-5">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <InfoRow label="PYME" value={factura.pyme} />
-          <InfoRow label="Contrato" value={factura.contrato} />
-          <InfoRow label="Monto IPI" value={`${fmt(factura.monto)} XAF`} />
-          <InfoRow label="Vence" value={factura.fechaVencimiento ?? '—'} />
-        </div>
-
-        <div>
-          <div className="text-[12px] font-semibold text-text-3 mb-2">Matriz de Riesgo (porcentajes)</div>
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="text-[11px] text-text-4 mb-1 block">Retención (%)</label>
-              <input type="number" value={retencion} min={0} max={50}
-                onChange={e => setRetencion(Number(e.target.value) || 0)}
-                className="w-full h-11 px-3 rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none text-[14px] font-semibold text-center" />
-            </div>
-            <div>
-              <label className="text-[11px] text-text-4 mb-1 block">Cobranza (%)</label>
-              <input type="number" value={gestion} min={0} max={50}
-                onChange={e => setGestion(Number(e.target.value) || 0)}
-                className="w-full h-11 px-3 rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none text-[14px] font-semibold text-center" />
-            </div>
-            <div>
-              <label className="text-[11px] text-text-4 mb-1 block">Interés (%)</label>
-              <input type="number" value={interes} min={0} max={50}
-                onChange={e => setInteres(Number(e.target.value) || 0)}
-                className="w-full h-11 px-3 rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none text-[14px] font-semibold text-center" />
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-[12px] border border-border p-4" style={{ background: '#F8F7F5' }}>
-          <div className="flex justify-between text-[12px] mb-1.5">
-            <span className="text-text-4">Monto del IPI</span>
-            <span className="font-semibold">{fmt(factura.monto)} XAF</span>
-          </div>
-          <div className="flex justify-between text-[12px] mb-1.5">
-            <span className="text-text-4">Retención</span>
-            <span className="font-semibold">− {fmt(factura.monto * retencion / 100)} XAF</span>
-          </div>
-          <div className="flex justify-between text-[12px] mb-1.5">
-            <span className="text-text-4">Gestión de cobranza</span>
-            <span className="font-semibold">− {fmt(factura.monto * gestion / 100)} XAF</span>
-          </div>
-          <div className="flex justify-between text-[12px] mb-2">
-            <span className="text-text-4">Intereses</span>
-            <span className="font-semibold">− {fmt(factura.monto * interes / 100)} XAF</span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-2.5">
-            <span className="text-[12px] font-semibold text-text-1">Monto a transferir</span>
-            <span className="text-[16px] font-extrabold text-green-text">{fmt(neto)} XAF</span>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-[11px] text-text-4 mb-1 block">Observación para la PYME (requerimiento)</label>
-          <input
-            type="text"
-            value={observacion}
-            onChange={e => setObservacion(e.target.value)}
-            placeholder="Condiciones de la validación…"
-            className="w-full h-11 px-3 rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none text-[13px]"
-          />
-        </div>
-      </div>
-    </Modal>
   );
 }
 
