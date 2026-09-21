@@ -50,7 +50,7 @@ export default function ProvSuministradores() {
         </div>
 
         {/* Header + buscador */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pl-5">
           <div>
             <p className="text-[13px] font-bold text-text-1">Suministradores contratados</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Score crediticio, fondo asignado y semáforo de riesgo</p>
@@ -61,13 +61,13 @@ export default function ProvSuministradores() {
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
               placeholder="Buscar suministrador o sector…"
-              className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
             />
           </div>
         </div>
 
         {/* Grid de Suministradores */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="rounded-[14px] px-5 pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedSuministradores.map((p, idx) => (
             <div
               key={p.nombre}

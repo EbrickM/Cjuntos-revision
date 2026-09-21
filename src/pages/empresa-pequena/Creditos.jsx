@@ -17,6 +17,7 @@ import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGrou
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
+import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { contratoService } from '../../services/contrato.service';
 
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
@@ -247,40 +248,38 @@ export default function EpCreditos() {
               ))}
             </div>
 
-            {/* Contenedor principal */}
-            <div className="rounded-[14px] p-5">
-
-              {/* Cabecera: título + buscador */}
-              <div className="mb-7">
-                <div className="mb-3">
-                  <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
-                  <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
+            {/* Título + buscador */}
+            <div>
+              <div className="mb-3">
+                <div className="text-[14px] font-bold text-text-1">Mis Contratos</div>
+                <div className="text-[12px] text-text-4">Contratos de crédito activos con tus contratantes.</div>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
+                <div className="relative flex-1 sm:max-w-xs">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Buscar contrato…"
+                    className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                  />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="relative flex-1 sm:flex-none">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Buscar contrato…"
-                      value={search}
-                      onChange={e => setSearch(e.target.value)}
-                      className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
-                    />
-                  </div>
-                  <div className="relative flex items-center shrink-0">
-                    <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-                    <select
-                      value={filtroEstado}
-                      onChange={e => setFiltroEstado(e.target.value)}
-                      className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                    >
-                      {ESTADOS.map(e => <option key={e}>{e}</option>)}
-                    </select>
-                  </div>
+                <div className="relative flex items-center shrink-0">
+                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+                  <select
+                    value={filtroEstado}
+                    onChange={e => setFiltroEstado(e.target.value)}
+                    className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                    style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+                  >
+                    {ESTADOS.map(e => <option key={e}>{e}</option>)}
+                  </select>
                 </div>
               </div>
+            </div>
 
-              {/* Grid de tarjetas */}
+            {/* Grid de tarjetas */}
+            <div className="rounded-[14px] px-5 pt-2 pb-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {pagedContracts.map((contract, idx) => {
                 const pctVal = parseFloat(pct(contract.asignado, contract.monto));

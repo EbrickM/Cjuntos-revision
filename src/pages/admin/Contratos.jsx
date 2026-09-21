@@ -8,8 +8,7 @@ import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import { contratoService } from '../../services/contrato.service';
 import { estadoBadge } from '../../lib/invoiceStates';
-
-const BANCO_FONDEADORES = ['Bonafide', 'VistaBank', 'CCEIBank', 'Vigifi Bange', 'ECOBank'];
+import { BANCO_FONDEADORES } from '../../lib/bancos';
 
 const EMPRESAS_CONTRATANTES = ['TotalEnerGE SA', 'Infraconst. SA', 'MinGE Sociedad Est.', 'AgroGE Holdings'];
 

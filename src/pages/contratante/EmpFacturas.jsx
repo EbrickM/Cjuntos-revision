@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle, Zap, Banknote, Send, ShieldCheck, X, ChevronDown, Search, ListFilter, Building2,
+  CheckCircle, Banknote, Send, ShieldCheck, Check, X, ChevronDown, Search, ListFilter, Building2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -11,6 +11,9 @@ import Button from '../../components/ui/Button';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import FondeadorOtpModal from '../../components/invoices/FondeadorOtpModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import RequerirButton from '../../components/invoices/RequerirButton';
+import AprobarButton from '../../components/invoices/AprobarButton';
+import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { facturaService } from '../../services/factura.service';
 import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 
@@ -32,7 +35,7 @@ const ESTADO_LABEL = {
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
     <div className="flex items-start gap-3">
       {Icon && (
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
@@ -50,8 +53,8 @@ const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action 
 
 // ── MIS FACTURAS (portal Contratante) ─────────────────────────────────────────
 // Fase 1 BPMN: la PYME emite → la Contratante evalúa/aprueba (o devuelve con
-// correcciones) → emite el IPI → Bonafide valida → la Contratante ordena al
-// Banco Fondeador y verifica la transferencia con OTP (Ruta A / Ruta B).
+// correcciones) → ordena al Banco Fondeador y verifica la transferencia con
+// OTP (Ruta A / Ruta B).
 export default function EmpFacturas() {
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda]         = useState('');
@@ -89,9 +92,9 @@ export default function EmpFacturas() {
       case INV.enviada:
         return { lbl: 'Evaluar factura', Icon: CheckCircle, handler: () => setEvaluando(f) };
       case INV.aprobada:
-        return f.tipoFactoring === 'inverso'
-          ? { lbl: 'Emitir IPI', Icon: Zap, handler: () => emitirIpi(f) }
-          : { lbl: 'Pagar ahora', Icon: Banknote, handler: () => pagarDirecta(f) };
+        return f.tipoFactoring === 'directo'
+          ? { lbl: 'Pagar ahora', Icon: Banknote, handler: () => pagarDirecta(f) }
+          : null;
       case INV.conRequerimientos:
         return (f.pymeNotifico)
           ? { lbl: 'Enviar al Fondeador', Icon: Send, handler: () => enviarFondeador(f) }
@@ -103,9 +106,6 @@ export default function EmpFacturas() {
     }
   };
 
-  const emitirIpi = (f) => {
-    facturaService.emitirIPI(f.id); bump();
-  };
   const pagarDirecta = (f) => {
     facturaService.pagarDirecta(f.id); bump();
   };
@@ -120,7 +120,7 @@ export default function EmpFacturas() {
   };
 
   return (
-    <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas — evalúa y emite el IPI" back>
+    <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas — evalúa y aprueba el pago" back>
       <div className="fade-in space-y-5">
 
         {/* KPI cards */}
@@ -136,21 +136,20 @@ export default function EmpFacturas() {
         </div>
 
         {/* Filtros + Cards */}
-        <div className="rounded-[14px] p-5">
-          {/* Título + buscador + estado */}
-          <SectionHeader
+        {/* Título + buscador + estado */}
+        <SectionHeader
             icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de PYMEs"
-            subtitle="La PYME emite → la Contratante evalúa → IPI → orden de fondeo. Bonafide valida el IPI."
+            subtitle="La PYME emite → la Contratante evalúa y aprueba el pago."
           />
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar factura, PYME, contrato…"
-                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
             <div className="relative flex items-center shrink-0">
@@ -158,7 +157,8 @@ export default function EmpFacturas() {
               <select
                 value={filtroEstado}
                 onChange={e => setFiltroEstado(e.target.value)}
-                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
               >
                 {ESTADOS.map(e => <option key={e}>{e}</option>)}
               </select>
@@ -205,12 +205,18 @@ export default function EmpFacturas() {
                       Acción requerida
                     </span>
                   ) : <span />}
-                  <button
-                    onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
-                  >
-                    Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
-                  </button>
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {f.estado === INV.enviada && (
+                      <AprobarButton onClick={() => setEvaluando(f)} />
+                    )}
+                    <RequerirButton factura={{ id: f.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(f.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
+                    <button
+                      onClick={e => { e.stopPropagation(); setDetalle(f); }}
+                      className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
+                    >
+                      Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -220,7 +226,6 @@ export default function EmpFacturas() {
           )}
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
-        </div>
         </div>
 
       </div>
@@ -236,11 +241,18 @@ export default function EmpFacturas() {
             footer={
               <>
                 <Button variant="ghost" size="sm" onClick={closeModal}>Cerrar</Button>
-                {a && (
-                  <Button variant="primary" size="sm" onClick={a.handler}>
-                    <a.Icon className="w-3.5 h-3.5 mr-1" />{a.lbl}
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  <RequerirButton label="Poner requerimientos" factura={{ id: viva.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(viva.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
+                  {viva.estado === INV.enviada ? (
+                    <Button variant="success" size="sm" onClick={() => setEvaluando(viva)}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Aprobar factura
+                    </Button>
+                  ) : a && (
+                    <Button variant="primary" size="sm" onClick={a.handler}>
+                      <a.Icon className="w-3.5 h-3.5 mr-1" />{a.lbl}
+                    </Button>
+                  )}
+                </div>
               </>
             }
           />
@@ -277,7 +289,7 @@ function EvaluarFacturaModal({ factura, onClose, onResult }) {
   const [motivo, setMotivo]     = useState('');
   const esInverso               = factura.tipoFactoring === 'inverso';
   const accionText = opcion === 'aprobar'
-    ? (esInverso ? 'Aprobar y preparar IPI' : 'Aprobar y pagar')
+    ? 'Aprobar y preparar pago'
     : 'Devolver con correcciones';
 
   return (

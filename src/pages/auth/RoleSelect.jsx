@@ -5,19 +5,6 @@ import { Briefcase, Building2, Truck } from 'lucide-react';
 
 const roles = [
   {
-    id: 'epHome',
-    Icon: Briefcase,
-    gradient: 'from-[#EF7A2C] to-[#FF9800]',
-    badge: 'Empresa financiada',
-    title: 'Empresa PYME',
-    subtitle: 'Pequeña y Mediana Empresa',
-    description:
-      'Accede a financiamiento, gestiona tus contratos de crédito y distribuye fondos dentro de la red Bonafide Microbank.',
-
-    buttonLabel: 'Acceder como PYME',
-    buttonVariant: 'primary',
-  },
-  {
     id: 'empDash',
     Icon: Building2,
     gradient: 'from-[#ef7a2c] to-[#FF9800]',
@@ -28,6 +15,19 @@ const roles = [
       'Gestiona tus contratos, emite contratos y administra la distribución de fondos entre las empresas de tu cadena.',
 
     buttonLabel: 'Acceder como Contratante',
+    buttonVariant: 'primary',
+  },
+  {
+    id: 'epHome',
+    Icon: Briefcase,
+    gradient: 'from-[#EF7A2C] to-[#FF9800]',
+    badge: 'Empresa financiada',
+    title: 'Empresa PYME',
+    subtitle: 'Pequeña y Mediana Empresa',
+    description:
+      'Accede a financiamiento, gestiona tus contratos de crédito y distribuye fondos dentro de la red Bonafide Microbank.',
+
+    buttonLabel: 'Acceder como PYME',
     buttonVariant: 'primary',
   },
   {

@@ -278,8 +278,7 @@ export default function EpMisProveedores() {
         </div>
 
         {/* Directorio */}
-        <div className="rounded-[14px] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 pl-5">
             <div>
               <div className="text-[14px] font-bold text-text-1">Directorio</div>
               <div className="text-[12px] text-text-4">Todos los proveedores registrados en tu cuenta.</div>
@@ -291,12 +290,12 @@ export default function EpMisProveedores() {
                 placeholder="Buscar proveedor…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[10px] border border-border bg-page-bg focus:outline-none focus:border-orange/50 transition placeholder:text-text-4"
+                className="h-8 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder:text-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="rounded-[14px] px-5 pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {pagedProviders.map((p, idx) => {
               const kycStyle = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
               const sStyle   = scoreStyle(p.scoreCredito);
@@ -380,7 +379,6 @@ export default function EpMisProveedores() {
 
             <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
-        </div>
       </div>
 
       {/* Modal nuevo / editar proveedor */}

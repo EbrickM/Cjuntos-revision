@@ -9,6 +9,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow } from './contratanteShared';
+import { BANCO_FONDEADORES } from '../../lib/bancos';
 import { montoDisponibleMarco, pymes, fmt } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
 
@@ -68,7 +69,7 @@ export default function EmpConfigurarContrato() {
 
   const [step, setStep]               = useState(0);
   const [cuentaTipo, setCuentaTipo]   = useState(marco?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaNumero, setCuentaNumero] = useState(marco?.cuentaBancaria?.numero ?? '');
+  const [cuentaBanco, setCuentaBanco] = useState(marco?.cuentaBancaria?.numero ?? '');
   const [asignaciones, setAsignaciones] = useState(marco?.pymesAsignadas ?? []);
   const [modal, setModal]             = useState(ASIGNACION_EMPTY);
   const [confirmado, setConfirmado]   = useState(false);
@@ -147,7 +148,7 @@ export default function EmpConfigurarContrato() {
       contratoService.configurar(marco.id, {
         cuentaBancaria: cuentaTipo === 'bonafide'
           ? { tipo: 'bonafide', numero: null }
-          : { tipo: 'fondeador', numero: cuentaNumero },
+          : { tipo: 'fondeador', numero: cuentaBanco },
         pymesAsignadas: asignaciones,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
@@ -155,7 +156,7 @@ export default function EmpConfigurarContrato() {
   };
 
   const siguienteDeshabilitado =
-    (step === 0 && cuentaTipo === 'fondeador' && !cuentaNumero.trim()) ||
+    (step === 0 && cuentaTipo === 'fondeador' && !cuentaBanco) ||
     (step === 1 && asignaciones.length === 0);
 
   // ── Pantalla de éxito ──
@@ -213,12 +214,15 @@ export default function EmpConfigurarContrato() {
                   <input type="radio" name="cuenta" checked={cuentaTipo === 'fondeador'} onChange={() => setCuentaTipo('fondeador')} className="w-4 h-4 accent-orange shrink-0" />
                   <div>
                     <div className="text-[13px] font-semibold text-text-1">Cuenta en mi Banco Fondeador</div>
-                    <div className="text-[12px] text-text-4">Operar con la cuenta de {marco.bancoFondeador}.</div>
+                    <div className="text-[12px] text-text-4">Selecciona el banco de tu cuenta para operar este contrato.</div>
                   </div>
                 </label>
                 {cuentaTipo === 'fondeador' && (
-                  <FormGroup label="Número de cuenta" required className="mt-2 mb-0">
-                    <Input value={cuentaNumero} onChange={e => setCuentaNumero(e.target.value)} placeholder="Ej. GQ00 0000 0000 0000" />
+                  <FormGroup label="Banco" required className="mt-2 mb-0">
+                    <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
+                      <option value="">Seleccionar…</option>
+                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
+                    </Select>
                   </FormGroup>
                 )}
               </div>
@@ -287,7 +291,7 @@ export default function EmpConfigurarContrato() {
               <StepHeader icon={ClipboardCheck} title="Revisión y envío" subtitle="Confirma los datos antes de enviarlos a Bonafide" />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                <InfoRow label="Cuenta bancaria" value={cuentaTipo === 'bonafide' ? 'Cuenta Bonafide existente' : `Banco Fondeador · ${cuentaNumero || '—'}`} />
+                <InfoRow label="Cuenta bancaria" value={cuentaTipo === 'bonafide' ? 'Cuenta Bonafide existente' : `Banco Fondeador · ${cuentaBanco || '—'}`} />
                 <InfoRow label="PYMEs agregadas" value={String(asignaciones.length)} />
               </div>
 

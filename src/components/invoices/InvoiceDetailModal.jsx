@@ -1,12 +1,11 @@
 // ── Modal de detalle de factura (unificado para todos los portales) ──────────
-// Muestra los datos de la factura + timeline de su historia (BPMN) y permite
+// Muestra los datos de la factura + historial (timeline vertical) y permite
 // al llamador inyectar acciones en el footer según su rol y estado.
 import { FileText, Landmark, Percent } from 'lucide-react';
 import Modal from '../ui/Modal';
 import InfoRow from '../ui/InfoRow';
 import Timeline from '../ui/Timeline';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
-import InvoicePipeline from './InvoicePipeline';
 import { fmt } from '../../pages/empresa-pequena/epData';
 
 function TimelineItem({ h }) {
@@ -72,6 +71,21 @@ export default function InvoiceDetailModal({ factura, title, onClose, footer, ch
           </div>
         )}
 
+        {f.requerimientosEnviados && f.requerimientosEnviados.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Requerimientos enviados</div>
+            {f.requerimientosEnviados.map((r, i) => (
+              <div key={i} className="rounded-[12px] p-3 border" style={{ background: '#FDF6E8', borderColor: 'rgba(239,122,44,0.25)' }}>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-orange">{r.emisor}</span>
+                  <span className="text-[10px]" style={{ color: '#A9A6A1' }}>{r.fecha}</span>
+                </div>
+                <p className="text-[12px] text-text-1 leading-relaxed">{r.mensaje}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {f.condiciones && (
           <div className="rounded-[12px] border border-border p-4">
             <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#A9A6A1' }}>
@@ -121,8 +135,7 @@ export default function InvoiceDetailModal({ factura, title, onClose, footer, ch
         )}
 
         <div>
-          <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Recorrido (BPMN)</div>
-          <InvoicePipeline factura={f} className="mb-4" />
+          <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-2">Historial</div>
           {timeline.length > 0 ? (
             <Timeline items={timeline} />
           ) : (

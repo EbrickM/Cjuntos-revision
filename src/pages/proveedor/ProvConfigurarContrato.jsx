@@ -10,6 +10,7 @@ import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
 import { contratoService } from '../../services/contrato.service';
+import { BANCO_FONDEADORES } from '../../lib/bancos';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
@@ -66,7 +67,7 @@ export default function ProvConfigurarContrato() {
 
   const [step, setStep]                 = useState(0);
   const [cuentaTipo, setCuentaTipo]     = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaNumero, setCuentaNumero] = useState(contrato?.cuentaBancaria?.numero ?? '');
+  const [cuentaBanco, setCuentaBanco]   = useState(contrato?.cuentaBancaria?.numero ?? '');
   const [suministradores, setSuministradores] = useState(contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
   const [confirmado, setConfirmado]     = useState(false);
@@ -142,7 +143,7 @@ export default function ProvConfigurarContrato() {
       contratoService.configurar(contrato.id, {
         cuentaBancaria: cuentaTipo === 'bonafide'
           ? { tipo: 'bonafide', numero: null }
-          : { tipo: 'banco', numero: cuentaNumero },
+          : { tipo: 'banco', numero: cuentaBanco },
         suministradoresAsignados: suministradores,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
@@ -150,7 +151,7 @@ export default function ProvConfigurarContrato() {
   };
 
   const siguienteDeshabilitado =
-    (step === 0 && cuentaTipo === 'banco' && !cuentaNumero.trim()) ||
+    (step === 0 && cuentaTipo === 'banco' && !cuentaBanco) ||
     (step === 1 && suministradores.length === 0);
 
   // ── Pantalla de éxito ──
@@ -198,12 +199,15 @@ export default function ProvConfigurarContrato() {
                   <input type="radio" name="cuenta" checked={cuentaTipo === 'banco'} onChange={() => setCuentaTipo('banco')} className="w-4 h-4 accent-orange shrink-0" />
                   <div>
                     <div className="text-[13px] font-semibold text-text-1">Cuenta en mi Banco</div>
-                    <div className="text-[12px] text-text-4">Operar con el número de cuenta bancaria de tu propio banco.</div>
+                    <div className="text-[12px] text-text-4">Selecciona tu banco para operar con tu cuenta.</div>
                   </div>
                 </label>
                 {cuentaTipo === 'banco' && (
-                  <FormGroup label="Número de cuenta" required className="mt-2 mb-0">
-                    <Input value={cuentaNumero} onChange={e => setCuentaNumero(e.target.value)} placeholder="Ej. GQ00 0000 0000 0000" />
+                  <FormGroup label="Banco" required className="mt-2 mb-0">
+                    <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
+                      <option value="">Seleccionar…</option>
+                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
+                    </Select>
                   </FormGroup>
                 )}
               </div>

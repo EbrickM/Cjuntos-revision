@@ -191,6 +191,55 @@ export const facturaService = {
     });
   },
 
+  // Aprobación directa de una factura por quien la posee (PYME o Proveedor):
+  // salta la evaluación de la Contratante y marca la factura `aprobada`.
+  aprobar(id, { actor = 'La PYME', detalle = '' } = {}) {
+    return mutarFactura(id, (f) => ({
+      ...f,
+      estado: INV.aprobada,
+      fechaAprobacion: hoy(),
+      aprobadaPor: actor,
+      historia: [...(f.historia ?? []), evento('Factura aprobada', detalle || `${actor} aprobó la factura.`)],
+    }));
+  },
+
+  // La PYME aprueba una factura de proveedor: emite una factura nueva al
+  // Contratante (origen 'contratante', ya aprobada) que aparece en el listado
+  // de la PYME y como factura nueva aprobada en el portal del Contratante.
+  aprobarFacturaDeProveedor(pr = {}) {
+    const contrato = pr?.contrato ? contratoService.obtener(pr.contrato) : null;
+    const nueva = this.crear({
+      contrato: pr?.contrato,
+      contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
+      pyme: 'Const. Silva Ltd.',
+      proveedor: pr?.proveedorNombre ?? pr?.suministrador ?? null,
+      tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
+      monto: Number(pr?.monto) || 0,
+      concepto: pr?.concepto ?? '',
+      fecha: pr?.fecha ?? hoy(),
+      fechaVencimiento: pr?.fechaVencimiento ?? null,
+      documentos: pr?.documento ? [{ name: pr.documento.name, url: pr.documento.url }] : [],
+      facturaOrigen: pr?.id,
+      aprobadaPor: 'La PYME',
+    });
+    return this.aprobar(nueva.id, { actor: 'La PYME', detalle: `La PYME aprobó la factura de proveedor ${pr?.id ?? ''}.`.trim() });
+  },
+
+  // Registra un requerimiento en la factura (sin cambiar su estado): queda en
+  // la historia y visible para todas las partes en el detalle.
+  enviarRequerimiento(id, { mensaje = '', emisor = 'Contratante' } = {}) {
+    const txt = (mensaje || '').trim();
+    if (!txt) return this.obtener(id);
+    return mutarFactura(id, (f) => {
+      const previos = Array.isArray(f.requerimientosEnviados) ? f.requerimientosEnviados : [];
+      return {
+        ...f,
+        requerimientosEnviados: [{ mensaje: txt, emisor, fecha: hoy() }, ...previos],
+        historia: [...(f.historia ?? []), evento('Requerimiento enviado', `${emisor} envió un requerimiento a la factura.`)],
+      };
+    });
+  },
+
   // ── Operaciones Contratante ──
   evaluar(id, { aprobada, motivo = '', plazoPago = 30 }) {
     if (aprobada) {

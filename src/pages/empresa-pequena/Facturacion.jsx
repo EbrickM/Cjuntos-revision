@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import {
-  Pencil, Trash2, Building2, Upload, Paperclip, Search, Send, BadgeCheck, Wallet as WalletIcon, X, ChevronDown, ListFilter,
+  Building2, Upload, Paperclip, Search, Send, BadgeCheck, Check, Wallet as WalletIcon, X, ChevronDown, ListFilter,
 } from 'lucide-react';
 import { localDb } from '../../lib/localDb';
 import AppShell from '../../components/layout/AppShell';
@@ -11,11 +11,15 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
+import InfoRow from '../../components/ui/InfoRow';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import RequerirButton from '../../components/invoices/RequerirButton';
+import AprobarButton from '../../components/invoices/AprobarButton';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
+import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { facturaService } from '../../services/factura.service';
 import { contratoService } from '../../services/contrato.service';
 import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
@@ -52,10 +56,16 @@ const initialInvoicesPr = [
     fecha: '10/07/2026', fechaVencimiento: '10/08/2026', documento: null },
 ];
 
-const SELECT_ARROW = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`;
+const hoy = () => new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+const prEstadoStyle = (estado) =>
+  estado === 'Pagada'   ? { background: '#E3F4EA', color: '#2E7D5B' } :
+  estado === 'Aprobada' ? { background: '#E3F4EA', color: '#2E7D5B' } :
+  estado === 'Vencida'  ? { background: '#FDEEEB', color: '#B8352A' } :
+  { background: '#FDF6E8', color: '#C68A1D' };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
     <div className="flex items-start gap-3">
       {Icon && (
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
@@ -80,6 +90,7 @@ export default function EpFacturacion() {
   const [ctModal, setCtModal]        = useState(INIT_CT_EMPTY);
   const [prModal, setPrModal]        = useState(INIT_CT_EMPTY);
   const [detalle, setDetalle]        = useState(null);
+  const [prDetalle, setPrDetalle]    = useState(null);
   const [confirmEnvio, setConfirmEnvio] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [filtroEstadoPr, setFiltroEstadoPr] = useState('Todos');
@@ -123,8 +134,6 @@ export default function EpFacturacion() {
     switch (f.estado) {
       case INV.creada:
         return { lbl: 'Enviar a la Contratante', Icon: Send, handler: () => setConfirmEnvio(f) };
-      case INV.conCorrecciones:
-        return { lbl: 'Corregir y reenviar', Icon: BadgeCheck, handler: () => openEditCt(f) };
       case INV.conRequerimientos:
         return (f.pymeNotifico)
           ? null
@@ -134,6 +143,19 @@ export default function EpFacturacion() {
       default:
         return null;
     }
+  };
+
+  // En "Facturas al Contratante" la PYME ni aprueba ni envía requerimientos:
+  // esos acciones solo existen en "Facturas de Proveedores" (aprobarlas genera
+  // la factura al Contratante). La define en esa vista con sus botones propios.
+
+  const enviarReqPr = (inv, mensaje) => {
+    const keep = localDb.get('ep_invoices_pr', initialInvoicesPr, 1);
+    const next = keep.map(x => x.id === inv.id
+      ? { ...x, requerimientos: [{ mensaje, emisor: 'La PYME', fecha: hoy() }, ...(x.requerimientos ?? [])] }
+      : x);
+    localDb.set('ep_invoices_pr', next);
+    setInvoicesPr(next);
   };
 
   // â”€â”€ CT handlers (mediante factura.service sobre localDb) â”€â”€
@@ -161,11 +183,6 @@ export default function EpFacturacion() {
     bump();
   };
 
-  const openEditCt = (f) => setCtModal({
-    open: true, editId: f.id, contratoId: f.contrato, monto: String(f.monto), concepto: f.concepto || '',
-    fechaVencimiento: f.fechaVencimiento || '', documento: null,
-  });
-
   const handleSavePr = () => {
     const monto = Number(prModal.monto.replace?.(/[^0-9]/g, '') ?? prModal.monto) || 0;
     if (monto <= 0 || !prModal.proveedorId || !prModal.contratoId) return;
@@ -190,6 +207,21 @@ export default function EpFacturacion() {
     setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
   };
 
+  // ── Aprobar factura de proveedor ──
+  // Marca la factura del proveedor como aprobada y emite la factura nueva al
+  // Contratante (origen 'contratante'): aparece en "Facturas al Contratante"
+  // de la PYME y como factura nueva aprobada en el portal del Contratante.
+  const aprobarPr = (inv) => {
+    const keep = localDb.get('ep_invoices_pr', initialInvoicesPr, 1);
+    const invivo = keep.find(x => x.id === inv.id);
+    if (!invivo || invivo.estado === 'Aprobada') return;
+    facturaService.aprobarFacturaDeProveedor(invivo);
+    const next = keep.map(x => x.id === inv.id ? { ...x, estado: 'Aprobada' } : x);
+    localDb.set('ep_invoices_pr', next);
+    setInvoicesPr(next);
+    setFacturas(facturaService.listarPorRol('empresa-pequena'));
+  };
+
   return (
     <AppShell active="epFacturacion" role="empresa-pequena" title="Mis Facturas" sub="Gestión de facturas de todos los contratos activos" back>
       <div className="fade-in space-y-5">
@@ -207,13 +239,12 @@ export default function EpFacturacion() {
         </div>
 
         {/* Mis facturas: Contratante / Proveedores */}
-        <div className="rounded-[14px] p-5">
-          <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
+        <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title={vista === 'contratante' ? 'Facturas al Contratante' : 'Facturas de Proveedores'}
             subtitle={
               vista === 'contratante'
                 ? 'La PYME emite al contratante la factura ipi o Billetera/Pago. Bonafide valida el IPI.'
-                : 'Recibidas de proveedores. Importadas para control interno de pagos.'
+                : 'Recibidas de proveedores. Al aprobarlas, se genera la factura al Contratante.'
             }
             action={
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
@@ -222,7 +253,7 @@ export default function EpFacturacion() {
                   <select
                     value={vista}
                     onChange={e => setVista(e.target.value)}
-                    className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                    className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
                     style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
                   >
                     <option value="contratante">Facturas al contratante</option>
@@ -240,14 +271,14 @@ export default function EpFacturacion() {
           />
 
           {/* Filtros: bÃºsqueda + estado */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={vista === 'contratante' ? searchCT : searchPr}
                 onChange={e => vista === 'contratante' ? setSearchCT(e.target.value) : setSearchPr(e.target.value)}
-                placeholder={vista === 'contratante' ? 'Buscar factura, contrato, PYMEâ€¦' : 'Buscar por , proveedor o concepto'}
-                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+                placeholder={vista === 'contratante' ? 'Buscar factura o contrato, ' : 'Buscar por , proveedor o concepto'}
+                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
             <div className="relative flex items-center shrink-0">
@@ -255,7 +286,7 @@ export default function EpFacturacion() {
               <select
                 value={vista === 'contratante' ? filtroEstado : filtroEstadoPr}
                 onChange={e => vista === 'contratante' ? setFiltroEstado(e.target.value) : setFiltroEstadoPr(e.target.value)}
-                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
                 style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
               >
                 {(vista === 'contratante' ? ESTADOS : ESTADOS_PR).map(e => <option key={e}>{e}</option>)}
@@ -264,6 +295,7 @@ export default function EpFacturacion() {
           </div>
 
           {/* Cards de facturas */}
+          <div className="rounded-[14px] px-5 pt-2 pb-5">
           {vista === 'contratante' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
               {pagedCT.map((f, idx) => {
@@ -307,12 +339,14 @@ export default function EpFacturacion() {
                           Acción requerida
                         </span>
                       ) : <span />}
-                      <button
-                        onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                        className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
-                      >
-                        Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
-                      </button>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          onClick={e => { e.stopPropagation(); setDetalle(f); }}
+                          className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
+                        >
+                          Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -325,12 +359,10 @@ export default function EpFacturacion() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
               {pagedPR.map((inv, idx) => {
-                const estadoStyle =
-                  inv.estado === 'Pagada'  ? { background: '#E3F4EA', color: '#2E7D5B' } :
-                  inv.estado === 'Vencida' ? { background: '#FDEEEB', color: '#B8352A' } :
-                  { background: '#FDF6E8', color: '#C68A1D' };
+                const estilo = prEstadoStyle(inv.estado);
                 return (
                   <div key={inv.id}
+                       onClick={() => setPrDetalle(inv)}
                        className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
                        style={{ animationDelay: `${(idx % 8) * 50}ms` }}>
                     <div className="flex items-start justify-between gap-2">
@@ -339,7 +371,7 @@ export default function EpFacturacion() {
                         <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{inv.fecha}</p>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={estilo}>{inv.estado}</span>
                         {inv.documento && (
                           <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>
                         )}
@@ -357,18 +389,23 @@ export default function EpFacturacion() {
                       <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(inv.monto)}</div>
                     </div>
 
-                    <div className="mt-auto pt-1 flex items-center justify-end gap-1">
-                      <button onClick={() => setPrModal({
-                        open: true, editId: inv.id, contratoId: inv.contrato, proveedorId: inv.proveedorId || '', monto: inv.monto.toString(),
-                        concepto: inv.concepto || '', fecha: inv.fecha || '', fechaVencimiento: inv.fechaVencimiento || '', documento: inv.documento || null,
-                      })}
-                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => {
-                        const rest = localDb.get('ep_invoices_pr', initialInvoicesPr, 1).filter(x => x.id !== inv.id);
-                        localDb.set('ep_invoices_pr', rest);
-                        setInvoicesPr(localDb.get('ep_invoices_pr', initialInvoicesPr, 1));
-                      }}
-                        className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <div className="mt-auto pt-1 flex items-center justify-between">
+                      {inv.estado === 'Pendiente' ? (
+                        <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
+                          <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
+                          Por aprobar
+                        </span>
+                      ) : <span />}
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        {inv.estado === 'Pendiente' && (
+                          <AprobarButton onClick={() => aprobarPr(inv)} />
+                        )}
+                        <RequerirButton factura={{ id: inv.id }} emisor="La PYME" onEnviar={(msg) => enviarReqPr(inv, msg)} />
+                        <button onClick={e => { e.stopPropagation(); setPrDetalle(inv); }}
+                          className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange">
+                          Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -442,11 +479,13 @@ export default function EpFacturacion() {
             footer={
               <>
                 <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
-                {a && (
-                  <Button variant="primary" size="sm" onClick={a.handler}>
-                    <a.Icon className="w-3.5 h-3.5 mr-1" />{a.lbl}
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  {a && (
+                    <Button variant="primary" size="sm" onClick={a.handler}>
+                      <a.Icon className="w-3.5 h-3.5 mr-1" />{a.lbl}
+                    </Button>
+                  )}
+                </div>
               </>
             }
           />
@@ -521,6 +560,69 @@ export default function EpFacturacion() {
           </div>
         </Modal>
       )}
+
+      {/* ── Modal: Detalle de factura de Proveedor ── */}
+      {prDetalle && (() => {
+        const inv = invoicesPr.find(x => x.id === prDetalle.id) ?? prDetalle;
+        const estilo = prEstadoStyle(inv.estado);
+        return (
+          <Modal
+            title={`Factura de Proveedor · ${inv.id}`}
+            onClose={() => setPrDetalle(null)}
+            footer={
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setPrDetalle(null)}>Cerrar</Button>
+                <div className="flex items-center gap-2">
+                  <RequerirButton label="Poner requerimientos" factura={{ id: inv.id }} emisor="La PYME" onEnviar={(msg) => enviarReqPr(inv, msg)} />
+                  {inv.estado === 'Pendiente' && (
+                    <Button variant="success" size="sm" onClick={() => { aprobarPr(inv); setPrDetalle(null); }}>
+                      <Check className="w-3.5 h-3.5 mr-1" /> Aprobar factura
+                    </Button>
+                  )}
+                </div>
+              </>
+            }
+          >
+            <div className="space-y-5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={estilo}>{inv.estado}</span>
+                <span className="text-[12px]" style={{ color: '#A9A6A1' }}>{inv.fecha}</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <InfoRow label="Proveedor" value={inv.proveedorNombre} />
+                <InfoRow label="Contrato" value={inv.contrato} />
+                <InfoRow label="Monto" value={formatXaf(inv.monto)} />
+                <InfoRow label="Emisión" value={inv.fecha} />
+                <InfoRow label="Vence" value={inv.fechaVencimiento ?? '—'} />
+              </div>
+              <div>
+                <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide mb-1">Concepto</div>
+                <p className="text-[13px] text-text-1 leading-relaxed">{inv.concepto || '—'}</p>
+              </div>
+              {inv.documento && (
+                <div className="flex items-center gap-2.5 p-3 rounded-[10px] border border-border" style={{ color: '#A9A6A1' }}>
+                  <Paperclip className="w-4 h-4 shrink-0" />
+                  <span className="text-[12px]">{inv.documento.name}</span>
+                </div>
+              )}
+              {inv.requerimientos && inv.requerimientos.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Requerimientos enviados</div>
+                  {inv.requerimientos.map((r, i) => (
+                    <div key={i} className="rounded-[12px] p-3 border" style={{ background: '#FDF6E8', borderColor: 'rgba(239,122,44,0.25)' }}>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-orange">{r.emisor}</span>
+                        <span className="text-[10px]" style={{ color: '#A9A6A1' }}>{r.fecha}</span>
+                      </div>
+                      <p className="text-[12px] text-text-1 leading-relaxed">{r.mensaje}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Modal>
+        );
+      })()}
 
     </AppShell>
   );

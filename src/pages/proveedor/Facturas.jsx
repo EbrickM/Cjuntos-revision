@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ChevronRight, FileText, Banknote, ScrollText, Search, ListFilter, Receipt,
+  ChevronRight, FileText, Banknote, Search, ListFilter, Receipt,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -14,6 +14,7 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
+import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { contratoService } from '../../services/contrato.service';
 import { INV } from '../../lib/invoiceStates';
 
@@ -37,7 +38,7 @@ const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
     <div className="flex items-start gap-3">
       {Icon && (
         <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
@@ -108,9 +109,6 @@ export default function ProvFacturas() {
   const { visibleItems: paged, hasMore, loading, sentinelRef } =
     useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}` });
 
-  const accion = (f) =>
-    f.estado === INV.aprobada ? { lbl: 'Ver condiciones', Icon: ScrollText, handler: () => setDetalle(f) } : null;
-
   return (
     <AppShell active="provFacturas" role="proveedor" title="Mis Facturas" sub="Facturas de suministradores y comprobantes de pago (core bancario / Cheque de Venta)" back>
       <div className="fade-in space-y-5">
@@ -128,9 +126,8 @@ export default function ProvFacturas() {
         </div>
 
         {/* Filtros + Cards */}
-        <div className="rounded-[14px] p-5">
-          {/* Título + buscador + estado */}
-          <SectionHeader
+        {/* Título + buscador + estado */}
+        <SectionHeader
             icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de Suministradores"
             subtitle="Recibidas de tus suministradores; el Banco Fondeador paga por transferencia o Cheque de Venta."
@@ -141,14 +138,14 @@ export default function ProvFacturas() {
               </Button>
             }
           />
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar factura, suministrador, contrato…"
-                className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
             <div className="relative flex items-center shrink-0">
@@ -156,7 +153,8 @@ export default function ProvFacturas() {
               <select
                 value={filtroEstado}
                 onChange={e => setFiltroEstado(e.target.value)}
-                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
               >
                 {ESTADOS.map(e => <option key={e}>{e}</option>)}
               </select>
@@ -168,7 +166,6 @@ export default function ProvFacturas() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {paged.map((f, idx) => {
             const pago = pagoDe(f.id);
-            const a = accion(f);
             return (
               <div
                 key={f.id}
@@ -207,7 +204,7 @@ export default function ProvFacturas() {
                 )}
 
                 <div className="mt-auto pt-1 flex items-center justify-between">
-                  {a ? (
+                  {f.estado === INV.aprobada ? (
                     <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
                       <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
                       En proceso de pago
@@ -229,7 +226,6 @@ export default function ProvFacturas() {
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
         </div>
-        </div>
 
       </div>
 
@@ -244,34 +240,39 @@ export default function ProvFacturas() {
       )}
 
       {/* ── Modal: Detalle de factura ── */}
-      {detalle && (
-        <InvoiceDetailModal
-          factura={facturaService.obtener(detalle.id) ?? detalle}
-          onClose={() => setDetalle(null)}
-          footer={
-            <>
-              <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
-              {pagoDe(detalle.id) && (
+      {detalle && (() => {
+        const viva = facturaService.obtener(detalle.id) ?? detalle;
+        return (
+          <InvoiceDetailModal
+            factura={viva}
+            onClose={() => setDetalle(null)}
+            footer={
+              <>
+                <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
                 <div className="flex items-center gap-2">
-                  <Badge variant={pagoDe(detalle.id).metodo === 'cheque' ? 'yellow' : 'green'}>
-                    {pagoDe(detalle.id).metodo === 'cheque' ? pagoDe(detalle.id).cheque : 'Transferencia core'}
-                  </Badge>
+                  {pagoDe(viva.id) && (
+                    <div className="flex items-center gap-2">
+                      <Badge variant={pagoDe(viva.id).metodo === 'cheque' ? 'yellow' : 'green'}>
+                        {pagoDe(viva.id).metodo === 'cheque' ? pagoDe(viva.id).cheque : 'Transferencia core'}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
-              )}
-            </>
-          }
-        >
-          {detalle.estado === INV.aprobada && (
-            <div className="rounded-[12px] p-4 border border-border" style={{ background: '#F8F7F5' }}>
-              <div className="text-[12px] font-semibold text-text-1 mb-1">Próximo paso</div>
-              <div className="text-[12px] text-text-4 leading-relaxed">
-                El Banco Fondeador ejecutará la transferencia a tu cuenta, o emitirá un <b>Cheque de Venta</b> si no
-                tenés cuenta bancaria registrada. Verás el comprobante aquí en cuanto esté disponible.
+              </>
+            }
+          >
+            {viva.estado === INV.aprobada && (
+              <div className="rounded-[12px] p-4 border border-border" style={{ background: '#F8F7F5' }}>
+                <div className="text-[12px] font-semibold text-text-1 mb-1">Próximo paso</div>
+                <div className="text-[12px] text-text-4 leading-relaxed">
+                  El Banco Fondeador ejecutará la transferencia a tu cuenta, o emitirá un <b>Cheque de Venta</b> si no
+                  tenés cuenta bancaria registrada. Verás el comprobante aquí en cuanto esté disponible.
+                </div>
               </div>
-            </div>
-          )}
-        </InvoiceDetailModal>
-      )}
+            )}
+          </InvoiceDetailModal>
+        );
+      })()}
 
     </AppShell>
   );

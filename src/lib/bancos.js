@@ -1,0 +1,1 @@
+export const BANCO_FONDEADORES = ['Bonafide', 'VistaBank', 'CCEIBank', 'Vigifi Bange', 'ECOBank'];
