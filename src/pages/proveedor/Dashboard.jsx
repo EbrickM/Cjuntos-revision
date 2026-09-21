@@ -152,6 +152,8 @@ export default function ProvDash() {
     return () => clearTimeout(id);
   }, []);
 
+  const [hoveredSeries, setHoveredSeries] = useState(null);
+
   return (
     <AppShell active="provDash" role="proveedor" back>
       <div className="fade-in space-y-4">
@@ -310,8 +312,13 @@ export default function ProvDash() {
                     {activityView === 'evolucion' && (
                       <div className="hidden lg:flex items-center gap-4">
                         {evolucionFondoSeries.map(s => (
-                          <div key={s.key} className="flex items-center gap-1.5">
-                            <div className="w-5 h-[2px] rounded-full" style={{ background: s.color }} />
+                          <div key={s.key}
+                            className="flex items-center gap-1.5 cursor-pointer"
+                            style={{ opacity: hoveredSeries && hoveredSeries !== s.key ? 0.3 : 1, transition: 'opacity 0.18s ease' }}
+                            onMouseEnter={() => setHoveredSeries(s.key)}
+                            onMouseLeave={() => setHoveredSeries(null)}
+                          >
+                            <div className="rounded-full" style={{ background: s.color, width: 20, height: hoveredSeries === s.key ? 3 : 2, transition: 'height 0.18s ease' }} />
                             <span className="text-[10px] text-text-4">{s.label}</span>
                           </div>
                         ))}
@@ -338,12 +345,12 @@ export default function ProvDash() {
                     <div className="w-full md:flex-1 md:min-w-0">
                       <div className="hidden md:block h-[240px] w-full">
                         {evolucionHasData
-                          ? <MultiLineChart key={`prov-evo-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={1000} pl={48} />
+                          ? <MultiLineChart key={`prov-evo-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={1000} pl={48} hoveredSeries={hoveredSeries} />
                           : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                       </div>
                       <div className="block md:hidden h-[280px] w-full">
                         {evolucionHasData
-                          ? <MultiLineChart key={`prov-evo-m-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
+                          ? <MultiLineChart key={`prov-evo-m-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={280} vbW={380} pl={44} fxSz={13} fySz={11} hoveredSeries={hoveredSeries} />
                           : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                       </div>
                     </div>

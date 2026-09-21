@@ -27,7 +27,7 @@ const DONUT_EMPTY = '#C4C1BC';
 // Las posiciones X se calculan siempre sobre el total de `data` (no sobre los
 // puntos incluidos) para que excluir un punto deje un hueco visible en la
 // línea en vez de simplemente re-espaciar el resto.
-function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false, hoveredSeries = null }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = 300;
@@ -73,16 +73,22 @@ function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW =
             }
           });
           if (current.length) segments.push(current);
-          return segments.map((seg, segI) => (
-            <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ strokeDasharray: 6000, animation: `lineDrawOn 1.1s ease-out ${si * 180}ms both` }} />
-          ));
+          const isHov = hoveredSeries === s.key;
+          const isDim = hoveredSeries !== null && !isHov;
+          return (
+            <g key={si} style={{ opacity: isDim ? 0.12 : 1, transition: 'opacity 0.2s ease' }}>
+              {segments.map((seg, segI) => (
+                <polyline key={segI} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
+                  strokeWidth={isHov ? 3 : 2} strokeLinecap="round" strokeLinejoin="round"
+                  style={{ strokeDasharray: 6000, animation: `lineDrawOn 1.1s ease-out ${si * 180}ms both` }} />
+              ))}
+              {data.map((d, i) => isIn(s.key, i) && (
+                <circle key={i} cx={xPos(i)} cy={yPos(d[s.key])} r={isHov ? 4 : 3} fill={s.color}
+                  style={{ animation: `dotFadeIn 0.3s ease ${si * 180 + i * 35}ms both`, transformOrigin: 'center' }} />
+              ))}
+            </g>
+          );
         })}
-        {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
-          <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key])} r="3" fill={s.color}
-            style={{ animation: `dotFadeIn 0.3s ease ${si * 180 + i * 35}ms both`, transformOrigin: 'center' }} />
-        )))}
         {tipCol !== null && (
           <line
             x1={xPos(tipCol)} y1={PT}
@@ -121,7 +127,7 @@ function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW =
 // la misma semana), y la ventana de Periodo aplica a ambas por igual. Las
 // posiciones X se calculan siempre sobre el total de `data`, así que ocultar
 // una barra no reacomoda a las demás.
-function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
+function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 98, pr = 8, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false, hoveredGroup = null }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const maxV = Math.max(...data.flatMap(d => [d.inflow, d.outflow])) * 1.22;
@@ -162,11 +168,11 @@ function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 5
               onMouseLeave={() => setTip(null)}>
               {d.inflow  > 0 && isIn('inflow', i)  && (
                 <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA}
-                  style={{ transformOrigin: `${xIn + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both` }} />
+                  style={{ transformOrigin: `${xIn + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both`, opacity: hoveredGroup && hoveredGroup !== 'inflow' ? 0.12 : 1, transition: 'opacity 0.2s ease' }} />
               )}
               {d.outflow > 0 && isIn('outflow', i) && (
-                <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82"
-                  style={{ transformOrigin: `${xOut + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both` }} />
+                <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED}
+                  style={{ transformOrigin: `${xOut + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both`, opacity: hoveredGroup && hoveredGroup !== 'outflow' ? 0.12 : 0.82, transition: 'opacity 0.2s ease' }} />
               )}
               <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
                 fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
@@ -311,6 +317,8 @@ export default function EpHome() {
   const { go } = useApp();
   const [tab, setTab]                   = useState('financiacion');
   const [activityView, setActivityView] = useState('evolucion');
+  const [hoveredSeries, setHoveredSeries] = useState(null);
+  const [hoveredGroup, setHoveredGroup]   = useState(null);
   const [evoPeriodo, setEvoPeriodo]     = useState(evolucionData.length);
   const [evoMonto, setEvoMonto]         = useState(0);
   const [flujoPeriodo, setFlujoPeriodo] = useState(flujoData.length);
@@ -520,18 +528,31 @@ export default function EpHome() {
                   <div className="hidden lg:flex items-center gap-4">
                     {activityView === 'evolucion' ? (
                       evolucionSeries.map(s => (
-                        <div key={s.key} className="flex items-center gap-1.5">
-                          <div className="w-6 h-[2px] rounded-full" style={{ background: s.color }} />
+                        <div key={s.key}
+                          className="flex items-center gap-1.5 cursor-pointer"
+                          style={{ opacity: hoveredSeries && hoveredSeries !== s.key ? 0.3 : 1, transition: 'opacity 0.18s ease' }}
+                          onMouseEnter={() => setHoveredSeries(s.key)}
+                          onMouseLeave={() => setHoveredSeries(null)}
+                        >
+                          <div className="rounded-full" style={{ background: s.color, width: 24, height: hoveredSeries === s.key ? 3 : 2, transition: 'height 0.18s ease' }} />
                           <span className="text-[10px] text-text-4">{s.label}</span>
                         </div>
                       ))
                     ) : (
                       <>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 cursor-pointer"
+                          style={{ opacity: hoveredGroup && hoveredGroup !== 'inflow' ? 0.3 : 1, transition: 'opacity 0.18s ease' }}
+                          onMouseEnter={() => setHoveredGroup('inflow')}
+                          onMouseLeave={() => setHoveredGroup(null)}
+                        >
                           <div className="w-3 h-3 rounded-sm" style={{ background: ORA }} />
                           <span className="text-[10px] text-text-4">Entradas</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 cursor-pointer"
+                          style={{ opacity: hoveredGroup && hoveredGroup !== 'outflow' ? 0.3 : 1, transition: 'opacity 0.18s ease' }}
+                          onMouseEnter={() => setHoveredGroup('outflow')}
+                          onMouseLeave={() => setHoveredGroup(null)}
+                        >
                           <div className="w-3 h-3 rounded-sm" style={{ background: RED, opacity: 0.82 }} />
                           <span className="text-[10px] text-text-4">Salidas</span>
                         </div>
@@ -560,14 +581,14 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {evolucionHasData
-                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={860} />
+                        ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={860} hoveredSeries={hoveredSeries} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
                     <div className="block md:hidden h-[300px] w-full">
                       {evolucionHasData
                         ? <LineChart data={evolucionData} series={evolucionSeries} windowStart={evoWindowStart} minValue={evoMonto} h={300}
-                            vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                            vbW={420} pl={50} pr={14} pt={18} pb={38} fxSz={14} fySz={13} compact hoveredSeries={hoveredSeries} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                   </div>
@@ -589,14 +610,14 @@ export default function EpHome() {
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
                       {flujoHasData
-                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={240} vbW={860} />
+                        ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={240} vbW={860} hoveredGroup={hoveredGroup} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                     {/* Móvil */}
                     <div className="block md:hidden h-[300px] w-full">
                       {flujoHasData
                         ? <GroupedBarChart data={flujoData} windowStart={flujoWindowStart} minValue={flujoMonto} h={300}
-                            vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact />
+                            vbW={420} pl={50} pr={8} pt={18} pb={38} fxSz={14} fySz={13} compact hoveredGroup={hoveredGroup} />
                         : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                     </div>
                   </div>

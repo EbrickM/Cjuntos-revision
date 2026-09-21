@@ -126,7 +126,7 @@ export function LineChart({ id, data, color = '#ef7a2c', xKey = 'mes', yKey = 'm
 }
 
 // ── MultiLineChart — multi-series polyline chart ──────────────────────────────
-export function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false, tipFmt }) {
+export function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false, tipFmt, hoveredSeries = null }) {
   const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
   const cW = W - PL - PR, cH = H - PT - PB;
   const allVals = data.flatMap(d => series.map(s => d[s.key] || 0));
@@ -174,16 +174,22 @@ export function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h 
             }
           });
           if (current.length) segments.push(current);
-          return segments.map((seg, segI) => (
-            <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              style={{ strokeDasharray: 6000, animation: `lineDrawOn 1.1s ease-out ${si * 180}ms both` }} />
-          ));
+          const isHov = hoveredSeries === s.key;
+          const isDim = hoveredSeries !== null && !isHov;
+          return (
+            <g key={si} style={{ opacity: isDim ? 0.12 : 1, transition: 'opacity 0.2s ease' }}>
+              {segments.map((seg, segI) => (
+                <polyline key={segI} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
+                  strokeWidth={isHov ? 3 : 2} strokeLinecap="round" strokeLinejoin="round"
+                  style={{ strokeDasharray: 6000, animation: `lineDrawOn 1.1s ease-out ${si * 180}ms both` }} />
+              ))}
+              {data.map((d, i) => isIn(s.key, i) && (
+                <circle key={i} cx={xPos(i)} cy={yPos(d[s.key] || 0)} r={isHov ? 4 : 3} fill={s.color}
+                  style={{ animation: `dotFadeIn 0.3s ease ${si * 180 + i * 35}ms both`, transformOrigin: 'center' }} />
+              ))}
+            </g>
+          );
         })}
-        {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
-          <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key] || 0)} r="3" fill={s.color}
-            style={{ animation: `dotFadeIn 0.3s ease ${si * 180 + i * 35}ms both`, transformOrigin: 'center' }} />
-        )))}
         {tipCol !== null && (
           <line
             x1={xPos(tipCol)} y1={PT}
