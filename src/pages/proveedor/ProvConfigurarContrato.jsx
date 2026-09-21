@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Landmark, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil,
-  Trash2, CheckCircle2,
+  Trash2, CheckCircle2, FileText,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
@@ -22,7 +22,7 @@ const PREFIJO_TEL = '+240';
 
 const SUMINISTRADOR_EMPTY = {
   open: false, editId: null, sumSel: '', suministradorLibre: '',
-  email: '', telefono: '', monto: '', cargaNomina: false,
+  email: '', telefono: '', monto: '', nominaDoc: '',
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
@@ -120,7 +120,7 @@ export default function ProvConfigurarContrato() {
       sumSel: enDirectorio ? s.nombre : '__nueva__',
       suministradorLibre: enDirectorio ? '' : s.nombre,
       email: s.email, telefono: (s.telefono ?? '').replace(/^\+?\s*240\s*/, ''),
-      monto: String(s.monto), cargaNomina: s.cargaNomina,
+      monto: String(s.monto), nominaDoc: s.nominaDoc ?? '',
     });
   };
 
@@ -132,7 +132,7 @@ export default function ProvConfigurarContrato() {
       id: modal.editId ?? `SUM-${Date.now()}`,
       nombre: suministradorNombreResuelto, email: modal.email.trim(),
       telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
-      monto: montoNumLive, cargaNomina: modal.cargaNomina,
+      monto: montoNumLive, cargaNomina: !!modal.nominaDoc, nominaDoc: modal.nominaDoc || null,
     };
     setSuministradores(prev => modal.editId ? prev.map(s => s.id === modal.editId ? nuevo : s) : [...prev, nuevo]);
     setModal(SUMINISTRADOR_EMPTY);
@@ -415,10 +415,32 @@ export default function ProvConfigurarContrato() {
               </p>
             )}
 
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={modal.cargaNomina} onChange={e => setModal(m => ({ ...m, cargaNomina: e.target.checked }))} className="w-4 h-4 accent-orange cursor-pointer" />
-              <span className="text-[13px] text-text-2">También cargar nómina de este suministrador</span>
-            </label>
+            <FormGroup label="Nómina del suministrador (opcional)" className="mb-0">
+              {modal.nominaDoc ? (
+                <div className="flex items-center justify-between gap-2 border-2 border-solid border-green-border bg-green-bg rounded-[10px] px-3 py-2.5">
+                  <span className="flex items-center gap-2 text-[12px] font-medium text-green-text truncate">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />{modal.nominaDoc}
+                  </span>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="text-[11px] text-red-text underline shrink-0 cursor-pointer">
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2.5 border border-dashed border-border rounded-[10px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setModal(m => ({ ...m, nominaDoc: f.name }));
+                    }}
+                  />
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span>Subir nómina de este suministrador (PDF o imagen)</span>
+                </label>
+              )}
+            </FormGroup>
           </div>
         </Modal>
       )}

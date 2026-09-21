@@ -103,7 +103,7 @@ export default function EmpConfigurarContrato() {
   const telefonoValido     = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido   = telefonoLocal !== '' && !telefonoValido;
 
-  const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
+  const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido && !!modal.documentoNombre;
 
   const openAdd = () => {
     const primera = pymes[0] ?? null;
@@ -444,27 +444,34 @@ export default function EmpConfigurarContrato() {
               </div>
             </div>
 
-            <FormGroup label="Contrato Comercial (documentación adjunta)">
-              <div
-                onClick={() => setModal(m => ({ ...m, documentoNombre: m.documentoNombre ? m.documentoNombre : 'contrato_comercial.pdf' }))}
-                className={`border-2 rounded-[12px] p-5 text-center cursor-pointer transition-all
-                  ${modal.documentoNombre
-                    ? 'border-solid border-green-border bg-green-bg'
-                    : 'border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint'}`}
-              >
-                {modal.documentoNombre ? (
-                  <>
-                    <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
-                    <div className="text-[12px] font-semibold text-green-text">{modal.documentoNombre}</div>
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
-                    <div className="text-[13px] font-semibold text-text-1">Subir contrato comercial</div>
-                    <div className="text-[11px] text-text-4">PDF · máx 5MB</div>
-                  </>
-                )}
-              </div>
+            <FormGroup label="Contrato Comercial (documentación adjunta)" required className="mb-0">
+              {modal.documentoNombre ? (
+                <div className="border-2 border-solid border-green-border bg-green-bg rounded-[12px] p-5 text-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
+                  <div className="text-[12px] font-semibold text-green-text truncate">{modal.documentoNombre}</div>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, documentoNombre: '' }))} className="mt-2 text-[11px] text-red-text underline cursor-pointer">
+                    Quitar y elegir otro
+                  </button>
+                </div>
+              ) : (
+                <label className="block border-2 border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint rounded-[12px] p-5 text-center cursor-pointer transition-all">
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setModal(m => ({ ...m, documentoNombre: f.name }));
+                    }}
+                  />
+                  <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
+                  <div className="text-[13px] font-semibold text-text-1">Subir contrato comercial</div>
+                  <div className="text-[11px] text-text-4">PDF · JPG · PNG · máx 5MB</div>
+                </label>
+              )}
+              {!modal.documentoNombre && (
+                <p className="text-xs text-red-500">Adjunta el contrato comercial para poder guardar la asignación.</p>
+              )}
             </FormGroup>
           </div>
         </Modal>

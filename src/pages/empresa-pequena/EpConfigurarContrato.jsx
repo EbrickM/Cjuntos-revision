@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   FileCheck, Wallet, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus,
-  Pencil, Trash2, CheckCircle2, AlertTriangle,
+  Pencil, Trash2, CheckCircle2, AlertTriangle, FileText,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
@@ -19,7 +19,7 @@ const STEPS = ['Términos', 'Gestión de Fondos', 'Proveedores', 'Simulación'];
 
 const PROVEEDOR_EMPTY = {
   open: false, editId: null, provSel: '', proveedorNombreLibre: '',
-  email: '', telefono: '', monto: '', cargaNomina: false,
+  email: '', telefono: '', monto: '', nominaDoc: '',
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
@@ -111,7 +111,7 @@ export default function EpConfigurarContrato() {
       provSel: enDirectorio ? p.nombre : '__nueva__',
       proveedorNombreLibre: enDirectorio ? '' : p.nombre,
       email: p.email, telefono: p.telefono,
-      monto: String(p.monto), cargaNomina: p.cargaNomina,
+      monto: String(p.monto), nominaDoc: p.nominaDoc ?? '',
     });
   };
 
@@ -122,7 +122,7 @@ export default function EpConfigurarContrato() {
     const nuevo = {
       id: modal.editId ?? `PROV-${Date.now()}`,
       nombre: proveedorNombreResuelto, email: modal.email.trim(), telefono: modal.telefono.trim(),
-      monto: montoNumLive, cargaNomina: modal.cargaNomina,
+      monto: montoNumLive, cargaNomina: !!modal.nominaDoc, nominaDoc: modal.nominaDoc || null,
     };
     setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
     setModal(PROVEEDOR_EMPTY);
@@ -489,10 +489,32 @@ export default function EpConfigurarContrato() {
               </p>
             )}
 
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={modal.cargaNomina} onChange={e => setModal(m => ({ ...m, cargaNomina: e.target.checked }))} className="w-4 h-4 accent-orange cursor-pointer" />
-              <span className="text-[13px] text-text-2">También cargar nómina de este proveedor</span>
-            </label>
+            <FormGroup label="Nómina del proveedor (opcional)" className="mb-0">
+              {modal.nominaDoc ? (
+                <div className="flex items-center justify-between gap-2 border-2 border-solid border-green-border bg-green-bg rounded-[10px] px-3 py-2.5">
+                  <span className="flex items-center gap-2 text-[12px] font-medium text-green-text truncate">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />{modal.nominaDoc}
+                  </span>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="text-[11px] text-red-text underline shrink-0 cursor-pointer">
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2.5 border border-dashed border-border rounded-[10px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setModal(m => ({ ...m, nominaDoc: f.name }));
+                    }}
+                  />
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span>Subir nómina de este proveedor (PDF o imagen)</span>
+                </label>
+              )}
+            </FormGroup>
           </div>
         </Modal>
       )}
