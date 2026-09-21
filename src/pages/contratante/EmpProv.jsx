@@ -8,12 +8,12 @@ export default function EmpProv() {
   const { go } = useApp();
 
   const provs = [
-    ['Const. Silva','CS','Construcción','45 emp.','b-green','🟢 Verde','820'],
-    ['Tech Bata SL','TB','Tecnología','12 emp.','b-green','🟢 Verde','820'],
-    ['LogiGE S.A.','LG','Transporte','28 emp.','b-green','🟢 Verde','790'],
-    ['AgriEco PYME','AE','Agricultura','8 emp.','b-yellow','⚠ Amarillo','610'],
+    ['Tradex','TR','Construcción','45 emp.','b-green','🟢 Verde','820'],
+    ['Conexxia Bata','CB','Tecnología','12 emp.','b-green','🟢 Verde','820'],
+    ['Conexxia','CX','Transporte','28 emp.','b-green','🟢 Verde','790'],
+    ['Conexxia Agro','CA','Agricultura','8 emp.','b-yellow','⚠ Amarillo','610'],
     ['Mader. Bata','MB','Maderería','23 emp.','b-green','🟢 Verde','750'],
-    ['ServLog GE','SL','Logística','15 emp.','b-red','🔴 Rojo','320'],
+    ['MH Logística','MH','Logística','15 emp.','b-red','🔴 Rojo','320'],
   ];
 
   return (

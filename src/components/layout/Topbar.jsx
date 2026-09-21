@@ -27,20 +27,20 @@ function getInitials(fullName = '') {
 const notifs = [
   {
     id: 1,
-    titulo: 'TotalEnerGE ha verificado tu contrato',
-    cuerpo: 'El contratante TotalEnerGE confirmó los datos del contrato CTR-2026-001.',
+    titulo: 'Chevron ha verificado tu contrato',
+    cuerpo: 'El contratante Chevron confirmó los datos del contrato CTR-2026-001.',
     dt: 'Hoy, 14:30', leida: false,
   },
   {
     id: 2,
-    titulo: 'Pago recibido de TotalEnerGE',
+    titulo: 'Pago recibido de Chevron',
     cuerpo: 'Has recibido XAF 10,000,000 correspondiente al anticipo del contrato CTR-2026-001.',
     dt: 'Ayer, 11:20', leida: false,
   },
   {
     id: 3,
     titulo: 'Nueva factura pendiente de pago',
-    cuerpo: 'La factura FAC-2026-0971 de XAF 10,000,000 emitida a TotalEnerGE está pendiente.',
+    cuerpo: 'La factura FAC-2026-0971 de XAF 10,000,000 emitida a Chevron está pendiente.',
     dt: '18/05/26', leida: true,
   },
 ];

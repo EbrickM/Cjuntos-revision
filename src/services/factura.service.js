@@ -210,8 +210,8 @@ export const facturaService = {
     const contrato = pr?.contrato ? contratoService.obtener(pr.contrato) : null;
     const nueva = this.crear({
       contrato: pr?.contrato,
-      contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
-      pyme: 'Const. Silva Ltd.',
+      contratante: contrato?.contratanteNombre ?? 'Chevron',
+      pyme: 'Tradex',
       proveedor: pr?.proveedorNombre ?? pr?.suministrador ?? null,
       tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
       monto: Number(pr?.monto) || 0,

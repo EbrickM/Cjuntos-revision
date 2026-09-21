@@ -10,7 +10,7 @@ import { contratoService } from '../../services/contrato.service';
 import { estadoBadge } from '../../lib/invoiceStates';
 import { BANCO_FONDEADORES } from '../../lib/bancos';
 
-const EMPRESAS_CONTRATANTES = ['TotalEnerGE SA', 'Infraconst. SA', 'MinGE Sociedad Est.', 'AgroGE Holdings'];
+const EMPRESAS_CONTRATANTES = ['Chevron', 'Chevron Sur', 'SEGESA', 'GEOMS'];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PREFIJO_TEL_GQ = '+240';

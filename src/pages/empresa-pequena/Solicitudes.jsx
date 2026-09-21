@@ -34,7 +34,7 @@ const misSolicitudes = [
 const invitaciones = [
   { id: 'INV-2026-0034', ini: 'TE', empresa: 'TotalEnergies GE',      sector: 'Energía',        desc: 'Suministro de equipos técnicos — contrato marco 2026',             monto: 120_000_000, fecha: '10/07/2026' },
   { id: 'INV-2026-0031', ini: 'CG', empresa: 'ConsGroup GE S.A.',     sector: 'Construcción',   desc: 'Obras de mantenimiento de infraestructura portuaria — Bata',       monto:  85_000_000, fecha: '06/07/2026' },
-  { id: 'INV-2026-0028', ini: 'AG', empresa: 'AgroGE International',  sector: 'Agroindustria',  desc: 'Provisión de insumos agrícolas — campaña 2026/2027',               monto:  45_000_000, fecha: '02/07/2026' },
+  { id: 'INV-2026-0028', ini: 'AG', empresa: 'GEOMS International',  sector: 'Agroindustria',  desc: 'Provisión de insumos agrícolas — campaña 2026/2027',               monto:  45_000_000, fecha: '02/07/2026' },
 ];
 
 const IniAvatar = ({ ini, size = 36 }) => (

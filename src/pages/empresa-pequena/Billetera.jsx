@@ -4,10 +4,10 @@ import { facturaService } from '../../services/factura.service';
 import { INV } from '../../lib/invoiceStates';
 
 const txns = [
-  ['💰','Pago contrato TotalEnerGE','TRX-0501','15/05/2026','+15,000,000','text-green-text'],
-  ['🏗','Pago Cemex GE (Libr. #LIB-001)','TRX-0502','14/05/2026','−8,000,000','text-red-text'],
-  ['🚛','Pago TransGE (Libr. #LIB-002)','TRX-0503','12/05/2026','−5,000,000','text-red-text'],
-  ['💰','Pago contrato TotalEnerGE','TRX-0498','01/05/2026','+25,000,000','text-green-text'],
+  ['💰','Pago contrato Chevron','TRX-0501','15/05/2026','+15,000,000','text-green-text'],
+  ['🏗','Pago SAP (Libr. #LIB-001)','TRX-0502','14/05/2026','−8,000,000','text-red-text'],
+  ['🚛','Pago APEX (Libr. #LIB-002)','TRX-0503','12/05/2026','−5,000,000','text-red-text'],
+  ['💰','Pago contrato Chevron','TRX-0498','01/05/2026','+25,000,000','text-green-text'],
   ['👷','Nómina quincenal','TRX-0499','10/05/2026','−12,500,000','text-red-text'],
 ];
 
@@ -23,7 +23,7 @@ export default function EpBilletera() {
   // Billetera Virtual (Ruta B del BPMN): fondos desbloqueados por el Fondeador
   // vía Bonafide para distribuir a proveedores (Fase 2).
   const billeteras = facturaService.listarBilleteras();
-  const mia = billeteras.find(b => b.pyme === 'TechBata PYME S.L.');
+  const mia = billeteras.find(b => b.pyme === 'Conexxia');
   const desbloqueadas = facturaService.listar().filter(f => f.estado === INV.billetera);
 
   return (

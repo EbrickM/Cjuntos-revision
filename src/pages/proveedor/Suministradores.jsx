@@ -227,7 +227,7 @@ export default function ProvSuministradores() {
 
               {/* Contratos */}
               <div>
-                <ModalLabel text={`Contratos con TransGE (${contratosConSum.length})`} Icon={ClipboardList} />
+                <ModalLabel text={`Contratos con APEX (${contratosConSum.length})`} Icon={ClipboardList} />
                 {contratosConSum.length === 0 ? (
                   <p className="text-[12px] text-center py-4" style={{ color: TEXT4 }}>Sin contratos activos</p>
                 ) : (

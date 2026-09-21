@@ -4,29 +4,29 @@
 // por un modelo único consumido por factura.service via localDb.
 import { INV, MODALIDAD } from './invoiceStates';
 
-export const SEED_VERSION = 7;
+export const SEED_VERSION = 8;
 
 // ── Entidades de la narrativa ─────────────────────────────────────────────────
 const E = {
   contratantes: {
-    totalenerge: 'TotalEnerGE S.A.',
-    evans:       'Evans Construction & Engineering S.A.',
-    puerto:      'Autoridad Portuaria de Bata S.A.',
+    totalenerge: 'Chevron',
+    evans:       'Subsea 7',
+    puerto:      'SEGESA',
   },
   pymes: {
-    silva:  'Const. Silva Ltd.',
-    agrosur:'AgroSur GE S.L.',
-    techbata:'TechBata PYME S.L.',
-    logige: 'LogiGE S.A.',
+    silva:  'Tradex',
+    agrosur:'Martinez Hermanos (MH)',
+    techbata:'Conexxia',
+    logige: 'Conexxia',
   },
   proveedores: {
-    transge: 'TransGE S.L.',
-    servtec: 'ServTec GE',
-    cemex:   'Cemex GE',
+    transge: 'APEX',
+    servtec: 'APEX Tech',
+    cemex:   'SAP',
   },
   suministradores: {
-    combustibles: 'Combustibles Bata S.L.',
-    repuestos:    'Repuestos Malabo GE',
+    combustibles: 'SAP',
+    repuestos:    'Lideshore',
   },
 };
 
@@ -292,7 +292,7 @@ export const seedContratosActivos = [
 ];
 
 export const seedProveedores = [
-  { id: 'p1', razonSocial: 'Cemex GE',     sector: 'Materiales', cuentaBancaria: true },
-  { id: 'p2', razonSocial: 'TransGE S.L.', sector: 'Transporte', cuentaBancaria: true },
-  { id: 'p3', razonSocial: 'ServTec GE',   sector: 'Tecnología', cuentaBancaria: false },
+  { id: 'p1', razonSocial: 'SAP',     sector: 'Materiales', cuentaBancaria: true },
+  { id: 'p2', razonSocial: 'APEX', sector: 'Transporte', cuentaBancaria: true },
+  { id: 'p3', razonSocial: 'APEX Tech',   sector: 'Tecnología', cuentaBancaria: false },
 ];

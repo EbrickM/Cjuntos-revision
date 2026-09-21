@@ -3,16 +3,16 @@ import AppShell from '../../components/layout/AppShell';
 // ── NOTIFICACIONES ──
 const NOTIF_GROUPS = [
   { grp: 'Hoy', items: [
-    { ico: '📄', title: 'Nueva factura recibida',      desc: 'Const. Silva Ltd. envió FAC-2026-0911 · XAF 21.500.000 — pendiente de verificación', time: '09:32', unread: true  },
+    { ico: '📄', title: 'Nueva factura recibida',      desc: 'Tradex envió FAC-2026-0911 · XAF 21.500.000 — pendiente de verificación', time: '09:32', unread: true  },
     { ico: '✅', title: 'Solicitud aprobada',           desc: 'SOL-2026-0138 · Contrato con MaderGE PYME S.L. fue aprobada por Bonafide',            time: '08:15', unread: true  },
   ]},
   { grp: 'Ayer', items: [
-    { ico: '⚠️', title: 'Alerta de riesgo',             desc: 'ServLog GE ha bajado a semáforo Rojo · Revisa su perfil de cumplimiento',             time: '11:00', unread: false },
-    { ico: '🔔', title: 'PYME te declaró contratante',  desc: 'TechMalabo Ltd. te ha declarado como empresa contratante — confirma tu participación', time: '10:20', unread: false },
-    { ico: '🔐', title: 'Verificación IPI requerida',   desc: 'FAC-2026-0901 · AgriEco PYME está pendiente de tu código de confirmación',            time: '09:05', unread: false },
+    { ico: '⚠️', title: 'Alerta de riesgo',             desc: 'MH Logística ha bajado a semáforo Rojo · Revisa su perfil de cumplimiento',             time: '11:00', unread: false },
+    { ico: '🔔', title: 'PYME te declaró contratante',  desc: 'Conexxia Tech te ha declarado como empresa contratante — confirma tu participación', time: '10:20', unread: false },
+    { ico: '🔐', title: 'Verificación IPI requerida',   desc: 'FAC-2026-0901 · Conexxia Agro está pendiente de tu código de confirmación',            time: '09:05', unread: false },
   ]},
   { grp: 'Esta semana', items: [
-    { ico: '📊', title: 'Fondo al 90% utilizado',       desc: 'CT-2026-0041 · Const. Silva Ltd. ha superado el 90% del fondo asignado (XAF 180.000.000)', time: 'Lun', unread: false },
+    { ico: '📊', title: 'Fondo al 90% utilizado',       desc: 'CT-2026-0041 · Tradex ha superado el 90% del fondo asignado (XAF 180.000.000)', time: 'Lun', unread: false },
     { ico: '📋', title: 'Contrato vencido',             desc: 'CT-2025-0087 · InfraBata S.L. venció el 30/11/2025 — considera iniciar una renovación',    time: 'Dom', unread: false },
   ]},
 ];

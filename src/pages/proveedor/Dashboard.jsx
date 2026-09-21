@@ -195,8 +195,8 @@ const evolucionFondoSeries = [
 ];
 
 const suministradorDist = [
-  { label: 'Combustibles Bata S.L.', value: 9.5, color: RED },
-  { label: 'Repuestos Malabo GE',    value: 4.5, color: ORA },
+  { label: 'SAP', value: 9.5, color: RED },
+  { label: 'Lideshore',    value: 4.5, color: ORA },
 ];
 
 const estadoOps = [
@@ -208,7 +208,7 @@ const estadoOps = [
 
 const tipoBarData = [
   { label: 'Transporte',   shortLabel: 'Transporte', value: 31, color: RED  },
-  { label: 'Repuestos',    shortLabel: 'Repuestos',   value: 12, color: ORA  },
+  { label: 'Lideshore',    shortLabel: 'Lideshore',  value: 12, color: ORA  },
   { label: 'Mantenimiento', shortLabel: 'Mantenim.',  value:  8, color: WARN },
   { label: 'Combustibles', shortLabel: 'Combust.',    value:  6, color: GREEN},
 ];
@@ -256,7 +256,7 @@ export default function ProvDash() {
         <div className="flex flex-col min-[1156px]:flex-row min-[1156px]:items-center min-[1156px]:justify-between gap-3 max-[765px]:items-center max-[765px]:text-center">
           <div className="min-w-0">
             <div className="text-[20px] font-bold text-text-1 truncate">
-              Bienvenido, TransGE
+              Bienvenido, APEX
             </div>
             <div className="text-[13px] text-text-4">Gestión de fondo y suministradores · Agosto 2026</div>
           </div>

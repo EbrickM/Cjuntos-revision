@@ -6,15 +6,15 @@ import Modal from '../../components/ui/Modal';
 
 const contratos = [
   {
-    id: 'PRE-2026-002', empresa: 'Pinturas Bata SL', ruc: 'GE-2022-00341',
+    id: 'PRE-2026-002', empresa: 'MH Pinturas', ruc: 'GE-2022-00341',
     contrato: 'CTR-2026-004', monto_prestamo: '45,000,000', monto_contrato: '60,000,000',
     rep_legal: 'María Eyeang', email: 'm.eyeang@pinturasbata.gq',
     fecha_inicio: '01/06/2026', fecha_fin: '31/05/2027',
-    objeto: 'Pintura y acabados instalaciones TotalEnerGE Malabo.',
+    objeto: 'Pintura y acabados instalaciones Chevron Malabo.',
     verificado: false,
   },
   {
-    id: 'PRE-2026-003', empresa: 'LogiRapid GE', ruc: 'GE-2021-00789',
+    id: 'PRE-2026-003', empresa: 'Conexxia Log', ruc: 'GE-2021-00789',
     contrato: 'CTR-2026-007', monto_prestamo: '80,000,000', monto_contrato: '110,000,000',
     rep_legal: 'Pedro Ela Nguema', email: 'p.ela@logige.gq',
     fecha_inicio: '15/05/2026', fecha_fin: '15/05/2027',

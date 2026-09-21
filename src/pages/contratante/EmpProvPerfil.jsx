@@ -7,14 +7,14 @@ import Badge from '../../components/ui/Badge';
 export default function EmpProvPerfil() {
   const { go } = useApp();
   return (
-    <AppShell active="empProv" role="contratante" title="Construcciones Silva Ltd.">
+    <AppShell active="empProv" role="contratante" title="Tradex">
       <div className="fade-in">
         <Button variant="ghost" size="sm" className="mb-5" onClick={() => go('empProv')}>← Directorio</Button>
         <div className="bg-white rounded-[14px] border border-border p-7 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             <div className="w-[60px] h-[60px] rounded-[14px] bg-gradient-to-br from-orange to-orange-dark flex items-center justify-center text-white font-bold text-[20px] shrink-0">CS</div>
             <div className="flex-1 min-w-0">
-              <div className="text-[22px] font-bold mb-1">Construcciones Silva Ltd.</div>
+              <div className="text-[22px] font-bold mb-1">Tradex</div>
               <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-text-4">
                 <span>RUC: GE-2021-00234</span><span className="hidden sm:inline">·</span><span>Construcción</span><span className="hidden sm:inline">·</span><span>Activo desde Ene 2025</span>
               </div>

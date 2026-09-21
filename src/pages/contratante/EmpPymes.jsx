@@ -222,7 +222,7 @@ export default function EmpPymes() {
 
               {/* Contratos */}
               <div>
-                <ModalLabel text={`Contratos con TotalEnerGE (${pymesContratos.length})`} Icon={ClipboardList} />
+                <ModalLabel text={`Contratos con Chevron (${pymesContratos.length})`} Icon={ClipboardList} />
                 {pymesContratos.length === 0 ? (
                   <p className="text-[12px] text-center py-4" style={{ color: TEXT4 }}>Sin contratos activos</p>
                 ) : (

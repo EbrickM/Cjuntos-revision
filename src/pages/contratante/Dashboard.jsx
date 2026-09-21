@@ -195,7 +195,7 @@ const evolucionFondoSeries = [
 ];
 
 const pymeDist = [
-  { label: 'Const. Silva Ltd.', value: 180, color: RED },
+  { label: 'Tradex', value: 180, color: RED },
 ];
 
 const estadoOps = [
@@ -262,7 +262,7 @@ export default function EmpDash() {
         <div className="flex flex-col min-[1156px]:flex-row min-[1156px]:items-center min-[1156px]:justify-between gap-3 max-[765px]:items-center max-[765px]:text-center">
           <div className="min-w-0">
             <div className="text-[20px] font-bold text-text-1 truncate">
-              Bienvenido, TotalEnerGE
+              Bienvenido, Chevron
             </div>
             <div className="text-[13px] text-text-4">Gestión de fondo y cadena de suministro · Agosto 2026</div>
           </div>

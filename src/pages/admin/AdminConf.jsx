@@ -4,10 +4,10 @@ import Badge from '../../components/ui/Badge';
 
 /* ─── Admin Confirming ─── */
 const confRows = [
-  ['CONF-04821','TotalEnerGE','Const. Silva','12,500,000','12,250,000','green','Aprobada','12/05/26'],
-  ['CONF-04820','TotalEnerGE','Tech Bata SL','8,200,000','8,036,000','yellow','Pendiente','11/05/26'],
-  ['CONF-04819','Infraconst.','LogiGE S.A.','23,100,000','22,638,000','green','Aprobada','10/05/26'],
-  ['CONF-04818','TotalEnerGE','AgriEco PYME','5,700,000','5,586,000','blue','En revisión','09/05/26'],
+  ['CONF-04821','Chevron','Tradex','12,500,000','12,250,000','green','Aprobada','12/05/26'],
+  ['CONF-04820','Chevron','Conexxia Bata','8,200,000','8,036,000','yellow','Pendiente','11/05/26'],
+  ['CONF-04819','Chevron Sur','Conexxia','23,100,000','22,638,000','green','Aprobada','10/05/26'],
+  ['CONF-04818','Chevron','Conexxia Agro','5,700,000','5,586,000','blue','En revisión','09/05/26'],
 ];
 
 export default function AdminConf() {

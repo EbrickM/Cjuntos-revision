@@ -8,7 +8,7 @@ export const fmt = n => new Intl.NumberFormat('de-DE').format(n);
 export const pymeContratosPendientes = [
   {
     id: 'CT-2026-0058',
-    contratanteNombre: 'TotalEnerGE S.A.',
+    contratanteNombre: 'Chevron',
     montoAsignado: 45_000_000,
     plazoPago: 30,
     interes: '4.5% anual',
@@ -26,7 +26,7 @@ export const pymeContratosPendientes = [
     // encontró una observación y lo devolvió con un requerimiento — la PYME
     // debe reconfigurarlo.
     id: 'CT-2026-0066',
-    contratanteNombre: 'Evans Construction & Engineering S.A.',
+    contratanteNombre: 'Subsea 7',
     montoAsignado: 30_000_000,
     plazoPago: 45,
     interes: '5.5% anual',
@@ -38,11 +38,11 @@ export const pymeContratosPendientes = [
     gestionFondos: 'retirar',
     comentarioRechazo: '',
     proveedoresAsignados: [
-      { id: 'PROV-9001', nombre: 'Suministros del Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
+      { id: 'PROV-9001', nombre: 'Lideshore Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
     ],
     requerimiento: {
       entidades: ['PYME'],
-      mensaje: 'El proveedor "Suministros del Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
+      mensaje: 'El proveedor "Lideshore Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
       fecha: '21/06/2026',
     },
   },

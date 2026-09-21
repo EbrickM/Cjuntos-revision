@@ -45,7 +45,7 @@ const opsBarData = [
 ];
 
 const ultimasOps = [
-  { empresa: 'Const. Silva Ltd.', tipo: 'Fact. Directo', estado: 'Activa', monto: 180_000_000 },
+  { empresa: 'Tradex', tipo: 'Fact. Directo', estado: 'Activa', monto: 180_000_000 },
 ];
 
 // ── Riesgo tab data ───────────────────────────────────────────────────────────
@@ -63,12 +63,12 @@ const riesgoDona = [
 ];
 
 const exposicionBars = [
-  { label: 'Const. Silva Ltd.',   value: 48, color: '#059669' },
-  { label: 'TransGE S.L.',        value: 32, color: '#059669' },
-  { label: 'ServTec GE',          value: 25, color: '#059669' },
-  { label: 'AgroGE Holdings',     value: 18, color: '#059669' },
-  { label: 'LogiRapid GE',        value: 14, color: '#059669' },
-  { label: 'Pinturas Bata SL',    value: 9,  color: '#059669' },
+  { label: 'Tradex',   value: 48, color: '#059669' },
+  { label: 'APEX',        value: 32, color: '#059669' },
+  { label: 'APEX Tech',          value: 25, color: '#059669' },
+  { label: 'GEOMS',     value: 18, color: '#059669' },
+  { label: 'Conexxia Log',        value: 14, color: '#059669' },
+  { label: 'MH Pinturas',    value: 9,  color: '#059669' },
 ];
 
 const alertasAbiertas = [];

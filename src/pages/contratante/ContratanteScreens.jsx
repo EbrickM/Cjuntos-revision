@@ -158,30 +158,30 @@ const IpiVerificacionModal = ({ factura, onClose, onConfirm }) => {
 
 // ── Datos ─────────────────────────────────────────────────────────────────────
 const contratos = [
-  { id: 'CT-2026-0041', pyme: 'Const. Silva Ltd.', ini: 'CS', sector: 'Construcción', asignado: 180_000_000, utilizado: 120_000_000, facturas: 5, estado: 'Activo',
+  { id: 'CT-2026-0041', pyme: 'Tradex', ini: 'CS', sector: 'Construcción', asignado: 180_000_000, utilizado: 120_000_000, facturas: 5, estado: 'Activo',
     objeto: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.', fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses' },
 ];
 
 // 2 facturas sobre CT-2026-0041 · suma: 47 500 000 XAF
 const facturas = [
-  { id: 'FAC-2026-0911', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.', monto: 21_500_000, fecha: '28/06/2026', estado: 'Recibida', concepto: 'Obras de estructura fase 2 — planta baja y primer piso' },
-  { id: 'FAC-2026-0918', contrato: 'CT-2026-0041', pyme: 'Const. Silva Ltd.', monto: 26_000_000, fecha: '05/07/2026', estado: 'Recibida', concepto: 'Acabados interiores y carpintería — módulos A y B' },
+  { id: 'FAC-2026-0911', contrato: 'CT-2026-0041', pyme: 'Tradex', monto: 21_500_000, fecha: '28/06/2026', estado: 'Recibida', concepto: 'Obras de estructura fase 2 — planta baja y primer piso' },
+  { id: 'FAC-2026-0918', contrato: 'CT-2026-0041', pyme: 'Tradex', monto: 26_000_000, fecha: '05/07/2026', estado: 'Recibida', concepto: 'Acabados interiores y carpintería — módulos A y B' },
 ];
 
 const pymes = [
-  { ini: 'CS', nombre: 'Const. Silva Ltd.', sector: 'Construcción', contratos: 1, montoTotal: 180_000_000, score: 820, semaforo: 'Verde',
+  { ini: 'CS', nombre: 'Tradex', sector: 'Construcción', contratos: 1, montoTotal: 180_000_000, score: 820, semaforo: 'Verde',
     nombreComercial: 'Construsilva GE', ruc: 'GE-2018-04512', telefono: '+240 222 301 458', correo: 'info@constsilva.gq',
     repNombre: 'Carlos Silva Mba',      repTipoDoc: 'DNI', repId: 'GE-19820314-CS', repCargo: 'Gerente General', repTel: '+240 551 120 001', repCorreo: 'c.silva@constsilva.gq' },
 ];
 
 const misSolicitudes = [
-  { id: 'SOL-2026-0142', tipo: 'Nuevo contrato', desc: 'Contrato con ConstCentro PYME · Construcción', monto: 50_000_000, fecha: '01/07/2026', estado: 'En revisión' },
+  { id: 'SOL-2026-0142', tipo: 'Nuevo contrato', desc: 'Contrato con Conexxia · Construcción', monto: 50_000_000, fecha: '01/07/2026', estado: 'En revisión' },
 ];
 
 const solicitudesPymes = [
-  { id: 'SOLP-2026-0051', ini: 'CC', pyme: 'ConstCentro PYME', sector: 'Construcción',  desc: 'Obras de infraestructura vial — Bata Norte',    monto: 95_000_000, fecha: '05/07/2026' },
-  { id: 'SOLP-2026-0048', ini: 'AS', pyme: 'AgroSur GE S.L.',  sector: 'Agroindustria', desc: 'Suministro productos agrícolas — campaña 2026', monto: 60_000_000, fecha: '03/07/2026' },
-  { id: 'SOLP-2026-0044', ini: 'TM', pyme: 'TechMalabo Ltd.',  sector: 'Tecnología',    desc: 'Mantenimiento sistemas TI corporativos',        monto: 35_000_000, fecha: '28/06/2026' },
+  { id: 'SOLP-2026-0051', ini: 'CC', pyme: 'Conexxia', sector: 'Construcción',  desc: 'Obras de infraestructura vial — Bata Norte',    monto: 95_000_000, fecha: '05/07/2026' },
+  { id: 'SOLP-2026-0048', ini: 'AS', pyme: 'Martinez Hermanos (MH)',  sector: 'Agroindustria', desc: 'Suministro productos agrícolas — campaña 2026', monto: 60_000_000, fecha: '03/07/2026' },
+  { id: 'SOLP-2026-0044', ini: 'TM', pyme: 'Conexxia Tech',  sector: 'Tecnología',    desc: 'Mantenimiento sistemas TI corporativos',        monto: 35_000_000, fecha: '28/06/2026' },
 ];
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
@@ -835,7 +835,7 @@ export function EmpPymes() {
 
               {/* Contratos */}
               <div>
-                <ModalLabel text={`Contratos con TotalEnerGE (${pymesContratos.length})`} Icon={ClipboardList} />
+                <ModalLabel text={`Contratos con Chevron (${pymesContratos.length})`} Icon={ClipboardList} />
                 {pymesContratos.length === 0 ? (
                   <p className="text-[12px] text-center py-4" style={{ color: TEXT4 }}>Sin contratos activos</p>
                 ) : (
@@ -1495,7 +1495,7 @@ export function EmpPerfil() {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="text-[20px] font-bold text-text-1 leading-tight">TotalEnerGE S.A.</div>
+              <div className="text-[20px] font-bold text-text-1 leading-tight">Chevron</div>
               <div className="text-[13px] text-text-3 mt-0.5">Marcos Oyono Ntutumu · Director General</div>
               <div className="text-[12px] font-mono text-text-5 mt-0.5">GE-2020-00567</div>
               <div className="text-[11px] text-text-4 mt-1">Energía y Servicios · 150–200 empleados</div>
@@ -1531,7 +1531,7 @@ export function EmpPerfil() {
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormGroup label="Razón Social">
-                <Input value="TotalEnerGE S.A." disabled />
+                <Input value="Chevron" disabled />
               </FormGroup>
               <FormGroup label="RUC / NIF">
                 <Input value="GE-2020-00567" disabled />

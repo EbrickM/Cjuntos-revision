@@ -73,9 +73,9 @@ const INV_PR_EMPTY        = { open: false, editId: null, proveedorId: '', monto:
 const PAGO_MODAL_EMPTY    = { open: false, editId: null, monto: '', concepto: '', fecha: '', facturaProvId: '', proveedorId: '', documento: null };
 
 const initialProviders = [
-  { id: 'p1', razonSocial: 'Cemex GE',      nombreComercial: 'Cemex GE',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true, kyc: 'vigente',  scoreCredito: 780 },
-  { id: 'p2', razonSocial: 'TransGE S.L.',  nombreComercial: 'TransGE',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true, kyc: 'vigente',  scoreCredito: 690 },
-  { id: 'p3', razonSocial: 'ServTec GE',    nombreComercial: 'ServTec GE', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true, kyc: 'pendiente', scoreCredito: 510 },
+  { id: 'p1', razonSocial: 'SAP',      nombreComercial: 'SAP',   ruc: 'GE-2019-00123', sector: 'Materiales', email: 'ventas@cemex.gq',    telefono: '+240 222 111 222', activo: true, kyc: 'vigente',  scoreCredito: 780 },
+  { id: 'p2', razonSocial: 'APEX',  nombreComercial: 'APEX',    ruc: 'GE-2020-00445', sector: 'Transporte', email: 'info@transge.gq',    telefono: '+240 222 333 444', activo: true, kyc: 'vigente',  scoreCredito: 690 },
+  { id: 'p3', razonSocial: 'APEX Tech',    nombreComercial: 'APEX Tech', ruc: 'GE-2022-00112', sector: 'Tecnología', email: 'soporte@servtec.gq', telefono: '+240 222 777 888', activo: true, kyc: 'pendiente', scoreCredito: 510 },
 ];
 
 const KYC_BADGE = { vigente: 'green', pendiente: 'yellow', vencido: 'red' };

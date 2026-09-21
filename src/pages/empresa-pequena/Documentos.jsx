@@ -15,7 +15,7 @@ const docs = [
     { nombre:'DNI Carlos Silva Nguema.pdf', dt:'01/01/25', size:'298 KB', estado:'Vigente', cls:'green' },
   ]},
   { cat:'Contratos con Contratante', items:[
-    { nombre:'CTR-2026-001 — TotalEnerGE.pdf', dt:'01/04/26', size:'678 KB', estado:'Activo', cls:'green' },
+    { nombre:'CTR-2026-001 — Chevron.pdf', dt:'01/04/26', size:'678 KB', estado:'Activo', cls:'green' },
     { nombre:'Addenda CTR-2026-001 — Fase 2.pdf', dt:'05/05/26', size:'124 KB', estado:'Activo', cls:'green' },
   ]},
   { cat:'Facturas emitidas', items:[

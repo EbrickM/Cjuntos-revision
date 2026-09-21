@@ -31,7 +31,7 @@ export function KycStep1() {
         <div className="bg-white rounded-[14px] border border-border p-7">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormGroup label="Nombre legal de la empresa" required className="sm:col-span-2">
-              <Input type="text" placeholder="Ej: Construcciones Silva Ltda." />
+              <Input type="text" placeholder="Ej: Tradex Ltda." />
             </FormGroup>
             <FormGroup label="RUC / NIF" required>
               <Input type="text" placeholder="GE-2021-XXXXX" />

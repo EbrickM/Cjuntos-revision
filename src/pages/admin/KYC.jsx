@@ -23,25 +23,25 @@ const ESTADOS_TERMINALES = new Set(['Aprobado', 'Desestimado']);
 
 const INITIAL_ROWS = [
   {
-    id: 'KYC-2026-011', nombre: 'Construcciones Silva Ltd.', ruc: 'GE-2020-00112',
+    id: 'KYC-2026-011', nombre: 'Tradex', ruc: 'GE-2020-00112',
     tipo: 'Empresa Pequeña', rep: 'Carlos Silva Nguema', email: 'c.silva@constsilva.gq',
     sector: 'Construcción', docs: ['DNI Rep. Legal', 'RUC Registro', 'Estados Financieros 2025', 'Escritura social'],
     estado: 'Aprobado', dt: '05/05/26',
   },
   {
-    id: 'KYC-2026-012', nombre: 'Pinturas Bata SL', ruc: 'GE-2022-00341',
+    id: 'KYC-2026-012', nombre: 'MH Pinturas', ruc: 'GE-2022-00341',
     tipo: 'Empresa Pequeña', rep: 'María Eyeang', email: 'm.eyeang@pinturasbata.gq',
     sector: 'Industria', docs: ['DNI Rep. Legal', 'RUC Registro', 'Estados Financieros 2025'],
     estado: 'Pendiente', dt: '10/05/26',
   },
   {
-    id: 'KYC-2026-013', nombre: 'AgriEco PYME GE', ruc: 'GE-2023-00567',
+    id: 'KYC-2026-013', nombre: 'Conexxia Agro GE', ruc: 'GE-2023-00567',
     tipo: 'Empresa Pequeña', rep: 'Jean-Pierre Mba', email: 'jp.mba@agriecopyme.gq',
     sector: 'Agricultura', docs: ['DNI Rep. Legal', 'RUC Registro'],
     estado: 'Documentos incompletos', dt: '12/05/26',
   },
   {
-    id: 'KYC-2026-014', nombre: 'LogiRapid GE', ruc: 'GE-2021-00789',
+    id: 'KYC-2026-014', nombre: 'Conexxia Log', ruc: 'GE-2021-00789',
     tipo: 'Empresa Pequeña', rep: 'Pedro Ela Nguema', email: 'p.ela@logige.gq',
     sector: 'Transporte', docs: ['DNI Rep. Legal', 'RUC Registro', 'Estados Financieros 2025', 'Plan de negocio'],
     estado: 'En revisión', dt: '12/05/26',

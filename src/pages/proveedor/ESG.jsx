@@ -70,8 +70,8 @@ const kpis = [
 ];
 
 const suministradorCerts = [
-  { nombre: 'Combustibles Bata S.L.', cert: 'Eco en Proceso', Icon: Sprout, color: '#D97706' },
-  { nombre: 'Repuestos Malabo GE',    cert: 'Verde',          Icon: Leaf,   color: '#059669' },
+  { nombre: 'SAP', cert: 'Eco en Proceso', Icon: Sprout, color: '#D97706' },
+  { nombre: 'Lideshore',    cert: 'Verde',          Icon: Leaf,   color: '#059669' },
 ];
 
 const provProyectos = [

@@ -7,7 +7,7 @@
 // (campo `portales`); cada portal / admin lo ve desde su propia vista.
 import { CST } from './contractStates';
 
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 
 const H = (titulo, detalle, fecha) => ({ titulo, detalle, fecha: fecha ?? '01/07/2026', actor: 'Sistema' });
 
@@ -94,11 +94,11 @@ export const seedContratos = [
     porcentajeRetencion: 2, porcentajeGestionCobranza: 1,
     fechaCreacion: '15/06/2026', cuentaBancaria: { tipo: 'bonafide', numero: null },
     pymesAsignadas: [
-      { id: 'ASG-9001', pymeNombre: 'AgroSur GE S.L.', pymeId: 'AgroSur GE S.L.', monto: 80_000_000, plazoPago: 45, email: 'contacto@agrosur.gq', telefono: '+240 222 550 120', documentoNombre: 'contrato_comercial.pdf' },
+      { id: 'ASG-9001', pymeNombre: 'Martinez Hermanos (MH)', pymeId: 'Martinez Hermanos (MH)', monto: 80_000_000, plazoPago: 45, email: 'contacto@agrosur.gq', telefono: '+240 222 550 120', documentoNombre: 'contrato_comercial.pdf' },
     ],
     requerimiento: {
       entidades: ['Empresa Contratante'],
-      mensaje: 'El monto asignado a AgroSur GE S.L. supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
       fecha: '16/06/2026',
     },
     nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
@@ -108,7 +108,7 @@ export const seedContratos = [
   fc({
     id: 'CT-2026-0058', portal: 'pyme', portales: ['pyme', 'admin'],
     estado: CST.pendienteConfiguracion,
-    contratanteNombre: 'TotalEnerGE S.A.',
+    contratanteNombre: 'Chevron',
     montoAsignado: 45_000_000, monto: 45_000_000, asignado: 0, disponible: 45_000_000,
     plazoPago: 30, interes: '4.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
     porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1,
@@ -118,17 +118,17 @@ export const seedContratos = [
   fc({
     id: 'CT-2026-0066', portal: 'pyme', portales: ['pyme', 'admin'],
     estado: CST.conRequerimientos,
-    contratanteNombre: 'Evans Construction & Engineering S.A.',
+    contratanteNombre: 'Subsea 7',
     montoAsignado: 30_000_000, monto: 30_000_000, asignado: 12_000_000, disponible: 18_000_000,
     plazoPago: 45, interes: '5.5% anual', bancoFondeador: 'ECOBank',
     porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1,
     fechaAsignacion: '20/06/2026', gestionFondos: 'retirar', comentarioRechazo: '',
     proveedoresAsignados: [
-      { id: 'PROV-9001', nombre: 'Suministros del Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
+      { id: 'PROV-9001', nombre: 'Lideshore Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
     ],
     requerimiento: {
       entidades: ['PYME'],
-      mensaje: 'El proveedor "Suministros del Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
+      mensaje: 'El proveedor "Lideshore Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
       fecha: '21/06/2026',
     },
     nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
@@ -138,21 +138,21 @@ export const seedContratos = [
   fc({
     id: 'CT-2026-0073', portal: 'proveedor', portales: ['proveedor', 'admin'],
     estado: CST.pendienteConfiguracion,
-    pymeNombre: 'Const. Silva Ltd.', montoAsignado: 15_000_000, monto: 15_000_000, asignado: 0, disponible: 15_000_000,
+    pymeNombre: 'Tradex', montoAsignado: 15_000_000, monto: 15_000_000, asignado: 0, disponible: 15_000_000,
     fechaAsignacion: '12/07/2026', cuentaBancaria: null, suministradoresAsignados: [],
     nota: 'Contrato registrado por Bonafide. En espera de que el Proveedor lo configure y lo reparta entre sus Suministradores.',
   }),
   fc({
     id: 'CT-2026-0079', portal: 'proveedor', portales: ['proveedor', 'admin'],
     estado: CST.conRequerimientos,
-    pymeNombre: 'Const. Silva Ltd.', montoAsignado: 9_000_000, monto: 9_000_000, asignado: 4_500_000, disponible: 4_500_000,
+    pymeNombre: 'Tradex', montoAsignado: 9_000_000, monto: 9_000_000, asignado: 4_500_000, disponible: 4_500_000,
     fechaAsignacion: '19/07/2026', cuentaBancaria: { tipo: 'bonafide', numero: null },
     suministradoresAsignados: [
-      { id: 'SUM-002', nombre: 'Repuestos Malabo GE', email: 'info@repmalabo.gq', telefono: '+240 222 808 111', monto: 4_500_000, cargaNomina: false },
+      { id: 'SUM-002', nombre: 'Lideshore', email: 'info@repmalabo.gq', telefono: '+240 222 808 111', monto: 4_500_000, cargaNomina: false },
     ],
     requerimiento: {
       entidades: ['Proveedor'],
-      mensaje: 'El suministrador "Repuestos Malabo GE" no tiene KYC vigente registrado. Actualiza su verificación antes de continuar.',
+      mensaje: 'El suministrador "Lideshore" no tiene KYC vigente registrado. Actualiza su verificación antes de continuar.',
       fecha: '19/07/2026',
     },
     nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
@@ -162,7 +162,7 @@ export const seedContratos = [
   fc({
     id: 'CT-2026-0041', portal: 'banco', portales: ['pyme', 'proveedor', 'contratante', 'banco', 'admin', 'factoring'],
     estado: CST.activo, kyc: 'vigente', tipoFactoring: 'directo', gestionFondos: 'billetera',
-    contratanteNombre: 'Constructora Malabo S.A.', pyme: 'Const. Silva Ltd.', pymeNombre: 'Const. Silva Ltd.', sector: 'Construcción',
+    contratanteNombre: 'GEOMS', pyme: 'Tradex', pymeNombre: 'Tradex', sector: 'Construcción',
     monto: 180_000_000, asignado: 47_500_000, disponible: 132_500_000, montoMax: 50_000_000, utilizado: 47_500_000, facturas: 2,
     plazoPago: 30, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
     porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5,
@@ -170,7 +170,7 @@ export const seedContratos = [
     objeto: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.',
     fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses',
     contratante: {
-      razonSocial: 'Constructora Malabo S.A.', nombreComercial: 'Constructora Malabo', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
+      razonSocial: 'GEOMS', nombreComercial: 'GEOMS', ruc: 'GE-2023-00156', sectorProductivo: 'Construcción', scoreCredito: 720,
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@conmalabo.gq',
       objetoTrabajo: 'Construcción de sede corporativa en el Paseo Luba, Malabo — estructura, instalaciones y acabados interiores.',
       documentoContrato: null, montoGlobal: '180000000',
@@ -181,13 +181,13 @@ export const seedContratos = [
     },
     distribucion: [
       { id: 'dist-001', concepto: 'Compra de Materiales', monto: 21_500_000, providerId: '',   providerName: '',            providerSector: '' },
-      { id: 'dist-002', concepto: 'Pago a Proveedor',     monto: 26_000_000, providerId: 'p1', providerName: 'Cemex GE',    providerSector: 'Materiales' },
+      { id: 'dist-002', concepto: 'Pago a Proveedor',     monto: 26_000_000, providerId: 'p1', providerName: 'SAP',    providerSector: 'Materiales' },
     ],
   }),
   fc({
     id: 'CT-2026-0052', portal: 'banco', portales: ['pyme', 'proveedor', 'contratante', 'banco', 'admin', 'factoring'],
     estado: CST.conRequerimientos, kyc: 'vigente', tipoFactoring: 'inverso',
-    contratanteNombre: 'TotalEnerGE S.A.', pyme: 'AgroSur GE S.L.', pymeNombre: 'AgroSur GE S.L.', sector: 'Agroindustria',
+    contratanteNombre: 'Chevron', pyme: 'Martinez Hermanos (MH)', pymeNombre: 'Martinez Hermanos (MH)', sector: 'Agroindustria',
     monto: 60_000_000, asignado: 12_000_000, disponible: 48_000_000, montoMax: 30_000_000, utilizado: 12_000_000, facturas: 0,
     plazoPago: 45, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
     porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5,
@@ -196,12 +196,12 @@ export const seedContratos = [
     fechaInicio: '01/03/2026', fechaFin: '28/02/2027', plazo: '12 meses',
     requerimiento: {
       entidades: ['Empresa Contratante'],
-      mensaje: 'El monto asignado a AgroSur GE S.L. supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
       fecha: '16/06/2026',
       marcoId: 'CTM-2026-0011',
     },
     contratante: {
-      razonSocial: 'TotalEnerGE S.A.', nombreComercial: 'TotalEnerGE', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
+      razonSocial: 'Chevron', nombreComercial: 'Chevron', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
       telefonoCorporativo: '+240 222 300 400', correoCorporativo: 'contratos@totalenerge.gq',
       objetoTrabajo: 'Suministro de insumos agrícolas para plantaciones de cacao y café en la región continental.',
       documentoContrato: null, montoGlobal: '60000000',
@@ -217,12 +217,12 @@ export const seedContratos = [
   fc({
     id: 'CT-2026-0059', portal: 'pyme', portales: ['pyme', 'admin'],
     estado: CST.activo, kyc: 'vigente', tipoFactoring: 'directo', gestionFondos: 'retirar',
-    contratanteNombre: 'TotalEnerGE S.A.', pymeNombre: '—', sector: 'Energía',
+    contratanteNombre: 'Chevron', pymeNombre: '—', sector: 'Energía',
     monto: 95_000_000, asignado: 30_000_000, disponible: 65_000_000, montoMax: 30_000_000, facturas: 0,
     plazoPago: 60, interes: '4.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
     porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1,
     contratante: {
-      razonSocial: 'TotalEnerGE S.A.', nombreComercial: 'TotalEnerGE', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
+      razonSocial: 'Chevron', nombreComercial: 'Chevron', ruc: 'GE-2016-00789', sectorProductivo: 'Energía', scoreCredito: 780,
       telefonoCorporativo: '+240 222 300 400', correoCorporativo: 'contratos@totalenerge.gq',
       objetoTrabajo: 'Suministro y mantenimiento de equipos de perforación para operaciones costa afuera en el bloque de Punta Europa.',
       documentoContrato: null, montoGlobal: '95000000',
@@ -232,13 +232,13 @@ export const seedContratos = [
       confirmado: true,
     },
     distribucion: [
-      { id: 'dist-201', concepto: 'Pago a Proveedor',     monto: 18_000_000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
+      { id: 'dist-201', concepto: 'Pago a Proveedor',     monto: 18_000_000, providerId: 'p2', providerName: 'APEX', providerSector: 'Transporte' },
       { id: 'dist-202', concepto: 'Compra de Materiales', monto: 12_000_000, providerId: '',   providerName: '',             providerSector: '' },
     ],
   }),
   fc({
     id: 'CT-2026-0081', portal: 'proveedor', portales: ['proveedor', 'admin'],
-    estado: CST.activo, pymeNombre: 'AgroSur GE S.L.', pyme: 'AgroSur GE S.L.', sector: 'Transporte',
+    estado: CST.activo, pymeNombre: 'Martinez Hermanos (MH)', pyme: 'Martinez Hermanos (MH)', sector: 'Transporte',
     monto: 22_000_000, asignado: 9_500_000, disponible: 12_500_000, montoMax: 9_500_000, facturas: 1,
     plazoPago: 30, interes: '5.5% anual', bancoFondeador: 'CCEI Bank Guinea Ecuatorial',
     porcentajeRetencion: 2.5, porcentajeGestionCobranza: 1,
@@ -246,12 +246,12 @@ export const seedContratos = [
     objeto: 'Transporte y logística de insumos agrícolas entre almacenes regionales de la PYME.',
     fechaInicio: '01/04/2026', fechaFin: '31/03/2027', plazo: '12 meses',
     suministradores: [
-      { id: 'SUM-001', nombre: 'Combustibles Bata S.L.', email: 'ventas@combata.gq', telefono: '+240 222 606 707', monto: 9_500_000, cargaNomina: false, kyc: 'vigente', scoreCredito: 705 },
+      { id: 'SUM-001', nombre: 'SAP', email: 'ventas@combata.gq', telefono: '+240 222 606 707', monto: 9_500_000, cargaNomina: false, kyc: 'vigente', scoreCredito: 705 },
     ],
   }),
   fc({
     id: 'CT-2026-0088', portal: 'proveedor', portales: ['proveedor', 'admin'],
-    estado: CST.conRequerimientos, pymeNombre: 'Const. Silva Ltd.', pyme: 'Const. Silva Ltd.', sector: 'Transporte',
+    estado: CST.conRequerimientos, pymeNombre: 'Tradex', pyme: 'Tradex', sector: 'Transporte',
     monto: 9_000_000, asignado: 4_500_000, disponible: 4_500_000, montoMax: 4_500_000, facturas: 1,
     plazoPago: 30, interes: '5% anual', bancoFondeador: 'BGFI Bank Guinea Ecuatorial',
     porcentajeRetencion: 3, porcentajeGestionCobranza: 1.5,
@@ -259,11 +259,11 @@ export const seedContratos = [
     objeto: 'Transporte de materiales de construcción para obras en Malabo.',
     fechaInicio: '01/05/2026', fechaFin: '30/04/2027', plazo: '12 meses',
     suministradores: [
-      { id: 'SUM-002', nombre: 'Repuestos Malabo GE', email: 'info@repmalabo.gq', telefono: '+240 222 808 111', monto: 4_500_000, cargaNomina: false, kyc: 'pendiente', scoreCredito: 640 },
+      { id: 'SUM-002', nombre: 'Lideshore', email: 'info@repmalabo.gq', telefono: '+240 222 808 111', monto: 4_500_000, cargaNomina: false, kyc: 'pendiente', scoreCredito: 640 },
     ],
     requerimiento: {
       entidades: ['Proveedor'],
-      mensaje: 'El suministrador "Repuestos Malabo GE" no tiene KYC vigente registrado. Actualiza su verificación antes de continuar.',
+      mensaje: 'El suministrador "Lideshore" no tiene KYC vigente registrado. Actualiza su verificación antes de continuar.',
       fecha: '19/07/2026',
       contratoId: 'CT-2026-0079',
     },
@@ -272,7 +272,7 @@ export const seedContratos = [
 
   // ── Serie del admin (Bonafide), correlativo único CT-2026-XXXX ──
   fc({
-    id: 'CT-2026-0101', portal: 'admin', portales: ['admin'], pymeNombre: 'Construcciones Silva Ltd.',
+    id: 'CT-2026-0101', portal: 'admin', portales: ['admin'], pymeNombre: 'Tradex',
     monto: 58_000_000, asignado: 0, disponible: 58_000_000,
     estado: CST.pendienteConfiguracion,
     nota: 'Contrato registrado por Bonafide. En espera de que la Empresa Contratante lo configure y lo reparta entre sus PYMEs.',
@@ -286,11 +286,11 @@ export const seedContratos = [
     distribucion: [], facturas: [],
   }),
   fc({
-    id: 'CT-2026-0102', portal: 'admin', portales: ['admin'], pymeNombre: 'Construcciones Silva Ltd.',
+    id: 'CT-2026-0102', portal: 'admin', portales: ['admin'], pymeNombre: 'Tradex',
     monto: 42_000_000, asignado: 9_000_000, disponible: 33_000_000,
     estado: CST.activo, nota: '',
     contratante: {
-      razonSocial: 'Evans Construction & Engineering S.A.', nombreComercial: 'Evans GE', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción',
+      razonSocial: 'Subsea 7', nombreComercial: 'Subsea 7', ruc: 'GE-2021-00278', sectorProductivo: 'Construcción',
       telefonoCorporativo: '+240 222 909 111', correoCorporativo: 'admin@evans.gq',
       objetoTrabajo: 'Obras de edificación, remodelación integral y adecuación de oficinas corporativas en el complejo empresarial de Sipopo.',
       documentoContrato: null, montoGlobal: '42000000',
@@ -300,20 +300,20 @@ export const seedContratos = [
       confirmado: true,
     },
     distribucion: [
-      { id: 'dist-001', concepto: 'Pago a Proveedor', monto: 9_000_000, providerId: 'p2', providerName: 'TransGE S.L.', providerSector: 'Transporte' },
+      { id: 'dist-001', concepto: 'Pago a Proveedor', monto: 9_000_000, providerId: 'p2', providerName: 'APEX', providerSector: 'Transporte' },
     ],
     facturas: [
-      { id: 'FAC-2026-1025', tipo: 'proveedor',   monto: 4_500_000, estado: 'Enviada', concepto: 'Transporte de materiales al sitio de obra',          fecha: '01/05/2026', proveedor: 'TransGE S.L.' },
+      { id: 'FAC-2026-1025', tipo: 'proveedor',   monto: 4_500_000, estado: 'Enviada', concepto: 'Transporte de materiales al sitio de obra',          fecha: '01/05/2026', proveedor: 'APEX' },
       { id: 'FAC-2026-1031', tipo: 'contratante', monto: 18_000_000, estado: 'Pagada',  concepto: 'Avance de obra fase 1 – Cimentación y estructura',   fecha: '10/05/2026' },
     ],
   }),
   fc({
-    id: 'CT-2026-0103', portal: 'admin', portales: ['admin'], pymeNombre: 'Pinturas Bata SL',
+    id: 'CT-2026-0103', portal: 'admin', portales: ['admin'], pymeNombre: 'MH Pinturas',
     monto: 31_000_000, asignado: 0, disponible: 31_000_000,
     estado: CST.enDiscusionTerminos,
     nota: 'La PYME rechazó los términos del contrato. Bonafide debe contactar a ambas partes para resolver el desacuerdo.',
     contratante: {
-      razonSocial: 'Petro Guinea S.A.', nombreComercial: 'PetroGE', ruc: 'GE-2019-00891', sectorProductivo: 'Energía',
+      razonSocial: 'SEGESA', nombreComercial: 'SEGESA', ruc: 'GE-2019-00891', sectorProductivo: 'Energía',
       telefonoCorporativo: '+240 222 456 789', correoCorporativo: 'contratos@petroguinea.gq',
       objetoTrabajo: 'Suministro de combustible y lubricantes industriales para operaciones en tierra y plataformas offshore.',
       documentoContrato: null, montoGlobal: '31000000',
@@ -325,13 +325,13 @@ export const seedContratos = [
     distribucion: [], facturas: [],
   }),
   fc({
-    id: 'CT-2026-0104', portal: 'admin', portales: ['admin'], pymeNombre: 'LogiRapid GE',
+    id: 'CT-2026-0104', portal: 'admin', portales: ['admin'], pymeNombre: 'Conexxia Log',
     monto: 75_000_000, asignado: 0, disponible: 75_000_000,
     estado: CST.pendienteRevision,
     nota: 'La Empresa Contratante ya configuró el contrato. Revisa los datos y autorízalo para activarlo.',
-    pymesAsignadas: ['LogiRapid GE', 'Transportes Ecuato SL'],
+    pymesAsignadas: ['Conexxia Log', 'Tradex Transportes'],
     contratante: {
-      razonSocial: 'Ministerio de Obras Públicas e Infraestructuras', nombreComercial: 'MOPI-GE', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción',
+      razonSocial: 'GEOMS', nombreComercial: 'GEOMS', ruc: 'GE-2015-00042', sectorProductivo: 'Construcción',
       telefonoCorporativo: '+240 222 001 002', correoCorporativo: 'adm@obras.gob.gq',
       objetoTrabajo: 'Construcción y pavimentación de 12 km de infraestructura vial en la zona norte de Malabo, incluyendo drenajes y señalización.',
       documentoContrato: null, montoGlobal: '75000000',
@@ -341,17 +341,17 @@ export const seedContratos = [
       confirmado: true,
     },
     distribucion: [
-      { id: 'dist-101', concepto: 'Pago a Proveedor', monto: 12_000_000, providerId: 'p10', providerName: 'ViaLogix GE',         providerSector: 'Logística' },
-      { id: 'dist-102', concepto: 'Pago a Proveedor', monto: 8_000_000,  providerId: 'p11', providerName: 'Materiales del Norte', providerSector: 'Materiales' },
+      { id: 'dist-101', concepto: 'Pago a Proveedor', monto: 12_000_000, providerId: 'p10', providerName: 'APEX Cargo',         providerSector: 'Logística' },
+      { id: 'dist-102', concepto: 'Pago a Proveedor', monto: 8_000_000,  providerId: 'p11', providerName: 'SAP Materiales', providerSector: 'Materiales' },
     ],
     facturas: [],
   }),
   fc({
-    id: 'CT-2026-0105', portal: 'admin', portales: ['admin'], pymeNombre: 'TransGE S.L.',
+    id: 'CT-2026-0105', portal: 'admin', portales: ['admin'], pymeNombre: 'APEX',
     monto: 25_000_000, asignado: 0, disponible: 25_000_000,
     estado: CST.activo, nota: '',
     contratante: {
-      razonSocial: 'Autoridad Portuaria de Bata S.A.', nombreComercial: 'BataPort', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte',
+      razonSocial: 'SEGESA', nombreComercial: 'SEGESA', ruc: 'GE-2018-00317', sectorProductivo: 'Transporte',
       telefonoCorporativo: '+240 222 654 321', correoCorporativo: 'admin@bataporto.gq',
       objetoTrabajo: 'Gestión operativa, mantenimiento preventivo y correctivo de instalaciones y equipos en el Puerto de Bata.',
       documentoContrato: null, montoGlobal: '25000000',
@@ -363,19 +363,19 @@ export const seedContratos = [
     distribucion: [], facturas: [],
   }),
   fc({
-    id: 'CT-2026-0107', portal: 'admin', portales: ['admin'], pymeNombre: 'ServTec GE',
+    id: 'CT-2026-0107', portal: 'admin', portales: ['admin'], pymeNombre: 'APEX Tech',
     monto: 18_500_000, asignado: 0, disponible: 18_500_000,
     estado: CST.conRequerimientos,
     nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
     requerimiento: {
       entidades: ['PYME'],
-      mensaje: 'La PYME ServTec GE no adjuntó la documentación de respaldo requerida para validar el monto asignado por el contratante. Favor de adjuntar el contrato comercial actualizado antes de continuar con la autorización.',
+      mensaje: 'La PYME APEX Tech no adjuntó la documentación de respaldo requerida para validar el monto asignado por el contratante. Favor de adjuntar el contrato comercial actualizado antes de continuar con la autorización.',
       fecha: '11/07/2026',
     },
     contratante: {
-      razonSocial: 'GEPetrol S.A.', nombreComercial: 'GEPetrol', ruc: 'GE-2010-00056', sectorProductivo: 'Energía',
+      razonSocial: 'Subsea 7', nombreComercial: 'Subsea 7', ruc: 'GE-2010-00056', sectorProductivo: 'Energía',
       telefonoCorporativo: '+240 222 100 200', correoCorporativo: 'admin@gepetrol.gq',
-      objetoTrabajo: 'Mantenimiento y soporte técnico de sistemas informáticos y redes de comunicación en las instalaciones de GEPetrol en Malabo.',
+      objetoTrabajo: 'Mantenimiento y soporte técnico de sistemas informáticos y redes de comunicación en las instalaciones de Subsea 7 en Malabo.',
       documentoContrato: null, montoGlobal: '18500000',
       fechaInicio: '2026-05-01', fechaFin: '2026-10-31', plazosEjecucion: '6 meses',
       repNombre: 'Anastasio Ndong Ela', repTipoDoc: 'Cédula', repIdentificacion: 'GE-1981-00203',

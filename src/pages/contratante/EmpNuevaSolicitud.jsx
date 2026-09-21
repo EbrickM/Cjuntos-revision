@@ -94,7 +94,7 @@ export default function EmpNuevaSolicitud() {
 
   // ── Normal mode: nueva solicitud propia ──
   return (
-    <AppShell active="empSolicitudes" role="contratante" title="Nueva Solicitud" sub="Empresa Contratante · TotalEnerGE S.A.">
+    <AppShell active="empSolicitudes" role="contratante" title="Nueva Solicitud" sub="Empresa Contratante · Chevron">
       <div className="fade-in space-y-5 max-w-2xl">
 
         <BackButton to="empContratos" />

@@ -408,7 +408,7 @@ export default function SolicitarContrato() {
 
   const mockNifSearch = (v) => {
     setFoundCompany({
-      razonSocial:   'TotalEnerGE S.A.',
+      razonSocial:   'Chevron',
       nif:           v,
       estadoKyc:     'KYC Vigente',
       formaJuridica: 'Sociedad Anónima (S.A.)',
@@ -1144,7 +1144,7 @@ export default function SolicitarContrato() {
 
     /* ── INVITATION LANDING (PYME receives from Contratante) ───────────────── */
     inv_p_landing: (() => {
-      const contratante = foundCompany?.razonSocial || regData.razonSocial || 'TotalEnerGE S.A.';
+      const contratante = foundCompany?.razonSocial || regData.razonSocial || 'Chevron';
       const initials    = contratante.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
       const montoFmt    = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`
@@ -1236,7 +1236,7 @@ export default function SolicitarContrato() {
 
     /* ── INVITATION LANDING (Contratante receives from PYME) ───────────────── */
     inv_c_landing: (() => {
-      const pyme       = foundCompany?.razonSocial || regData.razonSocial || 'Construcciones Silva S.R.L.';
+      const pyme       = foundCompany?.razonSocial || regData.razonSocial || 'Tradex';
       const initials   = pyme.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
       const montoFmt   = operation.monto
         ? `${operation.monto.replace(/\B(?=(\d{3})+(?!\d))/g, '.')} XAF`

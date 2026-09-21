@@ -39,7 +39,7 @@ export default function EmpRisk() {
           </div>
           <div className="bg-white rounded-[14px] border border-border p-5">
             <div className="text-[13px] font-bold mb-3">⚠ Alertas Activas</div>
-            {[['red','🔴','ServLog GE — Riesgo Alto','3 pagos tardíos desde 15/04/2026'],['yellow','🟡','AgriEco PYME — Docs','RUC vence 30/05/2026']].map(([typ,ico,t,d]) => (
+            {[['red','🔴','MH Logística — Riesgo Alto','3 pagos tardíos desde 15/04/2026'],['yellow','🟡','Conexxia Agro — Docs','RUC vence 30/05/2026']].map(([typ,ico,t,d]) => (
               <div key={t} className={`flex items-center gap-3 rounded-[10px] p-3 mb-2 border ${typ==='red'?'bg-red-bg border-red/20':'bg-yellow-bg border-yellow/30'}`}>
                 <span className="text-[20px]">{ico}</span>
                 <div className="flex-1">
@@ -57,7 +57,7 @@ export default function EmpRisk() {
           <table className="w-full border-collapse">
             <thead><tr>{['Proveedor','Semáforo','Score','Facturas','Alertas','Acciones'].map(h=><th key={h} className="text-left px-4 py-2 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
             <tbody>
-              {[['Const. Silva','green','🟢 Verde',820,3,'Ninguna'],['Tech Bata SL','green','🟢 Verde',820,1,'Ninguna'],['AgriEco PYME','yellow','⚠ Amarillo',610,2,'Docs por vencer'],['ServLog GE','red','🔴 Rojo',320,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
+              {[['Tradex','green','🟢 Verde',820,3,'Ninguna'],['Conexxia Bata','green','🟢 Verde',820,1,'Ninguna'],['Conexxia Agro','yellow','⚠ Amarillo',610,2,'Docs por vencer'],['MH Logística','red','🔴 Rojo',320,1,'3 pagos tardíos']].map(([name,cls,sem,score,fac,alert]) => (
                 <tr key={name} onClick={() => go('empProvPerfil')} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
                   <td className="px-4 py-3 font-semibold">{name}</td>
                   <td className="px-4 py-3"><Badge variant={cls}>{sem}</Badge></td>

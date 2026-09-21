@@ -26,7 +26,7 @@ const ULTIMA_AUD  = '10/04/2026';
 export default function ProvPerfil() {
   const session  = useAuthStore(s => s.session);
   const user     = session?.user ?? {};
-  const fullName = user.fullName || 'TransGE S.L.';
+  const fullName = user.fullName || 'APEX';
   const email    = user.email    ?? 'info@transge.gq';
   const initials = getInitials(fullName);
 

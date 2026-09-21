@@ -79,9 +79,9 @@ export default function ProvFacturas() {
     if (contrato?.montoMax && monto > contrato.montoMax) return;
     facturaService.crear({
       contrato: facModal.contratoId,
-      contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
+      contratante: contrato?.contratanteNombre ?? 'Chevron',
       tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
-      pyme: 'Const. Silva Ltd.',
+      pyme: 'Tradex',
       origen: 'suministrador',
       monto, concepto: facModal.concepto, fechaVencimiento: facModal.fechaVencimiento,
       documentos: facModal.documento ? [{ name: facModal.documento.name, url: facModal.documento.url }] : [],

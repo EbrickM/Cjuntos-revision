@@ -43,15 +43,15 @@ const BADGE_LABEL = {
 const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
 const initialProviders = [
-  { id: 'p1', razonSocial: 'Cemex GE',     sector: 'Materiales' },
-  { id: 'p2', razonSocial: 'TransGE S.L.', sector: 'Transporte' },
-  { id: 'p3', razonSocial: 'ServTec GE',   sector: 'TecnologÃ­a' },
+  { id: 'p1', razonSocial: 'SAP',     sector: 'Materiales' },
+  { id: 'p2', razonSocial: 'APEX', sector: 'Transporte' },
+  { id: 'p3', razonSocial: 'APEX Tech',   sector: 'TecnologÃ­a' },
 ];
 
 // Facturas de proveedores (control interno) â€” registro local independiente del
 // BPMN de facturaciÃ³n al contratante (Fase 2 se tramita vÃ­a billetera/pagos).
 const initialInvoicesPr = [
-  { id: 'PR-2026-0231', tipo: 'proveedor', contrato: 'CT-2026-0041', proveedorId: 'p1', proveedorNombre: 'Cemex GE',
+  { id: 'PR-2026-0231', tipo: 'proveedor', contrato: 'CT-2026-0041', proveedorId: 'p1', proveedorNombre: 'SAP',
     monto: 8_000_000, estado: 'Pendiente', concepto: 'Suministro de cemento y añadidos al Lote 7',
     fecha: '10/07/2026', fechaVencimiento: '10/08/2026', documento: null },
 ];
@@ -172,9 +172,9 @@ export default function EpFacturacion() {
     } else {
       facturaService.crear({
         contrato: ctModal.contratoId,
-        contratante: contrato?.contratanteNombre ?? 'TotalEnerGE S.A.',
+        contratante: contrato?.contratanteNombre ?? 'Chevron',
         tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
-        pyme: 'Const. Silva Ltd.',
+        pyme: 'Tradex',
         monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
         documentos: ctModal.documento ? [{ name: ctModal.documento.name, url: ctModal.documento.url }] : [],
       });

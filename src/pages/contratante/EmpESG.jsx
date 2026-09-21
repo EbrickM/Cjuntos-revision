@@ -71,7 +71,7 @@ const kpis = [
 ];
 
 const pymeCerts = [
-  { nombre: 'Const. Silva Ltd.', cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
+  { nombre: 'Tradex', cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
 ];
 
 const empProyectos = [

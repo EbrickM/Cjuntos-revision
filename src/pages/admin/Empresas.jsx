@@ -8,8 +8,8 @@ import InfoRow from '../../components/ui/InfoRow';
 const empresas = [
   {
     id: 'EMP-001',
-    nombre: 'TotalEnerGE SA',
-    nombreComercial: 'TotalEnerGE',
+    nombre: 'Chevron',
+    nombreComercial: 'Chevron',
     sector: 'Energía',
     ruc: 'GE-2010-00011',
     email: 'contacto@totalenerge.gq',
@@ -18,8 +18,8 @@ const empresas = [
   },
   {
     id: 'EMP-002',
-    nombre: 'Infraconst. SA',
-    nombreComercial: 'Infraconst',
+    nombre: 'Chevron Sur',
+    nombreComercial: 'Chevron Sur',
     sector: 'Construcción',
     ruc: 'GE-2015-00234',
     email: 'info@infraconst.gq',
@@ -28,8 +28,8 @@ const empresas = [
   },
   {
     id: 'EMP-003',
-    nombre: 'MinGE Sociedad Est.',
-    nombreComercial: 'MinGE',
+    nombre: 'SEGESA',
+    nombreComercial: 'SEGESA',
     sector: 'Minería',
     ruc: 'GE-2008-00056',
     email: 'operaciones@minge.gq',
@@ -38,8 +38,8 @@ const empresas = [
   },
   {
     id: 'EMP-004',
-    nombre: 'AgroGE Holdings',
-    nombreComercial: 'AgroGE',
+    nombre: 'GEOMS',
+    nombreComercial: 'GEOMS',
     sector: 'Agricultura',
     ruc: 'GE-2019-00678',
     email: 'admin@agroge.gq',
