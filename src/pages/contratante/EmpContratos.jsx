@@ -94,7 +94,7 @@ export default function EmpContratos() {
         </div>
 
         {/* Cards de contratos */}
-        <div className="rounded-[14px] px-5 pt-2 pb-5">
+        <div className="rounded-[14px] pt-2 pb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedContratos.map((c, idx) => {
             const pct  = Math.round((c.utilizado / c.asignado) * 100);

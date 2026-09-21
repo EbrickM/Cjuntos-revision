@@ -189,7 +189,7 @@ export default function EpMisProveedores() {
             </div>
           </div>
 
-          <div className="rounded-[14px] px-5 pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="rounded-[14px] pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {pagedProviders.map((p, idx) => {
               const kycStyle = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
               const sStyle   = scoreStyle(p.scoreCredito);

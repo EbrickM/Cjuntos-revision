@@ -290,7 +290,7 @@ export default function EpFacturacion() {
           </div>
 
           {/* Cards de facturas */}
-          <div className="rounded-[14px] px-5 pt-2 pb-5">
+          <div className="rounded-[14px] pt-2 pb-5">
           {vista === 'contratante' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
               {pagedCT.map((f, idx) => {
