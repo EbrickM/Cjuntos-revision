@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FileCheck, Wallet, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus,
   Pencil, Trash2, CheckCircle2, AlertTriangle, FileText,
@@ -62,6 +62,10 @@ export default function EpConfigurarContrato() {
   const { go, opts } = useApp();
   const contrato = contratoService.obtener(opts?.contratoId) ?? contratoService.listarPendientes('pyme')[0] ?? null;
 
+  useEffect(() => {
+    if (!contrato) go('epCreditos');
+  }, [contrato, go]);
+
   const [modo, setModo]                 = useState('wizard'); // 'wizard' | 'rechazado' | 'enviado'
   const [step, setStep]                 = useState(0);
   const [mostrarRechazo, setMostrarRechazo] = useState(false);
@@ -72,16 +76,7 @@ export default function EpConfigurarContrato() {
   const [confirmado, setConfirmado]     = useState(false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
 
-  if (!contrato) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('epCreditos')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver a Mis Contratos
-        </Button>
-      </div>
-    );
-  }
+  if (!contrato) return null;
 
   const totalAsignado    = proveedores.reduce((s, p) => s + p.monto, 0);
   const disponibleGlobal = contrato.montoAsignado - totalAsignado;

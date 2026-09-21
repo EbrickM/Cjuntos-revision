@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Landmark, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil,
   Trash2, CheckCircle2, FileText,
@@ -63,7 +63,11 @@ export default function ProvConfigurarContrato() {
   const contrato = contratoService.obtener(opts?.contratoId)
     ?? contratoService.listarPendientes('proveedor')[0]
     ?? contratoService.listarPorVista('proveedor')[0]
-    ?? null;
+?? null;
+
+  useEffect(() => {
+    if (!contrato) go('provContratos');
+  }, [contrato, go]);
 
   const [step, setStep]                 = useState(0);
   const [cuentaTipo, setCuentaTipo]     = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
@@ -74,16 +78,7 @@ export default function ProvConfigurarContrato() {
   const [intentoEnvio, setIntentoEnvio] = useState(false);
   const [enviado, setEnviado]           = useState(false);
 
-  if (!contrato) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('provDash')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver al inicio
-        </Button>
-      </div>
-    );
-  }
+  if (!contrato) return null;
 
   const totalAsignado    = suministradores.reduce((s, x) => s + x.monto, 0);
   const disponibleGlobal = contrato.montoAsignado - totalAsignado;
@@ -211,7 +206,7 @@ export default function ProvConfigurarContrato() {
                   <FormGroup label="Banco" required className="mt-2 mb-0">
                     <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
                       <option value="">Seleccionar…</option>
-                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
+                      {BANCO_FONDEADORES.filter(b => b !== 'Bonafide').map(b => <option key={b}>{b}</option>)}
                     </Select>
                   </FormGroup>
                 )}

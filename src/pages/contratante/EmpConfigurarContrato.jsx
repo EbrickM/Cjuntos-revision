@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Landmark, Users, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil, Trash2,
   Building2, CheckCircle2, FileText,
@@ -67,6 +67,10 @@ export default function EmpConfigurarContrato() {
   const { go, opts } = useApp();
   const marco = contratoService.obtener(opts?.marcoId) ?? contratoService.listarPendientes('contratante')[0] ?? null;
 
+  useEffect(() => {
+    if (!marco) go('empContratos');
+  }, [marco, go]);
+
   const [step, setStep]               = useState(0);
   const [cuentaTipo, setCuentaTipo]   = useState(marco?.cuentaBancaria?.tipo ?? 'bonafide');
   const [cuentaBanco, setCuentaBanco] = useState(marco?.cuentaBancaria?.numero ?? '');
@@ -76,16 +80,7 @@ export default function EmpConfigurarContrato() {
   const [intentoEnvio, setIntentoEnvio] = useState(false);
   const [enviado, setEnviado]         = useState(false);
 
-  if (!marco) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('empContratos')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver a Mis Contratos
-        </Button>
-      </div>
-    );
-  }
+  if (!marco) return null;
 
   const totalAsignado   = asignaciones.reduce((s, a) => s + a.monto, 0);
   const disponibleGlobal = marco.montoBase - totalAsignado;
@@ -226,7 +221,7 @@ export default function EmpConfigurarContrato() {
                   <FormGroup label="Banco" required className="mt-2 mb-0">
                     <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
                       <option value="">Seleccionar…</option>
-                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
+                      {BANCO_FONDEADORES.filter(b => b !== 'Bonafide').map(b => <option key={b}>{b}</option>)}
                     </Select>
                   </FormGroup>
                 )}
