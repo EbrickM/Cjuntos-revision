@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
+import { MultiLineChart, VBarChart, HBarChart } from '../../components/charts/Charts';
 
 // ── MIC Brand tokens ──────────────────────────────────────────────────────────
 const RED         = '#E0201C';
@@ -17,129 +18,6 @@ const WARN        = '#C68A1D';
 const ERR         = '#B8352A';
 const TEXT4       = '#A9A6A1';
 const DONUT_EMPTY = '#C4C1BC';
-
-// ── MultiLineChart ────────────────────────────────────────────────────────────
-function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW = 560, pl = 56, pr = 16, pt = 14, pb = 28, fxSz = 11, fySz = 10, compact = false }) {
-  const W = vbW, H = h, PL = pl, PR = pr, PT = pt, PB = pb;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const allVals = data.flatMap(d => series.map(s => d[s.key] || 0));
-  const maxV = Math.max(...allVals) * 1.12;
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(p => Math.round(maxV * p));
-  const isIn = (key, i) => i >= windowStart && (data[i][key] || 0) >= minValue;
-  const inWindow = i => i >= windowStart;
-  const xPos = i => data.length > 1 ? PL + (i / (data.length - 1)) * cW : PL + cW / 2;
-  const yPos = v => PT + cH - (v / maxV) * cH;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
-      {yTicks.map(t => (
-        <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
-          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
-      ))}
-      {series.map((s, si) => {
-        const segments = [];
-        let current = [];
-        data.forEach((d, i) => {
-          if (isIn(s.key, i)) {
-            current.push([xPos(i), yPos(d[s.key] || 0)]);
-          } else if (current.length) {
-            segments.push(current);
-            current = [];
-          }
-        });
-        if (current.length) segments.push(current);
-        return segments.map((seg, segI) => (
-          <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        ));
-      })}
-      {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
-        <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key] || 0)} r="3" fill={s.color} />
-      )))}
-      {data.map((d, i) => (
-        <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
-          fontSize={fxSz} fill={inWindow(i) ? TEXT4 : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.label}</text>
-      ))}
-      {yTicks.map(t => (
-        <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
-          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">
-          {compact ? `${t}M` : `${t}M`}
-        </text>
-      ))}
-    </svg>
-  );
-}
-
-// ── HBarChart ─────────────────────────────────────────────────────────────────
-function HBarChart({ data, fmtVal = v => `${v}M`, visible = true }) {
-  const maxVal = Math.max(...data.map(d => d.value));
-  return (
-    <div className="space-y-3.5">
-      {data.map((d, i) => (
-        <div key={i}>
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[12px] font-semibold text-text-2 truncate mr-2">{d.label}</span>
-            <span className="text-[12px] font-bold shrink-0" style={{ color: d.color ?? RED }}>{fmtVal(d.value)}</span>
-          </div>
-          <div className="h-3 bg-page-bg rounded-full overflow-hidden">
-            <div className="h-full rounded-full"
-              style={{
-                width: visible ? `${(d.value / maxVal) * 100}%` : '0%',
-                background: d.color ?? RED,
-                transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 120}ms`,
-              }} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── VBarChart ─────────────────────────────────────────────────────────────────
-function VBarChart({ id, data, windowStart = 0, minValue = 0, h = 170, unit = '', vbW = 420, fxSz = 9, fvSz = 10, rotateLabels = false, labelKey = 'label' }) {
-  const W = vbW, H = h, PL = 32, PR = 12, PT = 28;
-  const PB = rotateLabels ? 62 : 32;
-  const cW = W - PL - PR, cH = H - PT - PB;
-  const maxV = Math.max(...data.map(d => d.value)) * 1.12;
-  const slot = cW / data.length, bW = slot * 0.52;
-  const gId = `vb-${id}`;
-  const inWindow = i => i >= windowStart;
-  const isIn = (d, i) => inWindow(i) && d.value >= minValue;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
-      <defs>
-        <linearGradient id={gId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={ORA} />
-          <stop offset="100%" stopColor={ORA} stopOpacity="0.55" />
-        </linearGradient>
-      </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map(p => (
-        <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
-          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
-      ))}
-      {data.map((d, i) => {
-        const lx = PL + slot * i + slot / 2;
-        const ly = PT + cH + (rotateLabels ? 32 : 14);
-        const x = PL + slot * i + (slot - bW) / 2;
-        const bH = (d.value / maxV) * cH;
-        const y = PT + cH - bH;
-        const fill = d.color ?? `url(#${gId})`;
-        return (
-          <g key={i} opacity={inWindow(i) ? 1 : 0.15}>
-            {d.value > 0 && isIn(d, i) && <rect x={x} y={y} width={bW} height={bH} rx="5" fill={fill} opacity="0.88" />}
-            <text x={x + bW / 2} y={y - 6} textAnchor="middle" fontSize={fvSz} fontWeight="700"
-              fill={isIn(d, i) ? (d.color ?? ORA) : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.value}{unit}</text>
-            <text x={lx} y={ly}
-              textAnchor="middle"
-              fontSize={fxSz} fill={TEXT4} fontFamily="Poppins,sans-serif"
-              transform={rotateLabels ? `rotate(-40, ${lx}, ${ly})` : undefined}>
-              {d[labelKey]}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
 
 // ── MiniRangeInput — slider horizontal de una sola esfera, apilado en el
 // lateral de cada gráfica, con etiqueta arriba y valor actual debajo ─────────
@@ -477,13 +355,13 @@ export default function EmpDash() {
                       {/* Desktop */}
                       <div className="hidden md:block h-[240px] w-full">
                         {evolucionHasData
-                          ? <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={1000} pl={48} />
+                          ? <MultiLineChart key={`emp-evo-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={240} vbW={1000} pl={48} />
                           : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                       </div>
                       {/* Móvil */}
                       <div className="block md:hidden h-[280px] w-full">
                         {evolucionHasData
-                          ? <MultiLineChart data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
+                          ? <MultiLineChart key={`emp-evo-m-${activityView}`} data={evolucionFondoData} series={evolucionFondoSeries} windowStart={evoWindowStart} minValue={evoMonto} h={280} vbW={380} pl={44} fxSz={13} fySz={11} />
                           : <div className="h-full flex items-center justify-center text-[12px]" style={{ color: TEXT4 }}>Sin datos para este filtro</div>}
                       </div>
                     </div>
@@ -503,11 +381,11 @@ export default function EmpDash() {
                   <>
                     {/* Desktop */}
                     <div className="hidden sm:block h-[240px] w-full">
-                      <VBarChart id="ct-tipo" data={tipoBarData} h={240} vbW={1000} unit="M" />
+                      <VBarChart key={`emp-tipo-${activityView}`} id="ct-tipo" data={tipoBarData} h={240} vbW={1000} unit="M" />
                     </div>
                     {/* Móvil */}
                     <div className="block sm:hidden h-[260px] w-full">
-                      <VBarChart id="ct-tipo-m" data={tipoBarData} h={260} vbW={340} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
+                      <VBarChart key={`emp-tipo-m-${activityView}`} id="ct-tipo-m" data={tipoBarData} h={260} vbW={340} fxSz={12} fvSz={13} unit="M" rotateLabels labelKey="shortLabel" />
                     </div>
                   </>
                 )}

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
 import { TrendingUp, Leaf, ChevronRight, CheckCircle, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
+import { ChartTooltip } from '../../components/charts/Charts';
 
 // ── MIC Brand tokens ─────────────────────────────────────────────────────────
 const RED         = '#E0201C';
@@ -36,41 +37,81 @@ function LineChart({ data, series, windowStart = 0, minValue = 0, h = 180, vbW =
   const fmtM = v => compact ? `${v}M` : new Intl.NumberFormat('de-DE').format(v * 1_000_000);
   const isIn = (key, i) => i >= windowStart && data[i][key] >= minValue;
   const inWindow = i => i >= windowStart;
+
+  const ref = useRef(null);
+  const [tip, setTip] = useState(null);
+
+  const handleMouseMove = (e) => {
+    const bbox = ref.current ? ref.current.getBoundingClientRect() : null;
+    if (!bbox) return;
+    const relX = (e.clientX - bbox.left) / bbox.width;
+    const svgX = relX * W;
+    const rawCol = ((svgX - PL) / cW) * (data.length - 1);
+    const col = Math.max(0, Math.min(data.length - 1, Math.round(rawCol)));
+    setTip({ col, mouseX: e.clientX - bbox.left, mouseY: e.clientY - bbox.top });
+  };
+
+  const handleMouseLeave = () => setTip(null);
+  const tipCol = tip !== null ? tip.col : null;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
-      {yTicks.map(t => (
-        <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
-          stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
-      ))}
-      {series.map((s, si) => {
-        const segments = [];
-        let current = [];
-        data.forEach((d, i) => {
-          if (isIn(s.key, i)) {
-            current.push([xPos(i), yPos(d[s.key])]);
-          } else if (current.length) {
-            segments.push(current);
-            current = [];
-          }
-        });
-        if (current.length) segments.push(current);
-        return segments.map((seg, segI) => (
-          <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        ));
-      })}
-      {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
-        <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key])} r="3" fill={s.color} />
-      )))}
-      {data.map((d, i) => (
-        <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
-          fontSize={fxSz} fill={inWindow(i) ? TEXT4 : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.label}</text>
-      ))}
-      {yTicks.map(t => (
-        <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
-          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
-      ))}
-    </svg>
+    <div ref={ref} className="relative w-full h-full">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
+        {yTicks.map(t => (
+          <line key={t} x1={PL} y1={yPos(t)} x2={W - PR} y2={yPos(t)}
+            stroke="rgba(0,0,0,0.04)" strokeWidth="1" />
+        ))}
+        {series.map((s, si) => {
+          const segments = [];
+          let current = [];
+          data.forEach((d, i) => {
+            if (isIn(s.key, i)) {
+              current.push([xPos(i), yPos(d[s.key])]);
+            } else if (current.length) {
+              segments.push(current);
+              current = [];
+            }
+          });
+          if (current.length) segments.push(current);
+          return segments.map((seg, segI) => (
+            <polyline key={`${si}-${segI}`} points={seg.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" stroke={s.color}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ strokeDasharray: 6000, animation: `lineDrawOn 1.1s ease-out ${si * 180}ms both` }} />
+          ));
+        })}
+        {series.map((s, si) => data.map((d, i) => isIn(s.key, i) && (
+          <circle key={`${si}-${i}`} cx={xPos(i)} cy={yPos(d[s.key])} r="3" fill={s.color}
+            style={{ animation: `dotFadeIn 0.3s ease ${si * 180 + i * 35}ms both`, transformOrigin: 'center' }} />
+        )))}
+        {tipCol !== null && (
+          <line
+            x1={xPos(tipCol)} y1={PT}
+            x2={xPos(tipCol)} y2={PT + cH}
+            stroke="rgba(0,0,0,0.15)" strokeWidth="1" strokeDasharray="4 3"
+          />
+        )}
+        {data.map((d, i) => (
+          <text key={i} x={xPos(i)} y={H - Math.round(pb * 0.2)} textAnchor="middle"
+            fontSize={fxSz} fill={inWindow(i) ? TEXT4 : '#D8D5D0'} fontFamily="Poppins,sans-serif">{d.label}</text>
+        ))}
+        {yTicks.map(t => (
+          <text key={t} x={PL - 5} y={yPos(t) + 3} textAnchor="end"
+            fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">{fmtM(t)}</text>
+        ))}
+        <rect x={0} y={0} width={W} height={H} fill="transparent"
+          onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} />
+      </svg>
+      {tip !== null && tipCol !== null && (
+        <ChartTooltip
+          x={tip.mouseX}
+          y={tip.mouseY}
+          title={data[tipCol].label}
+          lines={series
+            .filter(s => isIn(s.key, tipCol))
+            .map(s => ({ label: s.label, value: `${data[tipCol][s.key]}M`, color: s.color }))}
+        />
+      )}
+    </div>
   );
 }
 
@@ -94,34 +135,63 @@ function GroupedBarChart({ data, windowStart = 0, minValue = 0, h = 180, vbW = 5
   const fmt = v => compact
     ? (v === 0 ? '0' : `${Math.round(v / 1_000_000)}M`)
     : new Intl.NumberFormat('de-DE').format(Math.round(v));
+
+  const ref = useRef(null);
+  const [tip, setTip] = useState(null);
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
-      {[0, 0.33, 0.67, 1].map(p => (
-        <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
-          stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
-      ))}
-      {data.map((d, i) => {
-        const slotX = PL + slot * i;
-        const xIn  = slotX + outerGap;
-        const xOut = slotX + outerGap + bW + innerGap;
-        const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
-        const outH = maxV ? (d.outflow / maxV) * cH : 0;
-        return (
-          <g key={i} opacity={inWindow(i) ? 1 : 0.15}>
-            {d.inflow  > 0 && isIn('inflow', i)  && <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA} />}
-            {d.outflow > 0 && isIn('outflow', i) && <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82" />}
-            <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
-              fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
-          </g>
-        );
-      })}
-      {[0, 0.33, 0.67, 1].map(p => (
-        <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
-          fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">
-          {fmt(maxV * p)}
-        </text>
-      ))}
-    </svg>
+    <div ref={ref} className="relative w-full h-full">
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
+        {[0, 0.33, 0.67, 1].map(p => (
+          <line key={p} x1={PL} y1={PT + cH * (1 - p)} x2={W - PR} y2={PT + cH * (1 - p)}
+            stroke="rgba(0,0,0,0.05)" strokeWidth="1" />
+        ))}
+        {data.map((d, i) => {
+          const slotX = PL + slot * i;
+          const xIn  = slotX + outerGap;
+          const xOut = slotX + outerGap + bW + innerGap;
+          const inH  = maxV ? (d.inflow  / maxV) * cH : 0;
+          const outH = maxV ? (d.outflow / maxV) * cH : 0;
+          return (
+            <g key={i} opacity={inWindow(i) ? 1 : 0.15}
+              onMouseEnter={(e) => {
+                const bbox = ref.current ? ref.current.getBoundingClientRect() : null;
+                if (!bbox) return;
+                setTip({ barIdx: i, mouseX: e.clientX - bbox.left, mouseY: e.clientY - bbox.top });
+              }}
+              onMouseLeave={() => setTip(null)}>
+              {d.inflow  > 0 && isIn('inflow', i)  && (
+                <rect x={xIn}  y={base - inH}  width={bW} height={inH}  rx="3" fill={ORA}
+                  style={{ transformOrigin: `${xIn + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both` }} />
+              )}
+              {d.outflow > 0 && isIn('outflow', i) && (
+                <rect x={xOut} y={base - outH} width={bW} height={outH} rx="3" fill={RED} opacity="0.82"
+                  style={{ transformOrigin: `${xOut + bW / 2}px ${base}px`, animation: `barGrowUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 60}ms both` }} />
+              )}
+              <text x={slotX + slot / 2} y={H - Math.round(pb * 0.2)} textAnchor="middle" fontSize={fxSz}
+                fill={TEXT4} fontFamily="Poppins,sans-serif">{d.label}</text>
+            </g>
+          );
+        })}
+        {[0, 0.33, 0.67, 1].map(p => (
+          <text key={p} x={PL - 4} y={PT + cH * (1 - p) + 3} textAnchor="end"
+            fontSize={fySz} fill={TEXT4} fontFamily="Poppins,sans-serif">
+            {fmt(maxV * p)}
+          </text>
+        ))}
+      </svg>
+      {tip !== null && (
+        <ChartTooltip
+          x={tip.mouseX}
+          y={tip.mouseY}
+          title={data[tip.barIdx].label}
+          lines={[
+            { label: 'Entradas', value: `${Math.round(data[tip.barIdx].inflow / 1_000_000)}M XAF`, color: ORA },
+            { label: 'Salidas',  value: `${Math.round(data[tip.barIdx].outflow / 1_000_000)}M XAF`, color: RED },
+          ]}
+        />
+      )}
+    </div>
   );
 }
 
@@ -485,7 +555,7 @@ export default function EpHome() {
                 </div>
               </div>
               {activityView === 'evolucion' ? (
-                <div className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
+                <div key={`evo-${activityView}`} className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
                   <div className="w-full md:flex-1 md:min-w-0">
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
@@ -514,7 +584,7 @@ export default function EpHome() {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
+                <div key={`flujo-${activityView}`} className="flex flex-col md:flex-row md:items-stretch gap-4 md:gap-3 px-4">
                   <div className="w-full md:flex-1 md:min-w-0">
                     {/* Desktop */}
                     <div className="hidden md:block h-[240px] w-full">
