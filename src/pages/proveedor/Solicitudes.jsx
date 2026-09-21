@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  TrendingUp, FilePlus, ClipboardList, ChevronRight, ShieldCheck, CheckCircle2, AlertCircle,
+  TrendingUp, FilePlus, ClipboardList, ChevronRight, CheckCircle2, AlertCircle,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
@@ -99,12 +99,6 @@ export default function ProvSolicitudes() {
         {/* ── Solicitudes de Suministradores ── */}
         {tab === 'suministradores' && (
           <div className="space-y-4">
-            <div className="bg-page-bg border border-border rounded-[12px] p-3.5 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: ORA }} />
-              <p className="text-[12px]" style={{ color: TEXT4 }}>
-                Estos Suministradores te han declarado como su Proveedor. Haz clic en <strong className="text-text-2">Participar</strong> para confirmar tu participación e iniciar el proceso con Bonafide.
-              </p>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {pagedSolicitudesSuministradores.map(s => (
                 <div key={s.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-3">

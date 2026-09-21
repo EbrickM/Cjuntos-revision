@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   FilePlus, CreditCard, ClipboardList, ChevronRight,
-  CheckCircle2, AlertCircle, Building2, ShieldCheck,
+  CheckCircle2, AlertCircle, Building2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -130,12 +130,6 @@ export default function EpSolicitudes() {
         {/* ── Invitaciones ── */}
         {tab === 'invitaciones' && (
           <div className="space-y-4">
-            <div className="bg-page-bg border border-border rounded-[12px] p-3.5 flex items-start gap-2.5">
-              <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: ORA }} />
-              <p className="text-[12px]" style={{ color: TEXT4 }}>
-                Estas empresas contratantes te han invitado a participar en sus procesos. Haz clic en <strong className="text-text-2">Participar</strong> para confirmar e iniciar el proceso con Bonafide.
-              </p>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {pagedInvitaciones.map(s => (
                 <div key={s.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-3">

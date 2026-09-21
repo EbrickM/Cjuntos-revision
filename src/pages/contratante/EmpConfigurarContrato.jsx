@@ -105,11 +105,16 @@ export default function EmpConfigurarContrato() {
 
   const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
 
-  const openAdd = () => setModal({
-    ...ASIGNACION_EMPTY, open: true,
-    pymeSel: pymes[0]?.nombre ?? '__nueva__',
-    plazoPago: marco.plazoPagoDefault,
-  });
+  const openAdd = () => {
+    const primera = pymes[0] ?? null;
+    setModal({
+      ...ASIGNACION_EMPTY, open: true,
+      pymeSel: primera?.nombre ?? '__nueva__',
+      plazoPago: marco.plazoPagoDefault,
+      email: primera?.correo ?? '',
+      telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+    });
+  };
 
   const openEdit = (a) => setModal({
     open: true, editId: a.id,
@@ -169,7 +174,7 @@ export default function EmpConfigurarContrato() {
           </div>
           <h2 className="text-[20px] font-bold text-text-1 mb-2">Contrato enviado a revisión</h2>
           <p className="text-[13px] text-text-3 leading-relaxed mb-6">
-            Bonafide revisará la configuración del contrato {marco.id} y las {asignaciones.length} PYME{asignaciones.length === 1 ? '' : 's'} asignada{asignaciones.length === 1 ? '' : 's'}. Te notificaremos cuando el contrato esté activo.
+            Bonafide revisará la configuración del contrato {marco.id} y su distribución entre las PYMEs asignadas. Te notificaremos cuando el contrato esté activo.
           </p>
           <Button variant="primary" full className="h-[48px]" onClick={() => go('empContratos')}>
             Volver a Mis Contratos
@@ -371,7 +376,15 @@ export default function EmpConfigurarContrato() {
         >
           <div className="space-y-4">
             <FormGroup label="PYME" required>
-              <Select value={modal.pymeSel} onChange={e => setModal(m => ({ ...m, pymeSel: e.target.value }))}>
+              <Select value={modal.pymeSel} onChange={e => {
+                const v = e.target.value;
+                const p = pymes.find(x => x.nombre === v);
+                setModal(m => ({
+                  ...m, pymeSel: v,
+                  email: p?.correo ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                }));
+              }}>
                 {pymes.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
                 <option value="__nueva__">Otra (nueva)…</option>
               </Select>

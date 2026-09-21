@@ -104,10 +104,15 @@ export default function ProvConfigurarContrato() {
 
   const puedeGuardar = !!suministradorNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
 
-  const openAdd  = () => setModal({
-    ...SUMINISTRADOR_EMPTY, open: true,
-    sumSel: directorioSuministradores[0]?.nombre ?? '__nueva__',
-  });
+  const openAdd  = () => {
+    const primera = directorioSuministradores[0] ?? null;
+    setModal({
+      ...SUMINISTRADOR_EMPTY, open: true,
+      sumSel: primera?.nombre ?? '__nueva__',
+      email: primera?.correo ?? '',
+      telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+    });
+  };
   const openEdit = (s) => {
     const enDirectorio = directorioSuministradores.some(x => x.nombre === s.nombre);
     setModal({
@@ -164,7 +169,7 @@ export default function ProvConfigurarContrato() {
           </div>
           <h2 className="text-[20px] font-bold text-text-1 mb-2">Contrato enviado a revisión</h2>
           <p className="text-[13px] text-text-3 leading-relaxed mb-6">
-            Bonafide revisará la configuración del contrato {contrato.id} y los {suministradores.length} suministrador{suministradores.length === 1 ? '' : 'es'} asignado{suministradores.length === 1 ? '' : 's'}.
+            Bonafide revisará la configuración del contrato {contrato.id} y su distribución entre tus suministradores. Te notificaremos cuando el contrato esté activo.
           </p>
           <Button variant="primary" full className="h-[48px]" onClick={() => go('provContratos')}>
             Volver a Mis Contratos
@@ -349,7 +354,15 @@ export default function ProvConfigurarContrato() {
         >
           <div className="space-y-4">
             <FormGroup label="Suministrador" required>
-              <Select value={modal.sumSel} onChange={e => setModal(m => ({ ...m, sumSel: e.target.value }))}>
+              <Select value={modal.sumSel} onChange={e => {
+                const v = e.target.value;
+                const p = directorioSuministradores.find(x => x.nombre === v);
+                setModal(m => ({
+                  ...m, sumSel: v,
+                  email: p?.correo ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                }));
+              }}>
                 {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
                 <option value="__nueva__">Otro (nuevo)…</option>
               </Select>

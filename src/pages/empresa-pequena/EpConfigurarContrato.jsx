@@ -7,8 +7,8 @@ import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import FormGroup, { Input, Textarea } from '../../components/ui/FormGroup';
-import { montoDisponibleProveedores, fmt } from './epData';
+import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
+import { montoDisponibleProveedores, fmt, initialProviders } from './epData';
 import { contratoService } from '../../services/contrato.service';
 
 // ── CONFIGURAR CONTRATO (Subproceso 2 del BPMN: la PYME acepta los términos,
@@ -18,7 +18,8 @@ import { contratoService } from '../../services/contrato.service';
 const STEPS = ['Términos', 'Gestión de Fondos', 'Proveedores', 'Simulación'];
 
 const PROVEEDOR_EMPTY = {
-  open: false, editId: null, nombre: '', email: '', telefono: '', monto: '', cargaNomina: false,
+  open: false, editId: null, provSel: '', proveedorNombreLibre: '',
+  email: '', telefono: '', monto: '', cargaNomina: false,
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
@@ -88,16 +89,31 @@ export default function EpConfigurarContrato() {
   const montoNumLive        = parseMonto(modal.monto);
   const disponibleParaModal = montoDisponibleProveedores({ ...contrato, proveedoresAsignados: proveedores }, modal.editId);
   const montoInvalido       = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
-  const puedeGuardar        = modal.nombre.trim() && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
+  const proveedorNombreResuelto = modal.provSel === '__nueva__' ? modal.proveedorNombreLibre.trim() : modal.provSel;
+  const puedeGuardar        = !!proveedorNombreResuelto && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
 
   const retencionCalc = contrato.montoAsignado * (contrato.porcentajeRetencion / 100);
   const gestionCalc   = contrato.montoAsignado * (contrato.porcentajeGestionCobranza / 100);
 
-  const openAdd  = () => setModal({ ...PROVEEDOR_EMPTY, open: true });
-  const openEdit = (p) => setModal({
-    open: true, editId: p.id, nombre: p.nombre, email: p.email, telefono: p.telefono,
-    monto: String(p.monto), cargaNomina: p.cargaNomina,
-  });
+  const openAdd  = () => {
+    const primera = initialProviders[0] ?? null;
+    setModal({
+      ...PROVEEDOR_EMPTY, open: true,
+      provSel: primera?.razonSocial ?? '__nueva__',
+      email: primera?.email ?? '',
+      telefono: primera?.telefono ?? '',
+    });
+  };
+  const openEdit = (p) => {
+    const enDirectorio = initialProviders.some(x => x.razonSocial === p.nombre);
+    setModal({
+      open: true, editId: p.id,
+      provSel: enDirectorio ? p.nombre : '__nueva__',
+      proveedorNombreLibre: enDirectorio ? '' : p.nombre,
+      email: p.email, telefono: p.telefono,
+      monto: String(p.monto), cargaNomina: p.cargaNomina,
+    });
+  };
 
   const handleEliminar = (id) => setProveedores(prev => prev.filter(p => p.id !== id));
 
@@ -105,7 +121,7 @@ export default function EpConfigurarContrato() {
     if (!puedeGuardar) return;
     const nuevo = {
       id: modal.editId ?? `PROV-${Date.now()}`,
-      nombre: modal.nombre.trim(), email: modal.email.trim(), telefono: modal.telefono.trim(),
+      nombre: proveedorNombreResuelto, email: modal.email.trim(), telefono: modal.telefono.trim(),
       monto: montoNumLive, cargaNomina: modal.cargaNomina,
     };
     setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
@@ -168,7 +184,7 @@ export default function EpConfigurarContrato() {
           </div>
           <h2 className="text-[20px] font-bold text-text-1 mb-2">Contrato enviado a revisión</h2>
           <p className="text-[13px] text-text-3 leading-relaxed mb-6">
-            Bonafide revisará la configuración del contrato {contrato.id} y los {proveedores.length} proveedor{proveedores.length === 1 ? '' : 'es'} asignado{proveedores.length === 1 ? '' : 's'}. Te notificaremos cuando el contrato esté activo.
+            Bonafide revisará la configuración del contrato {contrato.id} y su distribución entre tus proveedores. Te notificaremos cuando el contrato esté activo.
           </p>
           <Button variant="primary" full className="h-[48px]" onClick={() => go('epCreditos')}>
             Volver a Mis Contratos
@@ -415,9 +431,39 @@ export default function EpConfigurarContrato() {
           }
         >
           <div className="space-y-4">
-            <FormGroup label="Nombre del proveedor" required>
-              <Input value={modal.nombre} onChange={e => setModal(m => ({ ...m, nombre: e.target.value }))} placeholder="Nombre o razón social" />
+            <FormGroup label="Proveedor" required>
+              <Select value={modal.provSel} onChange={e => {
+                const v = e.target.value;
+                const p = initialProviders.find(x => x.razonSocial === v);
+                setModal(m => ({
+                  ...m, provSel: v,
+                  email: p?.email ?? '',
+                  telefono: p?.telefono ?? '',
+                  proveedorNombreLibre: '',
+                }));
+              }}>
+                {initialProviders.map(p => <option key={p.razonSocial} value={p.razonSocial}>{p.razonSocial}</option>)}
+                <option value="__nueva__">Otro (nuevo)…</option>
+              </Select>
             </FormGroup>
+
+            {modal.provSel === '__nueva__' && (
+              <FormGroup label="Nombre del nuevo proveedor" required>
+                <Input
+                  value={modal.proveedorNombreLibre}
+                  onChange={e => {
+                    const v = e.target.value;
+                    const match = initialProviders.find(x =>
+                      x.razonSocial.toLowerCase() === v.trim().toLowerCase() ||
+                      (x.nombreComercial || '').toLowerCase() === v.trim().toLowerCase());
+                    setModal(m => match
+                      ? { ...m, proveedorNombreLibre: v, email: match.email, telefono: match.telefono }
+                      : { ...m, proveedorNombreLibre: v });
+                  }}
+                  placeholder="Nombre o razón social"
+                />
+              </FormGroup>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormGroup label="Email" required className="mb-0">
