@@ -1,4 +1,5 @@
 import { useApp } from '../../state/AppContext';
+import { useCountUp } from '../../hooks/useCountUp';
 import AppShell from '../../components/layout/AppShell';
 import { LineChart } from '../../components/charts/Charts';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
@@ -19,7 +20,13 @@ export default function FondDash() {
   const cartera = facturaService.carteraFondeador(BANCO);
 
   const porLiquidar = ordenes.reduce((a, f) => a + netoFactura(f), 0);
-  const fondeado = cartera.reduce((a, f) => a + netoFactura(f), 0);
+  const fondeado    = cartera.reduce((a, f) => a + netoFactura(f), 0);
+
+  // ── Contadores animados ───────────────────────────────────────────────────
+  const animOrdenes     = useCountUp(ordenes.length, 800,  150);
+  const animPorLiquidar = useCountUp(porLiquidar,    1400, 200);
+  const animCartera     = useCountUp(cartera.length, 800,  300);
+  const animFondeado    = useCountUp(fondeado,       1400, 350);
 
   const serie = MESES.map((mes, i) => {
     const mm = String(i + 1).padStart(2, '0');
@@ -30,12 +37,6 @@ export default function FondDash() {
   }).filter(d => d.monto > 0);
   const lineData = serie.length >= 2 ? serie : SERIE_DEMO;
 
-  const kpis = [
-    { value: String(ordenes.length), label: 'Órdenes por liquidar', numCls: 'text-orange' },
-    { value: `${fmt(porLiquidar)} XAF`, label: 'Monto por liquidar', numCls: 'text-blue-text' },
-    { value: String(cartera.length), label: 'Operaciones fondeadas', numCls: 'text-green-text' },
-    { value: `${fmt(fondeado)} XAF`, label: 'Capital fondeado', numCls: 'text-yellow-text' },
-  ];
 
   return (
     <AppShell
@@ -48,12 +49,22 @@ export default function FondDash() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {kpis.map(({ value, label, numCls }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-              <div className={`text-[22px] font-extrabold leading-none mb-2 truncate ${numCls}`}>{value}</div>
-              <div className="text-[12px] text-text-4 leading-snug">{label}</div>
-            </div>
-          ))}
+          <div className="card-enter bg-white rounded-[14px] border border-border p-4">
+            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-orange tabular-nums">{animOrdenes}</div>
+            <div className="text-[12px] text-text-4 leading-snug">Órdenes por liquidar</div>
+          </div>
+          <div className="card-enter bg-white rounded-[14px] border border-border p-4">
+            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-blue-text tabular-nums">{fmt(animPorLiquidar)} XAF</div>
+            <div className="text-[12px] text-text-4 leading-snug">Monto por liquidar</div>
+          </div>
+          <div className="card-enter bg-white rounded-[14px] border border-border p-4">
+            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-green-text tabular-nums">{animCartera}</div>
+            <div className="text-[12px] text-text-4 leading-snug">Operaciones fondeadas</div>
+          </div>
+          <div className="card-enter bg-white rounded-[14px] border border-border p-4">
+            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-yellow-text tabular-nums">{fmt(animFondeado)} XAF</div>
+            <div className="text-[12px] text-text-4 leading-snug">Capital fondeado</div>
+          </div>
         </div>
 
         {/* Evolución + órdenes recientes */}
@@ -91,7 +102,7 @@ export default function FondDash() {
                   <div
                     key={o.id}
                     onClick={() => go('fondOrdenes')}
-                    className="flex items-center justify-between gap-3 p-3 rounded-[10px] border border-border hover:bg-orange-tint/30 cursor-pointer transition-colors"
+                    className="slide-up flex items-center justify-between gap-3 p-3 rounded-[10px] border border-border hover:bg-orange-tint/30 cursor-pointer transition-colors"
                   >
                     <div className="min-w-0">
                       <div className="text-[12px] font-bold text-text-1 truncate">{o.pyme}</div>

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
+import ScoreGauge from '../../components/common/ScoreGauge';
 import {
   TrendingUp, TreePine, Download, ArrowUpRight,
   CheckCircle, CreditCard, Shield,
@@ -68,7 +70,7 @@ function MultiLineChart({ data, series, windowStart = 0, minValue = 0, h = 180, 
 }
 
 // ── HBarChart ─────────────────────────────────────────────────────────────────
-function HBarChart({ data, fmtVal = v => `${v}M` }) {
+function HBarChart({ data, fmtVal = v => `${v}M`, visible = true }) {
   const maxVal = Math.max(...data.map(d => d.value));
   return (
     <div className="space-y-3.5">
@@ -80,7 +82,11 @@ function HBarChart({ data, fmtVal = v => `${v}M` }) {
           </div>
           <div className="h-3 bg-page-bg rounded-full overflow-hidden">
             <div className="h-full rounded-full"
-              style={{ width: `${(d.value / maxVal) * 100}%`, background: d.color ?? RED }} />
+              style={{
+                width: visible ? `${(d.value / maxVal) * 100}%` : '0%',
+                background: d.color ?? RED,
+                transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 120}ms`,
+              }} />
           </div>
         </div>
       ))}
@@ -165,8 +171,6 @@ const TABS = [
 const FONDO_TOTAL     = 180_000_000;
 const FONDO_USADO     = 47_500_000;
 const FONDO_DISP      = 132_500_000;
-const PCT_USADO       = Math.round((FONDO_USADO / FONDO_TOTAL) * 100);
-const PCT_DISP        = 100 - PCT_USADO;
 const PYMES_FINANC      = 1;
 const CONTRATOS_ACTIV   = 1;
 const SCORE             = 720;
@@ -250,6 +254,28 @@ export default function EmpDash() {
   const evolucionHasData = evolucionFondoData.some((d, i) =>
     i >= evoWindowStart && evolucionFondoSeries.some(s => d[s.key] >= evoMonto));
 
+  // ── Contadores animados ───────────────────────────────────────────────────
+  const animTotal      = useCountUp(FONDO_TOTAL,    1800, 200);
+  const animUsado      = useCountUp(FONDO_USADO,    1600, 400);
+  const animDisp       = useCountUp(FONDO_DISP,     1600, 400);
+  const animScore      = useCountUp(SCORE,          1500, 300);
+  const animFactMonto  = useCountUp(FACTURAS_MONTO, 1400, 350);
+
+  const animZone = animScore < 400 ? { label: 'Crítico', color: ERR  }
+    : animScore < 600              ? { label: 'Alto',    color: ERR  }
+    : animScore < 750              ? { label: 'Medio',   color: WARN }
+    :                                { label: 'Bajo',    color: GREEN };
+
+  const animPctUsado = FONDO_TOTAL > 0 ? Math.round((animUsado / FONDO_TOTAL) * 100) : 0;
+  const animPctDisp  = 100 - animPctUsado;
+  const scoreDone    = animScore >= SCORE;
+
+  const [barsVisible, setBarsVisible] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setBarsVisible(true), 450);
+    return () => clearTimeout(id);
+  }, []);
+
   return (
     <AppShell active="empDash" role="contratante" back>
       <div className="fade-in space-y-4">
@@ -321,9 +347,9 @@ export default function EmpDash() {
                       FONDO DE PARTICIPACIÓN
                     </p>
                     <div className="flex items-baseline gap-2 mb-4 max-[765px]:justify-center">
-                      <span className="font-extrabold text-text-1 leading-none"
+                      <span className="font-extrabold text-text-1 leading-none tabular-nums"
                             style={{ fontSize: 'clamp(26px, 3.5vw, 36px)' }}>
-                        {new Intl.NumberFormat('de-DE').format(FONDO_TOTAL)}
+                        {new Intl.NumberFormat('de-DE').format(animTotal)}
                       </span>
                       <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
@@ -348,7 +374,7 @@ export default function EmpDash() {
                       <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
                             style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
-                        {FACTURAS_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(FACTURAS_MONTO)} XAF
+                        {FACTURAS_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF
                       </span>
                     </div>
                   </div>
@@ -360,10 +386,10 @@ export default function EmpDash() {
                         <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                       </div>
-                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1">
-                        {new Intl.NumberFormat('de-DE').format(FONDO_USADO)} XAF
+                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1 tabular-nums">
+                        {new Intl.NumberFormat('de-DE').format(animUsado)} XAF
                       </p>
-                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{PCT_USADO}%</p>
+                      <p className="text-xs max-[765px]:text-sm tabular-nums" style={{ color: TEXT4 }}>{animPctUsado}%</p>
                     </div>
                     <div className="h-px w-full bg-border" />
                     <div>
@@ -371,10 +397,10 @@ export default function EmpDash() {
                         <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                       </div>
-                      <p className="text-lg max-[765px]:text-xl font-extrabold" style={{ color: ORA }}>
-                        {new Intl.NumberFormat('de-DE').format(FONDO_DISP)} XAF
+                      <p className="text-lg max-[765px]:text-xl font-extrabold tabular-nums" style={{ color: ORA }}>
+                        {new Intl.NumberFormat('de-DE').format(animDisp)} XAF
                       </p>
-                      <p className="text-xs max-[765px]:text-sm" style={{ color: TEXT4 }}>{PCT_DISP}%</p>
+                      <p className="text-xs max-[765px]:text-sm tabular-nums" style={{ color: TEXT4 }}>{animPctDisp}%</p>
                     </div>
                   </div>
                 </div>
@@ -383,10 +409,18 @@ export default function EmpDash() {
                 <div className="hidden lg:block w-px bg-border" />
                 <div className="lg:hidden h-px bg-border" />
 
-                {/* Score Crediticio — mismo formato de texto plano que PYME */}
-                <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1.5">
+                {/* Score Crediticio — gauge SVG animado */}
+                <div className="lg:w-[220px] shrink-0 flex flex-col items-center justify-center text-center gap-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-4">Score Crediticio</p>
-                  <p className="text-[48px] sm:text-[56px] font-extrabold leading-none" style={{ color: scoreZone.color }}>{SCORE}</p>
+                  <div className="relative w-[130px] h-[130px]">
+                    <ScoreGauge score={animScore} color={animZone.color} />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className={`text-[40px] font-extrabold leading-none tabular-nums ${scoreDone ? 'score-settled' : ''}`}
+                            style={{ color: animZone.color }}>
+                        {animScore}
+                      </span>
+                    </div>
+                  </div>
                   <p className="text-[12px] text-text-4">
                     / 1000 · <span className="font-semibold" style={{ color: scoreZone.color }}>Riesgo {scoreZone.label}</span>
                   </p>
@@ -493,11 +527,11 @@ export default function EmpDash() {
                   <div>
                     <p className="text-[13px] font-bold text-text-1 mb-1">Distribución del Fondo por PYME</p>
                     <p className="text-[11px] text-text-4 mb-4">¿Quién usa los fondos? · millones XAF</p>
-                    <HBarChart data={pymeDist} fmtVal={v => `${v}M XAF`} />
+                    <HBarChart data={pymeDist} fmtVal={v => `${v}M XAF`} visible={barsVisible} />
                     <div className="mt-4 pt-3 border-t border-border flex justify-between items-center">
                       <span className="text-[11px] text-text-4">Total utilizado</span>
-                      <span className="text-[12px] font-bold" style={{ color: RED }}>
-                        {new Intl.NumberFormat('de-DE').format(FONDO_USADO)} XAF
+                      <span className="text-[12px] font-bold tabular-nums" style={{ color: RED }}>
+                        {new Intl.NumberFormat('de-DE').format(animUsado)} XAF
                       </span>
                     </div>
                   </div>
@@ -508,7 +542,7 @@ export default function EmpDash() {
                     <p className="text-[11px] text-text-4 mb-4">{SOLICITUDES_TOTAL} solicitudes</p>
                     <div className="flex flex-col gap-2 w-full">
                       {estadoOps.map(d => (
-                        <div key={d.tipo} className="flex items-center justify-between rounded-[10px] border border-border bg-page-bg px-4 py-3">
+                        <div key={d.tipo} className="slide-up flex items-center justify-between rounded-[10px] border border-border bg-page-bg px-4 py-3">
                           <div className="flex items-center gap-2 min-w-0">
                             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
                             <span className="text-[13px] font-semibold text-text-1 truncate">{d.tipo}</span>
@@ -535,7 +569,7 @@ export default function EmpDash() {
             {/* KPIs — cards blancas */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
               {envKpis.map(({ value, label, sub, Icon, iconColor, trend, tUp }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
+                <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>

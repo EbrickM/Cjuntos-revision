@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
+import ScoreGauge from '../../components/common/ScoreGauge';
 import { TrendingUp, Leaf, ChevronRight, CheckCircle, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -234,26 +235,6 @@ const proyectos = [
 
 const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
-
-// ── Score gauge — arco SVG de 270° estilo velocímetro ────────────────────────
-function ScoreGauge({ score, maxScore = 1000, color }) {
-  const R    = 52, C = 65;
-  const circ = 2 * Math.PI * R;
-  const arc  = circ * (270 / 360);   // 245.0 px — el tramo visible
-  const fill = arc  * (score / maxScore);
-  return (
-    <svg width="130" height="130" viewBox="0 0 130 130">
-      {/* Pista gris */}
-      <circle cx={C} cy={C} r={R} fill="none" stroke="#ECEAE7" strokeWidth="9"
-        strokeDasharray={`${arc} ${circ - arc}`} strokeLinecap="round"
-        transform={`rotate(135 ${C} ${C})`} />
-      {/* Arco relleno — crece junto con animScore */}
-      <circle cx={C} cy={C} r={R} fill="none" stroke={color} strokeWidth="9"
-        strokeDasharray={`${fill} ${circ - fill}`} strokeLinecap="round"
-        transform={`rotate(135 ${C} ${C})`} />
-    </svg>
-  );
-}
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function EpHome() {
