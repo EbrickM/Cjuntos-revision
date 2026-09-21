@@ -29,6 +29,13 @@ const ASIGNACION_EMPTY = {
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
 
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (50.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
+
 // Ventana especializada: sin Sidebar ni Topbar del portal (igual que el
 // KycWizard de onboarding) — el contratante queda enfocado solo en configurar
 // este contrato, sin poder navegar a otras secciones mientras lo hace.
@@ -400,9 +407,9 @@ export default function EmpConfigurarContrato() {
               <FormGroup label="Monto (XAF)" required className="mb-0">
                 <Input
                   inputMode="numeric"
-                  value={modal.monto}
+                  value={fmtMonto(modal.monto)}
                   onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                  placeholder="Ej. 50000000"
+                  placeholder="Ej. 50.000.000"
                   className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
                 />
               </FormGroup>

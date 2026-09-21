@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import { contratoService } from '../../services/contrato.service';
+import { nombrePymeContrato } from '../../components/contratos/contratoUtils';
 import { estadoBadge } from '../../lib/invoiceStates';
 import { BANCO_FONDEADORES } from '../../lib/bancos';
 
@@ -319,7 +320,7 @@ export default function AdminContratos() {
                           <span className="text-[12px] font-bold text-text-1">{c.id}</span>
                           <Badge variant={badge.variant}>{badge.label}</Badge>
                         </div>
-                        <div className="text-[12px] font-semibold text-text-3 truncate mt-0.5">{c.pymeNombre}</div>
+                        <div className="text-[12px] font-semibold text-text-3 truncate mt-0.5">{nombrePymeContrato(c)}</div>
                         {c.contratante?.razonSocial && (
                           <div className="text-[11px] text-text-5 truncate">{c.contratante.razonSocial}</div>
                         )}
@@ -381,7 +382,7 @@ export default function AdminContratos() {
                           className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40 ${c.estado === 'Pendiente de Revisión' ? 'bg-orange-tint/30' : ''}`}
                         >
                           <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{c.id}</td>
-                          <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{c.pymeNombre}</td>
+                          <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{nombrePymeContrato(c)}</td>
                           <td className="px-4 py-3 text-[12px] text-text-4 max-w-[240px]">
                             {c.contratante?.razonSocial ? (
                               <span className="block truncate">{c.contratante.razonSocial}</span>
@@ -443,7 +444,7 @@ export default function AdminContratos() {
               </Badge>
               <div className="inline-flex items-center gap-1.5 bg-orange-tint text-orange text-[11px] font-semibold px-2 py-0.5 rounded-full border border-orange/20">
                 <Building2 className="w-3 h-3" />
-                {detailContract.pymeNombre}
+                {nombrePymeContrato(detailContract)}
               </div>
               <div className="flex-1" />
               {detailContract.estado === 'Pendiente de Revisión' && (

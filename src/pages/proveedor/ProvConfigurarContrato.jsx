@@ -27,6 +27,13 @@ const SUMINISTRADOR_EMPTY = {
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
 
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (3.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
+
 function WizardHeader({ contrato, step, onExit }) {
   return (
     <div className="h-[60px] bg-white border-b border-border flex items-center px-4 sm:px-8 gap-3 shrink-0">
@@ -398,9 +405,9 @@ export default function ProvConfigurarContrato() {
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
                 inputMode="numeric"
-                value={modal.monto}
+                value={fmtMonto(modal.monto)}
                 onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                placeholder="Ej. 3000000"
+                placeholder="Ej. 3.000.000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>

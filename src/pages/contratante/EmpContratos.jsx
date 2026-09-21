@@ -10,6 +10,7 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import { contratoService } from '../../services/contrato.service';
+import { CST } from '../../lib/contractStates';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
 import { TEXT4, fmt, contratanteState, contratoBadge } from './contratanteData';
@@ -21,10 +22,11 @@ export default function EmpContratos() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
 
-  // Vista "Mis Contratos": asignaciones a PYMEs (los contratos-marco en
-  // pendiente viven en notificaciones / wizard, no en este listado).
+  // Vista "Mis Contratos": asignaciones a PYMEs + los contratos-marco que la
+  // Contratante ya configuró (los marcos aún pendientes de configuración viven
+  // en notificaciones / wizard, no en este listado).
   const contratos = contratoService.listarPorVista('contratante')
-    .filter(c => c.tipo !== 'marco')
+    .filter(c => c.tipo !== 'marco' || c.estado !== CST.pendienteConfiguracion)
     .map(aViewContrato);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);

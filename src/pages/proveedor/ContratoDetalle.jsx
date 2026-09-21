@@ -221,7 +221,7 @@ export default function ProvContratoDetalle() {
                       <p className="text-[13px] font-bold text-text-1 truncate">{s.nombre}</p>
                       <p className="text-[10px] font-mono" style={{ color: TEXT4 }}>{c.id}</p>
                     </div>
-                    <Badge variant={kycBadge(s.kyc)}>{s.kyc}</Badge>
+<Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <div>
@@ -254,7 +254,7 @@ export default function ProvContratoDetalle() {
                     <tr key={s.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
                       <td className="px-4 py-3 text-[12px] font-medium text-text-1">{s.nombre}</td>
                       <td className="px-4 py-3 text-[12px] font-mono" style={{ color: TEXT4 }}>{c.id}</td>
-                      <td className="px-4 py-3"><Badge variant={kycBadge(s.kyc)}>{s.kyc}</Badge></td>
+                      <td className="px-4 py-3"><Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge></td>
                       <td className="px-4 py-3">
                         {s.scoreCredito != null ? (
                           <span className="text-[12px] font-bold" style={{ color: scoreColor(s.scoreCredito) }}>{s.scoreCredito}</span>

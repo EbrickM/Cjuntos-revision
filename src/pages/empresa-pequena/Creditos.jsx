@@ -533,12 +533,27 @@ export default function EpCreditos() {
 
             {/* ── TAB: Proveedores ── */}
             {activeTab === 'proveedores' && (() => {
-              // Solo se listan asignaciones con un proveedor real vinculado —
-              // los conceptos sin proveedor (ej. "Compra de Materiales" sin
-              // asignar) no pertenecen a esta vista de solo lectura.
-              const filas = detailContract.distribucion
-                .map(item => ({ item, prov: providers.find(p => p.id === item.providerId) }))
-                .filter(({ prov }) => prov);
+              // Si la PYME ya repartió el contrato en el wizard (Subproceso 2
+              // del BPMN), se muestran sus proveedoresAsignados; si no, se cae
+              // a las asignaciones de `distribucion` con un proveedor real
+              // vinculado (los conceptos sin proveedor no pertenecen a esta
+              // vista de solo lectura).
+              const asignados = detailContract.proveedoresAsignados ?? [];
+              const filas = asignados.length > 0
+                ? asignados.map(p => {
+                    const dir = providers.find(x => x.razonSocial === p.nombre);
+                    return {
+                      item: {
+                        id: p.id, providerName: p.nombre,
+                        concepto: p.email || '', providerSector: p.cargaNomina ? 'Con nómina' : '',
+                        monto: p.monto, providerId: dir?.id ?? '',
+                      },
+                      prov: dir ?? { kyc: 'sin KYC' },
+                    };
+                  })
+                : detailContract.distribucion
+                    .map(item => ({ item, prov: providers.find(p => p.id === item.providerId) }))
+                    .filter(({ prov }) => prov);
               return (
               <div className="space-y-5">
                 <div className="bg-white rounded-[14px] border border-border p-5">

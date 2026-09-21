@@ -14,6 +14,24 @@ export const aFactoring = (c) => ({
   montoMax: c.montoMax ?? 0,
 });
 
+// Nombre de la contraparte que debe verse en las listas/cards de un contrato.
+// Si el registro ya trae un nombre real se respeta; si trae el marcador vacío
+// "—" o ninguno (caso típico de los contratos-marco en `pendienteConfiguracion`),
+// se usa el nombre de la PRIMERA entidad que quien configuró el contrato dejó
+// asignada: primera PYME, primer proveedor o primer suministrador.
+export const nombrePymeContrato = (c) => {
+  const nombre = c.pyme ?? c.pymeNombre ?? '';
+  if (nombre && nombre !== '—') return nombre;
+  const primera =
+    (c.pymesAsignadas?.[0]?.pymeNombre) ||
+    (c.pymesAsignadas?.[0]?.nombre) ||
+    (c.proveedoresAsignados?.[0]?.nombre) ||
+    (c.suministradoresAsignados?.[0]?.nombre) ||
+    (c.contratante?.razonSocial) ||
+    '';
+  return primera || (c.tipo === 'marco' ? 'Contrato Marco' : '—');
+};
+
 // Proyección hacia las listas "Mis Contratos" de la Contratante y del
 // Proveedor. En esas vistas el esquema canónico significa: `monto` = monto
 // total del contrato (asignado a la contraparte), `asignado` = ya consumido /
@@ -29,7 +47,7 @@ export const aViewContrato = (c) => {
     utilizado,
     disponible: c.disponible ?? Math.max(0, monto - utilizado),
     facturas: c.facturas ?? 0,
-    pyme: c.pyme ?? c.pymeNombre ?? '—',
+    pyme: nombrePymeContrato(c),
     sector: c.sector ?? '',
     ini: c.ini ?? '',
   };

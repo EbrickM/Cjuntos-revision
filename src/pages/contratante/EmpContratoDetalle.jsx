@@ -45,13 +45,22 @@ export default function EmpContratoDetalle() {
     : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
-  // PYMEs que comparten el mismo contrato-marco (Subproceso 1 del BPMN: la
-  // Contratante reparte un mismo monto base entre varias PYMEs) — si este
-  // contrato no tiene `marcoId` (dato legado), la tabla cae a mostrar solo
-  // esta PYME.
-  const hermanos = c?.marcoId
-    ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
-    : c ? [c] : [];
+  // PYMEs de este contrato: si la Contratante ya repartió el marco en el wizard
+  // (Subproceso 1 del BPMN), se muestran sus pymesAsignadas; si no, se cae a los
+  // hermanos del mismo contrato-marco (o a esta misma asignación como dato
+  // legado sin `marcoId`).
+  const hermanos = c?.pymesAsignadas?.length
+    ? c.pymesAsignadas.map(a => ({
+        id: a.id ?? a.pymeId ?? c.id,
+        pyme: a.pymeNombre,
+        estado: c.estado,
+        asignado: Number(a.monto) || 0,
+        plazoPago: a.plazoPago,
+        documentoNombre: a.documentoNombre,
+      }))
+    : c?.marcoId
+      ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
+      : c ? [c] : [];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };

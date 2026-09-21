@@ -24,6 +24,13 @@ const PROVEEDOR_EMPTY = {
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
 
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (5.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
+
 // Ventana especializada: sin Sidebar ni Topbar del portal (mismo criterio que
 // EmpConfigurarContrato.jsx del lado Contratante) — la PYME queda enfocada
 // solo en configurar este contrato.
@@ -472,9 +479,9 @@ export default function EpConfigurarContrato() {
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
                 inputMode="numeric"
-                value={modal.monto}
+                value={fmtMonto(modal.monto)}
                 onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                placeholder="Ej. 5000000"
+                placeholder="Ej. 5.000.000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>

@@ -44,14 +44,25 @@ function transicionarContrato(id, transicion, detalle) {
   });
 }
 
+// Suma los montos que un wizard ya repartió (pymes / proveedores /
+// suministradores): tras configurar el registro, esta es la fuente de verdad
+// de "en cuánto ya se distribuyó", aunque el `asignado` sembrado quede viejo.
+const asignadoListas = (c) =>
+  [...(c.proveedoresAsignados ?? []), ...(c.pymesAsignadas ?? []), ...(c.suministradoresAsignados ?? [])]
+    .reduce((s, x) => s + (Number(x.monto) || 0), 0);
+
 // Normaliza un registro al esquema canónico (campos que toda vista lee).
-const normalizar = (c) => ({
-  ...c,
-  portales: Array.isArray(c.portales) ? c.portales : [c.portal ?? 'admin'],
-  historia: Array.isArray(c.historia) ? c.historia : [],
-  asignado: c.asignado ?? c.montoAsignado ?? 0,
-  disponible: c.disponible ?? Math.max(0, (c.monto ?? c.montoAsignado ?? c.montoBase ?? 0) - (c.asignado ?? 0)),
-});
+const normalizar = (c) => {
+  const montoTotal = c.monto ?? c.montoAsignado ?? c.montoBase ?? 0;
+  const asignado = asignadoListas(c) > 0 ? asignadoListas(c) : (c.asignado ?? c.montoAsignado ?? 0);
+  return {
+    ...c,
+    portales: Array.isArray(c.portales) ? c.portales : [c.portal ?? 'admin'],
+    historia: Array.isArray(c.historia) ? c.historia : [],
+    asignado,
+    disponible: Math.max(0, montoTotal - asignado),
+  };
+};
 
 // ── Lecturas ──────────────────────────────────────────────────────────────────
 export const contratoService = {
