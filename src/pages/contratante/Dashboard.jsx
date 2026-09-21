@@ -156,6 +156,15 @@ export default function EmpDash() {
 
   const [hoveredSeries, setHoveredSeries] = useState(null);
 
+  const [activeRow, setActiveRow] = useState(0);
+  useEffect(() => {
+    if (tab !== 'medioambiental') return;
+    const id = setInterval(() => {
+      setActiveRow(r => (r + 1) % proyectos.length);
+    }, 1500);
+    return () => clearInterval(id);
+  }, [tab]);
+
   return (
     <AppShell active="empDash" role="contratante" back>
       <div className="fade-in space-y-4">
@@ -487,7 +496,15 @@ export default function EmpDash() {
               </div>
               <div className="sm:hidden space-y-2">
                 {proyectos.map((p, i) => (
-                  <div key={i} className="rounded-[12px] border border-border p-3">
+                  <div key={i} className="rounded-[12px] border p-3"
+                    style={{
+                      borderColor: activeRow === i ? `${GREEN}55` : '#ECEAE7',
+                      background: activeRow === i ? 'rgba(46,125,91,0.06)' : 'white',
+                      boxShadow: activeRow === i ? '0 4px 18px rgba(46,125,91,0.11)' : 'none',
+                      transform: activeRow === i ? 'scale(1.025)' : 'scale(1)',
+                      transition: 'transform 0.45s cubic-bezier(0.22,1,0.36,1), background 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+                    }}
+                  >
                     <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
@@ -501,7 +518,7 @@ export default function EmpDash() {
                 ))}
               </div>
               <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '0 2px' }}>
                   <thead>
                     <tr>
                       {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h) => (
@@ -513,11 +530,22 @@ export default function EmpDash() {
                   </thead>
                   <tbody>
                     {proyectos.map((p, i) => (
-                      <tr key={i} className="hover:bg-orange-50/30 transition-colors">
-                        <td className="px-4 py-3 text-sm font-semibold text-text-1 text-center whitespace-nowrap">{p.nombre}</td>
+                      <tr key={i}
+                        style={{
+                          background: activeRow === i ? 'rgba(46,125,91,0.06)' : 'transparent',
+                          transform: activeRow === i ? 'scale(1.015)' : 'scale(1)',
+                          transition: 'transform 0.45s cubic-bezier(0.22,1,0.36,1), background-color 0.45s ease',
+                          position: 'relative',
+                          zIndex: activeRow === i ? 1 : 0,
+                        }}
+                      >
+                        <td className="px-4 py-3 text-sm font-semibold text-center whitespace-nowrap rounded-l-[8px]"
+                          style={{ color: activeRow === i ? GREEN : undefined }}>
+                          {p.nombre}
+                        </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
                         <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
-                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap">{p.fin}</td>
+                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap rounded-r-[8px]">{p.fin}</td>
                       </tr>
                     ))}
                   </tbody>
