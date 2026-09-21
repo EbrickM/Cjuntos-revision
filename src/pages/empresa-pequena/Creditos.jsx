@@ -8,6 +8,7 @@ import {
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
+import { StatCard } from '../../components/common/StatCard';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
@@ -241,10 +242,7 @@ export default function EpCreditos() {
                 { label: 'Saldo disponible para uso',       display: formatXaf(disponibleTotal) },
                 { label: 'Contratantes con KYC vigente',    display: kycVigentes },
               ].map(({ label, display }) => (
-                <div key={label} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
-                  <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{label}</div>
-                  <div className="text-[22px] font-extrabold leading-tight text-white truncate">{display}</div>
-                </div>
+                <StatCard key={label} label={label} value={display} tone="gradient" />
               ))}
             </div>
 
@@ -380,10 +378,7 @@ export default function EpCreditos() {
                 { label: 'Disponible',         value: formatXaf(detailContract.disponible) },
                 { label: '% Distribuido',      value: `${pct(detailContract.asignado, detailContract.monto)}%` },
               ].map(({ label, value }) => (
-                <div key={label} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
-                  <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{label}</div>
-                  <div className="text-[22px] font-extrabold leading-tight text-white truncate">{value}</div>
-                </div>
+                <StatCard key={label} label={label} value={value} tone="gradient" />
               ))}
             </div>
 

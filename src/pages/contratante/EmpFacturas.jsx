@@ -35,10 +35,10 @@ const ESTADO_LABEL = {
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-    <div className="flex items-start gap-3">
+  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div className="flex items-center gap-3">
       {Icon && (
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
       )}
@@ -140,7 +140,6 @@ export default function EmpFacturas() {
         <SectionHeader
             icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de PYMEs"
-            subtitle="La PYME emite → la Contratante evalúa y aprueba el pago."
           />
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
             <div className="relative flex-1 sm:max-w-xs">

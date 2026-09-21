@@ -65,10 +65,10 @@ const prEstadoStyle = (estado) =>
   { background: '#FDF6E8', color: '#C68A1D' };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-    <div className="flex items-start gap-3">
+  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div className="flex items-center gap-3">
       {Icon && (
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
       )}
@@ -241,11 +241,6 @@ export default function EpFacturacion() {
         {/* Mis facturas: Contratante / Proveedores */}
         <SectionHeader icon={Building2} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title={vista === 'contratante' ? 'Facturas al Contratante' : 'Facturas de Proveedores'}
-            subtitle={
-              vista === 'contratante'
-                ? 'La PYME emite al contratante la factura ipi o Billetera/Pago. Bonafide valida el IPI.'
-                : 'Recibidas de proveedores. Al aprobarlas, se genera la factura al Contratante.'
-            }
             action={
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <div className="relative flex items-center shrink-0">

@@ -38,10 +38,10 @@ const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
 const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-    <div className="flex items-start gap-3">
+  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+    <div className="flex items-center gap-3">
       {Icon && (
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: iconBg }}>
+        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
           <Icon className="w-4 h-4" style={{ color: iconColor }} />
         </div>
       )}
@@ -130,7 +130,6 @@ export default function ProvFacturas() {
         <SectionHeader
             icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
             title="Facturas de Suministradores"
-            subtitle="Recibidas de tus suministradores; el Banco Fondeador paga por transferencia o Cheque de Venta."
             action={
               <Button variant="primary" className="w-full sm:w-auto"
                 onClick={() => setFacModal({ ...INIT_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
