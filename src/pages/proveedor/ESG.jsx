@@ -65,8 +65,8 @@ const kpis = [
   { value: '5',       label: 'Proyectos registrados', tone: 'gradient' },
   { value: '2',       label: 'Proyectos activos',     tone: 'gradient' },
   { value: '1',       label: 'Proyectos financiados', tone: 'gradient' },
-  { value: '3,200 t', label: 'Captura CO₂ potencial', tone: 'green' },
-  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green' },
+  { value: '3,200 t', label: 'Captura CO₂ potencial', tone: 'gradient' },
+  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'gradient' },
 ];
 
 const suministradorCerts = [

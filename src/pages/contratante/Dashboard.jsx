@@ -454,21 +454,16 @@ export default function EmpDash() {
 
             {/* KPIs — cards blancas */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
-              {envKpis.map(({ value, label, sub, Icon, iconColor, trend, tUp }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
-                    <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
+              {envKpis.map(({ value, label, Icon, iconColor }) => (
+                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
+                  <div className="p-4 flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
+                      <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
+                    </div>
+                    <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
                   </div>
-                  <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
-                  {sub && <span className="text-[10px] text-text-5 leading-snug">{sub}</span>}
-                  {trend && (
-                    <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      tUp === true ? 'bg-green-bg text-green-text' :
-                      tUp === false ? 'bg-red-bg text-red-text' :
-                      'bg-orange-tint text-orange-dark'
-                    }`}>{trend}</span>
-                  )}
+                  <div className="h-[4px]" style={{ background: 'var(--bonafide-gradient)' }} />
                 </div>
               ))}
             </div>
@@ -506,35 +501,28 @@ export default function EmpDash() {
                 ))}
               </div>
               <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '0 2px' }}>
-                  <thead>
-                    <tr>
-                      {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h) => (
-                        <th key={h} className="text-center whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider bg-page-bg border-b border-border">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div className="min-w-[480px]">
+                  <div className="flex items-center bg-page-bg border-b border-border mb-1">
+                    <div className="flex-1 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
+                    <div className="w-[130px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
+                    <div className="w-[90px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
+                    <div className="w-[160px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
+                  </div>
+                  <div className="space-y-0.5">
                     {proyectos.map((p, i) => (
-                      <tr key={i}
-                        style={{
-                          animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite`,
-                          position: 'relative',
-                        }}
-                      >
-                        <td className="px-4 py-3 text-sm font-semibold text-center whitespace-nowrap rounded-l-[8px]"
+                      <div key={i} className="flex items-center rounded-[8px]"
+                        style={{ animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
+                        <div className="flex-1 min-w-0 px-4 py-3 text-sm font-semibold"
                           style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
                           {p.nombre}
-                        </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
-                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap rounded-r-[8px]">{p.fin}</td>
-                      </tr>
+                        </div>
+                        <div className="w-[130px] shrink-0 px-4 py-3 text-center"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
+                        <div className="w-[90px] shrink-0 px-4 py-3 text-center"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
+                        <div className="w-[160px] shrink-0 px-4 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

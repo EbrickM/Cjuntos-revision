@@ -86,8 +86,8 @@ export default function EpProyectosAmbientales() {
     { value: String(animRegistrados), label: 'Proyectos registrados', tone: 'gradient' },
     { value: String(animActivos),     label: 'Proyectos activos',     tone: 'gradient' },
     { value: String(animFinanciados), label: 'Proyectos financiados', tone: 'gradient' },
-    { value: '7,800 t',               label: 'Captura CO₂ potencial', tone: 'green' },
-    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'green' },
+    { value: '7,800 t',               label: 'Captura CO₂ potencial', tone: 'gradient' },
+    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'gradient' },
   ];
 
   const [showModal, setShowModal] = useState(false);

@@ -7,7 +7,7 @@ const TONES = {
   green:  { bg: 'var(--color-green-bg)',    icon: 'var(--color-green)',     value: 'var(--color-green)'  },
 };
 
-export function StatCard({ label, value, Icon, tone = 'orange' }) {
+export function StatCard({ label, value, Icon, tone = 'gradient' }) {
   const t = TONES[tone] ?? TONES.orange;
   const isGradient = tone === 'gradient';
 

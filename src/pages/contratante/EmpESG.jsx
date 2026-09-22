@@ -92,8 +92,8 @@ export default function EmpESG() {
     { value: String(animRegistrados), label: 'Proyectos registrados', tone: 'gradient' },
     { value: String(animActivos),     label: 'Proyectos activos',     tone: 'gradient' },
     { value: String(animFinanciados), label: 'Proyectos financiados', tone: 'gradient' },
-    { value: '12,400 t',              label: 'Captura CO₂ potencial', tone: 'green' },
-    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'green' },
+    { value: '12,400 t',              label: 'Captura CO₂ potencial', tone: 'gradient' },
+    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'gradient' },
   ];
 
   return (
