@@ -27,7 +27,7 @@ const NAV = {
   contratante: [
     { id: 'empDash',        Icon: Home,          lbl: 'Inicio' },
     { id: 'empContratos',   Icon: ClipboardList, lbl: 'Mis Contratos',   badge: '5'  },
-    { id: 'empFacturas',    Icon: Receipt,       lbl: 'Mis Facturas',    badge: '4'  },
+    { id: 'empFacturas',    Icon: Receipt,       lbl: 'Facturas recibidas', badge: '4'  },
     { id: 'empPymes',       Icon: Users,         lbl: 'PYMEs',           badge: '6'  },
     { id: 'empSolicitudes', Icon: Clock,         lbl: 'Solicitudes',     badge: '4'  },
     { id: 'empESG',         Icon: Leaf,          lbl: 'Huella Verde' },

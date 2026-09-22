@@ -120,7 +120,7 @@ export default function EmpFacturas() {
   };
 
   return (
-    <AppShell active="empFacturas" role="contratante" title="Mis Facturas" sub="Facturas emitidas por PYMEs contratadas — evalúa y aprueba el pago" back>
+    <AppShell active="empFacturas" role="contratante" title="Facturas recibidas" sub="Facturas emitidas por PYMEs contratadas — evalúa y aprueba el pago" back>
       <div className="fade-in space-y-5">
 
         {/* KPI cards */}

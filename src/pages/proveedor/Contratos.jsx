@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, MessageSquare, ListFilter,
+  Search, ChevronRight, MessageSquare, ListFilter, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -10,6 +10,7 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { TEXT4, fmt, provState, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
@@ -21,6 +22,7 @@ export default function ProvContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [verBorradores, setVerBorradores] = useState(false);
   const [reqModal, setReqModal] = useState(null);
 
   // Vista "Mis Contratos" del Proveedor (mismo store local que admin/portales).
@@ -89,10 +91,24 @@ export default function ProvContratos() {
                 {ESTADOS.map(e => <option key={e}>{e}</option>)}
               </select>
             </div>
+            <Button
+              variant={verBorradores ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setVerBorradores(v => !v)}
+              className="shrink-0"
+            >
+              <Save className="w-3.5 h-3.5" />Borradores
+            </Button>
           </div>
         </div>
 
-        {/* Cards de contratos */}
+        {verBorradores ? (
+          <BorradoresSeccion
+            rol="proveedor"
+            onContinuar={b => go('provConfigurarContrato', { contratoId: b.contratoId })}
+          />
+        ) : (
+
         <div className="rounded-[14px] px-5 pt-2 pb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedContratos.map((c, idx) => {
@@ -163,6 +179,7 @@ export default function ProvContratos() {
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
         </div>
+        )}
 
       </div>
 

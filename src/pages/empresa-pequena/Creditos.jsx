@@ -3,7 +3,7 @@ import {
   FileText, Trash2, Pencil, Search, ChevronRight, Plus, ListFilter,
   Truck, Receipt, Building2, CreditCard,
   ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare, Eye,
-  Upload, Paperclip, History,
+  Upload, Paperclip, History, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -19,6 +19,7 @@ import InvoiceCard from '../../components/invoices/InvoiceCard';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
+import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from '../../services/contrato.service';
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
@@ -108,6 +109,7 @@ export default function EpCreditos() {
   const [pagos, setPagos]                         = useState(initialPagos);
   const [search, setSearch]                       = useState('');
   const [filtroEstado, setFiltroEstado]           = useState('Todos');
+  const [verBorradores, setVerBorradores]         = useState(false);
   const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
@@ -276,10 +278,24 @@ export default function EpCreditos() {
                     {ESTADOS.map(e => <option key={e}>{e}</option>)}
                   </select>
                 </div>
+                <Button
+                  variant={verBorradores ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setVerBorradores(v => !v)}
+                  className="shrink-0"
+                >
+                  <Save className="w-3.5 h-3.5" />Borradores
+                </Button>
               </div>
             </div>
 
-            {/* Grid de tarjetas */}
+            {verBorradores ? (
+              <BorradoresSeccion
+                rol="pyme"
+                onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId })}
+              />
+            ) : (
+            /* Grid de tarjetas */
             <div className="rounded-[14px] px-5 pt-2 pb-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {pagedContracts.map((contract, idx) => {
@@ -361,6 +377,7 @@ export default function EpCreditos() {
               <InfiniteScrollSentinel sentinelRef={contractsSentinelRef} loading={loadingContracts} hasMore={hasMoreContracts} />
               </div>
             </div>
+            )}
           </div>
 
         /* ── DETALLE ── */

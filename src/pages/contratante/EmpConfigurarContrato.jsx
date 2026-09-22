@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import {
   Landmark, Users, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil, Trash2,
-  Building2, CheckCircle2, FileText,
+  Building2, CheckCircle2, FileText, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import Toast from '../../components/ui/Toast';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow } from './contratanteShared';
 import { montoDisponibleMarco, pymes, fmt } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
+import { obtenerBorrador, guardarBorrador, eliminarBorrador } from '../../lib/borradores';
 
 // ── CONFIGURAR CONTRATO (Subproceso 1 del BPMN: Contratante reparte el
 // contrato-marco entre sus PYMEs y les asigna monto) ──────────────────────────
@@ -72,17 +74,19 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 export default function EmpConfigurarContrato() {
   const { go, opts } = useApp();
   const marco = contratoService.obtener(opts?.marcoId) ?? contratoService.listarPendientes('contratante')[0] ?? null;
+  const borrador = marco ? obtenerBorrador('contratante', marco.id) : null;
 
   useEffect(() => {
     if (!marco) go('empContratos');
   }, [marco, go]);
 
-  const [step, setStep]               = useState(0);
-  const [cuentaTipo, setCuentaTipo]   = useState(marco?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [asignaciones, setAsignaciones] = useState(marco?.pymesAsignadas ?? []);
+  const [step, setStep]               = useState(borrador?.paso ?? 0);
+  const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? marco?.cuentaBancaria?.tipo ?? 'bonafide');
+  const [asignaciones, setAsignaciones] = useState(borrador?.datos?.asignaciones ?? marco?.pymesAsignadas ?? []);
   const [modal, setModal]             = useState(ASIGNACION_EMPTY);
-  const [confirmado, setConfirmado]   = useState(false);
+  const [confirmado, setConfirmado]   = useState(borrador?.datos?.confirmado ?? false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
+  const [toast, setToast]             = useState(null);
   const [enviado, setEnviado]         = useState(false);
 
   if (!marco) return null;
@@ -146,6 +150,16 @@ export default function EmpConfigurarContrato() {
   const handleBack = () => setStep(s => Math.max(s - 1, 0));
   const handleNext = () => setStep(s => Math.min(s + 1, 2));
 
+  const handleGuardarBorrador = () => {
+    guardarBorrador({
+      rol: 'contratante',
+      contratoId: marco.id,
+      paso: step,
+      datos: { cuentaTipo, asignaciones, confirmado },
+    });
+    setToast({ type: 'success', message: `Borrador del contrato ${marco.id} guardado. Quedaste en el paso ${step + 1} de ${STEPS.length}.` });
+  };
+
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
@@ -157,10 +171,11 @@ export default function EmpConfigurarContrato() {
         pymesAsignadas: asignaciones,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
+    eliminarBorrador('contratante', marco.id);
     setEnviado(true);
   };
 
-  const siguienteDeshabilitado = step === 1 && asignaciones.length === 0;
+  const siguienteDeshabilitado = false;
 
   // ── Pantalla de éxito ──
   if (enviado) {
@@ -274,7 +289,7 @@ export default function EmpConfigurarContrato() {
                   </div>
                 ))}
                 {asignaciones.length === 0 && (
-                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna PYME a este contrato.</div>
+                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna PYME a este contrato. Puedes continuar sin asignar PYMEs si aún no defines la distribución.</div>
                 )}
               </div>
             </>
@@ -325,7 +340,7 @@ export default function EmpConfigurarContrato() {
               <div className={`rounded-[12px] border-2 p-5 transition-colors ${intentoEnvio && !confirmado ? 'border-red-400' : 'border-gray-200'}`}>
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} className="mt-0.5 w-5 h-5 accent-orange cursor-pointer shrink-0" />
-                  <span className="text-[13px] text-text-2">Confirmo que los datos de las PYMEs y los montos asignados son correctos.</span>
+                  <span className="text-[13px] text-text-2">Confirmo que la cuenta y los datos de las PYMEs y montos asignados (si los hay) son correctos.</span>
                 </label>
                 {intentoEnvio && !confirmado && (
                   <p className="text-xs text-red-500 mt-2 ml-8">Debes confirmar antes de enviar.</p>
@@ -336,10 +351,15 @@ export default function EmpConfigurarContrato() {
         </div>
 
         {/* ── Navegación ── */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
-            <ArrowLeft className="w-4 h-4 mr-1" />Atrás
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
+              <ArrowLeft className="w-4 h-4 mr-1" />Atrás
+            </Button>
+            <Button variant="secondary" onClick={handleGuardarBorrador}>
+              <Save className="w-4 h-4 mr-1" />Guardar borrador
+            </Button>
+          </div>
           {step < 2 ? (
             <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
               Siguiente<ArrowRight className="w-4 h-4 ml-1" />
@@ -351,6 +371,9 @@ export default function EmpConfigurarContrato() {
           )}
         </div>
       </div>
+
+      {/* ── Toast ── */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
 
       {/* ── Modal: agregar/editar PYME ── */}
       {modal.open && (

@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import {
   Landmark, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil,
-  Trash2, CheckCircle2, FileText,
+  Trash2, CheckCircle2, FileText, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import Toast from '../../components/ui/Toast';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
 import { contratoService } from '../../services/contrato.service';
+import { obtenerBorrador, guardarBorrador, eliminarBorrador } from '../../lib/borradores';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
@@ -70,17 +72,19 @@ export default function ProvConfigurarContrato() {
     ?? contratoService.listarPendientes('proveedor')[0]
     ?? contratoService.listarPorVista('proveedor')[0]
 ?? null;
+  const borrador = contrato ? obtenerBorrador('proveedor', contrato.id) : null;
 
   useEffect(() => {
     if (!contrato) go('provContratos');
   }, [contrato, go]);
 
-  const [step, setStep]                 = useState(0);
-const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [suministradores, setSuministradores] = useState(contrato?.suministradoresAsignados ?? []);
+  const [step, setStep]                 = useState(borrador?.paso ?? 0);
+const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? contrato?.cuentaBancaria?.tipo ?? 'bonafide');
+  const [suministradores, setSuministradores] = useState(borrador?.datos?.suministradores ?? contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
-  const [confirmado, setConfirmado]     = useState(false);
+  const [confirmado, setConfirmado]     = useState(borrador?.datos?.confirmado ?? false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
+  const [toast, setToast]               = useState(null);
   const [enviado, setEnviado]           = useState(false);
 
   if (!contrato) return null;
@@ -141,6 +145,16 @@ const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ??
   const handleBack = () => setStep(s => Math.max(s - 1, 0));
   const handleNext = () => setStep(s => Math.min(s + 1, 2));
 
+  const handleGuardarBorrador = () => {
+    guardarBorrador({
+      rol: 'proveedor',
+      contratoId: contrato.id,
+      paso: step,
+      datos: { cuentaTipo, suministradores, confirmado },
+    });
+    setToast({ type: 'success', message: `Borrador del contrato ${contrato.id} guardado. Quedaste en el paso ${step + 1} de ${STEPS.length}.` });
+  };
+
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
@@ -152,6 +166,7 @@ const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ??
         suministradoresAsignados: suministradores,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
+    eliminarBorrador('proveedor', contrato.id);
     setEnviado(true);
   };
 
@@ -314,10 +329,15 @@ const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ??
         </div>
 
         {/* ── Navegación ── */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
-            <ArrowLeft className="w-4 h-4 mr-1" />Atrás
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
+              <ArrowLeft className="w-4 h-4 mr-1" />Atrás
+            </Button>
+            <Button variant="secondary" onClick={handleGuardarBorrador}>
+              <Save className="w-4 h-4 mr-1" />Guardar borrador
+            </Button>
+          </div>
           {step < 2 ? (
             <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
               Siguiente<ArrowRight className="w-4 h-4 ml-1" />
@@ -434,6 +454,9 @@ const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ??
           </div>
         </Modal>
       )}
+
+      {/* ── Toast ── */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }
