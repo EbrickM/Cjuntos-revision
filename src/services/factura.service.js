@@ -76,6 +76,19 @@ export const facturaService = {
       });
       localDb.set(KEY_FACTURAS, lista);
     }
+    // Auto-reparación: toda factura aprobada sin pago registrado se estandariza
+    // al 20% del monto (pagosAcumulados + pagoParcial). Cura datos viejos de
+    // localDb persistidos sin esos campos (p. ej. un reseed incompleto) para que
+    // todas las aprobadas muestren la barra de progreso de pago.
+    const aprobadaSinPago = lista.some(f => f?.estado === INV.aprobada && !(Number(f?.pagosAcumulados || 0) > 0));
+    if (aprobadaSinPago) {
+      lista = lista.map(f => {
+        if (f?.estado !== INV.aprobada || Number(f?.pagosAcumulados || 0) > 0) return f;
+        const pago = Math.round((Number(f.monto) || 0) * 0.2);
+        return { ...f, pagosAcumulados: pago, pagoParcial: { pct: 20, monto: pago, fecha: f.fecha } };
+      });
+      localDb.set(KEY_FACTURAS, lista);
+    }
     // Normaliza estados en blanco (dato viejo en localDb) a "Emitida".
     return lista.map(f => (f?.estado ? f : { ...f, estado: INV.emitida })).sort(porRecencia);
   },
@@ -176,6 +189,20 @@ export const facturaService = {
       fecha: hoy(),
       estado: INV.enviada,
       historia: [...(f.historia ?? []), evento('Reenviada', 'La PYME corrigió y reenvió la factura.')],
+    }));
+    return next;
+  },
+
+  // La PYME / Proveedor "refactura" una factura con requerimiento de Bonafide:
+  // actualiza los datos corregidos, limpia el requerimiento y la deja Emitida
+  // para que vuelva a entrar al pipeline de validación.
+  refacturar(id, data = {}) {
+    const next = mutarFactura(id, (f) => ({
+      ...f,
+      ...data,
+      requerimientos: null,
+      estado: INV.emitida,
+      historia: [...(f.historia ?? []), evento('Factura refacturada', 'Se corrigió la factura según el requerimiento y quedó emitida.')],
     }));
     return next;
   },
@@ -296,6 +323,69 @@ export const facturaService = {
     const f = this.obtener(id);
     if (f.tipoFactoring !== 'directo') return f;
     return transicionarFactura(id, INV.pagada, 'La Empresa Contratante pagó la factura directamente (modalidad directa).');
+  },
+
+  // La Contratante confirma el pago de una factura (bloque "Completar pago").
+  // Pago al completo → estado terminal (Pagada / Saldo en Billetera según la
+  // modalidad de la PYME). Pago parcial → la factura queda Aprobada y acumula
+  // los importes (pagosAcumulados) hasta completar el monto total; recién ahí
+  // cambia al estado terminal.
+  pagar(id, { completo = false, pct = 0, monto = 0 } = {}) {
+    return mutarFactura(id, (f) => {
+      const total = Number(f.monto) || 0;
+      const yaPago = Math.min(Number(f.pagosAcumulados) || 0, total);
+      const propuesto = Math.min(Math.max(Number(monto) || 0, 0), total - yaPago);
+      const completoAhora = completo || Number(pct) >= 100 || (yaPago + propuesto) >= total;
+      const acumulado = completoAhora ? total : yaPago + propuesto;
+      const pctFinal = Math.min(Math.max(Number(pct) || 0, 0), 100);
+      const terminal = (f.modalidadPago || MODALIDAD.retiroTotal) === MODALIDAD.billeteraVirtual ? INV.billetera : INV.pagada;
+      const base = { ...f, pagosAcumulados: acumulado };
+      if (completoAhora) {
+        return {
+          ...base,
+          estado: terminal,
+          pagoParcial: null,
+          historia: [...(f.historia ?? []), evento(terminal === INV.billetera ? 'Saldo en Billetera' : 'Pagada', 'La Empresa Contratante pagó la factura al completo.')],
+        };
+      }
+      return {
+        ...base,
+        estado: INV.aprobada,
+        pagoParcial: { pct: pctFinal, monto: propuesto, fecha: hoy() },
+        historia: [...(f.historia ?? []), evento('Pago parcial aprobado', `La Empresa Contratante pagó ${new Intl.NumberFormat('de-DE').format(propuesto)} XAF (${pctFinal}%). La factura queda Aprobada hasta que se pague al completo.`)],
+      };
+    });
+  },
+
+  // IPI global del contrato (portal Contratante): resume y envía a Bonafide
+  // todas las operaciones de pago acumuladas en la sección de facturas del
+  // contrato (parciales a un % / al completo). No cambia el estado de las
+  // facturas — solo registra el envío en su historial; la liquidación sigue su
+  // pipeline normal (aprobada/pagada quedan como están).
+  enviarIpiDeContrato(ops = []) {
+    if (!Array.isArray(ops) || !ops.length) return this.listar();
+    const ids = ops.map(o => o.facturaId).filter(Boolean);
+    if (!ids.length) return this.listar();
+    const lista = localDb.get(KEY_FACTURAS, seedFacturas, SEED_VERSION);
+    const total = ops.reduce((a, o) => a + (Number(o.monto) || 0), 0);
+    const numRex = /(\d+)$/;
+    const maxNum = lista.reduce((m, f) => {
+      const n  = Number(String(f?.ipi?.numero ?? '').match(numRex)?.[1] ?? 0);
+      const n2 = Number(String(f?.ipiEnviado?.numero ?? '').match(numRex)?.[1] ?? 0);
+      return Math.max(m, n, n2);
+    }, 300);
+    const numero = `IPI-2026-${String(maxNum + 1).padStart(4, '0')}`;
+    const next = lista.map(f =>
+      ids.includes(f.id)
+        ? {
+            ...f,
+            ipiEnviado: { numero, operaciones: ops.length, monto: total, fechaEnvio: hoy() },
+            historia: [...(f.historia ?? []), evento('IPI enviado a Bonafide', `El Contratante envió el IPI ${numero} con ${ops.length} operaciones de pago (${new Intl.NumberFormat('de-DE').format(total)} XAF).`)],
+          }
+        : f,
+    );
+    localDb.set(KEY_FACTURAS, next);
+    return next;
   },
 
   // ── Operaciones del Banco Fondeador ──

@@ -4,7 +4,7 @@
 // por un modelo único consumido por factura.service via localDb.
 import { INV, MODALIDAD } from './invoiceStates';
 
-export const SEED_VERSION = 9;
+export const SEED_VERSION = 12;
 
 // ── Entidades de la narrativa ─────────────────────────────────────────────────
 const E = {
@@ -109,7 +109,7 @@ const fac = (id, o) => ({
   historia: o.historia ?? historia(o.estado ?? INV.creada),
 });
 
-export const seedFacturas = [
+const seedFacturasRaw = [
   // ── Facturación Inversa (con IPI) — distintos estados del pipeline ──
   fac('FAC-2026-1048', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
@@ -140,13 +140,13 @@ export const seedFacturas = [
     proveedor: E.proveedores.transge,
     monto: 8_000_000, estado: INV.aprobada, concepto: 'Alquiler de maquinaria de construcción – Mayo 2026',
     fecha: D('06'), fechaVencimiento: D('06') + ' / 30 días',
+    pagosAcumulados: 1_600_000, pagoParcial: { pct: 20, monto: 1_600_000, fecha: D('07') },
   }),
   fac('FAC-2026-1060', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
     proveedor: E.proveedores.transge,
-    monto: 15_000_000, estado: INV.emitida, concepto: 'Acabados interiores y carpintería – Módulos A y B',
+    monto: 15_000_000, estado: INV.aprobada, concepto: 'Acabados interiores y carpintería – Módulos A y B',
     fecha: D('07'), fechaVencimiento: D('07') + ' / 60 días',
-    ipi: { numero: 'IPI-2026-0311', fechaEmision: D('09') },
   }),
   fac('FAC-2026-1093', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
@@ -158,16 +158,14 @@ export const seedFacturas = [
   fac('FAC-2026-1096', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c3.id, contratante: CONTRATOS.c3.nombre, pyme: CONTRATOS.c3.pyme,
     proveedor: E.proveedores.servtec,
-    monto: 7_600_000, estado: INV.emitida, concepto: 'Topografía y levantamiento batimétrico – Corredor Norte',
+    monto: 7_600_000, estado: INV.aprobada, concepto: 'Topografía y levantamiento batimétrico – Corredor Norte',
     fecha: D('10'), fechaVencimiento: D('10') + ' / 45 días',
-    ipi: { numero: 'IPI-2026-0323', fechaEmision: D('12') },
   }),
   fac('FAC-2026-1099', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c4.id, contratante: CONTRATOS.c4.nombre, pyme: CONTRATOS.c4.pyme,
     proveedor: E.proveedores.cemex,
-    monto: 5_900_000, estado: INV.emitida, concepto: 'Inspección y mantenimiento de líneas de transmisión – L35',
+    monto: 5_900_000, estado: INV.aprobada, concepto: 'Inspección y mantenimiento de líneas de transmisión – L35',
     fecha: D('11'), fechaVencimiento: D('11') + ' / 30 días',
-    ipi: { numero: 'IPI-2026-0324', fechaEmision: D('12') },
   }),
   fac('FAC-2026-1065', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
@@ -269,11 +267,24 @@ export const seedFacturas = [
     suministrador: E.suministradores.combustibles,
     monto: 9_500_000, estado: INV.aprobada, concepto: 'Suministro de combustible para flota de transporte – junio 2026',
     fecha: D('06'), fechaVencimiento: D('06') + ' / 30 días',
+    pagosAcumulados: 1_900_000, pagoParcial: { pct: 20, monto: 1_900_000, fecha: D('07') },
   }),
   fac('FAC-2026-2108', {
     origen: 'suministrador', contrato: CONTRATOS.p2.id, contratante: CONTRATOS.p2.nombre, pyme: CONTRATOS.p2.pyme,
     suministrador: E.suministradores.repuestos,
     monto: 4_500_000, estado: INV.pagada, concepto: 'Repuestos y mantenimiento de unidades de transporte',
+    fecha: D('07'), fechaVencimiento: D('07') + ' / 30 días',
+  }),
+  fac('FAC-2026-2103', {
+    origen: 'suministrador', contrato: CONTRATOS.p2.id, contratante: CONTRATOS.p2.nombre, pyme: CONTRATOS.p2.pyme,
+    suministrador: E.suministradores.repuestos,
+    monto: 5_400_000, estado: INV.aprobada, concepto: 'Repuestos y mantenimiento de unidades – julio 2026',
+    fecha: D('07'), fechaVencimiento: D('07') + ' / 30 días',
+  }),
+  fac('FAC-2026-2106', {
+    origen: 'suministrador', contrato: CONTRATOS.p1.id, contratante: CONTRATOS.p1.nombre, pyme: CONTRATOS.p1.pyme,
+    suministrador: E.suministradores.combustibles,
+    monto: 7_700_000, estado: INV.aprobada, concepto: 'Combustible para flota de transporte – julio 2026',
     fecha: D('07'), fechaVencimiento: D('07') + ' / 30 días',
   }),
   fac('FAC-2026-2110', {
@@ -291,6 +302,20 @@ export const seedFacturas = [
     requerimientos: { entidades: ['Bonafide'], mensaje: 'El RUC del suministrador no está vigente; actualizar el KYC ante Bonafide.', fecha: D('10') },
   }),
 ];
+
+// Toda factura sembrada como aprobada se estandariza con el pago al 20%
+// completado (pagosAcumulados + pagoParcial) para que por defecto todas
+// muestren la barra de progreso de pago con el mismo porcentaje.
+export const seedFacturas = seedFacturasRaw.map(f => {
+  if (f.estado !== INV.aprobada) return f;
+  if (Number(f.pagosAcumulados || 0) > 0 && f.pagoParcial) return f;
+  const pago = Math.round((Number(f.monto) || 0) * 0.2);
+  return {
+    ...f,
+    pagosAcumulados: pago,
+    pagoParcial: { pct: 20, monto: pago, fecha: f.fecha },
+  };
+});
 
 // ── Pagos a proveedores / Billetera Virtual (Fase 2 del BPMN) ─────────────────
 // método: 'transferencia' (Core Bancario) | 'cheque' (Cheque de Venta)

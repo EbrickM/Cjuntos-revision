@@ -13,6 +13,7 @@ import FondeadorOtpModal from '../../components/invoices/FondeadorOtpModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import AprobarButton from '../../components/invoices/AprobarButton';
+import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { facturaService } from '../../services/factura.service';
 import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
@@ -169,6 +170,20 @@ export default function EmpFacturas() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {pagedFacturas.map((f, idx) => {
             const hasAction = !!accion(f);
+            const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
+            if (pagoParcial) {
+              return (
+                <InvoiceCardConPago
+                  key={f.id}
+                  factura={f}
+                  onClick={() => setDetalle(f)}
+                  entidad={f.pyme}
+                  concepto={f.contrato}
+                  className="card-enter"
+                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                />
+              );
+            }
             return (
               <div
                 key={f.id}

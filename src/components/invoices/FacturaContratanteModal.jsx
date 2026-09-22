@@ -48,6 +48,7 @@ function FechaVencimientoInput({ value, onChange }) {
 
 export default function FacturaContratanteModal({ modal, onChange, onSave, onCancel, contratoFijo }) {
   const { editId, contratoId, monto, concepto, fechaVencimiento, documento } = modal;
+  const refacturando = !!modal.refacturando;
 
   const contratosFactoring = contratoService.listarFactoring().map(aFactoring);
   const fuente      = contratoFijo ?? (contratoId ? contratosFactoring.find(c => c.id === contratoId) ?? null : null);
@@ -62,13 +63,13 @@ export default function FacturaContratanteModal({ modal, onChange, onSave, onCan
 
   return (
     <Modal
-      title={editId ? `Corregir factura ${editId}` : 'Nueva Factura al Contratante'}
+      title={refacturando ? `Refacturar factura ${editId}` : editId ? `Corregir factura ${editId}` : 'Nueva Factura al Contratante'}
       onClose={onCancel}
       footer={
         <>
           <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
           <Button variant="primary" onClick={onSave} disabled={excede}>
-            {editId ? 'Guardar y reenviar' : 'Crear factura'}
+            {refacturando ? 'Enviar factura' : editId ? 'Guardar y reenviar' : 'Crear factura'}
           </Button>
         </>
       }
@@ -76,8 +77,14 @@ export default function FacturaContratanteModal({ modal, onChange, onSave, onCan
     >
       <div className="space-y-4">
         {editId && (
-          <div className="rounded-[12px] p-4 text-[12px]" style={{ background: '#FDEEEB', color: '#B8352A', border: '1px solid rgba(184,53,42,0.25)' }}>
-            La Contratante devolvió la factura con correcciones. Editala y vuelve a enviarla.
+          <div className="rounded-[12px] p-4 text-[12px]" style={{
+            background: refacturando ? '#FDF6E8' : '#FDEEEB',
+            color: refacturando ? '#C68A1D' : '#B8352A',
+            border: `1px solid ${refacturando ? 'rgba(239,122,44,0.25)' : 'rgba(184,53,42,0.25)'}`,
+          }}>
+            {refacturando
+              ? 'Bonafide puso un requerimiento a esta factura. Refacturala y vuelve a enviarla.'
+              : 'La Contratante devolvió la factura con correcciones. Editala y vuelve a enviarla.'}
           </div>
         )}
         {contratoFijo ? (

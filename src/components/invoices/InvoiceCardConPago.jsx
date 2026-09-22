@@ -1,41 +1,24 @@
-// ── Card de factura (unificado) ──────────────────────────────────────────────
-// Mismo diseño que las cards de "Mis Facturas" del sidebar (PYME, Contratante
-// y Proveedor), reutilizado en el apartado de facturas del detalle de contrato.
-// Las facturas pagadas parcialmente se delegan a InvoiceCardConPago, que añade
-// la barra de progreso de pago manteniendo EXACTAMENTE el mismo alto de card
-// (espaciado interno compensado), para que todas las cards sean uniformes.
+// ── Card de factura pagada parcialmente ───────────────────────────────────────
+// Variante de InvoiceCard para las ÚNICAS facturas que llevan barra de
+// progreso de pago (acumulado > 0 y aún no al 100%). Mantiene la misma
+// estructura (encabezado, entidad/concepto, monto, "Ver detalle") con la barra
+// como bloque de ancho completo —mismo diseño que la de los contratos del
+// Contratante— pero con un espaciado más compacto (p-4 / gap-2) para que la
+// card final mida exactamente lo mismo que las que no llevan barra.
 import { ChevronRight } from 'lucide-react';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
-import InvoiceCardConPago from './InvoiceCardConPago';
+import PagoProgressBar from './PagoProgressBar';
 
 const fmtXaf = (v) => new Intl.NumberFormat('de-DE').format(Number(v) || 0);
 
-export default function InvoiceCard({
-  factura,
-  onClick,
-  entidad,
-  concepto,
-  badge,
-  extra,
-  className = '',
-  style,
+export default function InvoiceCardConPago({
+  factura, onClick, entidad, concepto, badge, extra, className = '', style,
 }) {
-  const total  = Number(factura?.monto) || 0;
-  const pagado = Number(factura?.pagosAcumulados) || 0;
-  if (pagado > 0 && pagado < total) {
-    return (
-      <InvoiceCardConPago
-        factura={factura} onClick={onClick} entidad={entidad} concepto={concepto}
-        badge={badge} extra={extra} className={className} style={style}
-      />
-    );
-  }
-
   return (
     <div
       onClick={onClick}
       style={style}
-      className={`bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter ${className}`}
+      className={`bg-white rounded-[16px] p-4 cursor-pointer flex flex-col gap-2 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter ${className}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -59,6 +42,12 @@ export default function InvoiceCard({
         <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
         <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmtXaf(factura.monto)} XAF</div>
       </div>
+
+      {/* Barra de progreso de pago parcial — bloque de ancho completo en su
+          versión compacta (una sola línea + barra) para no sumar alto.
+          El resto de la card usa p-4/gap-2 (vs p-5/gap-4) que compensa esa
+          altura y deja la card con exactamente el mismo tamaño que las demás. */}
+      <PagoProgressBar factura={factura} />
 
       <div className="mt-auto pt-1 flex items-center justify-end">
         <span className="text-[11px] font-semibold flex items-center gap-0.5 text-orange">

@@ -12,6 +12,7 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
@@ -72,20 +73,42 @@ export default function ProvFacturas() {
 
   const pagoDe = (id) => pagos.find(p => p.facturaId === id);
 
+  // "Refacturar": abre el modal de nueva factura precargado con los datos de la
+  // factura con requerimiento; al enviar se limpia el requerimiento y pasa a
+  // Emitida (facturaService.refacturar).
+  const abrirRefactura = (f) => setFacModal({
+    open: true,
+    editId: f.id,
+    refacturando: true,
+    contratoId: f.contrato,
+    monto: String(f.monto ?? ''),
+    concepto: f.concepto ?? '',
+    fechaVencimiento: f.fechaVencimiento ?? defaultVencimiento(),
+    documento: f.documentos?.[0] ?? null,
+  });
+
   const handleGuardar = () => {
     const monto = Number(facModal.monto.replace?.(/[^0-9]/g, '') ?? facModal.monto) || 0;
     if (monto <= 0 || !facModal.concepto.trim() || !facModal.contratoId) return;
     const contrato = contratoService.listarFactoring().find(c => c.id === facModal.contratoId);
     if (contrato?.montoMax && monto > contrato.montoMax) return;
-    facturaService.crear({
-      contrato: facModal.contratoId,
-      contratante: contrato?.contratanteNombre ?? 'Chevron',
-      tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
-      pyme: 'Tradex',
-      origen: 'suministrador',
-      monto, concepto: facModal.concepto, fechaVencimiento: facModal.fechaVencimiento,
-      documentos: facModal.documento ? [{ name: facModal.documento.name, url: facModal.documento.url }] : [],
-    });
+    if (facModal.refacturando) {
+      const patch = {
+        monto, concepto: facModal.concepto, fechaVencimiento: facModal.fechaVencimiento,
+      };
+      if (facModal.documento) patch.documentos = [{ name: facModal.documento.name, url: facModal.documento.url }];
+      facturaService.refacturar(facModal.editId, patch);
+    } else {
+      facturaService.crear({
+        contrato: facModal.contratoId,
+        contratante: contrato?.contratanteNombre ?? 'Chevron',
+        tipoFactoring: contrato?.tipoFactoring ?? 'inverso',
+        pyme: 'Tradex',
+        origen: 'suministrador',
+        monto, concepto: facModal.concepto, fechaVencimiento: facModal.fechaVencimiento,
+        documentos: facModal.documento ? [{ name: facModal.documento.name, url: facModal.documento.url }] : [],
+      });
+    }
     setFacModal(INIT_CT_EMPTY);
     bump();
   };
@@ -165,6 +188,20 @@ export default function ProvFacturas() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {paged.map((f, idx) => {
             const pago = pagoDe(f.id);
+            const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
+            if (pagoParcial) {
+              return (
+                <InvoiceCardConPago
+                  key={f.id}
+                  factura={f}
+                  onClick={() => setDetalle(f)}
+                  entidad={f.suministrador}
+                  concepto={`${f.contrato} · ${f.contratante}`}
+                  className="card-enter"
+                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                />
+              );
+            }
             return (
               <div
                 key={f.id}
@@ -180,7 +217,10 @@ export default function ProvFacturas() {
                   <div className="flex items-center gap-1.5 shrink-0">
                   <InvoiceStatusBadge estado={f.estado} />
                 </div>
-                <RequerimientoBadge factura={f} />
+                <RequerimientoBadge
+                    factura={f}
+                    cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }}
+                  />
                 </div>
 
                 <div>

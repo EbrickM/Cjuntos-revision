@@ -17,6 +17,7 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import AprobarButton from '../../components/invoices/AprobarButton';
+import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
@@ -158,13 +159,33 @@ export default function EpFacturacion() {
     setInvoicesPr(next);
   };
 
-  // â”€â”€ CT handlers (mediante factura.service sobre localDb) â”€â”€
+  // ── CT handlers (mediante factura.service sobre localDb) ──
+  // "Refacturar": abre el modal de nueva factura precargado con los datos de la
+  // factura con requerimiento; al enviar se limpia el requerimiento y pasa a
+  // Emitida (facturaService.refacturar).
+  const abrirRefactura = (f) => setCtModal({
+    open: true,
+    editId: f.id,
+    refacturando: true,
+    contratoId: f.contrato,
+    monto: String(f.monto ?? ''),
+    concepto: f.concepto ?? '',
+    fechaVencimiento: f.fechaVencimiento ?? defaultVencimiento(),
+    documento: f.documentos?.[0] ?? null,
+  });
+
   const handleSaveCt = () => {
     const monto = Number(ctModal.monto.replace?.(/[^0-9]/g, '') ?? ctModal.monto) || 0;
     if (monto <= 0 || !ctModal.concepto.trim() || !ctModal.contratoId) return;
     const contrato = contratoService.listarFactoring().find(c => c.id === ctModal.contratoId);
     if (contrato?.montoMax && monto > contrato.montoMax) return;
-    if (ctModal.editId) {
+    if (ctModal.refacturando) {
+      const patch = {
+        monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
+      };
+      if (ctModal.documento) patch.documentos = [{ name: ctModal.documento.name, url: ctModal.documento.url }];
+      facturaService.refacturar(ctModal.editId, patch);
+    } else if (ctModal.editId) {
       facturaService.corregirYReenviar(ctModal.editId, {
         monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
         documentos: ctModal.documento ? [{ name: ctModal.documento.name, url: ctModal.documento.url }] : undefined,
@@ -296,6 +317,20 @@ export default function EpFacturacion() {
               {pagedCT.map((f, idx) => {
                 const accion = ctAction(f);
                 const hasAction = !!accion;
+                const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
+                if (pagoParcial) {
+                  return (
+                    <InvoiceCardConPago
+                      key={f.id}
+                      factura={f}
+                      onClick={() => setDetalle(f)}
+                      entidad={f.contratante}
+                      concepto={f.contrato}
+                      className="card-enter"
+                      style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                    />
+                  );
+                }
                 return (
                   <div
                     key={f.id}
@@ -310,7 +345,10 @@ export default function EpFacturacion() {
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
-                        <RequerimientoBadge factura={f} />
+                        <RequerimientoBadge
+                          factura={f}
+                          cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }}
+                        />
                       </div>
                     </div>
 
