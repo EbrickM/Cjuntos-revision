@@ -10,7 +10,6 @@ import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
 import { contratoService } from '../../services/contrato.service';
-import { BANCO_FONDEADORES } from '../../lib/bancos';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
@@ -77,8 +76,7 @@ export default function ProvConfigurarContrato() {
   }, [contrato, go]);
 
   const [step, setStep]                 = useState(0);
-  const [cuentaTipo, setCuentaTipo]     = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaBanco, setCuentaBanco]   = useState(contrato?.cuentaBancaria?.numero ?? '');
+const [cuentaTipo, setCuentaTipo]   = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
   const [suministradores, setSuministradores] = useState(contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
   const [confirmado, setConfirmado]     = useState(false);
@@ -150,16 +148,14 @@ export default function ProvConfigurarContrato() {
       contratoService.configurar(contrato.id, {
         cuentaBancaria: cuentaTipo === 'bonafide'
           ? { tipo: 'bonafide', numero: null }
-          : { tipo: 'banco', numero: cuentaBanco },
+          : { tipo: 'banco', numero: null },
         suministradoresAsignados: suministradores,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
     setEnviado(true);
   };
 
-  const siguienteDeshabilitado =
-    (step === 0 && cuentaTipo === 'banco' && !cuentaBanco) ||
-    (step === 1 && suministradores.length === 0);
+  const siguienteDeshabilitado = step === 1 && suministradores.length === 0;
 
   // ── Pantalla de éxito ──
   if (enviado) {
@@ -206,17 +202,9 @@ export default function ProvConfigurarContrato() {
                   <input type="radio" name="cuenta" checked={cuentaTipo === 'banco'} onChange={() => setCuentaTipo('banco')} className="w-4 h-4 accent-orange shrink-0" />
                   <div>
                     <div className="text-[13px] font-semibold text-text-1">Cuenta en mi Banco</div>
-                    <div className="text-[12px] text-text-4">Selecciona tu banco para operar con tu cuenta.</div>
+                    <div className="text-[12px] text-text-4">Operarás este contrato desde tu cuenta en {contrato.bancoFondeador}.</div>
                   </div>
                 </label>
-                {cuentaTipo === 'banco' && (
-                  <FormGroup label="Banco" required className="mt-2 mb-0">
-                    <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
-                      <option value="">Seleccionar…</option>
-                      {BANCO_FONDEADORES.filter(b => b !== 'Bonafide').map(b => <option key={b}>{b}</option>)}
-                    </Select>
-                  </FormGroup>
-                )}
               </div>
             </>
           )}
@@ -419,16 +407,15 @@ export default function ProvConfigurarContrato() {
 
             <FormGroup label="Nómina del suministrador (opcional)" className="mb-0">
               {modal.nominaDoc ? (
-                <div className="flex items-center justify-between gap-2 border-2 border-solid border-green-border bg-green-bg rounded-[10px] px-3 py-2.5">
-                  <span className="flex items-center gap-2 text-[12px] font-medium text-green-text truncate">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />{modal.nominaDoc}
-                  </span>
-                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="text-[11px] text-red-text underline shrink-0 cursor-pointer">
-                    Quitar
+                <div className="border-2 border-solid border-green-border bg-green-bg rounded-[12px] p-5 text-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
+                  <div className="text-[12px] font-semibold text-green-text truncate">{modal.nominaDoc}</div>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="mt-2 text-[11px] text-red-text underline cursor-pointer">
+                    Quitar y elegir otro
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center gap-2.5 border border-dashed border-border rounded-[10px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
+                <label className="block border-2 border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint rounded-[12px] p-5 text-center cursor-pointer transition-all">
                   <input
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
@@ -438,8 +425,9 @@ export default function ProvConfigurarContrato() {
                       if (f) setModal(m => ({ ...m, nominaDoc: f.name }));
                     }}
                   />
-                  <FileText className="w-4 h-4 shrink-0" />
-                  <span>Subir nómina de este suministrador (PDF o imagen)</span>
+                  <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
+                  <div className="text-[13px] font-semibold text-text-1">Subir nómina del suministrador</div>
+                  <div className="text-[11px] text-text-4">PDF · JPG · PNG · máx 5MB</div>
                 </label>
               )}
             </FormGroup>

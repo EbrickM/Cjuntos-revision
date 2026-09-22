@@ -3,7 +3,7 @@ import {
   FileText, Trash2, Pencil, Search, ChevronRight, Plus, ListFilter,
   Truck, Receipt, Building2, CreditCard,
   ScrollText, UserSquare, CalendarDays, Landmark, MessageSquare, Eye,
-  Upload, Paperclip,
+  Upload, Paperclip, History,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -20,6 +20,8 @@ import FacturaContratanteModal from '../../components/invoices/FacturaContratant
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { contratoService } from '../../services/contrato.service';
+import { registrosContrato } from '../../components/contratos/contratoUtils';
+import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 
 const formatXaf  = (value) => `${new Intl.NumberFormat('de-DE').format(Number(value) || 0)} XAF`;
 const pct        = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
@@ -93,6 +95,7 @@ const TABS = [
   { id: 'proveedores',  label: 'Proveedores', Icon: Truck,       iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'facturas',     label: 'Facturas',     Icon: Receipt,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
   { id: 'pagos',        label: 'Pagos',        Icon: CreditCard,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'registros',    label: 'Registros',    Icon: History,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
 ];
 
 export default function EpCreditos() {
@@ -831,6 +834,14 @@ export default function EpCreditos() {
                     </div>
                   </div>
                 </div>
+              );
+            })()}
+
+            {/* ── TAB: Registros ── */}
+            {activeTab === 'registros' && (() => {
+              const contractInvoices = invoices.filter(inv => inv.contrato === detailContract.id);
+              return (
+                <RegistrosTabla registros={registrosContrato(detailContract, contractInvoices)} />
               );
             })()}
           </>

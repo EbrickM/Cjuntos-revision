@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   FileCheck, Wallet, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus,
-  Pencil, Trash2, CheckCircle2, AlertTriangle, FileText,
+  Pencil, Trash2, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
@@ -19,7 +19,7 @@ const STEPS = ['Términos', 'Gestión de Fondos', 'Proveedores', 'Simulación'];
 
 const PROVEEDOR_EMPTY = {
   open: false, editId: null, provSel: '', proveedorNombreLibre: '',
-  email: '', telefono: '', monto: '', nominaDoc: '',
+  email: '', telefono: '', monto: '',
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
@@ -113,7 +113,7 @@ export default function EpConfigurarContrato() {
       provSel: enDirectorio ? p.nombre : '__nueva__',
       proveedorNombreLibre: enDirectorio ? '' : p.nombre,
       email: p.email, telefono: p.telefono,
-      monto: String(p.monto), nominaDoc: p.nominaDoc ?? '',
+      monto: String(p.monto),
     });
   };
 
@@ -124,7 +124,7 @@ export default function EpConfigurarContrato() {
     const nuevo = {
       id: modal.editId ?? `PROV-${Date.now()}`,
       nombre: proveedorNombreResuelto, email: modal.email.trim(), telefono: modal.telefono.trim(),
-      monto: montoNumLive, cargaNomina: !!modal.nominaDoc, nominaDoc: modal.nominaDoc || null,
+      monto: montoNumLive,
     };
     setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
     setModal(PROVEEDOR_EMPTY);
@@ -152,9 +152,7 @@ export default function EpConfigurarContrato() {
     setModo('enviado');
   };
 
-  const siguienteDeshabilitado =
-    (step === 1 && !gestionFondos) ||
-    (step === 2 && proveedores.length === 0);
+  const siguienteDeshabilitado = step === 1 && !gestionFondos;
 
   // ── Pantalla: términos rechazados ──
   if (modo === 'rechazado') {
@@ -326,7 +324,7 @@ export default function EpConfigurarContrato() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-bold text-text-1 truncate">{p.nombre}</div>
-                      <div className="text-[11px] text-text-4 truncate">{p.email}{p.cargaNomina ? ' · Con nómina' : ''}</div>
+                      <div className="text-[11px] text-text-4 truncate">{p.email}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-[13px] sm:text-[14px] font-extrabold text-text-1">{fmt(p.monto)} XAF</div>
@@ -412,7 +410,7 @@ export default function EpConfigurarContrato() {
                 Siguiente<ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
-              <Button variant="primary" onClick={handleEnviarClick}>
+              <Button variant="primary" onClick={handleEnviarClick} disabled={!confirmado}>
                 Enviar a revisión<CheckCircle2 className="w-4 h-4 ml-1" />
               </Button>
             )}
@@ -490,33 +488,6 @@ export default function EpConfigurarContrato() {
                 {montoNumLive <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleParaModal)} XAF).`}
               </p>
             )}
-
-            <FormGroup label="Nómina del proveedor (opcional)" className="mb-0">
-              {modal.nominaDoc ? (
-                <div className="flex items-center justify-between gap-2 border-2 border-solid border-green-border bg-green-bg rounded-[10px] px-3 py-2.5">
-                  <span className="flex items-center gap-2 text-[12px] font-medium text-green-text truncate">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />{modal.nominaDoc}
-                  </span>
-                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="text-[11px] text-red-text underline shrink-0 cursor-pointer">
-                    Quitar
-                  </button>
-                </div>
-              ) : (
-                <label className="flex items-center gap-2.5 border border-dashed border-border rounded-[10px] px-3 py-2.5 text-[12px] text-text-4 cursor-pointer hover:border-orange/40 hover:bg-orange-tint transition">
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className="hidden"
-                    onChange={e => {
-                      const f = e.target.files?.[0];
-                      if (f) setModal(m => ({ ...m, nominaDoc: f.name }));
-                    }}
-                  />
-                  <FileText className="w-4 h-4 shrink-0" />
-                  <span>Subir nómina de este proveedor (PDF o imagen)</span>
-                </label>
-              )}
-            </FormGroup>
           </div>
         </Modal>
       )}

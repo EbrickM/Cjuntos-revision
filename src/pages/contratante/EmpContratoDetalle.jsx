@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -11,7 +11,8 @@ import Modal from '../../components/ui/Modal';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
-import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
+import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
@@ -23,6 +24,7 @@ const TABS_DETALLE = [
   { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'pyme',     lbl: 'PYME',     Icon: Users,       iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'registros', lbl: 'Registros', Icon: History,   iconBg: '#FFF3E0', iconColor: ORA },
 ];
 
 export default function EmpContratoDetalle() {
@@ -105,7 +107,7 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
               lateral en pantallas chicas ── */}
-        <div className="grid grid-cols-3 gap-1.5 bg-page-bg p-1 rounded-[10px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-page-bg p-1 rounded-[10px]">
           {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
             const active = tab === id;
             return (
@@ -303,6 +305,11 @@ export default function EmpContratoDetalle() {
           </div>
           );
         })()}
+
+        {/* ── Tab: Registros ── */}
+        {tab === 'registros' && (
+          <RegistrosTabla registros={registrosContrato(c, facturasContrato)} />
+        )}
 
       </div>
 

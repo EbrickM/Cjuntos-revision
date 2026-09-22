@@ -3,6 +3,7 @@
 // consumen las vistas y formularios (selector de facturación, wizards, admin).
 // Como el servicio ya expone `estadoLabelCt`/`estadoBadgeCt` desde
 // contractStates, este archivo queda solo con proyecciones de datos.
+import { CST } from '../../lib/contractStates';
 
 // Forma mínima para el selector de facturación (antes `seedContratosActivos`):
 // id + tipo de factoring + contratante + banco + monto máximo de factura.
@@ -86,6 +87,56 @@ export const aContratoMarco = (c) => ({
   pymesAsignadas: c.pymesAsignadas ?? [],
   requerimiento: c.requerimiento ?? null,
 });
+
+// ── Registros de un contrato (pestaña "Registros" de los detalles) ──────────
+// Deriva, sin backend, todos los registros/movimientos del contrato desde su
+// esquema canónico (fechas, estado, requerimiento, entidades) más las facturas
+// del contrato. Cada registro tiene la forma
+//   { referente, fecha, asunto, registro }
+// donde `asunto` ∈ {'contrato', 'facturas', 'indicación'} y `referente` es el
+// nombre de la entidad que actuó (la Empresa Contratante, la PYME, el Banco
+// Fondeador o "administración").
+const fmtRegistro = (n) => `${new Intl.NumberFormat('de-DE').format(Number(n) || 0)} XAF`;
+
+export const registrosContrato = (c = {}, facturas = [], referentes = {}) => {
+  const admin     = 'administración';
+  const empresa   = c.contratante?.razonSocial ?? c.contratanteNombre ?? null;
+  const pyme      = c.pyme && c.pyme !== '—' ? c.pyme : (c.pymeNombre && c.pymeNombre !== '—' ? c.pymeNombre : nombrePymeContrato(c));
+  const banco     = c.bancoFondeador ?? null;
+  const configurador = referentes.configurador
+    ?? (c.tipo === 'marco' ? (empresa ?? 'Empresa Contratante') : (pyme || empresa));
+  const fechaBase = c.fechaCreacion ?? c.fechaAsignacion ?? c.fechaInicio ?? '—';
+  const ev = [];
+  const push = (referente, fecha, asunto, registro) => ev.push({ referente: referente ?? admin, fecha: fecha ?? '—', asunto, registro });
+
+  push(admin, fechaBase, 'contrato', 'Registró el contrato en el sistema.');
+  if (configurador && ![CST.pendienteConfiguracion].includes(c.estado)) {
+    push(configurador, c.fechaAsignacion ?? fechaBase, 'contrato', 'Configuró el contrato y lo envió a revisión ante Bonafide.');
+  }
+  if (c.requerimiento) {
+    push(admin, c.requerimiento.fecha ?? fechaBase, 'indicación', `Puso un requerimiento al contrato: ${c.requerimiento.mensaje ?? 'revisa los datos y vuelve a enviarlo.'}`);
+  }
+  if (c.estado === CST.enDiscusionTerminos) {
+    push(configurador ?? pyme ?? empresa ?? admin, c.fechaInicio ?? fechaBase, 'indicación', 'Rechazó los términos del contrato; quedó en discusión.');
+  }
+  if (c.estado === CST.activo) {
+    push(admin, c.fechaInicio ?? fechaBase, 'contrato', 'Autorizó y activó el contrato.');
+    if (banco) push(banco, c.fechaInicio ?? fechaBase, 'contrato', 'Confirmó las condiciones de fondeo del contrato.');
+  }
+
+  // Registros de facturas: las emite el emisor (PYME / suministrador); cuando
+  // el estado ya está aprobado/verificado/emitido/pagado, el banco fondador
+  // registra la aprobación (misma narrativa cruzada entre portales).
+  (facturas ?? []).forEach(f => {
+    const emisor = f.pyme ?? f.suministrador ?? f.proveedor ?? pyme ?? empresa ?? admin;
+    push(emisor, f.fecha ?? fechaBase, 'facturas', `Registró la factura ${f.id} por ${fmtRegistro(f.monto)}.`);
+    if (['Aprobada', 'Pagada', 'Emitida', 'Verificada', 'Validada'].includes(f.estado)) {
+      push(banco ?? admin, f.fecha ?? fechaBase, 'facturas', `Aprobó la factura ${f.id} por ${fmtRegistro(f.monto)}.`);
+    }
+  });
+
+  return ev;
+};
 
 // Proyección hacia el wizard del Proveedor.
 export const aContratoProveedor = (c) => ({
