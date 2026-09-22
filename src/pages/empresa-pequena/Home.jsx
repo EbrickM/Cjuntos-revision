@@ -440,21 +440,24 @@ export default function EpHome() {
                       <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 max-[765px]:justify-center">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                      <button onClick={() => go('epCreditos')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIVOS} contratos activos
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#F2F2F3', color: '#5B5B5F', border: '1px solid rgba(91,91,95,0.25)' }}>
+                      </button>
+                      <button onClick={() => go('epProveedores')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#F2F2F3', color: '#5B5B5F', border: '1px solid rgba(91,91,95,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#5B5B5F' }} />
                         {NUEVOS_PROVEEDORES} proveedores
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                      </button>
+                      <button onClick={() => go('epFacturacion')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {FACTURAS_TOTAL_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF
-                      </span>
+                      </button>
                     </div>
                   </div>
 

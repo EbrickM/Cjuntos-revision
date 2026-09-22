@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useApp } from '../../state/AppContext';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
 import {
@@ -119,6 +120,7 @@ const riesgoBadge = r => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 're
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function ProvDash() {
+  const { go } = useApp();
   const [tab, setTab] = useState('fondos');
   const [activityView, setActivityView] = useState('evolucion');
   const [devToast, setDevToast] = useState(false);
@@ -229,21 +231,24 @@ export default function ProvDash() {
                       </button>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap max-[765px]:justify-center">
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                      <button onClick={() => go('provContratos')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIV} contratos activos
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                      </button>
+                      <button onClick={() => go('provSuministradores')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#F2F2F3', color: '#5B5B5F', border: '1px solid rgba(91,91,95,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#5B5B5F' }} />
                         {SUMINISTRADORES_ASIGNADOS} Suministradores asignados
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px]"
-                            style={{ background: '#E3F4EA', color: GREEN, border: '1px solid rgba(46,125,91,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />
+                      </button>
+                      <button onClick={() => go('provFacturas')}
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {FACTURAS_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF
-                      </span>
+                      </button>
                     </div>
                   </div>
 
