@@ -96,18 +96,15 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
               lateral en pantallas chicas ── */}
-        <div className="grid grid-cols-3 gap-1.5 bg-page-bg p-1 rounded-[10px]">
-          {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
+        <div className="grid grid-cols-3 gap-1.5 bg-border/30 p-1 rounded-[10px]">
+          {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
-                  ${active ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-4 hover:text-text-2'}`}
+                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-semibold transition-all whitespace-nowrap cursor-pointer
+                  ${active ? 'bg-orange text-white shadow-sm' : 'bg-white text-text-4 hover:text-text-2'}`}
               >
-                <div className="w-5 h-5 rounded-[5px] flex items-center justify-center"
-                     style={{ background: active ? iconBg : 'transparent' }}>
-                  <Icon className="w-3 h-3" style={{ color: active ? iconColor : 'currentColor' }} />
-                </div>
+                <Icon className="w-3.5 h-3.5" />
                 {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}
               </button>
             );
@@ -415,8 +412,7 @@ export default function EmpContratoDetalle() {
               </button>
 
               <div className="flex justify-center mb-5">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                     style={{ background: 'linear-gradient(135deg, #EF7A2C, #E0201C)' }}>
+                <div className="bona-gradient-bg w-16 h-16 rounded-[18px] flex items-center justify-center">
                   <Zap className="w-8 h-8 text-white" />
                 </div>
               </div>

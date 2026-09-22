@@ -15,7 +15,6 @@ const WARN        = '#C68A1D';
 const ERR         = '#B8352A';
 const BORDER      = '#ECEAE7';
 const TEXT4       = '#A9A6A1';
-const DONUT_EMPTY = '#C4C1BC';
 
 // ── LineChart — Evolución Financiera ─────────────────────────────────────────
 // El filtro se resuelve por serie y por punto: `windowStart` aplica el
@@ -383,9 +382,8 @@ export default function EpHome() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
                 }`}>
-                <div className="w-7 h-7 flex items-center justify-center shrink-0 transition-opacity"
-                     style={{ opacity: tab === t.id ? 1 : 0.5 }}>
-                  <t.Icon className="w-4 h-4" style={{ color: t.iconColor }} />
+                <div className={`w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 transition-all ${tab === t.id ? 'bona-gradient-bg' : 'opacity-50'}`}>
+                  <t.Icon className="w-4 h-4" style={{ color: tab === t.id ? 'white' : t.iconColor }} />
                 </div>
                 {t.line1} {t.line2}
               </button>
@@ -400,9 +398,8 @@ export default function EpHome() {
               className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
-              <div className="w-9 h-9 flex items-center justify-center transition-opacity"
-                   style={{ opacity: tab === t.id ? 1 : 0.5 }}>
-                <t.Icon className="w-5 h-5" style={{ color: t.iconColor }} />
+              <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center transition-all ${tab === t.id ? 'bona-gradient-bg' : 'opacity-50'}`}>
+                <t.Icon className="w-5 h-5" style={{ color: tab === t.id ? 'white' : t.iconColor }} />
               </div>
               <span className="leading-[1.25]">
                 <span className="block">{t.line1}</span>

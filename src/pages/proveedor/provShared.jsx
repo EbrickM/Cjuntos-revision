@@ -6,8 +6,8 @@ import { RED, ORA, TEXT4, fmt } from './provData';
 // ── Helpers de Perfil (idénticos a Contratante/PYME) ──────────────────────────
 export const HeroBadge = ({ label, value, Icon, bg, color }) => (
   <div className="flex items-center gap-3 px-4 py-3 rounded-[12px]" style={{ background: bg }}>
-    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-white/60">
-      <Icon className="w-5 h-5" style={{ color }} />
+    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+      <Icon className="w-5 h-5 text-white" />
     </div>
     <div>
       <div className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">{label}</div>
