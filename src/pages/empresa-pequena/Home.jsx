@@ -448,8 +448,8 @@ export default function EpHome() {
                       </button>
                       <button onClick={() => go('epProveedores')}
                               className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
-                              style={{ background: '#F2F2F3', color: '#5B5B5F', border: '1px solid rgba(91,91,95,0.25)' }}>
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#5B5B5F' }} />
+                              style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {NUEVOS_PROVEEDORES} proveedores
                       </button>
                       <button onClick={() => go('epFacturacion')}
