@@ -2,6 +2,7 @@ import { Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronR
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
+import { useCountUp } from '../../hooks/useCountUp';
 
 // ── Shared certification path ─────────────────────────────────────────────────
 const CERT_PATH = [
@@ -62,13 +63,6 @@ const CERT_PATH = [
 ];
 
 // ── ESG / PROYECTOS AMBIENTALES ──────────────────────────────────────────────
-const kpis = [
-  { value: '5',       label: 'Proyectos registrados', tone: 'gradient' },
-  { value: '3',       label: 'Proyectos activos',     tone: 'gradient' },
-  { value: '3',       label: 'Proyectos financiados', tone: 'gradient' },
-  { value: '12,400 t', label: 'Captura CO₂ potencial', tone: 'green' },
-  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green' },
-];
 
 const pymeCerts = [
   { nombre: 'Tradex', cert: 'Verde Bonafide', Icon: BadgeCheck, color: '#059669' },
@@ -89,6 +83,18 @@ export default function EmpESG() {
   const activeIdx  = CERT_PATH.findIndex(c => c.status === 'active');
   const activeCert = CERT_PATH[activeIdx];
   const nextCert   = CERT_PATH[activeIdx + 1];
+
+  const animRegistrados  = useCountUp(5, 900, 100);
+  const animActivos      = useCountUp(3, 900, 200);
+  const animFinanciados  = useCountUp(3, 900, 300);
+
+  const kpis = [
+    { value: String(animRegistrados), label: 'Proyectos registrados', tone: 'gradient' },
+    { value: String(animActivos),     label: 'Proyectos activos',     tone: 'gradient' },
+    { value: String(animFinanciados), label: 'Proyectos financiados', tone: 'gradient' },
+    { value: '12,400 t',              label: 'Captura CO₂ potencial', tone: 'green' },
+    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'green' },
+  ];
 
   return (
     <AppShell active="empESG" role="contratante" title="Proyectos Ambientales" sub="Certificación y proyectos medioambientales" back>

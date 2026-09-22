@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCountUp } from "../../hooks/useCountUp";
 import {
   FileText,
   Trash2,
@@ -252,6 +253,77 @@ const TABS = [
   },
 ];
 
+// ── Sub-component: Contract Card ─────────────────────────────────────────────
+function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqModal }) {
+  const pctVal  = parseFloat(pct(contract.asignado, contract.monto));
+  const animPct = useCountUp(Math.round(pctVal), 1200, 80 + idx * 60);
+  const ctName  = contract.contratante?.razonSocial || contract.contratanteNombre || "—";
+  const sector  = contract.contratante?.sectorProductivo || "";
+  const score   = contract.contratante?.scoreCredito ?? null;
+  const sStyle  = score !== null ? scoreStyle(score) : null;
+  return (
+    <div
+      onClick={() => { setDetailId(contract.id); setActiveTab("contrato"); }}
+      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+      style={{ animationDelay: `${idx * 70}ms` }}
+    >
+      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
+      {contract.requerimiento && (
+        <button
+          onClick={(e) => { e.stopPropagation(); setReqModal(contract); }}
+          title="Ver requerimiento"
+          className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
+        >
+          <MessageSquare className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ID + empresa + sector + score */}
+      <div className="min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
+          <div className="text-[10px] font-semibold text-text-4">{contract.id}</div>
+          <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
+        </div>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
+          {sStyle && (
+            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]" style={{ background: sStyle.bg, color: sStyle.color }}>
+              {score}
+            </span>
+          )}
+        </div>
+        {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
+      </div>
+
+      {/* Monto */}
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto del crédito</div>
+        <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
+      </div>
+
+      {/* Barra de distribución */}
+      <div className="mt-auto space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-text-4">Distribuido</span>
+          <span className="text-[11px] font-bold" style={{ color: "#EF7A2C" }}>{animPct}%</span>
+        </div>
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#ECEAE7" }}>
+          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: "linear-gradient(90deg, #E0201C, #EF7A2C)" }} />
+        </div>
+        <div className="text-[10px] text-text-5">Disponible: {formatXaf(contract.disponible)}</div>
+      </div>
+
+      {/* Botón Ver */}
+      <button
+        onClick={(e) => { e.stopPropagation(); setDetailId(contract.id); setActiveTab("contrato"); }}
+        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+      >
+        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export default function EpCreditos() {
   const { go } = useApp();
   const contracts = contratoService.listarPorVista("pyme");
@@ -276,6 +348,11 @@ export default function EpCreditos() {
   const montoTotal = contracts.reduce((s, c) => s + c.monto, 0);
   const disponibleTotal = contracts.reduce((s, c) => s + c.disponible, 0);
   const kycVigentes = contracts.filter((c) => c.kyc === "vigente").length;
+
+  const animTotalContratos  = useCountUp(totalContratos,  900,  100);
+  const animMontoTotal      = useCountUp(montoTotal,      1600, 200);
+  const animDisponibleTotal = useCountUp(disponibleTotal, 1500, 300);
+  const animKycVigentes     = useCountUp(kycVigentes,     900,  400);
 
   const filteredContracts = contracts.filter(
     (c) =>
@@ -536,17 +613,17 @@ export default function EpCreditos() {
               {[
                 {
                   label: "Contratos de crédito activos",
-                  display: totalContratos,
+                  display: animTotalContratos,
                 },
                 {
                   label: "Monto total asignado",
-                  display: formatXaf(montoTotal),
+                  display: formatXaf(animMontoTotal),
                 },
                 {
                   label: "Saldo disponible para uso",
-                  display: formatXaf(disponibleTotal),
+                  display: formatXaf(animDisponibleTotal),
                 },
-                { label: "Contratantes con KYC vigente", display: kycVigentes },
+                { label: "Contratantes con KYC vigente", display: animKycVigentes },
               ].map(({ label, display }) => (
                 <StatCard
                   key={label}
@@ -600,129 +677,16 @@ export default function EpCreditos() {
             {/* Grid de tarjetas */}
             <div className="rounded-[14px] pt-2 pb-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pagedContracts.map((contract, idx) => {
-                  const pctVal = parseFloat(
-                    pct(contract.asignado, contract.monto),
-                  );
-                  const ctName =
-                    contract.contratante?.razonSocial ||
-                    contract.contratanteNombre ||
-                    "—";
-                  const sector = contract.contratante?.sectorProductivo || "";
-                  const score = contract.contratante?.scoreCredito ?? null;
-                  const sStyle = score !== null ? scoreStyle(score) : null;
-                  return (
-                    <div
-                      key={contract.id}
-                      onClick={() => {
-                        setDetailId(contract.id);
-                        setActiveTab("contrato");
-                      }}
-                      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                      style={{ animationDelay: `${idx * 70}ms` }}
-                    >
-                      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
-                      {contract.requerimiento && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setReqModal(contract);
-                          }}
-                          title="Ver requerimiento"
-                          className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </button>
-                      )}
-
-                      {/* ID + empresa + sector + score */}
-                      <div className="min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <div className="text-[10px] font-semibold text-text-4">
-                            {contract.id}
-                          </div>
-                          <Badge variant={contratoBadge(contract.estado)}>
-                            {contract.estado}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">
-                            {ctName}
-                          </div>
-                          {sStyle && (
-                            <span
-                              className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]"
-                              style={{
-                                background: sStyle.bg,
-                                color: sStyle.color,
-                              }}
-                            >
-                              {score}
-                            </span>
-                          )}
-                        </div>
-                        {sector && (
-                          <div className="text-[11px] text-text-4 mt-0.5">
-                            {sector}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Monto */}
-                      <div>
-                        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">
-                          Monto del crédito
-                        </div>
-                        <div className="text-[17px] font-extrabold text-text-1 leading-tight">
-                          {formatXaf(contract.monto)}
-                        </div>
-                      </div>
-
-                      {/* Barra de distribución */}
-                      <div className="mt-auto space-y-1.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] text-text-4">
-                            Distribuido
-                          </span>
-                          <span
-                            className="text-[11px] font-bold"
-                            style={{ color: "#EF7A2C" }}
-                          >
-                            {pctVal}%
-                          </span>
-                        </div>
-                        <div
-                          className="w-full h-1.5 rounded-full overflow-hidden"
-                          style={{ background: "#ECEAE7" }}
-                        >
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${pctVal}%`,
-                              background:
-                                "linear-gradient(90deg, #E0201C, #EF7A2C)",
-                            }}
-                          />
-                        </div>
-                        <div className="text-[10px] text-text-5">
-                          Disponible: {formatXaf(contract.disponible)}
-                        </div>
-                      </div>
-
-                      {/* Botón Ver */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDetailId(contract.id);
-                          setActiveTab("contrato");
-                        }}
-                        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
-                      >
-                        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })}
+                {pagedContracts.map((contract, idx) => (
+                  <CreditoContractCard
+                    key={contract.id}
+                    contract={contract}
+                    idx={idx}
+                    setDetailId={setDetailId}
+                    setActiveTab={setActiveTab}
+                    setReqModal={setReqModal}
+                  />
+                ))}
                 {filteredContracts.length === 0 && (
                   <div className="col-span-full text-[13px] text-text-4 text-center py-12">
                     No se encontraron contratos para "{search}".

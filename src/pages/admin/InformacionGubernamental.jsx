@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import {
   Coins, Percent, Building2, Users, FileCheck2, Receipt,
   FileBarChart, Send, CheckCircle2, Eye,
@@ -40,19 +41,6 @@ const MINISTERIOS = [
   { id: 'hacienda',      lbl: 'Ministerio de Hacienda' },
 ];
 
-const KPIS_HIDROCARBUROS = [
-  { label: '% Contenido Nacional Promedio',            value: '62%',              Icon: Percent },
-  { label: 'PYMEs Locales Certificadas',                value: '18',               Icon: Building2 },
-  { label: 'Empleo Local Generado',                     value: '340 personas',     Icon: Users },
-  { label: 'Contratos con Cláusula de Contenido Nacional', value: '27',            Icon: FileCheck2 },
-];
-
-const KPIS_HACIENDA = [
-  { label: 'Recaudación Fiscal Facilitada',   value: `${fmt(210_000_000)} XAF`, Icon: Coins },
-  { label: '% Transacciones Digitalizadas',   value: '78%',                     Icon: Percent },
-  { label: 'Retenciones Reportadas',          value: `${fmt(12_500_000)} XAF`,  Icon: Receipt },
-  { label: 'Empresas Bancarizadas vía Plataforma', value: '46',                 Icon: Building2 },
-];
 
 const INFORMES_INICIALES = {
   hidrocarburos: [
@@ -93,6 +81,25 @@ export default function AdminInformacionGubernamental() {
   const [informes, setInformes] = useState(INFORMES_INICIALES);
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [detalleInf, setDetalleInf] = useState(null);
+
+  // Animated values for numeric-only KPI fields
+  const animHcPymes      = useCountUp(18, 900, 100);
+  const animHcContratos  = useCountUp(27, 900, 200);
+  const animHaEmpresas   = useCountUp(46, 900, 100);
+
+  const KPIS_HIDROCARBUROS = [
+    { label: '% Contenido Nacional Promedio',               value: '62%',                      Icon: Percent },
+    { label: 'PYMEs Locales Certificadas',                   value: String(animHcPymes),         Icon: Building2 },
+    { label: 'Empleo Local Generado',                        value: '340 personas',              Icon: Users },
+    { label: 'Contratos con Cláusula de Contenido Nacional', value: String(animHcContratos),     Icon: FileCheck2 },
+  ];
+
+  const KPIS_HACIENDA = [
+    { label: 'Recaudación Fiscal Facilitada',         value: `${fmt(210_000_000)} XAF`, Icon: Coins },
+    { label: '% Transacciones Digitalizadas',         value: '78%',                     Icon: Percent },
+    { label: 'Retenciones Reportadas',                value: `${fmt(12_500_000)} XAF`,  Icon: Receipt },
+    { label: 'Empresas Bancarizadas vía Plataforma',  value: String(animHaEmpresas),     Icon: Building2 },
+  ];
 
   const showToast = (message) => {
     setToast({ visible: true, message });

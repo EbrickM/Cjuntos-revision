@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCountUp } from "../../hooks/useCountUp";
 import {
   Pencil,
   Trash2,
@@ -194,6 +195,11 @@ export default function EpMisProveedores() {
   const clientesBonafide = providers.filter((p) => p.esClienteBonafide).length;
   const conContratos = providers.filter((p) => numContratos(p) > 0).length;
 
+  const animTotal          = useCountUp(providers.length, 900, 100);
+  const animBonafide       = useCountUp(clientesBonafide, 900, 200);
+  const animKyc            = useCountUp(kycVigentes,      900, 300);
+  const animConContratos   = useCountUp(conContratos,     900, 400);
+
   const handleOpenEdit = (p) =>
     setModal({
       open: true,
@@ -278,10 +284,10 @@ export default function EpMisProveedores() {
         {/* KPIs */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           {[
-            { value: providers.length, label: "Proveedores registrados" },
-            { value: clientesBonafide, label: "Clientes Bonafide" },
-            { value: kycVigentes, label: "KYC Vigentes" },
-            { value: conContratos, label: "Con contratos activos" },
+            { value: animTotal,        label: "Proveedores registrados" },
+            { value: animBonafide,     label: "Clientes Bonafide" },
+            { value: animKyc,          label: "KYC Vigentes" },
+            { value: animConContratos, label: "Con contratos activos" },
           ].map(({ value, label }) => (
             <StatCard key={label} label={label} value={value} tone="gradient" />
           ))}

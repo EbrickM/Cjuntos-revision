@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import { useCountUp } from '../../hooks/useCountUp';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
@@ -82,6 +83,11 @@ export default function EmpFacturas() {
   const conOtp      = facturasVivas.filter(f => f.estado === INV.otpEnviada).length;
   const totalMonto  = facturasVivas.reduce((a, f) => a + f.monto, 0);
 
+  const animTotal    = useCountUp(facturasVivas.length, 900,  100);
+  const animPend     = useCountUp(pendientes,           900,  200);
+  const animConOtp   = useCountUp(conOtp,               900,  300);
+  const animMonto    = useCountUp(totalMonto,          1500,  200);
+
   const { visibleItems: pagedFacturas, hasMore, loading, sentinelRef } =
     useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}` });
 
@@ -126,10 +132,10 @@ export default function EmpFacturas() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { lbl: 'Total facturas',     val: String(facturasVivas.length) },
-            { lbl: 'Pendientes validar', val: String(pendientes) },
-            { lbl: 'OTP por confirmar',  val: String(conOtp) },
-            { lbl: 'Monto total',        val: `${new Intl.NumberFormat('de-DE').format(totalMonto)} XAF` },
+            { lbl: 'Total facturas',     val: String(animTotal) },
+            { lbl: 'Pendientes validar', val: String(animPend) },
+            { lbl: 'OTP por confirmar',  val: String(animConOtp) },
+            { lbl: 'Monto total',        val: `${new Intl.NumberFormat('de-DE').format(animMonto)} XAF` },
           ].map(({ lbl, val }) => (
             <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}

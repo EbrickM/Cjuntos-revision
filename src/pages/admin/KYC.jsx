@@ -1,5 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import { AlertTriangle } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -130,13 +131,18 @@ export default function AdminKYC() {
     desestimar: `Desestimar cliente — ${e?.nombre}`,
   }[modalMode] ?? `KYC — ${e?.nombre}`;
 
+  const animTotal    = useCountUp(4, 900, 100);
+  const animPend     = useCountUp(2, 900, 200);
+  const animAprobados= useCountUp(1, 900, 300);
+  const animIncompl  = useCountUp(1, 900, 400);
+
   return (
     <AppShell active="adminKYC" role="admin" title="KYC Empresas" sub="Verificación de identidad">
       <div className="fade-in">
 
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[['👁','4','Total KYC','text-text-1'],['⏳','2','Pendientes revisión','text-yellow-text'],['✅','1','Aprobados','text-green-text'],['❌','1','Incompletos','text-red-text']].map(([ico,v,l,c]) => (
+          {[['👁',animTotal,'Total KYC','text-text-1'],['⏳',animPend,'Pendientes revisión','text-yellow-text'],['✅',animAprobados,'Aprobados','text-green-text'],['❌',animIncompl,'Incompletos','text-red-text']].map(([ico,v,l,c]) => (
             <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
               <div className="text-[24px] mb-2">{ico}</div>
               <div className={`text-[22px] font-extrabold ${c} mb-1`}>{v}</div>

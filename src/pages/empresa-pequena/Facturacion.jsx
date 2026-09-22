@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { useCountUp } from "../../hooks/useCountUp";
 import {
   Upload,
   Paperclip,
@@ -351,6 +352,14 @@ export default function EpFacturacion() {
     setFacturas(facturaService.listarPorRol("empresa-pequena"));
   };
 
+  const kpiBilletera = facturas.filter((f) => f.estado === INV.billetera).length;
+  const kpiPagadas   = facturas.filter((f) => f.estado === INV.pagada).length;
+
+  const animTotal       = useCountUp(facturas.length,          900, 100);
+  const animContratante = useCountUp(contratanteInvoices.length, 900, 200);
+  const animBilletera   = useCountUp(kpiBilletera,             900, 300);
+  const animPagadas     = useCountUp(kpiPagadas,               900, 400);
+
   return (
     <AppShell
       active="epFacturacion"
@@ -363,23 +372,10 @@ export default function EpFacturacion() {
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Total facturas", value: String(facturas.length) },
-            {
-              label: "Al contratante",
-              value: String(contratanteInvoices.length),
-            },
-            {
-              label: "En billetera",
-              value: String(
-                facturas.filter((f) => f.estado === INV.billetera).length,
-              ),
-            },
-            {
-              label: "Pagadas",
-              value: String(
-                facturas.filter((f) => f.estado === INV.pagada).length,
-              ),
-            },
+            { label: "Total facturas",  value: String(animTotal) },
+            { label: "Al contratante",  value: String(animContratante) },
+            { label: "En billetera",    value: String(animBilletera) },
+            { label: "Pagadas",         value: String(animPagadas) },
           ].map(({ label, value }) => (
             <StatCard key={label} label={label} value={value} tone="gradient" />
           ))}

@@ -14,6 +14,69 @@ import { TEXT4, fmt, provState, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { useCountUp } from '../../hooks/useCountUp';
+
+// ── Sub-component: Contract Card ──────────────────────────────────────────────
+function ContractCard({ c, idx, go, setReqModal }) {
+  const pct     = c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
+  const disp    = c.asignado - c.utilizado;
+  const animPct = useCountUp(pct, 1200, 80 + idx * 60);
+  return (
+    <div
+      onClick={() => { provState.selectedContrato = c; go('provContratoDetalle'); }}
+      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+      style={{ animationDelay: `${idx * 70}ms` }}
+    >
+      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
+      {c.requerimiento && (
+        <button
+          onClick={e => { e.stopPropagation(); setReqModal(c); }}
+          title="Ver requerimiento"
+          className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
+        >
+          <MessageSquare className="w-4 h-4" />
+        </button>
+      )}
+
+      {/* ID + PYME + sector + estado */}
+      <div className="min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-0.5">
+          <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
+          <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
+        </div>
+        <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
+        {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
+      </div>
+
+      {/* Monto */}
+      <div>
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo Asignado</div>
+        <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(c.asignado)} XAF</div>
+      </div>
+
+      {/* Barra de distribución */}
+      <div className="mt-auto space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-text-4">Utilizado</span>
+          <span className="text-[11px] font-bold" style={{ color: '#EF7A2C' }}>{animPct}%</span>
+        </div>
+        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+          <div className="h-full rounded-full"
+               style={{ width: `${animPct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
+        </div>
+        <div className="text-[10px] text-text-5">Disponible: {fmt(disp)} XAF · {c.facturas} facturas</div>
+      </div>
+
+      {/* Botón Ver */}
+      <button
+        onClick={e => { e.stopPropagation(); provState.selectedContrato = c; go('provContratoDetalle'); }}
+        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+      >
+        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
 
 // ── MIS CONTRATOS ─────────────────────────────────────────────────────────────
 
@@ -30,6 +93,11 @@ export default function ProvContratos() {
   const totalUtilizado  = contratos.reduce((a, c) => a + c.utilizado, 0);
   const totalDisponible = totalAsignado - totalUtilizado;
   const activos         = contratos.filter(c => c.estado === 'Activo').length;
+
+  const animActivos     = useCountUp(activos,         900,  100);
+  const animAsignado    = useCountUp(totalAsignado,   1600,  200);
+  const animUtilizado   = useCountUp(totalUtilizado,  1500,  300);
+  const animDisponible  = useCountUp(totalDisponible, 1500,  400);
 
   const ESTADOS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean)))];
 
@@ -53,10 +121,10 @@ export default function ProvContratos() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { lbl: 'Contratos Activos',    val: String(activos) },
-            { lbl: 'Fondo Total Asignado', val: `${fmt(totalAsignado)} XAF` },
-            { lbl: 'Utilizado',            val: `${fmt(totalUtilizado)} XAF` },
-            { lbl: 'Disponible',           val: `${fmt(totalDisponible)} XAF` },
+            { lbl: 'Contratos Activos',    val: String(animActivos) },
+            { lbl: 'Fondo Total Asignado', val: `${fmt(animAsignado)} XAF` },
+            { lbl: 'Utilizado',            val: `${fmt(animUtilizado)} XAF` },
+            { lbl: 'Disponible',           val: `${fmt(animDisponible)} XAF` },
           ].map(({ lbl, val }) => (
             <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
@@ -95,66 +163,9 @@ export default function ProvContratos() {
         {/* Cards de contratos */}
         <div className="rounded-[14px] px-5 pt-2 pb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pagedContratos.map((c, idx) => {
-            const pct  = c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
-            const disp = c.asignado - c.utilizado;
-            return (
-              <div
-                key={c.id}
-                onClick={() => { provState.selectedContrato = c; go('provContratoDetalle'); }}
-                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                style={{ animationDelay: `${idx * 70}ms` }}
-              >
-                {/* Ícono flotante: contrato con requerimiento de Bonafide */}
-                {c.requerimiento && (
-                  <button
-                    onClick={e => { e.stopPropagation(); setReqModal(c); }}
-                    title="Ver requerimiento"
-                    className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                  </button>
-                )}
-
-                {/* ID + PYME + sector + estado */}
-                <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
-                    <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
-                  </div>
-                  <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
-                  {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
-                </div>
-
-                {/* Monto */}
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo Asignado</div>
-                  <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(c.asignado)} XAF</div>
-                </div>
-
-                {/* Barra de distribución */}
-                <div className="mt-auto space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-text-4">Utilizado</span>
-                    <span className="text-[11px] font-bold" style={{ color: '#EF7A2C' }}>{pct}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                    <div className="h-full rounded-full"
-                         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
-                  </div>
-                  <div className="text-[10px] text-text-5">Disponible: {fmt(disp)} XAF · {c.facturas} facturas</div>
-                </div>
-
-                {/* Botón Ver */}
-                <button
-                  onClick={e => { e.stopPropagation(); provState.selectedContrato = c; go('provContratoDetalle'); }}
-                  className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
-                >
-                  Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            );
-          })}
+          {pagedContratos.map((c, idx) => (
+            <ContractCard key={c.id} c={c} idx={idx} go={go} setReqModal={setReqModal} />
+          ))}
           {filtrados.length === 0 && (
             <div className="col-span-full text-[13px] text-text-4 text-center py-12">
               No se encontraron contratos con los filtros aplicados.

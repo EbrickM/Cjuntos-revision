@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import {
   Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight,
   Plus, FolderOpen, Target,
@@ -36,16 +37,9 @@ const ESG_METAS = [
   { label: 'Reducción de residuos', pct: 30, color: '#C68A1D' },
 ];
 
-// ── KPIs ──────────────────────────────────────────────────────────────────────
+// ── KPI base values (static) ──────────────────────────────────────────────────
 // Verde reservado a las dos métricas ambientales (captura CO₂, riesgo); el
 // resto usa el acento naranja, igual que el resto del dashboard PYME.
-const kpis = [
-  { value: '5',       label: 'Proyectos registrados', tone: 'gradient' },
-  { value: '2',       label: 'Proyectos activos',     tone: 'gradient' },
-  { value: '2',       label: 'Proyectos financiados', tone: 'gradient' },
-  { value: '7,800 t', label: 'Captura CO₂ potencial', tone: 'green' },
-  { value: 'Bajo',    label: 'Riesgo ambiental',      tone: 'green' },
-];
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 const proyectos = [
@@ -83,6 +77,18 @@ export default function EpProyectosAmbientales() {
   const activeIdx  = CERT_PATH.findIndex(c => c.status === 'active');
   const activeCert = CERT_PATH[activeIdx];
   const nextCert   = CERT_PATH[activeIdx + 1];
+
+  const animRegistrados = useCountUp(5, 900, 100);
+  const animActivos     = useCountUp(2, 900, 200);
+  const animFinanciados = useCountUp(2, 900, 300);
+
+  const kpis = [
+    { value: String(animRegistrados), label: 'Proyectos registrados', tone: 'gradient' },
+    { value: String(animActivos),     label: 'Proyectos activos',     tone: 'gradient' },
+    { value: String(animFinanciados), label: 'Proyectos financiados', tone: 'gradient' },
+    { value: '7,800 t',               label: 'Captura CO₂ potencial', tone: 'green' },
+    { value: 'Bajo',                  label: 'Riesgo ambiental',      tone: 'green' },
+  ];
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm]           = useState(EMPTY_FORM);

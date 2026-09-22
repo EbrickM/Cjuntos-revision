@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import {
   ChevronRight, FileText, Banknote, Search, ListFilter, Receipt,
 } from 'lucide-react';
@@ -106,6 +107,11 @@ export default function ProvFacturas() {
   const pagadas   = facturas.filter(f => f.estado === INV.pagada).length;
   const totalMonto = facturas.reduce((a, f) => a + f.monto, 0);
 
+  const animTotal    = useCountUp(facturas.length, 900,  100);
+  const animAprobadas= useCountUp(aprobadas,       900,  200);
+  const animPagadas  = useCountUp(pagadas,         900,  300);
+  const animMonto    = useCountUp(totalMonto,      1500, 400);
+
   const { visibleItems: paged, hasMore, loading, sentinelRef } =
     useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}` });
 
@@ -116,10 +122,10 @@ export default function ProvFacturas() {
         {/* KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { lbl: 'Total facturas', val: String(facturas.length) },
-            { lbl: 'Aprobadas (en pago)', val: String(aprobadas) },
-            { lbl: 'Pagadas', val: String(pagadas) },
-            { lbl: 'Monto total', val: `${fmt(totalMonto)} XAF` },
+            { lbl: 'Total facturas',      val: String(animTotal) },
+            { lbl: 'Aprobadas (en pago)', val: String(animAprobadas) },
+            { lbl: 'Pagadas',             val: String(animPagadas) },
+            { lbl: 'Monto total',         val: `${fmt(animMonto)} XAF` },
           ].map(({ lbl, val }) => (
             <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}

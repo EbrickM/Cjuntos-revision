@@ -4,6 +4,7 @@ import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import { LineChart, DonutChart, VBarChart, HBarChart } from '../../components/charts/Charts';
+import { useCountUp } from '../../hooks/useCountUp';
 
 const fmt = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 
@@ -14,14 +15,6 @@ const TABS = [
 ];
 
 // ── General tab data ──────────────────────────────────────────────────────────
-const generalKpis = [
-  { value: 'XAF 180M',  label: 'Monto total financiado', sub: 'Total acumulado 2026',    cls: 'text-orange-dark', trend: 'Activo',   tUp: null },
-  { value: '1',          label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-green-text',  trend: 'Estable',  tUp: null },
-  { value: '1',          label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable',  tUp: null },
-  { value: '1',          label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-green-text',  trend: 'Estable',  tUp: null },
-  { value: 'XAF 47.5M', label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange-dark', trend: 'Estable',  tUp: null },
-  { value: '870/1000',  label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-green-text',  trend: 'Bajo',     tUp: null },
-];
 
 const generalLineData = [
   { mes: 'Mar', monto: 0  },
@@ -49,14 +42,6 @@ const ultimasOps = [
 ];
 
 // ── Riesgo tab data ───────────────────────────────────────────────────────────
-const riesgoKpis = [
-  { value: '0',      label: 'Empresas alto riesgo',  sub: 'Requieren atención',     cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
-  { value: '0',      label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',         cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
-  { value: '0',      label: 'Documentos vencidos',   sub: 'Necesitan renovación',    cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
-  { value: '0',      label: 'KYC pendientes',         sub: 'Verificación requerida',  cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
-  { value: '0',      label: 'Alertas abiertas',       sub: 'Sin resolver',            cls: 'text-orange-dark', trend: 'Ninguna', tUp: null },
-  { value: 'XAF 0', label: 'Exposición total',        sub: 'Capital en riesgo',       cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
-];
 
 const riesgoDona = [
   { tipo: 'Bajo riesgo', pct: 100, color: '#059669' },
@@ -77,6 +62,36 @@ const alertasAbiertas = [];
 export default function AdminDash() {
   const { go } = useApp();
   const [tab, setTab] = useState('general');
+
+  // General KPI animated values (numeric only; formatted strings stay as-is)
+  const animOpsActivas    = useCountUp(1, 900, 100);
+  const animContratantes  = useCountUp(1, 900, 200);
+  const animPymes         = useCountUp(1, 900, 300);
+
+  // Riesgo KPI animated values (all are 0 currently)
+  const animAltoRiesgo    = useCountUp(0, 900, 100);
+  const animOpsRiesgo     = useCountUp(0, 900, 200);
+  const animDocsVencidos  = useCountUp(0, 900, 300);
+  const animKycPend       = useCountUp(0, 900, 400);
+  const animAlertas       = useCountUp(0, 900, 500);
+
+  const generalKpis = [
+    { value: 'XAF 180M',             label: 'Monto total financiado', sub: 'Total acumulado 2026',     cls: 'text-orange-dark', trend: 'Activo',  tUp: null },
+    { value: String(animOpsActivas),  label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-green-text',  trend: 'Estable', tUp: null },
+    { value: String(animContratantes),label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable', tUp: null },
+    { value: String(animPymes),       label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-green-text',  trend: 'Estable', tUp: null },
+    { value: 'XAF 47.5M',            label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange-dark', trend: 'Estable', tUp: null },
+    { value: '870/1000',             label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
+  ];
+
+  const riesgoKpis = [
+    { value: String(animAltoRiesgo),  label: 'Empresas alto riesgo',  sub: 'Requieren atención',    cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
+    { value: String(animOpsRiesgo),   label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',        cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
+    { value: String(animDocsVencidos),label: 'Documentos vencidos',   sub: 'Necesitan renovación',   cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
+    { value: String(animKycPend),     label: 'KYC pendientes',        sub: 'Verificación requerida', cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
+    { value: String(animAlertas),     label: 'Alertas abiertas',      sub: 'Sin resolver',           cls: 'text-orange-dark', trend: 'Ninguna', tUp: null },
+    { value: 'XAF 0',                label: 'Exposición total',       sub: 'Capital en riesgo',      cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
+  ];
 
   return (
     <AppShell active="adminDash" role="admin">

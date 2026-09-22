@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useCountUp } from '../../hooks/useCountUp';
 import {
   ChevronRight, ShieldCheck, ClipboardList, Leaf, Building2,
   User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
@@ -22,6 +23,10 @@ export default function EmpPymes() {
   const amarillo = pymes.filter(p => p.semaforo === 'Amarillo').length;
   const rojo     = pymes.filter(p => p.semaforo === 'Rojo').length;
 
+  const animVerde    = useCountUp(verde,    900, 100);
+  const animAmarillo = useCountUp(amarillo, 900, 200);
+  const animRojo     = useCountUp(rojo,     900, 300);
+
   const filtradas = busqueda.trim()
     ? pymes.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -41,9 +46,9 @@ export default function EmpPymes() {
         {/* KPIs de semáforo de riesgo */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { lbl: 'Riesgo bajo',  val: `${verde} PYME${verde !== 1 ? 's' : ''}` },
-            { lbl: 'Riesgo medio', val: `${amarillo} PYME${amarillo !== 1 ? 's' : ''}` },
-            { lbl: 'Riesgo alto',  val: `${rojo} PYME${rojo !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo bajo',  val: `${animVerde} PYME${verde !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo medio', val: `${animAmarillo} PYME${amarillo !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo alto',  val: `${animRojo} PYME${rojo !== 1 ? 's' : ''}` },
           ].map(({ lbl, val }) => (
             <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
