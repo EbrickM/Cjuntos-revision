@@ -13,7 +13,7 @@ export function StatCard({ label, value, Icon, tone = 'orange' }) {
 
   if (isGradient) {
     return (
-      <div className="rounded-[14px] bg-white shadow-sm overflow-hidden">
+      <div className="rounded-[14px] bg-white shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
         {Icon && (
           <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 mb-3"
             style={{ background: 'var(--bonafide-gradient)' }}>
@@ -30,7 +30,7 @@ export function StatCard({ label, value, Icon, tone = 'orange' }) {
   }
 
   return (
-    <div className="rounded-[14px] shadow-sm p-4 bg-white border border-border">
+    <div className="rounded-[14px] shadow-sm p-4 bg-white border border-border transition-transform duration-200 hover:scale-[1.02]">
       {Icon && (
         <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 mb-3"
           style={{ background: t.bg }}>
