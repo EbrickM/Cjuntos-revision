@@ -465,10 +465,10 @@ export default function EpHome() {
                   <div className="flex flex-col gap-3.5 shrink-0 self-center md:self-auto max-[765px]:w-full max-[765px]:items-center">
                     <div>
                       <div className="flex items-center gap-1.5 mb-1 max-[765px]:justify-center">
-                        <div className="bona-gradient-bg w-2.5 h-2.5 rounded-full shrink-0" />
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: RED }} />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Utilizado</span>
                       </div>
-                      <p className="text-lg max-[765px]:text-xl font-extrabold text-text-1 tabular-nums">
+                      <p className="text-lg max-[765px]:text-xl font-extrabold tabular-nums" style={{ color: RED }}>
                         {new Intl.NumberFormat('de-DE').format(animUsado)} XAF
                       </p>
                       <p className="text-xs max-[765px]:text-sm tabular-nums" style={{ color: TEXT4 }}>{animPctUsado}%</p>
@@ -476,7 +476,7 @@ export default function EpHome() {
                     <div className="h-px w-full bg-border" />
                     <div>
                       <div className="flex items-center gap-1.5 mb-1 max-[765px]:justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: DONUT_EMPTY }} />
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: ORA }} />
                         <span className="text-xs max-[765px]:text-sm font-semibold uppercase tracking-wide" style={{ color: TEXT4 }}>Disponible</span>
                       </div>
                       <p className="text-lg max-[765px]:text-xl font-extrabold tabular-nums" style={{ color: ORA }}>
