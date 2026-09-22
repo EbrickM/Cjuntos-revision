@@ -454,13 +454,10 @@ export default function EmpDash() {
 
             {/* KPIs — cards blancas */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
-              {envKpis.map(({ value, label, Icon, iconColor }) => (
+              {envKpis.map(({ value, label }) => (
                 <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
                   <div className="p-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
-                      <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
-                    </div>
+                    <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                     <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
                   </div>
                   <div className="h-[4px]" style={{ background: 'var(--bonafide-gradient)' }} />
@@ -501,24 +498,24 @@ export default function EmpDash() {
                 ))}
               </div>
               <div className="hidden sm:block overflow-x-auto">
-                <div className="min-w-[480px]">
-                  <div className="flex items-center bg-page-bg border-b border-border mb-1">
-                    <div className="flex-1 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
-                    <div className="w-[130px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
-                    <div className="w-[90px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
-                    <div className="w-[160px] shrink-0 px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
+                <div className="min-w-[420px]">
+                  <div className="grid bg-page-bg border-b border-border mb-1" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr' }}>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
                   </div>
                   <div className="space-y-0.5">
                     {proyectos.map((p, i) => (
-                      <div key={i} className="flex items-center rounded-[8px]"
-                        style={{ animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
-                        <div className="flex-1 min-w-0 px-4 py-3 text-sm font-semibold"
+                      <div key={i} className="grid items-center rounded-[8px]"
+                        style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
+                        <div className="px-3 py-3 text-sm font-semibold min-w-0 truncate"
                           style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
                           {p.nombre}
                         </div>
-                        <div className="w-[130px] shrink-0 px-4 py-3 text-center"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
-                        <div className="w-[90px] shrink-0 px-4 py-3 text-center"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
-                        <div className="w-[160px] shrink-0 px-4 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
+                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
+                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
+                        <div className="px-3 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
                       </div>
                     ))}
                   </div>

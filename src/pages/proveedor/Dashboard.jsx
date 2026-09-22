@@ -428,21 +428,13 @@ export default function ProvDash() {
 
             {/* KPIs — cards blancas */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
-              {envKpis.map(({ value, label, sub, Icon, iconColor, trend, tUp }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] border border-border p-4 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 shrink-0" style={{ color: iconColor }} />
+              {envKpis.map(({ value, label }) => (
+                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
+                  <div className="p-4 flex flex-col gap-2">
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
+                    <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
                   </div>
-                  <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
-                  {sub && <span className="text-[10px] text-text-5 leading-snug">{sub}</span>}
-                  {trend && (
-                    <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      tUp === true ? 'bg-green-bg text-green-text' :
-                      tUp === false ? 'bg-red-bg text-red-text' :
-                      'bg-orange-tint text-orange-dark'
-                    }`}>{trend}</span>
-                  )}
+                  <div className="h-[4px]" style={{ background: 'var(--bonafide-gradient)' }} />
                 </div>
               ))}
             </div>
@@ -455,13 +447,14 @@ export default function ProvDash() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
                      style={{ background: '#E3F4EA', color: GREEN }}>
-                  <TreePine className="w-3.5 h-3.5" />
+                  <TreePine className="w-3.5 h-3.5" style={{ animation: 'treeSway 0.85s ease-in-out 0.25s 1 both', transformOrigin: 'bottom center' }} />
                   5 registrados
                 </div>
               </div>
               <div className="sm:hidden space-y-2">
                 {proyectos.map((p, i) => (
-                  <div key={i} className="rounded-[12px] border border-border p-3">
+                  <div key={i} className="rounded-[12px] border p-3"
+                    style={{ animation: `cardSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
                     <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
@@ -475,27 +468,28 @@ export default function ProvDash() {
                 ))}
               </div>
               <div className="hidden sm:block overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      {['Proyecto', 'Estado', 'Riesgo', 'Financiamiento'].map((h) => (
-                        <th key={h} className="text-center whitespace-nowrap px-4 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider bg-page-bg border-b border-border">
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div className="min-w-[420px]">
+                  <div className="grid bg-page-bg border-b border-border mb-1" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr' }}>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
+                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
+                  </div>
+                  <div className="space-y-0.5">
                     {proyectos.map((p, i) => (
-                      <tr key={i} className="hover:bg-orange-50/30 transition-colors">
-                        <td className="px-4 py-3 text-sm font-semibold text-text-1 text-center whitespace-nowrap">{p.nombre}</td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></td>
-                        <td className="px-4 py-3 text-sm font-bold text-text-1 text-center whitespace-nowrap">{p.fin}</td>
-                      </tr>
+                      <div key={i} className="grid items-center rounded-[8px]"
+                        style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
+                        <div className="px-3 py-3 text-sm font-semibold min-w-0 truncate"
+                          style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
+                          {p.nombre}
+                        </div>
+                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
+                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
+                        <div className="px-3 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
