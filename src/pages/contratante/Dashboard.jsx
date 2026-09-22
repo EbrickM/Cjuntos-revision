@@ -53,10 +53,10 @@ const FONDO_DISP      = 132_500_000;
 const PYMES_FINANC      = 1;
 const CONTRATOS_ACTIV   = 1;
 const SCORE             = 720;
-const scoreZone = SCORE < 400 ? { label: 'Crítico', color: ERR }
-  : SCORE < 600 ? { label: 'Alto',  color: ERR }
+const scoreZone = SCORE < 400 ? { label: 'Crítico', color: RED  }
+  : SCORE < 600 ? { label: 'Alto',  color: ERR  }
   : SCORE < 750 ? { label: 'Medio', color: WARN }
-  : { label: 'Bajo', color: GREEN };
+  : { label: 'Bajo', color: ORA };
 const FACTURAS_COUNT    = 2;
 const FACTURAS_MONTO    = 47_500_000;
 const SOLICITUDES_TOTAL = 6;
@@ -73,8 +73,8 @@ const evolucionFondoData = [
 
 const evolucionFondoSeries = [
   { key: 'asignado',   color: RED,   label: 'Fondo Asignado'    },
-  { key: 'disponible', color: GREEN, label: 'Fondo Disponible'  },
-  { key: 'ejecucion',  color: ORA,   label: 'En Ejecución'      },
+  { key: 'disponible', color: ORA,   label: 'Fondo Disponible'  },
+  { key: 'ejecucion',  color: WARN,  label: 'En Ejecución'      },
 ];
 
 const pymeDist = [
@@ -141,10 +141,10 @@ export default function EmpDash() {
   const animScore      = useCountUp(SCORE,          1500, 300);
   const animFactMonto  = useCountUp(FACTURAS_MONTO, 1400, 350);
 
-  const animZone = animScore < 400 ? { label: 'Crítico', color: ERR  }
+  const animZone = animScore < 400 ? { label: 'Crítico', color: RED  }
     : animScore < 600              ? { label: 'Alto',    color: ERR  }
     : animScore < 750              ? { label: 'Medio',   color: WARN }
-    :                                { label: 'Bajo',    color: GREEN };
+    :                                { label: 'Bajo',    color: ORA  };
 
   const animPctUsado = FONDO_TOTAL > 0 ? Math.round((animUsado / FONDO_TOTAL) * 100) : 0;
   const animPctDisp  = 100 - animPctUsado;
@@ -181,8 +181,8 @@ export default function EmpDash() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
                 }`}>
-                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-opacity"
-                     style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                <div className="w-7 h-7 flex items-center justify-center shrink-0 transition-opacity"
+                     style={{ opacity: tab === t.id ? 1 : 0.5 }}>
                   <t.Icon className="w-4 h-4" style={{ color: t.iconColor }} />
                 </div>
                 {t.line1} {t.line2}
@@ -198,8 +198,8 @@ export default function EmpDash() {
               className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
-              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity"
-                   style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+              <div className="w-9 h-9 flex items-center justify-center transition-opacity"
+                   style={{ opacity: tab === t.id ? 1 : 0.5 }}>
                 <t.Icon className="w-5 h-5" style={{ color: t.iconColor }} />
               </div>
               <span className="leading-[1.25]">
@@ -245,19 +245,19 @@ export default function EmpDash() {
                     </div>
                     <div className="flex items-center gap-2 flex-wrap max-[765px]:justify-center">
                       <button onClick={() => go('empContratos')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIV} contratos activos
                       </button>
                       <button onClick={() => go('empPymes')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {PYMES_FINANC} PYMEs financiadas
                       </button>
                       <button onClick={() => go('empFacturas')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {FACTURAS_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF

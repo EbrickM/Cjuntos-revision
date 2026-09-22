@@ -233,10 +233,10 @@ const LIMITE               = 180_000_000;
 const USADO                = 47_500_000;
 const CONTRATOS_ACTIVOS    = 1;
 const SCORE                = 820;
-const scoreZone = SCORE < 400 ? { label: 'Crítico', color: ERR }
-  : SCORE < 600 ? { label: 'Alto',  color: ORA }
+const scoreZone = SCORE < 400 ? { label: 'Crítico', color: RED  }
+  : SCORE < 600 ? { label: 'Alto',  color: ERR  }
   : SCORE < 750 ? { label: 'Medio', color: WARN }
-  : { label: 'Bajo', color: GREEN };
+  : { label: 'Bajo', color: ORA };
 const FACTURAS_TOTAL_COUNT = 2;
 const FACTURAS_TOTAL_MONTO = 47_500_000;
 const NUEVOS_PROVEEDORES   = 3;
@@ -266,7 +266,7 @@ const evolucionData = [
 const evolucionSeries = [
   { key: 'aprobada',   color: RED,   label: 'Financiación Aprobada' },
   { key: 'utilizado',  color: ORA,   label: 'Crédito Utilizado'     },
-  { key: 'disponible', color: GREEN, label: 'Disponible'            },
+  { key: 'disponible', color: WARN,  label: 'Disponible'            },
 ];
 
 const flujoData = [
@@ -283,7 +283,7 @@ const flujoData = [
 ];
 
 const riesgoOps = [
-  { label: 'Bajo',    pct: 64, color: GREEN },
+  { label: 'Bajo',    pct: 64, color: ORA   },
   { label: 'Medio',   pct: 23, color: WARN  },
   { label: 'Alto',    pct: 10, color: ORA   },
   { label: 'Crítico', pct:  3, color: ERR   },
@@ -334,10 +334,10 @@ export default function EpHome() {
 
   // Zona del score calculada sobre el valor animado — los colores cambian
   // en tiempo real al cruzar los umbrales (Crítico → Alto → Medio → Bajo).
-  const animZone = animScore < 400 ? { label: 'Crítico', color: ERR  }
-    : animScore < 600              ? { label: 'Alto',    color: ORA  }
+  const animZone = animScore < 400 ? { label: 'Crítico', color: RED  }
+    : animScore < 600              ? { label: 'Alto',    color: ERR  }
     : animScore < 750              ? { label: 'Medio',   color: WARN }
-    :                                { label: 'Bajo',    color: GREEN };
+    :                                { label: 'Bajo',    color: ORA  };
 
   const animPctUsado      = LIMITE > 0 ? Math.round((animUsado / LIMITE) * 100) : 0;
   const animPctDisponible = 100 - animPctUsado;
@@ -383,8 +383,8 @@ export default function EpHome() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
                 }`}>
-                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-opacity"
-                     style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+                <div className="w-7 h-7 flex items-center justify-center shrink-0 transition-opacity"
+                     style={{ opacity: tab === t.id ? 1 : 0.5 }}>
                   <t.Icon className="w-4 h-4" style={{ color: t.iconColor }} />
                 </div>
                 {t.line1} {t.line2}
@@ -400,8 +400,8 @@ export default function EpHome() {
               className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
                 tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
               }`}>
-              <div className="w-9 h-9 rounded-full flex items-center justify-center transition-opacity"
-                   style={{ background: t.iconBg, opacity: tab === t.id ? 1 : 0.55 }}>
+              <div className="w-9 h-9 flex items-center justify-center transition-opacity"
+                   style={{ opacity: tab === t.id ? 1 : 0.5 }}>
                 <t.Icon className="w-5 h-5" style={{ color: t.iconColor }} />
               </div>
               <span className="leading-[1.25]">
@@ -441,19 +441,19 @@ export default function EpHome() {
                     </div>
                     <div className="flex flex-wrap items-center gap-2 max-[765px]:justify-center">
                       <button onClick={() => go('epCreditos')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {CONTRATOS_ACTIVOS} contratos activos
                       </button>
                       <button onClick={() => go('epProveedores')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {NUEVOS_PROVEEDORES} proveedores
                       </button>
                       <button onClick={() => go('epFacturacion')}
-                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-opacity hover:opacity-75"
+                              className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
                         {FACTURAS_TOTAL_COUNT} facturas · {new Intl.NumberFormat('de-DE').format(animFactMonto)} XAF
@@ -653,7 +653,7 @@ export default function EpHome() {
                 {/* Riesgo de Operaciones */}
                 <div className="md:col-span-2">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: '#FDF6E8' }}>
+                    <div className="w-10 h-10 flex items-center justify-center shrink-0">
                       <Shield className="w-6 h-6" style={{ color: WARN }} />
                     </div>
                     <p className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Riesgo de Operaciones</p>
@@ -682,7 +682,7 @@ export default function EpHome() {
                 <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border flex flex-col items-center md:justify-center text-center">
                   <p className="text-[11px] font-semibold text-text-4 uppercase tracking-widest mb-4">Solicitudes Pendientes</p>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                    <div className="w-12 h-12 flex items-center justify-center shrink-0">
                       <Clock className="w-7 h-7" style={{ color: ORA }} />
                     </div>
                     <p className="text-[40px] font-extrabold leading-none text-text-1 tabular-nums">{SOLICITUDES_PEND}</p>
