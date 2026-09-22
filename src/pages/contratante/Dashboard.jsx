@@ -156,14 +156,6 @@ export default function EmpDash() {
 
   const [hoveredSeries, setHoveredSeries] = useState(null);
 
-  const [activeRow, setActiveRow] = useState(0);
-  useEffect(() => {
-    if (tab !== 'medioambiental') return;
-    const id = setInterval(() => {
-      setActiveRow(r => (r + 1) % proyectos.length);
-    }, 1500);
-    return () => clearInterval(id);
-  }, [tab]);
 
   return (
     <AppShell active="empDash" role="contratante" back>
@@ -490,7 +482,7 @@ export default function EmpDash() {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
                      style={{ background: '#E3F4EA', color: GREEN }}>
-                  <TreePine className="w-3.5 h-3.5" />
+                  <TreePine className="w-3.5 h-3.5" style={{ animation: 'treeSway 0.85s ease-in-out 0.25s 1 both', transformOrigin: 'bottom center' }} />
                   8 registrados
                 </div>
               </div>
@@ -498,11 +490,7 @@ export default function EmpDash() {
                 {proyectos.map((p, i) => (
                   <div key={i} className="rounded-[12px] border p-3"
                     style={{
-                      borderColor: activeRow === i ? `${GREEN}55` : '#ECEAE7',
-                      background: activeRow === i ? 'rgba(46,125,91,0.06)' : 'white',
-                      boxShadow: activeRow === i ? '0 4px 18px rgba(46,125,91,0.11)' : 'none',
-                      transform: activeRow === i ? 'scale(1.025)' : 'scale(1)',
-                      transition: 'transform 0.45s cubic-bezier(0.22,1,0.36,1), background 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease',
+                      animation: `cardSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite`,
                     }}
                   >
                     <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
@@ -532,15 +520,12 @@ export default function EmpDash() {
                     {proyectos.map((p, i) => (
                       <tr key={i}
                         style={{
-                          background: activeRow === i ? 'rgba(46,125,91,0.06)' : 'transparent',
-                          transform: activeRow === i ? 'scale(1.015)' : 'scale(1)',
-                          transition: 'transform 0.45s cubic-bezier(0.22,1,0.36,1), background-color 0.45s ease',
+                          animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite`,
                           position: 'relative',
-                          zIndex: activeRow === i ? 1 : 0,
                         }}
                       >
                         <td className="px-4 py-3 text-sm font-semibold text-center whitespace-nowrap rounded-l-[8px]"
-                          style={{ color: activeRow === i ? GREEN : undefined }}>
+                          style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
                           {p.nombre}
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>

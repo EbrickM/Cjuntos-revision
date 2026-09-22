@@ -315,3 +315,39 @@ button:not([disabled]) {
 .bona-btn:not([disabled]):active {
   scale: 0.97;
 }
+
+/* TreePine entrance sway — medioambiental header badge */
+@keyframes treeSway {
+  0%   { transform: rotate(0deg)   scale(1); }
+  15%  { transform: rotate(-12deg) scale(1.22); }
+  32%  { transform: rotate(9deg)   scale(1.12); }
+  48%  { transform: rotate(-5deg)  scale(1.06); }
+  64%  { transform: rotate(3deg)   scale(1.02); }
+  80%  { transform: rotate(-1deg)  scale(1); }
+  100% { transform: rotate(0deg)   scale(1); }
+}
+
+/* Cyclic row spotlight — medioambiental table (N=8, T=1.8s, cycle=14.4s) */
+@keyframes rowSpotlight {
+  0%    { transform: scale(1);     background-color: rgba(46, 125, 91, 0); }
+  4.5%  { transform: scale(1.015); background-color: rgba(46, 125, 91, 0.06); }
+  8%    { transform: scale(1.015); background-color: rgba(46, 125, 91, 0.06); }
+  12.5% { transform: scale(1);     background-color: rgba(46, 125, 91, 0); }
+  100%  { transform: scale(1);     background-color: rgba(46, 125, 91, 0); }
+}
+
+@keyframes rowTextSpotlight {
+  0%    { color: var(--color-text-1); }
+  4.5%  { color: #2E7D5B; }
+  8%    { color: #2E7D5B; }
+  12.5% { color: var(--color-text-1); }
+  100%  { color: var(--color-text-1); }
+}
+
+@keyframes cardSpotlight {
+  0%    { transform: scale(1);     background-color: white;                   box-shadow: 0 4px 18px rgba(46, 125, 91, 0); }
+  4.5%  { transform: scale(1.025); background-color: rgba(46, 125, 91, 0.05); box-shadow: 0 4px 18px rgba(46, 125, 91, 0.11); }
+  8%    { transform: scale(1.025); background-color: rgba(46, 125, 91, 0.05); box-shadow: 0 4px 18px rgba(46, 125, 91, 0.11); }
+  12.5% { transform: scale(1);     background-color: white;                   box-shadow: 0 4px 18px rgba(46, 125, 91, 0); }
+  100%  { transform: scale(1);     background-color: white;                   box-shadow: 0 4px 18px rgba(46, 125, 91, 0); }
+}
