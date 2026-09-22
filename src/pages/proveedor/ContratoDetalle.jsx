@@ -132,15 +132,14 @@ export default function ProvContratoDetalle() {
           ))}
         </div>
 
-        {/* ── Tabs con iconos ── */}
-        {/* ── Tabs con iconos ── */}
-        <div className="grid grid-cols-3 gap-1.5 bg-border/30 p-1 rounded-[10px]">
+        {/* ── Tabs ── */}
+        <div className="flex bg-white rounded-[10px] gap-1 p-1">
           {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-semibold transition-all whitespace-nowrap cursor-pointer
-                  ${active ? 'bg-orange text-white shadow-sm' : 'bg-white text-text-4 hover:text-text-2'}`}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
+                  ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}

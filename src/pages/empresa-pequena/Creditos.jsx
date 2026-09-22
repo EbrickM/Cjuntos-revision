@@ -55,7 +55,7 @@ const fmtDate = (iso) =>
     : "—";
 
 const scoreStyle = (score) => {
-  if (score >= 750) return { bg: "#E3F4EA", color: "#2E7D5B" };
+  if (score >= 750) return { bg: "#FFF3E0", color: "#EF7A2C" };
   if (score >= 600) return { bg: "#FDF6E8", color: "#C68A1D" };
   return { bg: "#FDEEEB", color: "#B8352A" };
 };
@@ -93,21 +93,11 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
-const SectionHeader = ({
-  icon: Icon,
-  iconBg,
-  iconColor,
-  title,
-  subtitle,
-  action,
-}) => (
+const SectionHeader = ({ icon: Icon, title, subtitle, action }) => (
   <div className="flex items-start justify-between gap-4 mb-5">
     <div className="flex items-start gap-3">
-      <div
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5"
-        style={{ background: iconBg }}
-      >
-        <Icon className="w-4 h-4" style={{ color: iconColor }} />
+      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-white" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-bold text-text-1">{title}</div>
@@ -745,16 +735,16 @@ export default function EpCreditos() {
               ))}
             </div>
 
-            {/* Tabs — en grid para que quepan sin scroll lateral en pantallas chicas */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-1.5 mb-5 bg-border/30 p-1 rounded-[10px]">
+            {/* Tabs */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-1 mb-5 bg-white rounded-[10px] p-1">
               {TABS.map(({ id, label, Icon }) => {
                 const isActive = activeTab === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-semibold transition-all whitespace-nowrap cursor-pointer
-                      ${isActive ? "bg-orange text-white shadow-sm" : "bg-white text-text-4 hover:text-text-2"}`}
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
+                      ${isActive ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1"}`}
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {label}
@@ -1442,14 +1432,8 @@ export default function EpCreditos() {
                               {/* Mobile */}
                               <div className="sm:hidden">
                                 <div className="flex items-center gap-2.5 mb-2">
-                                  <div
-                                    className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0"
-                                    style={{ background: "#FFF3E0" }}
-                                  >
-                                    <CreditCard
-                                      className="w-4 h-4"
-                                      style={{ color: "#EF7A2C" }}
-                                    />
+                                  <div className="bona-gradient-bg w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0">
+                                    <CreditCard className="w-4 h-4 text-white" />
                                   </div>
                                   <span className="text-[13px] font-bold text-text-1 truncate">
                                     {p.id}
@@ -1513,14 +1497,8 @@ export default function EpCreditos() {
                               </div>
                               {/* Desktop */}
                               <div className="hidden sm:flex items-center gap-4">
-                                <div
-                                  className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0"
-                                  style={{ background: "#FFF3E0" }}
-                                >
-                                  <CreditCard
-                                    className="w-5 h-5"
-                                    style={{ color: "#EF7A2C" }}
-                                  />
+                                <div className="bona-gradient-bg w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0">
+                                  <CreditCard className="w-5 h-5 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-0.5">
