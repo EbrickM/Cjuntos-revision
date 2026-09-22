@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Eye, CheckCircle, MessageSquare, ShieldCheck, ListFilter } from 'lucide-react';
+import { Search, Eye, CheckCircle, MessageSquare, ShieldCheck, ListFilter, Building2 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -17,6 +17,7 @@ import { BANCO } from './fondeadorShared';
 
 const FILTROS_ESTADO = ['Todos', 'Enviada', 'En Evaluación', 'Emitida', 'Con Requerimientos', 'OTP Enviada', 'Pagada', 'Saldo en Billetera'];
 const FILTROS_ESTADO_KEY = { 'Enviada': INV.enviada, 'En Evaluación': INV.enEvaluacion, 'Emitida': INV.emitida, 'Con Requerimientos': INV.conRequerimientos, 'OTP Enviada': INV.otpEnviada, 'Pagada': INV.pagada, 'Saldo en Billetera': INV.billetera };
+const CLIENTES_TODOS = 'Todos los clientes';
 
 const contratosCtx = {
   'CT-2026-0041': { retencion: 3, gestionCobranza: 1.5, interes: 5 },
@@ -40,7 +41,7 @@ const Header = ({ title, sub, Icon, right }) => (
   </div>
 );
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, compact = false }) => (
+const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, withCliente = false, cliente, onCliente, clientes, compact = false }) => (
   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
     <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
@@ -51,6 +52,19 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
         className={`w-full pl-8 pr-3 rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
       />
     </div>
+    {withCliente && (
+      <div className="relative flex items-center shrink-0">
+        <Building2 className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+        <select
+          value={cliente}
+          onChange={e => onCliente(e.target.value)}
+          className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto max-w-[240px]"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+        >
+          {clientes.map(c => <option key={c}>{c}</option>)}
+        </select>
+      </div>
+    )}
     {withEstado && (
       <div className="relative flex items-center shrink-0">
         <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
@@ -69,6 +83,7 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
 
 export default function FondOrdenes() {
   const [busqueda, setBusqueda] = useState('');
+  const [filtroCliente, setFiltroCliente] = useState(CLIENTES_TODOS);
   const [filtroBandeja, setFiltroBandeja] = useState('Todos');
   const [validando, setValidando] = useState(null);
   const [requerimiento, setRequerimiento] = useState(null);
@@ -76,9 +91,11 @@ export default function FondOrdenes() {
   const bump = () => setTick(t => t + 1);
 
   const bandeja = facturaService.bandejaIpis();
+  const clientes = [CLIENTES_TODOS, ...new Set(bandeja.map(f => f.contratante).filter(Boolean))].sort((a, b) => (a === CLIENTES_TODOS ? -1 : b === CLIENTES_TODOS ? 1 : a.localeCompare(b)));
   const q = busqueda.trim().toLowerCase();
   const matchesQ = (f, fields) => !q || fields.some(v => (v ?? '').toLowerCase().includes(q));
   const bandejaFiltrada = bandeja
+    .filter(f => (filtroCliente === CLIENTES_TODOS ? true : f.contratante === filtroCliente))
     .filter(f => (filtroBandeja === 'Todos' ? true : f.estado === FILTROS_ESTADO_KEY[filtroBandeja]))
     .filter(f => matchesQ(f, [f.id, f.ipi?.numero, f.pyme, f.contratante]));
 
@@ -114,13 +131,19 @@ export default function FondOrdenes() {
             title="IPIs pendientes de validación"
             sub="Emitidos por las Contratantes; validá, aplicá la Matriz de Riesgo y definí la modalidad de desembolso."
             Icon={ShieldCheck}
-            right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{bandeja.length} pendientes</span>}
+            right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">
+              {filtroCliente === CLIENTES_TODOS ? `${bandeja.length} pendientes` : `${bandejaFiltrada.length} de ${bandeja.length} pendientes`}
+            </span>}
           />
           <SearchBar
             value={busqueda}
             onChange={setBusqueda}
             placeholder="Buscar…"
             compact
+            withCliente
+            cliente={filtroCliente}
+            onCliente={setFiltroCliente}
+            clientes={clientes}
             withEstado
             estado={filtroBandeja}
             onEstado={setFiltroBandeja}

@@ -4,7 +4,7 @@
 // por un modelo único consumido por factura.service via localDb.
 import { INV, MODALIDAD } from './invoiceStates';
 
-export const SEED_VERSION = 8;
+export const SEED_VERSION = 9;
 
 // ── Entidades de la narrativa ─────────────────────────────────────────────────
 const E = {
@@ -147,6 +147,27 @@ export const seedFacturas = [
     monto: 15_000_000, estado: INV.emitida, concepto: 'Acabados interiores y carpintería – Módulos A y B',
     fecha: D('07'), fechaVencimiento: D('07') + ' / 60 días',
     ipi: { numero: 'IPI-2026-0311', fechaEmision: D('09') },
+  }),
+  fac('FAC-2026-1093', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,
+    proveedor: E.proveedores.transge,
+    monto: 9_800_000, estado: INV.emitida, concepto: 'Adecuación de campamentos y módulo habitacional – Fase 2',
+    fecha: D('10'), fechaVencimiento: D('10') + ' / 45 días',
+    ipi: { numero: 'IPI-2026-0322', fechaEmision: D('12') },
+  }),
+  fac('FAC-2026-1096', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c3.id, contratante: CONTRATOS.c3.nombre, pyme: CONTRATOS.c3.pyme,
+    proveedor: E.proveedores.servtec,
+    monto: 7_600_000, estado: INV.emitida, concepto: 'Topografía y levantamiento batimétrico – Corredor Norte',
+    fecha: D('10'), fechaVencimiento: D('10') + ' / 45 días',
+    ipi: { numero: 'IPI-2026-0323', fechaEmision: D('12') },
+  }),
+  fac('FAC-2026-1099', {
+    tipoFactoring: 'inverso', contrato: CONTRATOS.c4.id, contratante: CONTRATOS.c4.nombre, pyme: CONTRATOS.c4.pyme,
+    proveedor: E.proveedores.cemex,
+    monto: 5_900_000, estado: INV.emitida, concepto: 'Inspección y mantenimiento de líneas de transmisión – L35',
+    fecha: D('11'), fechaVencimiento: D('11') + ' / 30 días',
+    ipi: { numero: 'IPI-2026-0324', fechaEmision: D('12') },
   }),
   fac('FAC-2026-1065', {
     tipoFactoring: 'inverso', contrato: CONTRATOS.c2.id, contratante: CONTRATOS.c2.nombre, pyme: CONTRATOS.c2.pyme,

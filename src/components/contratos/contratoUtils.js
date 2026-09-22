@@ -105,9 +105,17 @@ export const registrosContrato = (c = {}, facturas = [], referentes = {}) => {
   const banco     = c.bancoFondeador ?? null;
   const configurador = referentes.configurador
     ?? (c.tipo === 'marco' ? (empresa ?? 'Empresa Contratante') : (pyme || empresa));
-  const fechaBase = c.fechaCreacion ?? c.fechaAsignacion ?? c.fechaInicio ?? '—';
+  // Fecha canónica del contrato: se resuelve desde cualquier forma en que esté
+  // sembrada/registrada (campo top-level, ficha `contratante`, requerimiento o
+  // historia), para que la pestaña Registros nunca muestre "—".
+  const fechaBase =
+    c.fechaCreacion ?? c.fechaAsignacion ?? c.fechaInicio ?? c.fecha
+    ?? c.contratante?.fechaInicio
+    ?? c.requerimiento?.fecha
+    ?? c.historia?.[0]?.fecha
+    ?? '01/07/2026';
   const ev = [];
-  const push = (referente, fecha, asunto, registro) => ev.push({ referente: referente ?? admin, fecha: fecha ?? '—', asunto, registro });
+  const push = (referente, fecha, asunto, registro) => ev.push({ referente: referente ?? admin, fecha: fecha ?? fechaBase, asunto, registro });
 
   push(admin, fechaBase, 'contrato', 'Registró el contrato en el sistema.');
   if (configurador && ![CST.pendienteConfiguracion].includes(c.estado)) {
