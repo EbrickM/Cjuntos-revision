@@ -21,7 +21,6 @@ function TimelineItem({ h }) {
 export default function InvoiceDetailModal({ factura, title, onClose, footer, children }) {
   const f = factura;
   const timeline = (f.historia ?? []).map(h => TimelineItem({ h }));
-  const esInverso = f.tipoFactoring === 'inverso';
 
   return (
     <Modal title={title ?? `Factura · ${f.id}`} onClose={onClose} footer={footer} wide>

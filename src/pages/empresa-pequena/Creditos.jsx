@@ -303,6 +303,7 @@ export default function EpCreditos() {
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
   const [reqModal, setReqModal] = useState(null);
   const [provDetailModal, setProvDetailModal] = useState(null);
+  const [facSubTab, setFacSubTab]             = useState('contratante');
 
   const detailContract = detailId
     ? (contracts.find((c) => c.id === detailId) ?? null)
@@ -1063,6 +1064,7 @@ export default function EpCreditos() {
                             </button>
                           </div>
                         </div>
+                      </div>
                       ))}
                       {filas.length === 0 && (
                         <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
@@ -1071,6 +1073,7 @@ export default function EpCreditos() {
                       )}
                     </div>
                   </div>
+                </div>
                 );
               })()}
 

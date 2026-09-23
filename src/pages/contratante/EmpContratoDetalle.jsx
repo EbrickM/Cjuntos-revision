@@ -17,7 +17,9 @@ import { facturaService } from '../../services/factura.service';
 import { INV, ESTADO_LABEL, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
-import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
+import { ORA, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
+
+const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -282,7 +284,7 @@ export default function EmpContratoDetalle() {
         {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
               lateral en pantallas chicas ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-page-bg p-1 rounded-[10px]">
-          {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
+          {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
@@ -451,48 +453,25 @@ export default function EmpContratoDetalle() {
                   </select>
                 </div>
               </div>
-            </div>
-            {(() => {
-              const visibles = filtroFac === 'Todos' ? facturasContrato : facturasContrato.filter(f => f.estado === filtroFac);
-              return visibles.length === 0 ? (
+              {visibles.length === 0 ? (
               <div className="py-10 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
                 <Receipt className="w-8 h-8" />
                 <p className="text-[13px] font-semibold">Sin facturas con estado "{filtroFac}"</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {visibles.map((f, idx) => (
+                {visibles.map((f) => (
                   <InvoiceCard
                     key={f.id}
+                    factura={f}
                     onClick={() => { setFacturaModal(f); setIpiStep(null); }}
-                    className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                  >
-                    <div>
-                      <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
-                      <div className="text-[11px] text-text-5">{f.fecha}</div>
-                    </div>
-                    <div className="text-[12px] font-bold text-text-1 truncate">{f.pyme}</div>
-                    <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
-                    <div className="text-[13px] font-extrabold text-text-1 text-center">{fmt(f.monto)} XAF</div>
-                    <div className="flex justify-center">
-                      <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
-                    </div>
-                    <div className="flex justify-center">
-                      <button
-                        onClick={e => { e.stopPropagation(); setFacturaModal(f); setIpiStep(null); }}
-                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                    entidad={f.pyme}
+                    concepto={f.concepto}
+                    badge={<Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>}
+                  />
                 ))}
-                {visibles.length === 0 && (
-                  <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                    Sin facturas con estado "{filtroFac}".
-                  </div>
-                )}
               </div>
+          )}
             </div>
           );
         })()}

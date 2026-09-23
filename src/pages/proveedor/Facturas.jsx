@@ -201,7 +201,7 @@ export default function ProvFacturas() {
             </div>
 
             {/* Rows */}
-            {paged.map((f) => {
+            {paged.map((f, idx) => {
               const pago = pagoDe(f.id);
             const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
             if (pagoParcial) {
@@ -228,17 +228,6 @@ export default function ProvFacturas() {
                     <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
                     <div className="text-[11px] text-text-5">{f.fecha}</div>
                   </div>
-                    <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                  <InvoiceStatusBadge estado={f.estado} />
-                </div>
-                <RequerimientoBadge
-                    factura={f}
-                    cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }}
-                  />
-                </div>
 
                   {/* Suministrador */}
                   <div>
@@ -272,7 +261,7 @@ export default function ProvFacturas() {
                       <Eye className="w-4 h-4" />
                     </button>
                     <span className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <RequerimientoBadge factura={f} variant="inline" />
+                      <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
                     </span>
                   </div>
                 </div>

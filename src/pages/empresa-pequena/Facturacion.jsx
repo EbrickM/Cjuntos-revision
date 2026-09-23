@@ -33,32 +33,9 @@ import InvoiceDetailModal from "../../components/invoices/InvoiceDetailModal";
 import RequerimientoBadge from "../../components/invoices/RequerimientoBadge";
 import RequerirButton from "../../components/invoices/RequerirButton";
 import AprobarButton from "../../components/invoices/AprobarButton";
+import InvoiceCardConPago from "../../components/invoices/InvoiceCardConPago";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import {
-  Building2, Upload, Paperclip, Search, Send, BadgeCheck, Check, Wallet as WalletIcon, X, ChevronDown, ListFilter,
-} from 'lucide-react';
-import { localDb } from '../../lib/localDb';
-import AppShell from '../../components/layout/AppShell';
-import { useApp } from '../../state/AppContext';
-import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
-import { StatCard } from '../../components/common/StatCard';
-import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import Badge from '../../components/ui/Badge';
-import InfoRow from '../../components/ui/InfoRow';
-import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
-import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
-import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
-import RequerirButton from '../../components/invoices/RequerirButton';
-import AprobarButton from '../../components/invoices/AprobarButton';
-import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
-import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
-import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
-import { SELECT_ARROW } from '../../components/ui/selectArrow';
-import { facturaService } from '../../services/factura.service';
-import { contratoService } from '../../services/contrato.service';
-import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
   formatXaf,
   defaultVencimiento,
 } from "../../components/invoices/facturaUtils";
@@ -508,8 +485,6 @@ export default function EpFacturacion() {
           {vista === 'contratante' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
               {pagedCT.map((f, idx) => {
-                const accion = ctAction(f);
-                const hasAction = !!accion;
                 const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
                 if (pagoParcial) {
                   return (
@@ -577,7 +552,7 @@ export default function EpFacturacion() {
                 </div>
               )}
               <InfiniteScrollSentinel sentinelRef={sentinelCTRef} loading={loadingCT} hasMore={hasMoreCT} />
-            </>
+            </div>
           ) : (
             <>
               {/* Header PR */}

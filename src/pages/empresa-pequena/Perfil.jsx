@@ -49,7 +49,7 @@ const SectionHeader = ({ title, sub, Icon, right }) => (
   </div>
 );
 
-const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
+const ComplianceItem = ({ label, value, sub, Icon, iconColor }) => (
   <div className="rounded-[12px] border border-border p-4">
     <div className="flex items-center gap-2.5 mb-2.5">
       <div className="w-9 h-9 flex items-center justify-center shrink-0">

@@ -155,7 +155,6 @@ export default function EmpFacturas() {
           <div className="rounded-[14px] px-5 pt-2 pb-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
           {pagedFacturas.map((f, idx) => {
-            const hasAction = !!accion(f);
             const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
             if (pagoParcial) {
               return (
@@ -213,6 +212,7 @@ export default function EmpFacturas() {
                     </span>
                   </div>
                 </div>
+              </div>
               );
             })}
             {filtered.length === 0 && (
@@ -220,6 +220,8 @@ export default function EmpFacturas() {
             )}
             <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
+
+      </div>
 
       </div>
 

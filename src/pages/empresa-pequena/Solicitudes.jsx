@@ -18,7 +18,6 @@ import Badge from "../../components/ui/Badge";
 import Modal from "../../components/ui/Modal";
 
 const ORA = "#E97316";
-const GREEN = "#2E7D5B";
 const ERR = "#B8352A";
 const TEXT4 = "#9CA3AF";
 const BORDER = "#E5E7EB";
