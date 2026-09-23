@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '../../state/AppContext';
+import { contratoService } from '../../services/contrato.service';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
 import {
@@ -40,7 +41,7 @@ function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) 
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'fondos',  line1: 'Dashboard de', line2: 'Fondos y Emp. Contratadas', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'fondos',  line1: 'Dashboard',    line2: 'Financiero',                Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
   { id: 'impacto', line1: 'Dashboard de', line2: 'Impacto',                   Icon: Leaf,       iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
@@ -48,7 +49,25 @@ const TABS = [
 const FONDO_TOTAL     = 180_000_000;
 const FONDO_USADO     = 47_500_000;
 const FONDO_DISP      = 132_500_000;
-const PYMES_FINANC      = 1;
+const _CHART_COLORS = [RED, ORA, WARN, GREEN, TEXT4];
+const _empMap = new Map();
+contratoService.listarPorVista('contratante')
+  .filter(c => c.tipo !== 'marco')
+  .forEach(c => {
+    const nombre = c.pyme || c.pymeNombre || '';
+    if (!nombre || nombre === '—') return;
+    _empMap.set(nombre, (_empMap.get(nombre) ?? 0) + (c.monto ?? c.montoAsignado ?? 0));
+  });
+
+const pymeDist = [..._empMap.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .map(([label, total], i) => ({
+    label,
+    value: Math.round(total / 1_000_000),
+    color: _CHART_COLORS[i % _CHART_COLORS.length],
+  }));
+
+const PYMES_FINANC = pymeDist.length;
 const CONTRATOS_ACTIV   = 1;
 const SCORE             = 720;
 const scoreZone = SCORE < 400 ? { label: 'Crítico', color: RED  }
@@ -75,9 +94,6 @@ const evolucionFondoSeries = [
   { key: 'ejecucion',  color: WARN,  label: 'En Ejecución'      },
 ];
 
-const pymeDist = [
-  { label: 'Tradex', value: 180, color: RED },
-];
 
 const estadoOps = [
   { tipo: 'Pendientes',  pct: 50, count: 3, color: TEXT4 },

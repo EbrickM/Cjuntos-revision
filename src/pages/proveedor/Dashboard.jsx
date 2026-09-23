@@ -3,9 +3,8 @@ import { useApp } from '../../state/AppContext';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
 import {
-  TrendingUp, TreePine, Download, ArrowUpRight,
-  CheckCircle, CreditCard, Shield,
-  Wind
+  TrendingUp, Leaf, Download, ArrowUpRight,
+  Shield, ChevronRight, Users, BadgeCheck, GraduationCap, Heart, Briefcase,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -42,7 +41,7 @@ function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'fondos',         line1: 'Dashboard de', line2: 'Fondos y Suministradores', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
-  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental',           Icon: TreePine,   iconBg: '#E3F4EA', iconColor: GREEN },
+  { id: 'impacto',        line1: 'Dashboard de', line2: 'Impacto',                   Icon: Leaf,       iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
 // ── Datos Fondos ──────────────────────────────────────────────────────────────
@@ -97,25 +96,38 @@ const tipoBarData = [
 
 const EVO_MAX = Math.max(...evolucionFondoData.map(d => d.asignado));
 
-// ── Medioambiental data ───────────────────────────────────────────────────────
-const envKpis = [
-  { value: '5',        label: 'Proyectos registrados', Icon: TreePine,    iconColor: GREEN },
-  { value: '2',        label: 'Proyectos activos',     Icon: CheckCircle, iconColor: ORA   },
-  { value: '1',        label: 'Proyectos financiados', Icon: CreditCard,  iconColor: RED   },
-  { value: '3 200 t',  label: 'Captura potencial CO₂', Icon: Wind,        iconColor: GREEN },
-  { value: 'Bajo',     label: 'Riesgo ambiental',      Icon: Shield,      iconColor: GREEN },
+// ── Impacto data ─────────────────────────────────────────────────────────────
+const PROV_ESG_METAS = [
+  { label: 'Reducción de emisiones de flota', pct: 55, color: GREEN },
+  { label: 'Optimización energética',         pct: 40, color: WARN  },
+  { label: 'Gestión de residuos',             pct: 30, color: WARN  },
 ];
+const PROV_SOCIAL_METAS = [
+  { label: 'Seguridad laboral cadena',      pct: 78, color: ORA   },
+  { label: 'Formación técnica conductores', pct: 63, color: WARN  },
+  { label: 'Salud ocupacional',             pct: 50, color: GREEN },
+];
+const PROV_EMPLEOS    = 180;
+const PROV_INV_SOCIAL = 8_500_000;
+const PROV_CO2        = 3200;
 
 const proyectos = [
-  { nombre: 'Flota de Transporte Bajo Emisiones', estado: 'En ejecución', riesgo: 'Bajo',  fin: '12 000 000 XAF' },
-  { nombre: 'Optimización de Rutas Logísticas',   estado: 'En ejecución', riesgo: 'Bajo',  fin: '6 000 000 XAF'  },
-  { nombre: 'Reciclaje de Repuestos',             estado: 'Planificado',  riesgo: 'Medio', fin: '4 500 000 XAF'  },
-  { nombre: 'Capacitación en Manejo Defensivo',   estado: 'Finalizado',   riesgo: 'Bajo',  fin: '1 800 000 XAF'  },
-  { nombre: 'Mantenimiento Preventivo de Flota',  estado: 'En ejecución', riesgo: 'Bajo',  fin: '3 200 000 XAF'  },
+  { nombre: 'Flota de Transporte Bajo Emisiones', estado: 'En ejecución', fin: 12_000_000 },
+  { nombre: 'Optimización de Rutas Logísticas',   estado: 'En ejecución', fin: 6_000_000  },
+  { nombre: 'Reciclaje de Repuestos',             estado: 'Planificado',  fin: 4_500_000  },
+  { nombre: 'Capacitación en Manejo Defensivo',   estado: 'Finalizado',   fin: 1_800_000  },
+  { nombre: 'Mantenimiento Preventivo de Flota',  estado: 'En ejecución', fin: 3_200_000  },
 ];
 
+const iniciativasSociales = [
+  { nombre: 'Seguridad vial en cadena logística',    categoria: 'Seguridad',    estado: 'En ejecución', beneficiarios: 340 },
+  { nombre: 'Capacitación técnica para conductores', categoria: 'Educación',    estado: 'En ejecución', beneficiarios: 120 },
+  { nombre: 'Programa de salud ocupacional',         categoria: 'Salud',        estado: 'Finalizado',   beneficiarios: 280 },
+  { nombre: 'Empleabilidad local en logística',      categoria: 'Empleabilidad', estado: 'En ejecución', beneficiarios: 85  },
+];
+
+const fmtXAF      = (n) => n.toLocaleString('de-DE').replace(/,/g, '.') + ' XAF';
 const estadoBadge = e => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
-const riesgoBadge = r => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function ProvDash() {
@@ -146,6 +158,17 @@ export default function ProvDash() {
   const animPctUsado = FONDO_TOTAL > 0 ? Math.round((animUsado / FONDO_TOTAL) * 100) : 0;
   const animPctDisp  = 100 - animPctUsado;
   const scoreDone    = animScore >= SCORE;
+
+  const animProyActivos = useCountUp(2,              900,  100);
+  const animCO2         = useCountUp(PROV_CO2,        1000, 200);
+  const animEmpleos     = useCountUp(PROV_EMPLEOS,    1400, 600);
+  const animInvSocial   = useCountUp(PROV_INV_SOCIAL, 1500, 700);
+
+  const [impactoBars, setImpactoBars] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setImpactoBars(tab === 'impacto'), tab === 'impacto' ? 300 : 0);
+    return () => clearTimeout(id);
+  }, [tab]);
 
   const [barsVisible, setBarsVisible] = useState(false);
   useEffect(() => {
@@ -424,15 +447,20 @@ export default function ProvDash() {
           </div>
         )}
 
-        {/* ══ PESTAÑA MEDIOAMBIENTAL ════════════════════════════════════════════ */}
-        {tab === 'medioambiental' && (
-          <div key="medioambiental" className="fade-in space-y-5">
+        {/* ══ PESTAÑA IMPACTO ══════════════════════════════════════════════════ */}
+        {tab === 'impacto' && (
+          <div key="impacto" className="fade-in space-y-4">
 
-            {/* KPIs — cards blancas */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
-              {envKpis.map(({ value, label }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
-                  <div className="p-4 flex flex-col gap-2">
+            {/* KPIs combinados */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+              {[
+                { value: String(animProyActivos),                label: 'Proyectos activos'  },
+                { value: `${animCO2.toLocaleString('de-DE')} t`, label: 'Captura CO₂'        },
+                { value: String(animEmpleos),                    label: 'Empleos generados'  },
+                { value: fmtXAF(animInvSocial),                  label: 'Inversión social'   },
+              ].map(({ value, label }) => (
+                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02] cursor-default">
+                  <div className="p-4 flex flex-col gap-1">
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                     <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
                   </div>
@@ -441,58 +469,169 @@ export default function ProvDash() {
               ))}
             </div>
 
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <div className="text-[14px] font-bold text-text-1">Proyectos</div>
-                  <div className="text-[11px] text-text-4">Todos los proyectos medioambientales</div>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
-                     style={{ background: '#E3F4EA', color: GREEN }}>
-                  <TreePine className="w-3.5 h-3.5" style={{ animation: 'treeSway 0.85s ease-in-out 0.25s 1 both', transformOrigin: 'bottom center' }} />
-                  5 registrados
-                </div>
-              </div>
-              <div className="sm:hidden space-y-2">
-                {proyectos.map((p, i) => (
-                  <div key={i} className="rounded-[12px] border p-3"
-                    style={{ animation: `cardSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
-                    <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
-                      <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
+            {/* Cards de estado: Ambiental + Social */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Ambiental */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+                      <Leaf className="w-5 h-5 text-white" />
                     </div>
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-text-4">Financiamiento</span>
-                      <span className="font-bold text-text-1">{p.fin}</span>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Ambiental</div>
+                      <div className="text-[11px] text-text-4">Proyectos y certificación</div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <div className="hidden sm:block overflow-x-auto">
-                <div className="min-w-[420px]">
-                  <div className="grid bg-page-bg border-b border-border mb-1" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr' }}>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
-                  </div>
-                  <div className="space-y-0.5">
-                    {proyectos.map((p, i) => (
-                      <div key={i} className="grid items-center rounded-[8px]"
-                        style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
-                        <div className="px-3 py-3 text-sm font-semibold min-w-0 truncate"
-                          style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * (14.4 / proyectos.length)).toFixed(2)}s infinite` }}>
-                          {p.nombre}
-                        </div>
-                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
-                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
-                        <div className="px-3 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+                    <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
+                    Verde Bonafide
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {PROV_ESG_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold text-text-1">{pct}%</span>
                       </div>
-                    ))}
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: impactoBars ? `${pct}%` : '0%', background: color, transition: 'width 0.9s cubic-bezier(0.22, 1, 0.36, 1)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => go('provESG')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start cursor-pointer"
+                  style={{ color: GREEN }}>
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Social */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Social</div>
+                      <div className="text-[11px] text-text-4">Iniciativas y comunidades</div>
+                    </div>
                   </div>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.35)' }}>
+                    <Users className="w-3.5 h-3.5 shrink-0" />
+                    Impacto Local
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {PROV_SOCIAL_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold text-text-1">{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: impactoBars ? `${pct}%` : '0%', background: color, transition: 'width 0.9s cubic-bezier(0.22, 1, 0.36, 1)' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => go('provESG')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start cursor-pointer"
+                  style={{ color: ORA }}>
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Tablas resumen: Ambiental + Social */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              {/* Proyectos Ambientales */}
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-[13px] font-bold text-text-1">Proyectos Ambientales</div>
+                    <div className="text-[11px] text-text-4">Últimos proyectos registrados</div>
+                  </div>
+                  <button onClick={() => go('provESG')} className="flex items-center gap-0.5 text-[11px] font-bold cursor-pointer" style={{ color: GREEN }}>
+                    Ver todos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[260px]">
+                    <thead className="bg-page-bg">
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-left">Proyecto</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-center">Estado</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {proyectos.map((p, i) => (
+                        <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                          <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{p.nombre}</td>
+                          <td className="px-3 py-2.5 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
+                          <td className="px-3 py-2.5 text-right text-[11px] font-bold text-text-1 whitespace-nowrap">{fmtXAF(p.fin)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
+
+              {/* Iniciativas Sociales */}
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-[13px] font-bold text-text-1">Iniciativas Sociales</div>
+                    <div className="text-[11px] text-text-4">Programas de impacto social activos</div>
+                  </div>
+                  <button onClick={() => go('provESG')} className="flex items-center gap-0.5 text-[11px] font-bold cursor-pointer" style={{ color: ORA }}>
+                    Ver todos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[260px]">
+                    <thead className="bg-page-bg">
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-left">Iniciativa</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-center">Categoría</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-right">Beneficiarios</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {iniciativasSociales.map((ini, i) => {
+                        const catStyles = {
+                          'Seguridad':     { bg: '#F1F5F9', color: '#64748B', border: '#CBD5E1',               Icon: Shield        },
+                          'Educación':     { bg: '#FDF6E8', color: WARN,      border: 'rgba(198,138,29,0.35)', Icon: GraduationCap },
+                          'Salud':         { bg: '#E3F4EA', color: GREEN,     border: '#A8D5BE',               Icon: Heart         },
+                          'Empleabilidad': { bg: '#FFF3E0', color: ORA,       border: 'rgba(239,122,44,0.35)', Icon: Briefcase     },
+                        };
+                        const cs = catStyles[ini.categoria] ?? { bg: '#F5F4F2', color: TEXT4, border: '#ECEAE7', Icon: Shield };
+                        return (
+                          <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                            <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{ini.nombre}</td>
+                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
+                                style={{ background: cs.bg, color: cs.color, border: `1px solid ${cs.border}` }}>
+                                <cs.Icon className="w-3 h-3 shrink-0" />
+                                {ini.categoria}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 text-right text-[12px] font-bold text-text-1">{ini.beneficiarios.toLocaleString('de-DE')}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
