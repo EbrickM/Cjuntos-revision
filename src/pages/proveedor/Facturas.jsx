@@ -13,7 +13,7 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
-import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
+import PagoProgressBar from '../../components/invoices/PagoProgressBar';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
@@ -201,22 +201,8 @@ export default function ProvFacturas() {
             </div>
 
             {/* Rows */}
-            {paged.map((f, idx) => {
+            {paged.map((f) => {
               const pago = pagoDe(f.id);
-            const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
-            if (pagoParcial) {
-              return (
-                <InvoiceCardConPago
-                  key={f.id}
-                  factura={f}
-                  onClick={() => setDetalle(f)}
-                  entidad={f.suministrador}
-                  concepto={`${f.contrato} · ${f.contratante}`}
-                  className="card-enter"
-                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                />
-              );
-            }
               return (
                 <div
                   key={f.id}
@@ -239,7 +225,10 @@ export default function ProvFacturas() {
                   <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
 
                   {/* Monto */}
-                  <div className="text-[13px] font-extrabold text-text-1 text-center">{fmt(f.monto)} XAF</div>
+                  <div className="text-center">
+                    <div className="text-[13px] font-extrabold text-text-1">{fmt(f.monto)} XAF</div>
+                    <PagoProgressBar factura={f} className="mt-1" />
+                  </div>
 
                   {/* Estado */}
                   <div className="flex justify-center flex-wrap gap-1">

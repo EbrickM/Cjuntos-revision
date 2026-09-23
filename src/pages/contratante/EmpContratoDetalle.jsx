@@ -467,7 +467,7 @@ export default function EmpContratoDetalle() {
                     onClick={() => { setFacturaModal(f); setIpiStep(null); }}
                     entidad={f.pyme}
                     concepto={f.concepto}
-                    badge={<Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>}
+                    badge={<Badge variant={badgeDe(f.estado)}>{estadoLabel(f.estado)}</Badge>}
                   />
                 ))}
               </div>

@@ -36,6 +36,7 @@ import FormGroup, {
   Textarea,
 } from "../../components/ui/FormGroup";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
+import InvoiceStatusBadge from "../../components/invoices/InvoiceStatusBadge";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
@@ -61,17 +62,6 @@ const scoreStyle = (score) => {
   if (score >= 600) return { bg: "#FDF6E8", color: "#C68A1D" };
   return { bg: "#FDEEEB", color: "#B8352A" };
 };
-
-const ctBadgeStyle = (estado) =>
-  estado === "Pagada"
-    ? { background: "#FFF3E0", color: "#EF7A2C" }
-    : estado === "Validada"
-      ? { background: "#EFF6FF", color: "#3B82F6" }
-      : estado === "Emitida"
-        ? { background: "#EFF6FF", color: "#3B82F6" }
-        : estado === "Enviada"
-          ? { background: "#FDF6E8", color: "#C68A1D" }
-          : { background: "#F6F5F3", color: "#9CA3AF" };
 
 // Badge de estado de contrato (mismo criterio que los otros portales): cada
 // estado del ciclo de vida con su color distinto (Anexo Digital MIC v1.0).
@@ -1147,7 +1137,7 @@ export default function EpCreditos() {
                             <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto}</div>
                             <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
                             <div className="flex justify-center">
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"><InvoiceStatusBadge estado={inv.estado} /></span>
                             </div>
                             <div className="flex items-center justify-center gap-1">
                               <button
@@ -1185,12 +1175,6 @@ export default function EpCreditos() {
                           <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
                         </div>
                         {proveedorInvoices.map((inv) => {
-                          const estadoStyle =
-                            inv.estado === "Pagada"
-                              ? { background: "#FFF3E0", color: "#EF7A2C" }
-                              : inv.estado === "Vencida"
-                                ? { background: "#FDEEEB", color: "#B8352A" }
-                                : { background: "#FDF6E8", color: "#C68A1D" };
                           return (
                             <div
                               key={inv.id}
@@ -1205,7 +1189,7 @@ export default function EpCreditos() {
                               <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto || inv.proveedorNombre}</div>
                               <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
                               <div className="flex justify-center">
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"><InvoiceStatusBadge estado={inv.estado} /></span>
                               </div>
                               <div className="flex items-center justify-center gap-1">
                                 <button
