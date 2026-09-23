@@ -58,7 +58,7 @@ export default function EmpProv() {
 
               {/* Score */}
               <div className="flex justify-center">
-                <div>
+                <div className="text-center">
                   <div className="text-[12px] font-semibold text-text-1">{score}/1000</div>
                   <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
                     <div className="h-full rounded-full" style={{ width: `${parseInt(score) / 10}%`, background: scoreBarColor(score) }} />

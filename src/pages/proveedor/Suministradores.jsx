@@ -102,7 +102,7 @@ export default function ProvSuministradores() {
 
               {/* Score */}
               <div className="flex justify-center">
-                <div>
+                <div className="text-center">
                   <div className="text-[12px] font-semibold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</div>
                   <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
                     <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />

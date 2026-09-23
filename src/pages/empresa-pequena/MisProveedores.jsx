@@ -365,7 +365,7 @@ export default function EpMisProveedores() {
 
                 {/* Score */}
                 <div className="flex justify-center">
-                  <div>
+                  <div className="text-center">
                     <div className="text-[13px] font-bold" style={{ color: sStyle.color }}>
                       {p.scoreCredito ?? "—"}
                     </div>
