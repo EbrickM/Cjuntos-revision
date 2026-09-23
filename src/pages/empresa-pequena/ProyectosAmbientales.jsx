@@ -43,13 +43,14 @@ const ESG_METAS = [
 
 // ── Projects ──────────────────────────────────────────────────────────────────
 const proyectos = [
-  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 45M' },
-  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', cert: 'Verde',          fin: 'XAF 28M' },
-  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  cert: 'Eco en Proceso', fin: 'XAF 62M' },
-  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 18M' },
-  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', cert: 'Eco en Proceso', fin: 'XAF 35M' },
+  { nombre: 'Reforestación Bata Norte', estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 45000000 },
+  { nombre: 'Agro Sierra Sur',          estado: 'En ejecución', riesgo: 'Medio', cert: 'Verde',          fin: 28000000 },
+  { nombre: 'Energía Solar Malabo',     estado: 'Planificado',  riesgo: 'Bajo',  cert: 'Eco en Proceso', fin: 62000000 },
+  { nombre: 'Gestión Residuos Bata',    estado: 'Finalizado',   riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 18000000 },
+  { nombre: 'Reforestación Ebebiyín',   estado: 'Planificado',  riesgo: 'Medio', cert: 'Eco en Proceso', fin: 35000000 },
 ];
 
+const fmtXAF = (n) => n.toLocaleString('de-DE').replace(/,/g, '.') + ' XAF';
 const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 const formatSize  = (b) => b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
@@ -276,7 +277,7 @@ export default function EpProyectosAmbientales() {
                 <div className="flex items-center gap-1 shrink-0">
                   <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
                   <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
-                  <span className="text-[12px] font-bold text-text-1 whitespace-nowrap ml-1">{p.fin}</span>
+                  <span className="text-[12px] font-bold text-text-1 whitespace-nowrap ml-1">{fmtXAF(p.fin)}</span>
                 </div>
               </div>
             ))}
@@ -305,7 +306,7 @@ export default function EpProyectosAmbientales() {
                         {p.cert}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                    <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmtXAF(p.fin)}</td>
                   </tr>
                 ))}
               </tbody>

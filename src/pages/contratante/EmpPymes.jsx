@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
-  ChevronRight, ShieldCheck, ClipboardList, Leaf, Building2,
-  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
+  ShieldCheck, ClipboardList, Leaf, Building2,
+  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Eye,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -14,7 +14,8 @@ import Modal from '../../components/ui/Modal';
 import { InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
 import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
 
-// ── PYMEs ─────────────────────────────────────────────────────────────────────
+const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
+
 export default function EmpPymes() {
   const [busqueda, setBusqueda] = useState('');
   const [pymeModal, setPymeModal] = useState(null);
@@ -34,8 +35,6 @@ export default function EmpPymes() {
       )
     : pymes;
 
-  // Sin delay artificial: al conectar el backend, la siguiente página debe
-  // mostrarse en cuanto llegue, no tras una espera puesta a mano.
   const { visibleItems: pagedPymes, hasMore, loading, sentinelRef } =
     useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
 
@@ -43,7 +42,7 @@ export default function EmpPymes() {
     <AppShell active="empPymes" role="contratante" title="Empresas Contratadas" sub="Empresas con contrato activo" back>
       <div className="fade-in space-y-5">
 
-        {/* KPIs de semáforo de riesgo */}
+        {/* KPIs */}
         <div className="grid grid-cols-3 gap-3">
           {[
             { lbl: 'Riesgo bajo',  val: `${animVerde} Emp. Contratada${verde !== 1 ? 's' : ''}` },
@@ -55,7 +54,7 @@ export default function EmpPymes() {
         </div>
 
         {/* Header + buscador */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pl-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <p className="text-[13px] font-bold text-text-1">Empresas Contratadas</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Score crediticio, fondo asignado y semáforo de riesgo</p>
@@ -65,69 +64,95 @@ export default function EmpPymes() {
             <input
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              placeholder="Buscar Empresa Contratada o sector…"
+              placeholder="Buscar empresa o sector…"
               className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
             />
           </div>
         </div>
 
-        {/* Grid de PYMEs */}
-        <div className="rounded-[14px] pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pagedPymes.map((p, idx) => (
-            <div
-              key={p.nombre}
-              onClick={() => setPymeModal(p)}
-              className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-              style={{ animationDelay: `${idx * 70}ms` }}
-            >
-              <div className="min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
+        {/* Tabla */}
+        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+
+          {/* Header */}
+          <div className="min-w-[760px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_0.8fr_1.5fr_0.7fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Empresa</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">RUC</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Semáforo</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-right">Fondo total</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+          </div>
+
+          {/* Rows */}
+          {pagedPymes.map(p => {
+            const sc = scoreColor(p.score);
+            return (
+              <div
+                key={p.nombre}
+                onClick={() => setPymeModal(p)}
+                className="min-w-[760px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_0.8fr_1.5fr_0.7fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+              >
+                {/* Empresa */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <IniAvatar ini={p.ini} size={32} />
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
+                    <div className="text-[11px] text-text-4">{p.sector}</div>
+                  </div>
+                </div>
+
+                {/* RUC */}
+                <span className="text-[12px] font-mono text-text-3 text-center">{p.ruc}</span>
+
+                {/* Semáforo */}
+                <div className="flex justify-center">
                   <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
                 </div>
-                <div className="text-[11px] text-text-4">{p.sector}</div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Contratos</div>
-                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{p.contratos}</div>
+                {/* Score */}
+                <div className="flex justify-center">
+                  <div className="text-center">
+                    <div className="text-[13px] font-bold" style={{ color: sc }}>{p.score}</div>
+                    <div className="text-[10px]" style={{ color: sc }}>Riesgo {scoreLabel(p.score)}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo</div>
-                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{fmt(p.montoTotal)} XAF</div>
+
+                {/* Contratos */}
+                <div className="text-[12px] text-text-3 text-center">
+                  {p.contratos} <span className="text-text-4">{p.contratos === 1 ? 'contrato' : 'contratos'}</span>
+                </div>
+
+                {/* Fondo */}
+                <div className="text-[13px] font-bold text-text-1 text-right whitespace-nowrap">
+                  {fmt(p.montoTotal)} XAF
+                </div>
+
+                {/* Acciones */}
+                <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={e => { e.stopPropagation(); setPymeModal(p); }}
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            );
+          })}
 
-              <div className="mt-auto space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-text-4">Score crediticio</span>
-                  <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
-                </div>
-              </div>
-
-              <button
-                onClick={e => { e.stopPropagation(); setPymeModal(p); }}
-                className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange-dark hover:opacity-75 transition cursor-pointer"
-              >
-                Ver detalles <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
           {filtradas.length === 0 && (
-            <div className="col-span-full text-[13px] text-text-4 text-center py-12">
-              Sin resultados para "{busqueda}".
+            <div className="min-w-[760px] px-4 py-10 text-center text-[13px] text-text-4">
+              {busqueda.trim() ? `Sin resultados para "${busqueda}".` : 'No hay empresas contratadas.'}
             </div>
           )}
+
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
         </div>
 
       </div>
 
-      {/* ── Modal: Detalle de PYME ── */}
+      {/* ── Modal: Detalle de Empresa Contratada ── */}
       {pymeModal && (() => {
         const p = pymeModal;
         const pymesContratos = contratos.filter(c => c.ini === p.ini);
@@ -141,6 +166,7 @@ export default function EmpPymes() {
             <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">{text}</span>
           </div>
         );
+        const sc = scoreColor(p.score);
         return (
           <Modal
             wide
@@ -170,16 +196,14 @@ export default function EmpPymes() {
               <div className="rounded-[12px] border border-border p-4">
                 <ModalLabel text="Score crediticio" Icon={ShieldCheck} />
                 <div className="flex items-end gap-4 mb-3">
-                  <span className="text-[42px] font-extrabold leading-none" style={{ color: scoreColor(p.score) }}>{p.score}</span>
+                  <span className="text-[42px] font-extrabold leading-none" style={{ color: sc }}>{p.score}</span>
                   <div className="pb-1">
-                    <p className="text-[13px] font-bold" style={{ color: scoreColor(p.score) }}>
-                      {p.score >= 750 ? 'Riesgo Bajo' : p.score >= 500 ? 'Riesgo Medio' : 'Riesgo Alto'}
-                    </p>
+                    <p className="text-[13px] font-bold" style={{ color: sc }}>Riesgo {scoreLabel(p.score)}</p>
                     <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 1000 puntos</p>
                   </div>
                 </div>
                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: sc }} />
                 </div>
                 <div className="flex justify-between text-[10px] mt-1.5" style={{ color: TEXT4 }}>
                   <span>0 — Alto riesgo</span><span>1000 — Bajo riesgo</span>
@@ -216,8 +240,8 @@ export default function EmpPymes() {
               <div>
                 <ModalLabel text="Compliance & Documentos" Icon={FileCheck} />
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <ComplianceItem label="KYC"        value="Vigente"    sub="Vence 31/12/2026"         Icon={CheckCircle2} iconBg="#E3F4EA" iconColor={GREEN} />
-                  <ComplianceItem label="AML"        value="Aprobado"   sub="Sin alertas"               Icon={Shield}       iconBg="#E3F4EA" iconColor={GREEN} />
+                  <ComplianceItem label="KYC"        value="Vigente"    sub="Vence 31/12/2026"         Icon={CheckCircle2} iconBg="#FFF3E0" iconColor={ORA}  />
+                  <ComplianceItem label="AML"        value="Aprobado"   sub="Sin alertas"               Icon={Shield}       iconBg="#FFF3E0" iconColor={ORA}  />
                   <ComplianceItem label="Documentos" value="4 / 4"      sub="Todos verificados"         Icon={FileCheck}    iconBg="#FFF3E0" iconColor={ORA}  />
                   <ComplianceItem label="Nivel"      value="A"          sub="Calificación normativa"    Icon={Star}         iconBg="#FFF3E0" iconColor={ORA}  />
                   <ComplianceItem label="Auditoría"  value="Mar 2026"   sub="Próx. revisión Sep 2026"  Icon={Clock}        iconBg="#FFF3E0" iconColor={ORA}  />

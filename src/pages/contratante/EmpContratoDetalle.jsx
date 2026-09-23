@@ -93,13 +93,14 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tabs ── */}
         <div className="flex bg-white rounded-[10px] gap-1 w-fit">
-          {TABS_DETALLE.map(({ id, lbl }) => {
+          {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`bona-btn py-1.5 px-4 font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap
+                className={`bona-btn py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
                   ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
               >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
                 {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}
               </button>
             );

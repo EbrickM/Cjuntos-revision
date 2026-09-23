@@ -6,8 +6,8 @@ import { RED, ORA, TEXT4, fmt } from './contratanteData';
 // ── Helpers de Perfil (idénticos al PYME) ─────────────────────────────────────
 export const HeroBadge = ({ label, value, Icon, bg, color }) => (
   <div className="flex items-center gap-3 px-4 py-3 rounded-[12px]" style={{ background: bg }}>
-    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-      <Icon className="w-5 h-5 text-white" />
+    <div className="w-9 h-9 flex items-center justify-center shrink-0">
+      <Icon className="w-5 h-5" style={{ color }} />
     </div>
     <div>
       <div className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">{label}</div>
@@ -34,7 +34,7 @@ export const SectionHeader = ({ title, sub, Icon, right }) => (
 export const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
   <div className="rounded-[12px] border border-border p-4">
     <div className="flex items-center gap-2.5 mb-2.5">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+      <div className="w-9 h-9 flex items-center justify-center shrink-0">
         <Icon className="w-5 h-5" style={{ color: iconColor }} />
       </div>
       <div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  TrendingUp, FilePlus, ClipboardList, ChevronRight, CheckCircle2, AlertCircle,
+  TrendingUp, FilePlus, ClipboardList, ChevronRight, CheckCircle2, AlertCircle, Mail,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
@@ -49,12 +49,17 @@ export default function EmpSolicitudes() {
 
         {/* Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex gap-1 bg-page-bg p-1 rounded-xl">
-            {[{ id: 'mis', lbl: 'Mis solicitudes' }, { id: 'pymes', lbl: 'Solicitudes de Emp. Contratadas' }].map(t => (
+          <div className="flex bg-white rounded-[10px] gap-1">
+            {[
+              { id: 'mis',   lbl: 'Mis solicitudes',             Icon: ClipboardList },
+              { id: 'pymes', lbl: 'Solicitudes de Emp. Contratadas', Icon: Mail      },
+            ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                  tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
-                }`}>{t.lbl}
+                className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
+                  tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'
+                }`}>
+                <t.Icon className="w-3.5 h-3.5 shrink-0" />
+                {t.lbl}
               </button>
             ))}
           </div>
@@ -69,8 +74,8 @@ export default function EmpSolicitudes() {
                   <div key={s.id} className="card-lift card-enter bg-white rounded-[14px] border border-border p-5 flex flex-col gap-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: cfg.iconBg }}>
-                          <cfg.Icon className="w-5 h-5" style={{ color: cfg.iconColor }} />
+                        <div className="bona-gradient-bg w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                          <cfg.Icon className="w-5 h-5 text-white" />
                         </div>
                         <div>
                           <p className="text-[12px] font-bold text-text-1">{s.tipo}</p>
@@ -142,8 +147,8 @@ export default function EmpSolicitudes() {
 
               {/* Hero */}
               <div className="flex items-start gap-4 p-4 rounded-[12px]" style={{ background: '#F8F7F5' }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: cfg.iconBg }}>
-                  <cfg.Icon className="w-6 h-6" style={{ color: cfg.iconColor }} />
+                <div className="bona-gradient-bg w-11 h-11 rounded-xl flex items-center justify-center shrink-0">
+                  <cfg.Icon className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-bold text-text-1">{s.tipo}</p>
