@@ -14,7 +14,7 @@ import FondeadorOtpModal from '../../components/invoices/FondeadorOtpModal';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import AprobarButton from '../../components/invoices/AprobarButton';
-import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
+import PagoProgressBar from '../../components/invoices/PagoProgressBar';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { facturaService } from '../../services/factura.service';
 import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
@@ -162,70 +162,57 @@ export default function EmpFacturas() {
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
             </div>
-            {pagedFacturas.map((f, idx) => {
-              const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
-              if (pagoParcial) {
-                return (
-                  <InvoiceCardConPago
-                    key={f.id}
-                    factura={f}
-                    onClick={() => setDetalle(f)}
-                    entidad={f.pyme}
-                    concepto={f.contrato}
-                    className="card-enter"
-                    style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                  />
-                );
-              }
-              return (
-                <div
-                  key={f.id}
-                  onClick={() => setDetalle(f)}
-                  className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                >
-                  {/* ID */}
-                  <div>
-                    <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
-                    <p className="text-[11px] text-text-5">{f.fecha}</p>
-                  </div>
-                  {/* Emp. Contratada */}
-                  <div>
-                    <p className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</p>
-                    <p className="text-[11px] font-mono text-text-4">{f.contrato}</p>
-                  </div>
-                  {/* Concepto */}
-                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</div>
-                  {/* Monto */}
-                  <div className="text-[13px] font-extrabold text-text-1 whitespace-nowrap text-center">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</div>
-                  {/* Estado */}
-                  <div className="flex justify-center">
-                    <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
-                  </div>
-                  {/* Acciones */}
-                  <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
-                    <span className="w-7 h-7 flex items-center justify-center shrink-0">
-                      <button
-                        onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </span>
-                    {f.estado === INV.enviada && (
-                      <span className="w-7 h-7 flex items-center justify-center shrink-0">
-                        <AprobarButton onClick={() => setEvaluando(f)} />
-                      </span>
-                    )}
-                    <span className="w-7 h-7 flex items-center justify-center shrink-0">
-                      <RequerirButton factura={{ id: f.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(f.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
-                    </span>
-                    <span className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <RequerimientoBadge factura={f} variant="inline" />
-                    </span>
-                  </div>
+            {pagedFacturas.map((f) => (
+              <div
+                key={f.id}
+                onClick={() => setDetalle(f)}
+                className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+              >
+                {/* ID */}
+                <div>
+                  <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
+                  <p className="text-[11px] text-text-5">{f.fecha}</p>
                 </div>
-              );
-            })}
+                {/* Emp. Contratada */}
+                <div>
+                  <p className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</p>
+                  <p className="text-[11px] font-mono text-text-4">{f.contrato}</p>
+                </div>
+                {/* Concepto */}
+                <div className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</div>
+                {/* Monto */}
+                <div className="text-center">
+                  <div className="text-[13px] font-extrabold text-text-1 whitespace-nowrap">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</div>
+                  <PagoProgressBar factura={f} className="mt-1" />
+                </div>
+                {/* Estado */}
+                <div className="flex justify-center">
+                  <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
+                </div>
+                {/* Acciones */}
+                <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                  <span className="w-7 h-7 flex items-center justify-center shrink-0">
+                    <button
+                      onClick={e => { e.stopPropagation(); setDetalle(f); }}
+                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </span>
+                  {f.estado === INV.enviada && (
+                    <span className="w-7 h-7 flex items-center justify-center shrink-0">
+                      <AprobarButton onClick={() => setEvaluando(f)} />
+                    </span>
+                  )}
+                  <span className="w-7 h-7 flex items-center justify-center shrink-0">
+                    <RequerirButton factura={{ id: f.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(f.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
+                  </span>
+                  <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                    <RequerimientoBadge factura={f} variant="inline" />
+                  </span>
+                </div>
+              </div>
+            ))}
             {filtered.length === 0 && (
               <div className="min-w-[720px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas con los filtros aplicados.</div>
             )}

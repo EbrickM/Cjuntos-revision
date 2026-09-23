@@ -33,7 +33,7 @@ import InvoiceDetailModal from "../../components/invoices/InvoiceDetailModal";
 import RequerimientoBadge from "../../components/invoices/RequerimientoBadge";
 import RequerirButton from "../../components/invoices/RequerirButton";
 import AprobarButton from "../../components/invoices/AprobarButton";
-import InvoiceCardConPago from "../../components/invoices/InvoiceCardConPago";
+import PagoProgressBar from "../../components/invoices/PagoProgressBar";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import {
   formatXaf,
@@ -493,60 +493,47 @@ export default function EpFacturacion() {
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
               </div>
-              {pagedCT.map((f, idx) => {
-                const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
-                if (pagoParcial) {
-                  return (
-                    <InvoiceCardConPago
-                      key={f.id}
-                      factura={f}
-                      onClick={() => setDetalle(f)}
-                      entidad={f.contratante}
-                      concepto={f.contrato}
-                      className="card-enter"
-                      style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                    />
-                  );
-                }
-                return (
-                  <div
-                    key={f.id}
-                    onClick={() => setDetalle(f)}
-                    className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                  >
-                    {/* ID */}
-                    <div>
-                      <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
-                      <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
-                    </div>
-                    {/* Contratante */}
-                    <div>
-                      <div className="text-[12px] font-bold text-text-1">{f.contratante}</div>
-                      <div className="text-[11px] font-mono text-text-4">{f.contrato}</div>
-                    </div>
-                    {/* Concepto */}
-                    <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
-                    {/* Monto */}
-                    <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(f.monto)}</div>
-                    {/* Estado */}
-                    <div className="flex justify-center">
-                      <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
-                    </div>
-                    {/* Acciones */}
-                    <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
-                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <span className="w-6 h-6 flex items-center justify-center shrink-0">
-                        <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
-                      </span>
-                    </div>
+              {pagedCT.map((f) => (
+                <div
+                  key={f.id}
+                  onClick={() => setDetalle(f)}
+                  className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                >
+                  {/* ID */}
+                  <div>
+                    <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                   </div>
-                );
-              })}
+                  {/* Contratante */}
+                  <div>
+                    <div className="text-[12px] font-bold text-text-1">{f.contratante}</div>
+                    <div className="text-[11px] font-mono text-text-4">{f.contrato}</div>
+                  </div>
+                  {/* Concepto */}
+                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
+                  {/* Monto */}
+                  <div className="text-center">
+                    <div className="text-[13px] font-extrabold text-text-1">{formatXaf(f.monto)}</div>
+                    <PagoProgressBar factura={f} className="mt-1" />
+                  </div>
+                  {/* Estado */}
+                  <div className="flex justify-center">
+                    <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
+                  </div>
+                  {/* Acciones */}
+                  <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
+                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
+                    </span>
+                  </div>
+                </div>
+              ))}
               {filteredCT.length === 0 && (
                 <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
                   No hay facturas en este estado.
