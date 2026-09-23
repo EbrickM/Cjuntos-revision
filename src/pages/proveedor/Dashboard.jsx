@@ -3,7 +3,7 @@ import { useApp } from '../../state/AppContext';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
 import {
-  TrendingUp, Leaf, Download, ArrowUpRight,
+  TrendingUp, Leaf,
   Shield, ChevronRight, Users, BadgeCheck, GraduationCap, Heart, Briefcase,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
@@ -134,8 +134,6 @@ export default function ProvDash() {
   const { go } = useApp();
   const [tab, setTab] = useState('fondos');
   const [activityView, setActivityView] = useState('evolucion');
-  const [devToast, setDevToast] = useState(false);
-  const showDevToast = () => { setDevToast(true); setTimeout(() => setDevToast(false), 3500); };
 
   const [evoPeriodo, setEvoPeriodo] = useState(evolucionFondoData.length);
   const [evoMonto, setEvoMonto]     = useState(0);
@@ -242,13 +240,6 @@ export default function ProvDash() {
                         {new Intl.NumberFormat('de-DE').format(animTotal)}
                       </span>
                       <span className="text-[13px] max-[765px]:text-sm font-semibold" style={{ color: TEXT4 }}>XAF</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 mb-3 max-[765px]:justify-center">
-                      <button onClick={showDevToast}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-[8px] font-semibold text-[12px] text-text-3 cursor-pointer transition-colors hover:bg-page-bg border border-border">
-                        <Download className="w-3.5 h-3.5" />
-                        Descargar Estado de Cuenta
-                      </button>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap max-[765px]:justify-center">
                       <button onClick={() => go('provContratos')}
@@ -638,16 +629,6 @@ export default function ProvDash() {
 
       </div>
 
-      <div className={`fixed bottom-6 right-6 z-50 w-[320px] bg-white rounded-[14px] shadow-xl border border-border p-4 flex items-start gap-3 transition-all duration-300 ease-out
-        ${devToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 pointer-events-none'}`}>
-        <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#FFF3E0' }}>
-          <ArrowUpRight className="w-4 h-4" style={{ color: ORA }} />
-        </div>
-        <div>
-          <div className="text-[13px] font-semibold text-text-1 mb-0.5">Funcionalidad en desarrollo</div>
-          <div className="text-[12px] text-text-4 leading-snug">Esta sección estará disponible próximamente.</div>
-        </div>
-      </div>
     </AppShell>
   );
 }
