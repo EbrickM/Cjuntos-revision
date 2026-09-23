@@ -136,30 +136,30 @@ export default function ProvContratos() {
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative flex-1 sm:max-w-xs">
+          <div className="flex items-center gap-3">
+            <div className="overflow-x-auto pb-0.5 flex-1">
+              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                {TABS.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setTab(t)}
+                    className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                      ${tab === t ? 'bg-orange shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                  >
+                    {t === 'Borradores' && <Save className="w-3.5 h-3.5 shrink-0" />}
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="relative shrink-0">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar contrato, PYME…"
-                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                className="h-8 w-48 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
-            </div>
-          </div>
-          <div className="overflow-x-auto pb-0.5">
-            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
-              {TABS.map(t => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
-                    ${tab === t ? 'bg-orange shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
-                >
-                  {t === 'Borradores' && <Save className="w-3.5 h-3.5 shrink-0" />}
-                  {t}
-                </button>
-              ))}
             </div>
           </div>
         </div>
