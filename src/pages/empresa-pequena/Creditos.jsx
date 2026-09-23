@@ -217,22 +217,19 @@ const TABS = [
 
 // ── Sub-component: Contract Card ─────────────────────────────────────────────
 function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqModal }) {
-  const pctVal  = parseFloat(pct(contract.asignado, contract.monto));
-  const animPct = useCountUp(Math.round(pctVal), 1200, 80 + idx * 60);
-  const ctName  = contract.contratante?.razonSocial || contract.contratanteNombre || "—";
-  const sector  = contract.contratante?.sectorProductivo || "";
-  const score   = contract.contratante?.scoreCredito ?? null;
-  const sStyle  = score !== null ? scoreStyle(score) : null;
+  const usedPct = contract.monto > 0 ? Math.round((contract.asignado / contract.monto) * 100) : 0;
+  const animPct = useCountUp(usedPct, 1200, 80 + idx * 60);
+  const ctName  = contract.contratante?.razonSocial || contract.contratanteNombre || '—';
+
   return (
     <div
-      onClick={() => { setDetailId(contract.id); setActiveTab("contrato"); }}
-      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+      onClick={() => { setDetailId(contract.id); setActiveTab('contrato'); }}
+      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-3.5 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
       style={{ animationDelay: `${idx * 70}ms` }}
     >
-      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
       {contract.requerimiento && (
         <button
-          onClick={(e) => { e.stopPropagation(); setReqModal(contract); }}
+          onClick={e => { e.stopPropagation(); setReqModal(contract); }}
           title="Ver requerimiento"
           className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
         >
@@ -240,48 +237,53 @@ function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqM
         </button>
       )}
 
-      {/* ID + empresa + sector + score */}
+      {/* Fila 1: ID + estado */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13px] font-bold text-text-3 tracking-wide">{contract.id}</span>
+        <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
+      </div>
+
+      {/* Fila 2: Empresa Contratante */}
       <div className="min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-0.5">
-          <div className="text-[10px] font-semibold text-text-4">{contract.id}</div>
-          <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
-        </div>
-        <div className="flex items-center gap-1.5 min-w-0">
-          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
-          {sStyle && (
-            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]" style={{ background: sStyle.bg, color: sStyle.color }}>
-              {score}
-            </span>
-          )}
-        </div>
-        {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
+        <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Empresa Contratante</p>
+        <p className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</p>
       </div>
 
-      {/* Monto */}
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto del crédito</div>
-        <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
+      {/* Fila 3: Monto Asignado + Disponible */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Monto Asignado</p>
+          <p className="text-[13px] font-extrabold text-text-1 tabular-nums leading-tight">{formatXaf(contract.monto)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Disponible</p>
+          <p className="text-[13px] font-extrabold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{formatXaf(contract.disponible)}</p>
+        </div>
       </div>
 
-      {/* Barra de distribución */}
-      <div className="mt-auto space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] text-text-4">Distribuido</span>
-          <span className="text-[11px] font-bold" style={{ color: "#EF7A2C" }}>{animPct}%</span>
+      {/* Fila 4: Barra de progreso + utilizado */}
+      <div className="space-y-1.5">
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
         </div>
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#ECEAE7" }}>
-          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: "linear-gradient(90deg, #E0201C, #EF7A2C)" }} />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-semibold tabular-nums" style={{ color: '#E0201C' }}>Utilizado: {formatXaf(contract.asignado)}</span>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#E0201C' }}>{animPct}%</span>
         </div>
-        <div className="text-[10px] text-text-5">Disponible: {formatXaf(contract.disponible)}</div>
       </div>
 
-      {/* Botón Ver */}
-      <button
-        onClick={(e) => { e.stopPropagation(); setDetailId(contract.id); setActiveTab("contrato"); }}
-        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
-      >
-        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-      </button>
+      {/* Fila 5: Facturas + Ver contrato */}
+      <div className="flex items-center justify-between mt-auto pt-0.5">
+        <span className="inline-flex items-center gap-1 text-[11px] text-text-4">
+          <Receipt className="w-3.5 h-3.5 shrink-0" />{contract.facturas ?? 0} facturas
+        </span>
+        <button
+          onClick={e => { e.stopPropagation(); setDetailId(contract.id); setActiveTab('contrato'); }}
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+        >
+          Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

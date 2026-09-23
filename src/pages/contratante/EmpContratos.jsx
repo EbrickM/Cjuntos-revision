@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, Save,
+  Search, ChevronRight, Save, Receipt,
   LayoutGrid, CheckCircle, AlertCircle, Clock, Settings2, MessageCircle,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -29,57 +29,74 @@ const TAB_ICON = {
 
 // ── Sub-component: Contract Card ──────────────────────────────────────────────
 function ContractCard({ c, idx, go }) {
-  const pct     = Math.round((c.utilizado / c.asignado) * 100);
-  const disp    = c.asignado - c.utilizado;
-  const animPct = useCountUp(pct, 1200, 80 + idx * 60);
+  const usedPct = c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
+  const animPct = useCountUp(usedPct, 1200, 80 + idx * 60);
+
+  const rawEmpresas = c.pymesAsignadas?.length
+    ? c.pymesAsignadas.map(p => p.pymeNombre || p.pymeId || '—')
+    : [c.pyme].filter(n => n && n !== '—');
+  const empresaLabel = rawEmpresas.length === 0 ? '—'
+    : rawEmpresas.length <= 2 ? rawEmpresas.join(', ')
+    : `${rawEmpresas.slice(0, 2).join(', ')} +${rawEmpresas.length - 2} más`;
+
   return (
     <div
       onClick={() => { contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
-      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-3.5 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
       style={{ animationDelay: `${idx * 70}ms` }}
     >
-      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
       <RequerimientoBadge
         factura={c}
         cta={{ label: 'Reconfigurar Contrato', onClick: () => { const marcoId = c.requerimiento?.marcoId ?? c.marcoId; go('empConfigurarContrato', { marcoId }); } }}
       />
 
-      {/* ID + PYME + sector + estado */}
+      {/* Fila 1: ID + estado */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13px] font-bold text-text-3 tracking-wide">{c.id}</span>
+        <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
+      </div>
+
+      {/* Fila 2: Empresa Contratada */}
       <div className="min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-0.5">
-          <div className="text-[10px] font-semibold text-text-4">{c.id}</div>
-          <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
-        </div>
-        <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{c.pyme}</div>
-        {c.sector && <div className="text-[11px] text-text-4 mt-0.5">{c.sector}</div>}
+        <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Empresa Contratada</p>
+        <p className="text-[13px] font-bold text-text-1 leading-tight truncate">{empresaLabel}</p>
       </div>
 
-      {/* Monto */}
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo Asignado</div>
-        <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(c.asignado)} XAF</div>
+      {/* Fila 3: Monto Asignado + Monto Disponible */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Monto Asignado</p>
+          <p className="text-[13px] font-extrabold text-text-1 tabular-nums leading-tight">{fmt(c.asignado)} XAF</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Disponible</p>
+          <p className="text-[13px] font-extrabold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{fmt(c.disponible)} XAF</p>
+        </div>
       </div>
 
-      {/* Barra de distribución */}
-      <div className="mt-auto space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] text-text-4">Utilizado</span>
-          <span className="text-[11px] font-bold" style={{ color: '#EF7A2C' }}>{animPct}%</span>
+      {/* Fila 4: Barra de progreso + utilizado */}
+      <div className="space-y-1.5">
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
         </div>
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-          <div className="h-full rounded-full"
-               style={{ width: `${animPct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-semibold tabular-nums" style={{ color: '#E0201C' }}>Utilizado: {fmt(c.utilizado)} XAF</span>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#E0201C' }}>{animPct}%</span>
         </div>
-        <div className="text-[10px] text-text-5">Disponible: {fmt(disp)} XAF · {c.facturas} facturas</div>
       </div>
 
-      {/* Botón Ver */}
-      <button
-        onClick={e => { e.stopPropagation(); contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
-        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
-      >
-        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-      </button>
+      {/* Fila 5: Facturas + Ver detalles */}
+      <div className="flex items-center justify-between mt-auto pt-0.5">
+        <span className="inline-flex items-center gap-1 text-[11px] text-text-4">
+          <Receipt className="w-3.5 h-3.5 shrink-0" />{c.facturas ?? 0} facturas
+        </span>
+        <button
+          onClick={e => { e.stopPropagation(); contratanteState.selectedContrato = c; go('empContratoDetalle'); }}
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+        >
+          Ver detalles <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
