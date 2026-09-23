@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
   Eye, FileText, Banknote, Search, ListFilter, Receipt,
+  ArrowUpDown, ArrowUp, ArrowDown,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -13,12 +14,11 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
-import PagoProgressBar from '../../components/invoices/PagoProgressBar';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { contratoService } from '../../services/contrato.service';
-import { INV } from '../../lib/invoiceStates';
+import { INV, estadoLabel } from '../../lib/invoiceStates';
 
 const ESTADO_LABEL = {
   [INV.creada]: 'Creada',
@@ -67,6 +67,19 @@ export default function ProvFacturas() {
   const [facModal, setFacModal]         = useState(INIT_CT_EMPTY);
   const [, setTick]                     = useState(0);
   const bump = () => setTick(t => t + 1);
+  const [sort, setSort] = useState({ key: null, dir: 'asc' });
+  const [groupBy, setGroupBy] = useState(null);
+  const toggleSort = (key) => setSort(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroup = (key) => setGroupBy(g => g === key ? null : key);
+  const sortIcon = (k) => sort.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sort.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
 
   const facturas   = facturaService.listarPorRol('proveedor');
   const pagos      = facturaService.listarPagos();
@@ -126,6 +139,31 @@ export default function ProvFacturas() {
       (f.concepto || '').toLowerCase().includes(busqueda.toLowerCase()))
   );
 
+  const parseDate = (d) => {
+    if (!d) return '';
+    const [dd, mm, yyyy] = (d || '').split('/');
+    return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`;
+  };
+
+  const sorted = (() => {
+    const effectiveKey = groupBy || sort.key;
+    if (!effectiveKey) return filtered;
+    const dir = groupBy ? 1 : (sort.dir === 'asc' ? 1 : -1);
+    return [...filtered].sort((a, b) => {
+      if (effectiveKey === 'contrato') return (a.contrato ?? '').localeCompare(b.contrato ?? '');
+      if (effectiveKey === 'empresa') {
+        const ea = a.pyme ?? a.contratante ?? a.suministrador ?? a.proveedorNombre ?? '';
+        const eb = b.pyme ?? b.contratante ?? b.suministrador ?? b.proveedorNombre ?? '';
+        return dir * ea.localeCompare(eb);
+      }
+      if (effectiveKey === 'fecha') return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+      if (effectiveKey === 'monto') return dir * (a.monto - b.monto);
+      if (effectiveKey === 'pagado') return dir * ((a.pagosAcumulados ?? 0) - (b.pagosAcumulados ?? 0));
+      if (effectiveKey === 'estado') return dir * estadoLabel(a.estado).localeCompare(estadoLabel(b.estado));
+      return 0;
+    });
+  })();
+
   const aprobadas = facturas.filter(f => f.estado === INV.aprobada).length;
   const pagadas   = facturas.filter(f => f.estado === INV.pagada).length;
   const totalMonto = facturas.reduce((a, f) => a + f.monto, 0);
@@ -136,7 +174,7 @@ export default function ProvFacturas() {
   const animMonto    = useCountUp(totalMonto,      1500, 400);
 
   const { visibleItems: paged, hasMore, loading, sentinelRef } =
-    useInfiniteScroll(filtered, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}` });
+    useInfiniteScroll(sorted, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${filtroEstado}|${sort.key}|${sort.dir}|${groupBy}` });
 
   return (
     <AppShell active="provFacturas" role="proveedor" title="Mis Facturas" sub="Facturas de suministradores y comprobantes de pago (core bancario / Cheque de Venta)" back>
@@ -191,52 +229,101 @@ export default function ProvFacturas() {
           {/* Tabla de facturas */}
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
             {/* Header */}
-            <div className="min-w-[760px] grid [grid-template-columns:1fr_1.5fr_1.3fr_1.8fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contrato</span>
-              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID de factura</span>
-              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Suministrador</span>
+            <div className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+              <button onClick={() => toggleGroup('contrato')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupBy === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
+                Contrato
+              </button>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Código de Factura</span>
+              <button onClick={() => toggleSort('fecha')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                Fecha {sortIcon('fecha')}
+              </button>
+              <button onClick={() => toggleGroup('empresa')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupBy === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
+                Suministrador
+              </button>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+              <button onClick={() => toggleSort('monto')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+                Monto {sortIcon('monto')}
+              </button>
+              <button onClick={() => toggleSort('pagado')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                Pagado {sortIcon('pagado')}
+              </button>
+              <button onClick={() => toggleSort('estado')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                Estado {sortIcon('estado')}
+              </button>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
             </div>
 
             {/* Rows */}
-            {paged.map((f) => {
+            {paged.flatMap((f, i) => {
+              const gVal = groupBy === 'contrato' ? (f.contrato || '—')
+                         : groupBy === 'empresa'  ? (f.suministrador ?? '—')
+                         : null;
+              const prevGVal = i === 0 ? null
+                : groupBy === 'contrato' ? (paged[i-1].contrato || '—')
+                : groupBy === 'empresa'  ? (paged[i-1].suministrador ?? '—')
+                : null;
+              const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+              const groupSep = isNewGroup ? [
+                <div key={`grp-${i}`} className="min-w-[1020px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                  <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                </div>
+              ] : [];
               const pago = pagoDe(f.id);
-              return (
+              const rowDiv = (
                 <div
                   key={f.id}
                   onClick={() => setDetalle(f)}
-                  className="min-w-[760px] grid [grid-template-columns:1fr_1.5fr_1.3fr_1.8fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                  className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                 >
-                  {/* Contrato */}
-                  <div className="text-[12px] font-mono font-bold text-text-3 text-center">{f.contrato || '—'}</div>
-
-                  {/* ID de factura */}
-                  <div>
-                    <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
-                    <div className="text-[11px] text-text-5">{f.fecha}</div>
+                  {/* 1. Contrato */}
+                  <div className="text-[13px] font-bold text-text-1">{f.contrato || '—'}</div>
+                  {/* 2. Código de Factura */}
+                  <div className="text-[12px] font-mono font-bold text-text-2">{f.id}</div>
+                  {/* 3. Fecha */}
+                  <div className="text-[11px] text-text-4">{f.fecha || '—'}</div>
+                  {/* 4. Suministrador */}
+                  <div className="text-[12px] font-semibold text-text-2 truncate text-center">
+                    {f.suministrador ?? '—'}
                   </div>
-
-                  {/* Suministrador */}
-                  <div className="text-center">
-                    <div className="text-[12px] font-bold text-text-1">{f.suministrador}</div>
-                    <div className="text-[11px] text-text-4">{f.contratante}</div>
+                  {/* 5. Concepto */}
+                  <div className="text-[11px] text-text-4 truncate text-center">{f.concepto || '—'}</div>
+                  {/* 6. Monto */}
+                  <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">
+                    {fmt(f.monto)} XAF
                   </div>
-
-                  {/* Concepto */}
-                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
-
-                  {/* Monto */}
-                  <div className="text-center">
-                    <div className="text-[13px] font-extrabold text-text-1">{fmt(f.monto)} XAF</div>
-                    <PagoProgressBar factura={f} className="mt-1" />
-                  </div>
-
-                  {/* Estado */}
+                  {/* 7. Pagado/% */}
+                  {(() => {
+                    const total  = Number(f.monto) || 0;
+                    const pagado = Number(f.pagosAcumulados) || 0;
+                    const fmtN = v => new Intl.NumberFormat('de-DE').format(v);
+                    if (pagado > 0 && pagado < total) {
+                      const pct = Math.round((pagado / total) * 100);
+                      return (
+                        <div>
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
+                            <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
+                          </div>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
+                          </div>
+                        </div>
+                      );
+                    }
+                    if (f.estado === INV.pagada || f.estado === INV.billetera) {
+                      return <span className="text-[11px] font-semibold text-green-text text-center block">100%</span>;
+                    }
+                    return <span className="text-[12px] text-text-4 text-center block">—</span>;
+                  })()}
+                  {/* 8. Estado */}
                   <div className="flex justify-center flex-wrap gap-1">
-                    <InvoiceStatusBadge estado={f.estado} />
+                    <InvoiceStatusBadge estado={f.estado} noDot />
                     {pago && (
                       <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'orange'}>
                         {pago.metodo === 'cheque' ? <FileText className="w-3 h-3 inline mr-0.5" /> : <Banknote className="w-3 h-3 inline mr-0.5" />}
@@ -244,8 +331,7 @@ export default function ProvFacturas() {
                       </Badge>
                     )}
                   </div>
-
-                  {/* Acciones */}
+                  {/* 9. Acciones */}
                   <div className="flex items-center justify-center gap-1">
                     <button
                       onClick={e => { e.stopPropagation(); setDetalle(f); }}
@@ -259,10 +345,11 @@ export default function ProvFacturas() {
                   </div>
                 </div>
               );
+              return [...groupSep, rowDiv];
             })}
 
             {filtered.length === 0 && (
-              <div className="min-w-[760px] px-4 py-10 text-center text-[13px] text-text-4">
+              <div className="min-w-[1020px] px-4 py-10 text-center text-[13px] text-text-4">
                 No hay facturas con los filtros aplicados.
               </div>
             )}
