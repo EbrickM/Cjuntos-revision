@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
-import { TrendingUp, Leaf, ChevronRight, CheckCircle, CreditCard, Shield, Clock, TreePine, Wind } from 'lucide-react';
+import { TrendingUp, Leaf, ChevronRight, Shield, Clock, Users } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -222,8 +222,8 @@ function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) 
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'financiacion',   line1: 'Dashboard de', line2: 'Financiación',   Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
-  { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: TreePine,   iconBg: '#E3F4EA', iconColor: GREEN },
+  { id: 'financiacion', line1: 'Dashboard de', line2: 'Financiación', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'impacto',      line1: 'Dashboard de', line2: 'Impacto',      Icon: Leaf,       iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
 // ── Datos Financiación ────────────────────────────────────────────────────────
@@ -288,14 +288,6 @@ const riesgoOps = [
   { label: 'Crítico', pct:  3, color: ERR   },
 ];
 
-// ── Datos Medioambiental ──────────────────────────────────────────────────────
-const envKpis = [
-  { value: '8',         label: 'Proyectos registrados', sub: 'Total registrado',          Icon: TreePine,    iconBg: '#E3F4EA', iconColor: GREEN, trend: '+2',      tUp: true  },
-  { value: '4',         label: 'Proyectos activos',     sub: 'En ejecución actualmente',  Icon: CheckCircle, iconBg: '#FFF3E0', iconColor: ORA,   trend: 'Estable', tUp: null  },
-  { value: '3',         label: 'Proyectos financiados', sub: 'Con financiación aprobada', Icon: CreditCard,  iconBg: '#FDEEEB', iconColor: RED,   trend: '+1',      tUp: true  },
-  { value: '12.450 t',  label: 'Captura potencial CO₂', sub: 'Toneladas CO₂ potencial',  Icon: Wind,        iconBg: '#E3F4EA', iconColor: GREEN, trend: '+8%',     tUp: true  },
-  { value: 'Medio',     label: 'Riesgo ambiental',      sub: 'Clasificación global',      Icon: Shield,      iconBg: '#FDF6E8', iconColor: WARN,  trend: 'Estable', tUp: null  },
-];
 
 const proyectos = [
   { nombre: 'Reforestación Bata Norte',     estado: 'En ejecución', riesgo: 'Bajo',  fin: '45.000.000 XAF' },
@@ -310,6 +302,21 @@ const proyectos = [
 
 const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
+const fmtXAF      = (n) => n.toLocaleString('de-DE').replace(/,/g, '.') + ' XAF';
+
+// ── Datos Impacto (resumen para home) ────────────────────────────────────────
+const HOME_ESG_METAS = [
+  { label: 'Captura de CO₂',       pct: 45, color: '#2E7D5B' },
+  { label: 'Proyectos activos',     pct: 63, color: '#3B82F6' },
+  { label: 'Reducción de residuos', pct: 30, color: '#C68A1D' },
+];
+const HOME_SOCIAL_METAS = [
+  { label: 'Empleabilidad',     pct: 75, color: ORA   },
+  { label: 'Educación',         pct: 68, color: '#3B82F6' },
+  { label: 'Salud comunitaria', pct: 45, color: GREEN },
+];
+const EMPLEOS_TOTAL = 167;
+const INV_SOCIAL    = 75_000_000;
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function EpHome() {
@@ -330,6 +337,8 @@ export default function EpHome() {
   const animScore       = useCountUp(SCORE,                 1500, 300);
   const animSolXaf      = useCountUp(SOLICITUDES_XAF,      1400, 500);
   const animFactMonto   = useCountUp(FACTURAS_TOTAL_MONTO, 1400, 350);
+  const animEmpleos     = useCountUp(EMPLEOS_TOTAL,         1400, 600);
+  const animInvSocial   = useCountUp(INV_SOCIAL,            1500, 700);
 
   // Zona del score calculada sobre el valor animado — los colores cambian
   // en tiempo real al cruzar los umbrales (Crítico → Alto → Medio → Bajo).
@@ -702,38 +711,127 @@ export default function EpHome() {
         )}
 
 
-        {/* ══ PESTAÑA MEDIOAMBIENTAL ════════════════════════════════════════════ */}
-        {tab === 'medioambiental' && (
-          <div key="medioambiental" className="fade-in space-y-5">
+        {/* ══ PESTAÑA IMPACTO ══════════════════════════════════════════════════ */}
+        {tab === 'impacto' && (
+          <div key="impacto" className="fade-in space-y-4">
 
-            {/* KPIs — cards blancas */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-2">
-              {envKpis.map(({ value, label }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02]">
-                  <div className="p-4 flex flex-col gap-2">
+            {/* KPIs combinados */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+              {[
+                { value: '4',                   label: 'Proyectos activos',   sub: 'Ambiental',           color: GREEN      },
+                { value: '12.450 t',             label: 'Captura CO₂',        sub: 'Potencial',            color: '#3B82F6'  },
+                { value: String(animEmpleos),    label: 'Empleos generados',   sub: 'Directo + indirecto', color: ORA        },
+                { value: fmtXAF(animInvSocial),  label: 'Inversión social',    sub: 'Acumulada',            color: GREEN      },
+              ].map(({ value, label, sub, color }) => (
+                <div key={label} className="card-enter bg-white rounded-[14px] border border-border overflow-hidden">
+                  <div className="p-4 flex flex-col gap-1">
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                     <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
+                    <span className="text-[10px]" style={{ color }}>{sub}</span>
                   </div>
-                  <div className="h-[4px]" style={{ background: 'var(--bonafide-gradient)' }} />
+                  <div className="h-[3px]" style={{ background: color }} />
                 </div>
               ))}
             </div>
 
-            {/* Proyectos — misma estructura de tabla que el panel admin de kappa */}
+            {/* Cards de estado: Ambiental + Social */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Ambiental */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA', border: '1px solid #A8D5BE' }}>
+                      <Leaf className="w-5 h-5" style={{ color: GREEN }} />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Ambiental</div>
+                      <div className="text-[11px] text-text-4">Proyectos y certificación</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+                    Verde Bonafide
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {HOME_ESG_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => go('epESG')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start"
+                  style={{ color: GREEN }}
+                >
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Social */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+                      <Users className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Social</div>
+                      <div className="text-[11px] text-text-4">Iniciativas y comunidades</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>
+                    Impacto Local
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {HOME_SOCIAL_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => go('epESG')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start"
+                  style={{ color: '#3B82F6' }}
+                >
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Proyectos ambientales — preview */}
             <div className="bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <div className="text-[14px] font-bold text-text-1">Proyectos</div>
-                  <div className="text-[11px] text-text-4">Todos tus proyectos medioambientales</div>
+                  <div className="text-[14px] font-bold text-text-1">Proyectos Ambientales</div>
+                  <div className="text-[11px] text-text-4">Últimos proyectos medioambientales</div>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-[6px]"
-                     style={{ background: '#E3F4EA', color: GREEN }}>
-                  <TreePine className="w-3.5 h-3.5" style={{ animation: 'treeSway 0.85s ease-in-out 0.25s 1 both', transformOrigin: 'bottom center' }} />
-                  8 registrados
-                </div>
+                <button
+                  onClick={() => go('epESG')}
+                  className="flex items-center gap-1 text-[11px] font-bold"
+                  style={{ color: GREEN }}
+                >
+                  Ver todos <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
               <div className="sm:hidden space-y-2">
-                {proyectos.map((p, i) => (
+                {proyectos.slice(0, 4).map((p, i) => (
                   <div key={i} className="rounded-[12px] border p-3"
                     style={{ animation: `cardSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
                     <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
@@ -757,7 +855,7 @@ export default function EpHome() {
                     <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
                   </div>
                   <div className="space-y-0.5">
-                    {proyectos.map((p, i) => (
+                    {proyectos.slice(0, 5).map((p, i) => (
                       <div key={i} className="grid items-center rounded-[8px]"
                         style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
                         <div className="px-3 py-3 text-sm font-semibold min-w-0 truncate"
@@ -775,18 +873,6 @@ export default function EpHome() {
             </div>
           </div>
         )}
-
-        {/* Badges móvil */}
-        <div className="flex sm:hidden gap-2 justify-center pt-2">
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: GREEN }} />
-            Verde
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-[8px]" style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
-            <Leaf className="w-3.5 h-3.5" />
-            Verde Bonafide
-          </span>
-        </div>
 
       </div>
 
