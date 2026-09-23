@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, ListFilter, Save,
+  Search, ChevronRight, Save,
+  LayoutGrid, CheckCircle, AlertCircle, Clock, Settings2, MessageCircle,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
-import Button from '../../components/ui/Button';
 import { StatCard } from '../../components/common/StatCard';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -13,10 +13,19 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
-import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
 import { TEXT4, fmt, contratanteState, contratoBadge } from './contratanteData';
 import { useCountUp } from '../../hooks/useCountUp';
+
+const TAB_ICON = {
+  'Todos':                       LayoutGrid,
+  'Activo':                      CheckCircle,
+  'Con Requerimientos':          AlertCircle,
+  'Pendiente de Revisión':       Clock,
+  'Pendiente de Configuración':  Settings2,
+  'En Discusión de Términos':    MessageCircle,
+  'Borradores':                  Save,
+};
 
 // ── Sub-component: Contract Card ──────────────────────────────────────────────
 function ContractCard({ c, idx, go }) {
@@ -80,8 +89,7 @@ function ContractCard({ c, idx, go }) {
 export default function EmpContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('Todos');
-  const [verBorradores, setVerBorradores] = useState(false);
+  const [tab, setTab] = useState('Todos');
 
   // Vista "Mis Contratos": asignaciones a PYMEs + los contratos-marco que la
   // Contratante ya configuró (los marcos aún pendientes de configuración viven
@@ -100,10 +108,10 @@ export default function EmpContratos() {
   const animUtilizado   = useCountUp(totalUtilizado,  1500,  300);
   const animDisponible  = useCountUp(totalDisponible, 1500,  400);
 
-  const ESTADOS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean)))];
+  const TABS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean))), 'Borradores'];
 
   const filtrados = contratos.filter(c =>
-    (filtroEstado === 'Todos' || c.estado === filtroEstado) &&
+    (tab === 'Todos' || c.estado === tab) &&
     (!busqueda ||
     c.pyme.toLowerCase().includes(busqueda.toLowerCase()) ||
     c.id.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -131,45 +139,44 @@ export default function EmpContratos() {
           ))}
         </div>
 
-        {/* Título + buscador */}
-        <div>
-          <div className="mb-3">
+        {/* Título + buscador + tabs */}
+        <div className="space-y-3">
+          <div>
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative flex-1 sm:max-w-xs">
+          <div className="flex items-center gap-3">
+            <div className="overflow-x-auto pb-0.5 flex-1">
+              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                {TABS.map(t => {
+                  const Icon = TAB_ICON[t] ?? LayoutGrid;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setTab(t)}
+                      className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                        ${tab === t ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="relative shrink-0">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 placeholder="Buscar contrato, Emp. Contratada…"
-                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                className="h-8 w-64 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
-            <div className="relative flex items-center shrink-0">
-              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-              <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
-                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-              >
-                {ESTADOS.map(e => <option key={e}>{e}</option>)}
-              </select>
-            </div>
-            <Button
-              variant={verBorradores ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setVerBorradores(v => !v)}
-              className="shrink-0"
-            >
-              <Save className="w-3.5 h-3.5" />Borradores
-            </Button>
           </div>
         </div>
 
-        {verBorradores ? (
+        {tab === 'Borradores' ? (
           <BorradoresSeccion
             rol="contratante"
             onContinuar={b => go('empConfigurarContrato', { marcoId: b.contratoId })}

@@ -7,7 +7,7 @@ import {
   Search,
   ChevronRight,
   Plus,
-  ListFilter,
+  LayoutGrid, CheckCircle, AlertCircle, Clock, Settings2, MessageCircle,
   Truck,
   Receipt,
   Building2,
@@ -38,11 +38,20 @@ import FormGroup, {
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import InvoiceStatusBadge from "../../components/invoices/InvoiceStatusBadge";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
-import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from "../../services/contrato.service";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
+
+const TAB_ICON = {
+  'Todos':                       LayoutGrid,
+  'Activo':                      CheckCircle,
+  'Con Requerimientos':          AlertCircle,
+  'Pendiente de Revisión':       Clock,
+  'Pendiente de Configuración':  Settings2,
+  'En Discusión de Términos':    MessageCircle,
+  'Borradores':                  Save,
+};
 
 const formatXaf = (value) =>
   `${new Intl.NumberFormat("de-DE").format(Number(value) || 0)} XAF`;
@@ -287,7 +296,6 @@ export default function EpCreditos() {
   const [pagos, setPagos]                         = useState(initialPagos);
   const [search, setSearch]                       = useState('');
   const [filtroEstado, setFiltroEstado]           = useState('Todos');
-  const [verBorradores, setVerBorradores]         = useState(false);
   const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
@@ -322,9 +330,10 @@ export default function EpCreditos() {
           .includes(search.toLowerCase())),
   );
 
-  const ESTADOS = [
+  const ESTADO_TABS = [
     "Todos",
     ...Array.from(new Set(contracts.map((c) => c.estado).filter(Boolean))),
+    "Borradores",
   ];
 
   // Sin delay: en producción, en cuanto el backend devuelva la siguiente
@@ -337,7 +346,7 @@ export default function EpCreditos() {
   } = useInfiniteScroll(filteredContracts, {
     pageSize: 10,
     delay: 0,
-    resetKey: `${search}|${filtroEstado}`,
+    resetKey: `${search}|${filtroEstado === 'Borradores' ? 'todos' : filtroEstado}`,
   });
 
   // ── Facturas handlers ──
@@ -599,45 +608,38 @@ export default function EpCreditos() {
                   Contratos de crédito activos con tus contratantes.
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                <div className="relative flex-1 sm:max-w-xs">
+              <div className="flex items-center gap-3">
+                <div className="overflow-x-auto pb-0.5 flex-1">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                    {ESTADO_TABS.map(t => {
+                      const Icon = TAB_ICON[t] ?? LayoutGrid;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => setFiltroEstado(t)}
+                          className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                            ${filtroEstado === t ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="relative shrink-0">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Buscar contrato…"
-                    className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                    className="h-8 w-64 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
                   />
                 </div>
-                <div className="relative flex items-center shrink-0">
-                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-                  <select
-                    value={filtroEstado}
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                    className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                    style={{
-                      backgroundImage: SELECT_ARROW,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 8px center",
-                    }}
-                  >
-                    {ESTADOS.map((e) => (
-                      <option key={e}>{e}</option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  variant={verBorradores ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setVerBorradores(v => !v)}
-                  className="shrink-0"
-                >
-                  <Save className="w-3.5 h-3.5" />Borradores
-                </Button>
               </div>
             </div>
 
-            {verBorradores ? (
+            {filtroEstado === 'Borradores' ? (
               <BorradoresSeccion
                 rol="pyme"
                 onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId })}
