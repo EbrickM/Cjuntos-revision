@@ -76,6 +76,7 @@ const categoriaBadge = (cat) =>
   cat === 'Empleabilidad'   ? 'orange' : 'amber';
 
 const formatSize = (b) => b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
+const EMPTY_FORM        = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', financiamiento: '', estado: 'Planificado' };
 const EMPTY_SOCIAL_FORM = { nombre: '', categoria: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', beneficiarios: '', inversion: '', estado: 'Planificado' };
 
 const CardHeader = ({ title, sub, Icon, right }) => (
@@ -95,11 +96,19 @@ const CardHeader = ({ title, sub, Icon, right }) => (
 
 export default function EmpESG() {
   const [tab, setTab] = useState('ambiental');
+  const [showModal, setShowModal]             = useState(false);
+  const [form, setForm]                       = useState(EMPTY_FORM);
+  const [files, setFiles]                     = useState([]);
+  const fileRef                               = useRef(null);
   const [showSocialModal, setShowSocialModal] = useState(false);
   const [socialForm, setSocialForm]           = useState(EMPTY_SOCIAL_FORM);
   const [socialFiles, setSocialFiles]         = useState([]);
   const socialFileRef                         = useRef(null);
 
+  const set          = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const onFiles      = (e) => { setFiles(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; };
+  const onDrop       = (e) => { e.preventDefault(); setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); };
+  const closeModal   = () => { setShowModal(false); setForm(EMPTY_FORM); setFiles([]); };
   const setSocial        = (k) => (e) => setSocialForm(f => ({ ...f, [k]: e.target.value }));
   const onSocialFiles    = (e) => { setSocialFiles(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; };
   const onSocialDrop     = (e) => { e.preventDefault(); setSocialFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); };
@@ -303,16 +312,23 @@ export default function EmpESG() {
 
             {/* Projects table */}
             <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
-                <div>
-                  <div className="text-[14px] font-bold text-text-1">Proyectos Registrados</div>
-                  <div className="text-[11px] text-text-4">Todos los proyectos medioambientales registrados</div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Leaf className="w-4 h-4 text-green-text" />
-                  <span className="text-[11px] font-bold text-green-text">5 registrados</span>
-                </div>
-              </div>
+              <CardHeader
+                title="Proyectos Registrados"
+                sub="Todos los proyectos medioambientales registrados"
+                Icon={Leaf}
+                right={
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-1.5">
+                      <Leaf className="w-4 h-4 text-green-text" />
+                      <span className="text-[11px] font-bold text-green-text whitespace-nowrap">5 registrados</span>
+                    </div>
+                    <Button variant="primary" size="sm" onClick={() => setShowModal(true)}>
+                      <Plus className="w-3.5 h-3.5" />
+                      Registrar Proyecto
+                    </Button>
+                  </div>
+                }
+              />
               {/* Móvil: cards */}
               <div className="sm:hidden space-y-3">
                 {empProyectos.map((p, i) => (
@@ -584,6 +600,136 @@ export default function EmpESG() {
         )}
 
       </div>
+      {/* ── Modal Registrar Proyecto Ambiental ── */}
+      {showModal && (
+        <Modal
+          title="Registrar Nuevo Proyecto"
+          onClose={closeModal}
+          wide
+          footer={
+            <>
+              <Button variant="ghost" onClick={closeModal}>Cancelar</Button>
+              <Button variant="primary" onClick={closeModal}>
+                <Plus className="w-4 h-4" />
+                Registrar Proyecto
+              </Button>
+            </>
+          }
+        >
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Información del proyecto</span>
+            </div>
+            <FormGroup label="Nombre del proyecto" required>
+              <Input
+                placeholder="Ej. Parque Solar Malabo II"
+                value={form.nombre}
+                onChange={set('nombre')}
+              />
+            </FormGroup>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <FormGroup label="Tipo de proyecto" required>
+                <Select value={form.tipo} onChange={set('tipo')}>
+                  <option value="">Seleccionar tipo…</option>
+                  <option>Energía Solar</option>
+                  <option>Energía Eólica</option>
+                  <option>Reforestación</option>
+                  <option>Gestión de Residuos</option>
+                  <option>Captura de CO₂</option>
+                  <option>Agricultura Sostenible</option>
+                  <option>Eficiencia Energética</option>
+                  <option>Otro</option>
+                </Select>
+              </FormGroup>
+              <FormGroup label="Ubicación" required>
+                <Input placeholder="Ciudad o región" value={form.ubicacion} onChange={set('ubicacion')} />
+              </FormGroup>
+              <FormGroup label="Fecha de inicio" required>
+                <Input type="date" value={form.fechaInicio} onChange={set('fechaInicio')} />
+              </FormGroup>
+              <FormGroup label="Fecha estimada de fin">
+                <Input type="date" value={form.fechaFin} onChange={set('fechaFin')} />
+              </FormGroup>
+              <FormGroup label="Financiamiento (XAF)">
+                <Input placeholder="Ej. 120000000" value={form.financiamiento} onChange={set('financiamiento')} />
+              </FormGroup>
+              <FormGroup label="Estado inicial">
+                <Select value={form.estado} onChange={set('estado')}>
+                  <option>Planificado</option>
+                  <option>En ejecución</option>
+                </Select>
+              </FormGroup>
+            </div>
+          </div>
+
+          <div className="border-t border-border mb-5" />
+
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Descripción</span>
+            </div>
+            <FormGroup label="Descripción del proyecto">
+              <Textarea
+                placeholder="Describe los objetivos, alcance e impacto esperado del proyecto…"
+                value={form.descripcion}
+                onChange={set('descripcion')}
+                className="h-28"
+              />
+            </FormGroup>
+          </div>
+
+          <div className="border-t border-border mb-5" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Documentos adjuntos</span>
+              {files.length > 0 && (
+                <span className="text-[10px] font-semibold text-text-4">
+                  {files.length} archivo{files.length > 1 ? 's' : ''} añadido{files.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            <div
+              className="border-2 border-dashed border-input-border bg-page-bg rounded-[12px] p-6 text-center cursor-pointer hover:border-orange hover:bg-orange-tint transition-colors"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={onDrop}
+              onClick={() => fileRef.current?.click()}
+            >
+              <Upload className="w-7 h-7 text-text-4 mx-auto mb-2" />
+              <div className="text-[13px] font-semibold text-text-1 mb-1">Arrastra archivos aquí o haz clic para seleccionar</div>
+              <div className="text-[11px] text-text-4">PDF, JPG, PNG, DOCX · Máx. 10 MB por archivo · Múltiples archivos permitidos</div>
+              <input
+                ref={fileRef}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.xlsx"
+                onChange={onFiles}
+              />
+            </div>
+            {files.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {files.map((file, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-[10px] bg-page-bg border border-border">
+                    <FileText className="w-4 h-4 text-text-4 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-medium text-text-1 truncate">{file.name}</div>
+                      <div className="text-[10px] text-text-4">{formatSize(file.size)}</div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setFiles(prev => prev.filter((_, idx) => idx !== i)); }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-bg transition shrink-0"
+                    >
+                      <XIcon className="w-3.5 h-3.5 text-text-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
       {/* ── Modal Nueva Iniciativa Social ── */}
       {showSocialModal && (
         <Modal
