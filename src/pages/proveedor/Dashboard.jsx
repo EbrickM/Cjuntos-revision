@@ -40,7 +40,7 @@ function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) 
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'fondos',         line1: 'Dashboard de', line2: 'Fondos y Suministradores', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'fondos',         line1: 'Dashboard',    line2: 'Financiero',               Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
   { id: 'impacto',        line1: 'Dashboard de', line2: 'Impacto',                   Icon: Leaf,       iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
