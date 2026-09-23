@@ -32,7 +32,7 @@ const NAV = {
     { id: 'empFacturas',    Icon: Receipt,       lbl: 'Facturas recibidas', badge: '4'  },
 
     { id: 'empSolicitudes', Icon: Clock,         lbl: 'Solicitudes',     badge: '4'  },
-    { id: 'empESG',         Icon: Leaf,          lbl: 'Huella Verde' },
+    { id: 'empESG',         Icon: Leaf,          lbl: 'Impacto' },
     { id: 'empPerfil',      Icon: User,          lbl: 'Mi Perfil' },
   ],
   fondeador: [
@@ -46,7 +46,7 @@ const NAV = {
     { id: 'provFacturas',       Icon: Receipt,       lbl: 'Mis Facturas' },
     { id: 'provSuministradores', Icon: Truck,        lbl: 'Suministradores' },
     { id: 'provSolicitudes',    Icon: Clock,         lbl: 'Solicitudes' },
-    { id: 'provESG',            Icon: Leaf,          lbl: 'Huella Verde' },
+    { id: 'provESG',            Icon: Leaf,          lbl: 'Impacto' },
     { id: 'provPerfil',         Icon: User,          lbl: 'Mi Perfil' },
   ],
 };
