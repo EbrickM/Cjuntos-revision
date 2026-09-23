@@ -239,25 +239,25 @@ function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqM
 
       {/* Fila 1: ID + estado */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-bold text-text-3 tracking-wide">{contract.id}</span>
+        <span className="text-[15px] font-extrabold text-text-1 tracking-wide">{contract.id}</span>
         <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
       </div>
 
       {/* Fila 2: Empresa Contratante */}
       <div className="min-w-0">
         <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Empresa Contratante</p>
-        <p className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</p>
+        <p className="text-[13px] font-medium text-text-3 leading-tight truncate">{ctName}</p>
       </div>
 
       {/* Fila 3: Monto Asignado + Disponible */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Monto Asignado</p>
-          <p className="text-[13px] font-extrabold text-text-1 tabular-nums leading-tight">{formatXaf(contract.monto)}</p>
+          <p className="text-[12px] font-semibold text-text-3 tabular-nums leading-tight">{formatXaf(contract.monto)}</p>
         </div>
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Disponible</p>
-          <p className="text-[13px] font-extrabold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{formatXaf(contract.disponible)}</p>
+          <p className="text-[12px] font-semibold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{formatXaf(contract.disponible)}</p>
         </div>
       </div>
 

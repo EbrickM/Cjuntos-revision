@@ -52,25 +52,25 @@ function ContractCard({ c, idx, go }) {
 
       {/* Fila 1: ID + estado */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-bold text-text-3 tracking-wide">{c.id}</span>
+        <span className="text-[15px] font-extrabold text-text-1 tracking-wide">{c.id}</span>
         <Badge variant={contratoBadge(c.estado)}>{c.estado}</Badge>
       </div>
 
       {/* Fila 2: Empresa Contratada */}
       <div className="min-w-0">
         <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Empresa Contratada</p>
-        <p className="text-[13px] font-bold text-text-1 leading-tight truncate">{empresaLabel}</p>
+        <p className="text-[13px] font-medium text-text-3 leading-tight truncate">{empresaLabel}</p>
       </div>
 
       {/* Fila 3: Monto Asignado + Monto Disponible */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Monto Asignado</p>
-          <p className="text-[13px] font-extrabold text-text-1 tabular-nums leading-tight">{fmt(c.asignado)} XAF</p>
+          <p className="text-[12px] font-semibold text-text-3 tabular-nums leading-tight">{fmt(c.asignado)} XAF</p>
         </div>
         <div>
           <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Disponible</p>
-          <p className="text-[13px] font-extrabold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{fmt(c.disponible)} XAF</p>
+          <p className="text-[12px] font-semibold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{fmt(c.disponible)} XAF</p>
         </div>
       </div>
 
