@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Star,
   ClipboardList,
+  Plus,
 } from "lucide-react";
 import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
@@ -21,6 +22,8 @@ import Modal from "../../components/ui/Modal";
 import InfoRow from "../../components/ui/InfoRow";
 import FormGroup, { Input, Select } from "../../components/ui/FormGroup";
 import { initialProviders, fmt } from "./epData";
+import { contratoService } from "../../services/contrato.service";
+import { CST } from "../../lib/contractStates";
 import InfiniteScrollSentinel from "../../components/common/InfiniteScrollSentinel";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 
@@ -58,20 +61,30 @@ const KYC_BADGE = {
     color: "#B8352A",
     border: "1px solid rgba(184,53,42,.3)",
   },
+  "—": {
+    label: "—",
+    bg: "#F6F5F3",
+    color: "#A9A6A1",
+    border: "1px solid rgba(169,166,161,.3)",
+  },
 };
 
 const scoreStyle = (score) => {
-  if (!score) return { bg: "#F6F5F3", color: "#A9A6A1", label: "Sin datos" };
+  if (!score) return { bg: "#F6F5F3", color: "#A9A6A1", label: "En espera" };
   if (score >= 750) return { bg: "#FFF3E0", color: "#EF7A2C", label: "Bajo" };
   if (score >= 600)
     return { bg: "#FDF6E8", color: "#C68A1D", label: "Moderado" };
   return { bg: "#FDEEEB", color: "#B8352A", label: "Alto" };
 };
 
+const PREFIJO_TEL = "+240";
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const KYC_SUB = {
   vigente: "Documentación al día",
   pendiente: "Pendiente de verificación",
   vencido: "Requiere renovación",
+  "—": "Sin información",
 };
 
 const numContratos = (p) => (p.contratosActivos ?? []).length;
@@ -129,13 +142,11 @@ const MODAL_EMPTY = {
   editId: null,
   razonSocial: "",
   nombreComercial: "",
-  ruc: "",
   sector: "Materiales",
   telefono: "",
   correo: "",
   esClienteBonafide: false,
-  kyc: "pendiente",
-  scoreCredito: "",
+  contratoId: "",
 };
 
 // Los 15 proveedores mock del directorio viven en `epData.initialProviders`
@@ -188,6 +199,25 @@ export default function EpMisProveedores() {
     setTimeout(() => setToast((p) => ({ ...p, visible: false })), 4500);
   };
 
+  // Contratos activos del portal (para asignar el proveedor opcionalmente).
+  const contratosActivos = contratoService
+    .listarPorVista("pyme")
+    .filter((c) => c.estado === CST.activo);
+
+  // Normaliza el contrato seleccionado al shape que lee el detalle del proveedor.
+  const contratoActivoMapeado = (id) => {
+    const c = contratosActivos.find((x) => x.id === id);
+    return c
+      ? {
+          id: c.id,
+          objeto: c.objeto ?? "",
+          contratante: c.contratanteNombre ?? c.pymeNombre ?? "",
+          asignado: c.asignado ?? 0,
+          utilizado: c.utilizado ?? 0,
+        }
+      : null;
+  };
+
   const kycVigentes = providers.filter((p) => p.kyc === "vigente").length;
   const clientesBonafide = providers.filter((p) => p.esClienteBonafide).length;
   const conContratos = providers.filter((p) => numContratos(p) > 0).length;
@@ -203,21 +233,25 @@ export default function EpMisProveedores() {
       editId: p.id,
       razonSocial: p.razonSocial,
       nombreComercial: p.nombreComercial,
-      ruc: p.ruc,
       sector: p.sector,
-      telefono: p.telefono,
+      telefono: (p.telefono ?? "").replace(/\D/g, "").slice(0, 9),
       correo: p.email,
       esClienteBonafide: p.esClienteBonafide ?? false,
-      kyc: p.kyc ?? "pendiente",
-      scoreCredito: p.scoreCredito?.toString() ?? "",
+      contratoId: p.contratosActivos?.[0]?.id ?? "",
     });
   const handleClose = () => setModal(MODAL_EMPTY);
 
+  const emailLimpio = modal.correo.trim();
+  const emailInvalido = emailLimpio !== "" && !EMAIL_REGEX.test(emailLimpio);
+  const telefonoLocal = modal.telefono.replace(/\D/g, "");
+  const telefonoValido = /^\d{7,9}$/.test(telefonoLocal);
+  const telefonoInvalido = telefonoLocal !== "" && !telefonoValido;
+  const formOk =
+    modal.razonSocial.trim() && telefonoValido && emailLimpio && !emailInvalido;
+
   const handleSave = () => {
-    if (!modal.razonSocial.trim()) return;
-    const score = modal.scoreCredito
-      ? parseInt(modal.scoreCredito, 10) || null
-      : null;
+    if (!formOk) return;
+    const nuevoContrato = contratoActivoMapeado(modal.contratoId);
     if (modal.editId) {
       setProviders((prev) =>
         prev.map((p) =>
@@ -226,13 +260,15 @@ export default function EpMisProveedores() {
                 ...p,
                 razonSocial: modal.razonSocial,
                 nombreComercial: modal.nombreComercial,
-                ruc: modal.ruc,
                 sector: modal.sector,
-                telefono: modal.telefono,
-                email: modal.correo,
+                telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+                email: emailLimpio,
                 esClienteBonafide: modal.esClienteBonafide,
-                kyc: modal.kyc,
-                scoreCredito: score,
+                contratosActivos:
+                  nuevoContrato &&
+                  !(p.contratosActivos ?? []).some((x) => x.id === nuevoContrato.id)
+                    ? [...(p.contratosActivos ?? []), nuevoContrato]
+                    : p.contratosActivos,
               }
             : p,
         ),
@@ -246,14 +282,13 @@ export default function EpMisProveedores() {
           id: newId,
           razonSocial: modal.razonSocial,
           nombreComercial: modal.nombreComercial,
-          ruc: modal.ruc,
           sector: modal.sector,
-          email: modal.correo,
-          telefono: modal.telefono,
-          contratosActivos: [],
+          email: emailLimpio,
+          telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+          contratosActivos: nuevoContrato ? [nuevoContrato] : [],
           esClienteBonafide: modal.esClienteBonafide,
-          kyc: modal.kyc,
-          scoreCredito: score,
+          kyc: "—",
+          scoreCredito: null,
         },
       ]);
       showToast(
@@ -298,15 +333,20 @@ export default function EpMisProveedores() {
               Todos los proveedores registrados en tu cuenta.
             </div>
           </div>
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Buscar proveedor…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder:text-text-4 focus:outline-none focus:border-orange transition"
-            />
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <Button size="sm" onClick={() => setModal({ ...MODAL_EMPTY, open: true })}>
+              <Plus className="w-3.5 h-3.5" /> Nuevo Proveedor
+            </Button>
+            <div className="relative flex-1 sm:flex-none sm:w-56">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-4 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Buscar proveedor…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 pl-8 pr-3 w-full sm:w-56 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder:text-text-4 focus:outline-none focus:border-orange transition"
+              />
+            </div>
           </div>
         </div>
 
@@ -426,7 +466,7 @@ export default function EpMisProveedores() {
               <Button variant="ghost" onClick={handleClose}>
                 Cancelar
               </Button>
-              <Button variant="primary" onClick={handleSave}>
+              <Button variant="primary" onClick={handleSave} disabled={!formOk}>
                 {modal.editId ? "Guardar cambios" : "Guardar proveedor"}
               </Button>
             </>
@@ -440,7 +480,7 @@ export default function EpMisProveedores() {
                 : "Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento."}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormGroup label="Razón Social" required>
                 <Input
                   value={modal.razonSocial}
@@ -459,13 +499,6 @@ export default function EpMisProveedores() {
                   placeholder="Nombre comercial o marca"
                 />
               </FormGroup>
-              <FormGroup label="RUC / NIF" required>
-                <Input
-                  value={modal.ruc}
-                  onChange={(e) => setModal({ ...modal, ruc: e.target.value })}
-                  placeholder="Ej: GE-2024-00123"
-                />
-              </FormGroup>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -482,14 +515,28 @@ export default function EpMisProveedores() {
                   ))}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono">
-                <Input
-                  value={modal.telefono}
-                  onChange={(e) =>
-                    setModal({ ...modal, telefono: e.target.value })
-                  }
-                  placeholder="+240 222 000 000"
-                />
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocal.slice(0, 9)}
+                    onChange={(e) =>
+                      setModal({
+                        ...modal,
+                        telefono: e.target.value.replace(/\D/g, "").slice(0, 9),
+                      })
+                    }
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalido ? "!border-red-400 focus:!border-red-500" : ""}`}
+                  />
+                </div>
+                {telefonoInvalido && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
               </FormGroup>
               <FormGroup label="Correo" required>
                 <Input
@@ -499,46 +546,29 @@ export default function EpMisProveedores() {
                     setModal({ ...modal, correo: e.target.value })
                   }
                   placeholder="correo@empresa.gq"
+                  className={emailInvalido ? "!border-red-400 focus:!border-red-500" : ""}
                 />
-              </FormGroup>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Estado KYC">
-                <Select
-                  value={modal.kyc}
-                  onChange={(e) => setModal({ ...modal, kyc: e.target.value })}
-                >
-                  <option value="pendiente">Pendiente</option>
-                  <option value="vigente">Vigente</option>
-                  <option value="vencido">Vencido</option>
-                </Select>
-              </FormGroup>
-              <FormGroup label="Score crediticio">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Ej: 720"
-                  value={modal.scoreCredito}
-                  onChange={(e) =>
-                    setModal({
-                      ...modal,
-                      scoreCredito: e.target.value.replace(/[^0-9]/g, ""),
-                    })
-                  }
-                />
-                {modal.scoreCredito && (
-                  <div
-                    className="text-[11px] mt-1"
-                    style={{
-                      color: scoreStyle(parseInt(modal.scoreCredito)).color,
-                    }}
-                  >
-                    {scoreStyle(parseInt(modal.scoreCredito)).label}
-                  </div>
+                {emailInvalido && (
+                  <p className="text-xs mt-1.5 text-red-500">
+                    Ingresa un correo electrónico válido.
+                  </p>
                 )}
               </FormGroup>
             </div>
+
+            <FormGroup label="Añadir a contrato activo (opcional)">
+              <Select
+                value={modal.contratoId}
+                onChange={(e) => setModal({ ...modal, contratoId: e.target.value })}
+              >
+                <option value="">Ninguno</option>
+                {contratosActivos.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.id} · {c.pymeNombre || c.pyme || c.objeto || "Activo"}
+                  </option>
+                ))}
+              </Select>
+            </FormGroup>
 
             {/* Toggle Cliente Bonafide */}
             <button
@@ -702,7 +732,7 @@ export default function EpMisProveedores() {
                       >
                         {p.scoreCredito
                           ? `Riesgo ${sStyle.label}`
-                          : "Sin datos"}
+                          : "En espera de calificación"}
                       </p>
                       <p className="text-[11px] text-text-4">
                         sobre 1000 puntos
@@ -713,13 +743,15 @@ export default function EpMisProveedores() {
                     className="h-2.5 rounded-full overflow-hidden"
                     style={{ background: "#ECEAE7" }}
                   >
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${(p.scoreCredito ?? 0) / 10}%`,
-                        background: sStyle.color,
-                      }}
-                    />
+                    {p.scoreCredito != null && (
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${p.scoreCredito / 10}%`,
+                          background: sStyle.color,
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="flex justify-between text-[10px] mt-1.5 text-text-4">
                     <span>0 — Alto riesgo</span>
@@ -757,11 +789,11 @@ export default function EpMisProveedores() {
                     />
                     <ComplianceItem
                       label="Riesgo"
-                      value={p.scoreCredito ?? "Sin datos"}
+                      value={p.scoreCredito ?? "—"}
                       sub={
                         p.scoreCredito
                           ? `Riesgo ${sStyle.label}`
-                          : "Score no calculado"
+                          : "En espera de calificación"
                       }
                       Icon={ShieldCheck}
                       iconBg={sStyle.bg}

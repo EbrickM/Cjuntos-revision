@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Eye, ShieldCheck, ClipboardList, Leaf, Building2,
-  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
+  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Plus,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -10,29 +10,99 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow, ComplianceItem, IniAvatar } from './provShared';
 import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
+import { contratoService } from '../../services/contrato.service';
+import { CST } from '../../lib/contractStates';
+
+const SECTORES = [
+  'Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología',
+  'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio',
+  'Materiales', 'Otro',
+];
+
+const PREFIJO_TEL = '+240';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const NUEVO_SUM_EMPTY = {
+  open: false,
+  nombre: '',
+  nombreComercial: '',
+  sector: 'Construcción',
+  telefono: '',
+  correo: '',
+  contratoId: '',
+};
+
+const initials = (name = '') => {
+  const words = name
+    .replace(/[^A-Za-zÀ-ÿÑñ0-9 ]/g, '')
+    .split(' ')
+    .filter(Boolean);
+  if (words.length === 0) return '--';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+};
 
 // ── SUMINISTRADORES ───────────────────────────────────────────────────────────
 export default function ProvSuministradores() {
   const [busqueda, setBusqueda] = useState('');
   const [sumModal, setSumModal] = useState(null);
+  const [lista, setLista] = useState(() => suministradores);
+  const [agregar, setAgregar] = useState(NUEVO_SUM_EMPTY);
 
-  const verde    = suministradores.filter(p => p.semaforo === 'Verde').length;
-  const amarillo = suministradores.filter(p => p.semaforo === 'Amarillo').length;
-  const rojo     = suministradores.filter(p => p.semaforo === 'Rojo').length;
+  const verde    = lista.filter(p => p.semaforo === 'Verde').length;
+  const amarillo = lista.filter(p => p.semaforo === 'Amarillo').length;
+  const rojo     = lista.filter(p => p.semaforo === 'Rojo').length;
 
   const filtradas = busqueda.trim()
-    ? suministradores.filter(p =>
+    ? lista.filter(p =>
         p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         p.sector.toLowerCase().includes(busqueda.toLowerCase())
       )
-    : suministradores;
+    : lista;
 
   // Sin delay artificial: al conectar el backend, la siguiente página debe
   // mostrarse en cuanto llegue, no tras una espera puesta a mano.
   const { visibleItems: pagedSuministradores, hasMore, loading, sentinelRef } =
     useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
+
+  // Contratos activos del portal (para asignar la nueva entidad opcionalmente).
+  const contratosActivos = contratoService
+    .listarPorVista('proveedor')
+    .filter(c => c.estado === CST.activo);
+
+  const emailLimpio      = agregar.correo.trim();
+  const emailInvalido    = emailLimpio !== '' && !EMAIL_REGEX.test(emailLimpio);
+  const telefonoLocal    = agregar.telefono.replace(/\D/g, '');
+  const telefonoValido   = /^\d{7,9}$/.test(telefonoLocal);
+  const telefonoInvalido = telefonoLocal !== '' && !telefonoValido;
+  const formOk = agregar.nombre.trim() && telefonoValido && !emailInvalido;
+
+  const handleAgregar = () => {
+    if (!formOk) return;
+    const contratoId = agregar.contratoId;
+    setLista((prev) => [
+      {
+        ini: initials(agregar.nombre),
+        nombre: agregar.nombre.trim(),
+        sector: agregar.sector,
+        contratos: contratoId ? 1 : 0,
+        contratoId: contratoId || null,
+        montoTotal: 0,
+        score: null,
+        semaforo: 'En espera',
+        nombreComercial: agregar.nombreComercial.trim(),
+        ruc: '',
+        telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+        correo: emailLimpio,
+        repNombre: '', repTipoDoc: '', repId: '', repCargo: '', repTel: '', repCorreo: '',
+      },
+      ...prev,
+    ]);
+    setAgregar(NUEVO_SUM_EMPTY);
+  };
 
   return (
     <AppShell active="provSuministradores" role="proveedor" title="Suministradores" sub="Suministradores con contrato activo" back>
@@ -55,14 +125,22 @@ export default function ProvSuministradores() {
             <p className="text-[13px] font-bold text-text-1">Suministradores contratados</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Score crediticio, fondo asignado y semáforo de riesgo</p>
           </div>
-          <div className="relative w-full sm:w-52">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-            <input
-              value={busqueda}
-              onChange={e => setBusqueda(e.target.value)}
-              placeholder="Buscar suministrador o sector…"
-              className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
-            />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <Button
+              size="sm"
+              onClick={() => setAgregar({ ...NUEVO_SUM_EMPTY, open: true })}
+            >
+              <Plus className="w-3.5 h-3.5" /> Agregar Suministrador
+            </Button>
+            <div className="relative w-full sm:w-52">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar suministrador o sector…"
+                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+              />
+            </div>
           </div>
         </div>
 
@@ -103,10 +181,12 @@ export default function ProvSuministradores() {
               {/* Score */}
               <div className="flex justify-center">
                 <div className="text-center">
-                  <div className="text-[12px] font-semibold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</div>
-                  <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
-                    <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
-                  </div>
+                  <div className="text-[12px] font-semibold" style={{ color: scoreColor(p.score) }}>{p.score ?? '—'}</div>
+                  {p.score != null && (
+                    <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
+                      <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -142,10 +222,16 @@ export default function ProvSuministradores() {
         const p = sumModal;
         // Contratos de este Proveedor donde el suministrador tiene monto
         // asignado (Subproceso 3 del BPMN: el Proveedor reparte su monto
-        // entre sus propios Suministradores, por contrato).
-        const contratosConSum = contratos
-          .map(c => ({ contrato: c, asignacion: (c.suministradores || []).find(s => s.nombre === p.nombre) }))
-          .filter(x => x.asignacion);
+        // entre sus propios Suministradores, por contrato). Si la entidad
+        // nueva se vinculó a un contrato activo al crearla, también se lista.
+        const contratosConSum = [
+          ...contratos
+            .map(c => ({ contrato: c, asignacion: (c.suministradores || []).find(s => s.nombre === p.nombre) }))
+            .filter(x => x.asignacion),
+          ...(p.contratoId && !(contratos.some(c => c.id === p.contratoId && (c.suministradores || []).some(s => s.nombre === p.nombre)))
+            ? [{ contrato: contratos.find(c => c.id === p.contratoId), asignacion: { monto: 0 } }].filter(x => x.contrato)
+            : []),
+        ];
         const ModalLabel = ({ text, Icon }) => (
           <div className="flex items-center gap-2 mb-3">
             {Icon && (
@@ -185,16 +271,20 @@ export default function ProvSuministradores() {
               <div className="rounded-[12px] border border-border p-4">
                 <ModalLabel text="Score crediticio" Icon={ShieldCheck} />
                 <div className="flex items-end gap-4 mb-3">
-                  <span className="text-[42px] font-extrabold leading-none" style={{ color: scoreColor(p.score) }}>{p.score}</span>
+                  <span className="text-[42px] font-extrabold leading-none" style={{ color: scoreColor(p.score) }}>{p.score ?? '—'}</span>
                   <div className="pb-1">
                     <p className="text-[13px] font-bold" style={{ color: scoreColor(p.score) }}>
-                      {p.score >= 750 ? 'Riesgo Bajo' : p.score >= 500 ? 'Riesgo Medio' : 'Riesgo Alto'}
+                      {p.score == null
+                        ? 'En espera de calificación'
+                        : p.score >= 750 ? 'Riesgo Bajo' : p.score >= 500 ? 'Riesgo Medio' : 'Riesgo Alto'}
                     </p>
                     <p className="text-[11px]" style={{ color: TEXT4 }}>sobre 1000 puntos</p>
                   </div>
                 </div>
                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: BORDER }}>
-                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                  {p.score != null && (
+                    <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                  )}
                 </div>
                 <div className="flex justify-between text-[10px] mt-1.5" style={{ color: TEXT4 }}>
                   <span>0 — Alto riesgo</span><span>1000 — Bajo riesgo</span>
@@ -270,6 +360,93 @@ export default function ProvSuministradores() {
           </Modal>
         );
       })()}
+
+      {/* ── Modal: Nuevo Suministrador ── */}
+      {agregar.open && (
+        <Modal
+          title="Agregar Suministrador"
+          onClose={() => setAgregar(NUEVO_SUM_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setAgregar(NUEVO_SUM_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAgregar} disabled={!formOk}>Guardar Suministrador</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">
+              Registra un nuevo Suministrador en tu directorio. Quedará
+              disponible para asignar el monto de tus contratos.
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <FormGroup label="Razón Social" required>
+                <Input
+                  value={agregar.nombre}
+                  onChange={e => setAgregar(a => ({ ...a, nombre: e.target.value }))}
+                  placeholder="Ej: Distribuidora del Golfo"
+                />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input
+                  value={agregar.nombreComercial}
+                  onChange={e => setAgregar(a => ({ ...a, nombreComercial: e.target.value }))}
+                  placeholder="Ej: Digolf"
+                />
+              </FormGroup>
+              <FormGroup label="Sector Productivo">
+                <Select
+                  value={agregar.sector}
+                  onChange={e => setAgregar(a => ({ ...a, sector: e.target.value }))}
+                >
+                  {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocal.slice(0, 9)}
+                    onChange={e => setAgregar(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                  />
+                </div>
+                {telefonoInvalido && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Correo">
+                <Input
+                  type="email"
+                  value={agregar.correo}
+                  onChange={e => setAgregar(a => ({ ...a, correo: e.target.value }))}
+                  placeholder="Ej: contacto@suministrador.gq"
+                  className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''}
+                />
+                {emailInvalido && (
+                  <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Añadir a contrato activo (opcional)">
+                <Select
+                  value={agregar.contratoId}
+                  onChange={e => setAgregar(a => ({ ...a, contratoId: e.target.value }))}
+                >
+                  <option value="">Ninguno</option>
+                  {contratosActivos.map(c => (
+                    <option key={c.id} value={c.id}>{c.id} · {c.pymeNombre || c.pyme || c.objeto || 'Activo'}</option>
+                  ))}
+                </Select>
+              </FormGroup>
+            </div>
+          </div>
+        </Modal>
+      )}
     </AppShell>
   );
 }
