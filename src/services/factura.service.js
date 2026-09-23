@@ -90,6 +90,24 @@ export const facturaService = {
       });
       localDb.set(KEY_FACTURAS, lista);
     }
+    // Invariante: toda factura cuyo acumulado ya cubre el monto total debe
+    // quedar en su estado terminal (Pagada / Saldo en Billetera) — nunca debe
+    // quedarse mostrando un estado previo del pipeline una vez completamente
+    // pagada, sin importar qué la llevó a estar pagada al 100%.
+    const sinTerminar = lista.some(f => {
+      const total = Number(f?.monto) || 0;
+      return total > 0 && Number(f?.pagosAcumulados || 0) >= total && f?.estado !== INV.pagada && f?.estado !== INV.billetera;
+    });
+    if (sinTerminar) {
+      lista = lista.map(f => {
+        const total = Number(f?.monto) || 0;
+        const completa = total > 0 && Number(f?.pagosAcumulados || 0) >= total;
+        if (!completa || f?.estado === INV.pagada || f?.estado === INV.billetera) return f;
+        const terminal = (f.modalidadPago || MODALIDAD.retiroTotal) === MODALIDAD.billeteraVirtual ? INV.billetera : INV.pagada;
+        return { ...f, estado: terminal, pagoParcial: null };
+      });
+      localDb.set(KEY_FACTURAS, lista);
+    }
     // Normaliza estados en blanco (dato viejo en localDb) a "Emitida".
     return lista.map(f => (f?.estado ? f : { ...f, estado: INV.emitida })).sort(porRecencia);
   },

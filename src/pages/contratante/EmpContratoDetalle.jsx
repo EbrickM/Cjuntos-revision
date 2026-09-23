@@ -216,15 +216,18 @@ export default function EmpContratoDetalle() {
   const disp = c ? c.asignado - c.utilizado : 0;
   // Todas las facturas ABIERTAS de este contrato: las del pipeline (la semilla
   // de facturaService en localDb) más las heredadas del mock estático de la
-  // Contratante (FAC-2026-0911/0918 "Recibida", que sostienen el flujo manual
-  // Verificar → Emitir IPI de este portal). Se excluyen los estados terminales
-  // (Pagada / Saldo en Billetera) y se evitan duplicados por id.
+  // Contratante, para las que el pipeline no tiene ningún registro propio (dato
+  // legado que sostiene el flujo manual Verificar → Emitir IPI de este portal).
+  // El id se considera "ya representado por el pipeline" aunque su registro
+  // esté cerrado (Pagada / Saldo en Billetera): si no, una factura que ya se
+  // terminó de pagar volvería a aparecer con su estado legado ("Recibida")
+  // en vez de desaparecer como cualquier otra factura terminal. Se excluyen
+  // los estados terminales y se evitan duplicados por id.
   const facturasContrato = c ? (() => {
-    const abiertas = facturaService
-      .listarPorRol('contratante')
-      .filter(f => f.contrato === c.id && !CERRADAS.has(f.estado));
-    const idsAbiertas = new Set(abiertas.map(f => f.id));
-    return [...abiertas, ...facturas.filter(f => f.contrato === c.id && !idsAbiertas.has(f.id))]
+    const delPipeline = facturaService.listarPorRol('contratante').filter(f => f.contrato === c.id);
+    const idsPipeline = new Set(delPipeline.map(f => f.id));
+    const abiertas = delPipeline.filter(f => !CERRADAS.has(f.estado));
+    return [...abiertas, ...facturas.filter(f => f.contrato === c.id && !idsPipeline.has(f.id))]
       .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
   })() : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
