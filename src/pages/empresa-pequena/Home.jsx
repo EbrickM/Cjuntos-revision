@@ -300,8 +300,16 @@ const proyectos = [
   { nombre: 'Reforestación Annobon',        estado: 'Suspendido',   riesgo: 'Medio', fin: '22.000.000 XAF' },
 ];
 
-const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
-const riesgoBadge = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
+const iniciativasSociales = [
+  { nombre: 'Formación técnica Malabo',           categoria: 'Educación',     estado: 'En ejecución', beneficiarios: 120 },
+  { nombre: 'Acceso agua potable Bata',            categoria: 'Salud',         estado: 'Finalizado',   beneficiarios: 450 },
+  { nombre: 'Microcréditos mujeres emprendedoras', categoria: 'Empleabilidad', estado: 'En ejecución', beneficiarios: 35  },
+  { nombre: 'Aulas comunitarias Mongomo',          categoria: 'Educación',     estado: 'Planificado',  beneficiarios: 200 },
+  { nombre: 'Clínica móvil zonas rurales',         categoria: 'Salud',         estado: 'Planificado',  beneficiarios: 320 },
+];
+
+const estadoBadge    = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
+const categoriaBadge = (c) => c === 'Educación' ? 'brand' : c === 'Salud' ? 'green' : c === 'Empleabilidad' ? 'orange' : 'amber';
 const fmtXAF      = (n) => n.toLocaleString('de-DE').replace(/,/g, '.') + ' XAF';
 
 // ── Datos Impacto (resumen para home) ────────────────────────────────────────
@@ -815,61 +823,75 @@ export default function EpHome() {
               </div>
             </div>
 
-            {/* Proyectos ambientales — preview */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <div className="text-[14px] font-bold text-text-1">Proyectos Ambientales</div>
-                  <div className="text-[11px] text-text-4">Últimos proyectos medioambientales</div>
+            {/* Tablas resumen: Ambiental + Social en dos columnas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              {/* Proyectos Ambientales */}
+              <div className="bg-white rounded-[14px] border border-border p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-[13px] font-bold text-text-1">Proyectos Ambientales</div>
+                    <div className="text-[11px] text-text-4">Últimos proyectos registrados</div>
+                  </div>
+                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold" style={{ color: GREEN }}>
+                    Ver todos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => go('epESG')}
-                  className="flex items-center gap-1 text-[11px] font-bold"
-                  style={{ color: GREEN }}
-                >
-                  Ver todos <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div className="sm:hidden space-y-2">
-                {proyectos.slice(0, 4).map((p, i) => (
-                  <div key={i} className="rounded-[12px] border p-3"
-                    style={{ animation: `cardSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
-                    <div className="text-[13px] font-medium text-text-1 mb-2">{p.nombre}</div>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      <Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge>
-                      <Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-[12px]">
-                      <span className="text-text-4">Financiamiento</span>
-                      <span className="font-bold text-text-1">{p.fin}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="hidden sm:block overflow-x-auto">
-                <div className="min-w-[420px]">
-                  <div className="grid bg-page-bg border-b border-border mb-1" style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr' }}>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider">Proyecto</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Estado</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-center">Riesgo</div>
-                    <div className="px-3 py-2.5 text-xs font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</div>
-                  </div>
-                  <div className="space-y-0.5">
-                    {proyectos.slice(0, 5).map((p, i) => (
-                      <div key={i} className="grid items-center rounded-[8px]"
-                        style={{ gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', animation: `rowSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
-                        <div className="px-3 py-3 text-sm font-semibold min-w-0 truncate"
-                          style={{ animation: `rowTextSpotlight 14.4s ease-in-out ${-((proyectos.length - i) * 1.8).toFixed(1)}s infinite` }}>
-                          {p.nombre}
-                        </div>
-                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></div>
-                        <div className="px-3 py-3 text-center whitespace-nowrap"><Badge variant={riesgoBadge(p.riesgo)}>{p.riesgo}</Badge></div>
-                        <div className="px-3 py-3 text-sm font-bold text-text-1 text-right whitespace-nowrap">{p.fin}</div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[260px]">
+                    <thead className="bg-page-bg">
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-left">Proyecto</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-center">Estado</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-right">Financiamiento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {proyectos.slice(0, 5).map((p, i) => (
+                        <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                          <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{p.nombre}</td>
+                          <td className="px-3 py-2.5 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
+                          <td className="px-3 py-2.5 text-right text-[11px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
+
+              {/* Iniciativas Sociales */}
+              <div className="bg-white rounded-[14px] border border-border p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-[13px] font-bold text-text-1">Iniciativas Sociales</div>
+                    <div className="text-[11px] text-text-4">Programas de impacto social activos</div>
+                  </div>
+                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold" style={{ color: '#3B82F6' }}>
+                    Ver todos <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[260px]">
+                    <thead className="bg-page-bg">
+                      <tr className="border-b border-border">
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-left">Iniciativa</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-center">Categoría</th>
+                        <th className="px-3 py-2 text-[10px] font-semibold text-text-4 uppercase tracking-wider text-right">Beneficiarios</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {iniciativasSociales.map((ini, i) => (
+                        <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                          <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{ini.nombre}</td>
+                          <td className="px-3 py-2.5 text-center whitespace-nowrap"><Badge variant={categoriaBadge(ini.categoria)}>{ini.categoria}</Badge></td>
+                          <td className="px-3 py-2.5 text-right text-[12px] font-bold text-text-1">{ini.beneficiarios.toLocaleString('de-DE')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
