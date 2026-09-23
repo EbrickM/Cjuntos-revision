@@ -82,7 +82,8 @@ const estadoBadge  = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificad
 const riesgoBadge  = (r) => r === 'Bajo' ? 'green' : r === 'Medio' ? 'yellow' : 'red';
 const formatSize   = (b) => b < 1048576 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1048576).toFixed(1)} MB`;
 
-const EMPTY_FORM = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', financiamiento: '', estado: 'Planificado' };
+const EMPTY_FORM        = { nombre: '', tipo: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', financiamiento: '', estado: 'Planificado' };
+const EMPTY_SOCIAL_FORM = { nombre: '', categoria: '', ubicacion: '', descripcion: '', fechaInicio: '', fechaFin: '', beneficiarios: '', inversion: '', estado: 'Planificado' };
 
 const CardHeader = ({ title, sub, Icon, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
@@ -102,10 +103,14 @@ const CardHeader = ({ title, sub, Icon, right }) => (
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function EpProyectosAmbientales() {
   const [tab, setTab]         = useState('ambiental');
-  const [showModal, setShowModal] = useState(false);
-  const [form, setForm]           = useState(EMPTY_FORM);
-  const [files, setFiles]         = useState([]);
-  const fileRef                   = useRef(null);
+  const [showModal, setShowModal]             = useState(false);
+  const [form, setForm]                       = useState(EMPTY_FORM);
+  const [files, setFiles]                     = useState([]);
+  const fileRef                               = useRef(null);
+  const [showSocialModal, setShowSocialModal] = useState(false);
+  const [socialForm, setSocialForm]           = useState(EMPTY_SOCIAL_FORM);
+  const [socialFiles, setSocialFiles]         = useState([]);
+  const socialFileRef                         = useRef(null);
 
   // ── Ambiental countups ──
   const activeIdx      = CERT_PATH.findIndex(c => c.status === 'active');
@@ -129,6 +134,11 @@ export default function EpProyectosAmbientales() {
   const onFiles  = (e) => { setFiles(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; };
   const onDrop   = (e) => { e.preventDefault(); setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); };
   const closeModal = () => { setShowModal(false); setForm(EMPTY_FORM); setFiles([]); };
+
+  const setSocial       = (k) => (e) => setSocialForm(f => ({ ...f, [k]: e.target.value }));
+  const onSocialFiles   = (e) => { setSocialFiles(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; };
+  const onSocialDrop    = (e) => { e.preventDefault(); setSocialFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]); };
+  const closeSocialModal = () => { setShowSocialModal(false); setSocialForm(EMPTY_SOCIAL_FORM); setSocialFiles([]); };
 
   return (
     <AppShell active="epESG" role="empresa-pequena" title="Impacto" sub="Impacto Ambiental y Social de tu empresa" back>
@@ -526,7 +536,7 @@ export default function EpProyectosAmbientales() {
                       <Users className="w-4 h-4" style={{ color: '#3B82F6' }} />
                       <span className="text-[11px] font-bold whitespace-nowrap" style={{ color: '#3B82F6' }}>1.125 beneficiarios</span>
                     </div>
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" onClick={() => setShowSocialModal(true)}>
                       <Plus className="w-3.5 h-3.5" />
                       Nueva iniciativa
                     </Button>
@@ -705,6 +715,136 @@ export default function EpProyectosAmbientales() {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); setFiles(prev => prev.filter((_, idx) => idx !== i)); }}
+                      className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-bg transition shrink-0"
+                    >
+                      <XIcon className="w-3.5 h-3.5 text-text-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal Nueva Iniciativa Social ── */}
+      {showSocialModal && (
+        <Modal
+          title="Registrar Nueva Iniciativa Social"
+          onClose={closeSocialModal}
+          wide
+          footer={
+            <>
+              <Button variant="ghost" onClick={closeSocialModal}>Cancelar</Button>
+              <Button variant="primary" onClick={closeSocialModal}>
+                <Plus className="w-4 h-4" />
+                Registrar Iniciativa
+              </Button>
+            </>
+          }
+        >
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Información de la iniciativa</span>
+            </div>
+            <FormGroup label="Nombre de la iniciativa" required>
+              <Input
+                placeholder="Ej. Formación técnica Malabo"
+                value={socialForm.nombre}
+                onChange={setSocial('nombre')}
+              />
+            </FormGroup>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+              <FormGroup label="Categoría" required>
+                <Select value={socialForm.categoria} onChange={setSocial('categoria')}>
+                  <option value="">Seleccionar categoría…</option>
+                  <option>Educación</option>
+                  <option>Salud</option>
+                  <option>Empleabilidad</option>
+                  <option>Infraestructura</option>
+                  <option>Otro</option>
+                </Select>
+              </FormGroup>
+              <FormGroup label="Ubicación" required>
+                <Input placeholder="Ciudad o región" value={socialForm.ubicacion} onChange={setSocial('ubicacion')} />
+              </FormGroup>
+              <FormGroup label="Fecha de inicio" required>
+                <Input type="date" value={socialForm.fechaInicio} onChange={setSocial('fechaInicio')} />
+              </FormGroup>
+              <FormGroup label="Fecha estimada de fin">
+                <Input type="date" value={socialForm.fechaFin} onChange={setSocial('fechaFin')} />
+              </FormGroup>
+              <FormGroup label="Beneficiarios estimados">
+                <Input placeholder="Ej. 150" value={socialForm.beneficiarios} onChange={setSocial('beneficiarios')} />
+              </FormGroup>
+              <FormGroup label="Inversión (XAF)">
+                <Input placeholder="Ej. 12000000" value={socialForm.inversion} onChange={setSocial('inversion')} />
+              </FormGroup>
+              <FormGroup label="Estado inicial">
+                <Select value={socialForm.estado} onChange={setSocial('estado')}>
+                  <option>Planificado</option>
+                  <option>En ejecución</option>
+                </Select>
+              </FormGroup>
+            </div>
+          </div>
+
+          <div className="border-t border-border mb-5" />
+
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Descripción</span>
+            </div>
+            <FormGroup label="Descripción de la iniciativa">
+              <Textarea
+                placeholder="Describe los objetivos, alcance e impacto social esperado…"
+                value={socialForm.descripcion}
+                onChange={setSocial('descripcion')}
+                className="h-28"
+              />
+            </FormGroup>
+          </div>
+
+          <div className="border-t border-border mb-5" />
+
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Documentos adjuntos</span>
+              {socialFiles.length > 0 && (
+                <span className="text-[10px] font-semibold text-text-4">
+                  {socialFiles.length} archivo{socialFiles.length > 1 ? 's' : ''} añadido{socialFiles.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            <div
+              className="border-2 border-dashed border-input-border bg-page-bg rounded-[12px] p-6 text-center cursor-pointer hover:border-orange hover:bg-orange-tint transition-colors"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={onSocialDrop}
+              onClick={() => socialFileRef.current?.click()}
+            >
+              <Upload className="w-7 h-7 text-text-4 mx-auto mb-2" />
+              <div className="text-[13px] font-semibold text-text-1 mb-1">Arrastra archivos aquí o haz clic para seleccionar</div>
+              <div className="text-[11px] text-text-4">PDF, JPG, PNG, DOCX · Máx. 10 MB por archivo · Múltiples archivos permitidos</div>
+              <input
+                ref={socialFileRef}
+                type="file"
+                multiple
+                className="hidden"
+                accept=".pdf,.jpg,.jpeg,.png,.docx,.doc,.xlsx"
+                onChange={onSocialFiles}
+              />
+            </div>
+            {socialFiles.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {socialFiles.map((file, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-[10px] bg-page-bg border border-border">
+                    <FileText className="w-4 h-4 text-text-4 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-medium text-text-1 truncate">{file.name}</div>
+                      <div className="text-[10px] text-text-4">{formatSize(file.size)}</div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSocialFiles(prev => prev.filter((_, idx) => idx !== i)); }}
                       className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-bg transition shrink-0"
                     >
                       <XIcon className="w-3.5 h-3.5 text-text-4" />
