@@ -151,45 +151,57 @@ export default function EmpFacturas() {
             </div>
           </div>
 
-          {/* Cards de facturas */}
-          <div className="rounded-[14px] px-5 pt-2 pb-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
-          {pagedFacturas.map((f, idx) => {
-            const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
-            if (pagoParcial) {
+          {/* Tabla de facturas */}
+          <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+            {/* Header */}
+            <div className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Emp. Contratada</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+            </div>
+            {pagedFacturas.map((f, idx) => {
+              const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
+              if (pagoParcial) {
+                return (
+                  <InvoiceCardConPago
+                    key={f.id}
+                    factura={f}
+                    onClick={() => setDetalle(f)}
+                    entidad={f.pyme}
+                    concepto={f.contrato}
+                    className="card-enter"
+                    style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                  />
+                );
+              }
               return (
-                <InvoiceCardConPago
+                <div
                   key={f.id}
-                  factura={f}
                   onClick={() => setDetalle(f)}
-                  entidad={f.pyme}
-                  concepto={f.contrato}
-                  className="card-enter"
-                  style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                />
-              );
-            }
-            return (
-              <div
-                key={f.id}
-                onClick={() => { setDetalle(f); }}
-                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-              >
-                <div className="flex items-start justify-between gap-2">
+                  className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                >
+                  {/* ID */}
                   <div>
                     <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
                     <p className="text-[11px] text-text-5">{f.fecha}</p>
                   </div>
+                  {/* Emp. Contratada */}
                   <div>
                     <p className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</p>
                     <p className="text-[11px] font-mono text-text-4">{f.contrato}</p>
                   </div>
-                  <p className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</p>
-                  <p className="text-[13px] font-extrabold text-text-1 whitespace-nowrap text-center">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</p>
+                  {/* Concepto */}
+                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</div>
+                  {/* Monto */}
+                  <div className="text-[13px] font-extrabold text-text-1 whitespace-nowrap text-center">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</div>
+                  {/* Estado */}
                   <div className="flex justify-center">
                     <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
                   </div>
+                  {/* Acciones */}
                   <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
                     <span className="w-7 h-7 flex items-center justify-center shrink-0">
                       <button
@@ -212,7 +224,6 @@ export default function EmpFacturas() {
                     </span>
                   </div>
                 </div>
-              </div>
               );
             })}
             {filtered.length === 0 && (
@@ -220,8 +231,6 @@ export default function EmpFacturas() {
             )}
             <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
-
-      </div>
 
       </div>
 
