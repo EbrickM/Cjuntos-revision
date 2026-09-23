@@ -7,7 +7,7 @@ import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
 import { facturaService } from '../../services/factura.service';
 import { INV, MODALIDAD } from '../../lib/invoiceStates';
 import { fmt } from '../empresa-pequena/epData';
-import { BANCO, BANCO_CORTO, netoFactura } from './fondeadorShared';
+import { BANCO, BANCO_CORTO, netoFactura, porFechaDesc } from './fondeadorShared';
 
 // ── CARTERA (portal Banco Fondeador) ──────────────────────────────────────────
 // Historial de las operaciones ya fondeadas por el banco (Fondeo Recibido en
@@ -28,9 +28,9 @@ export default function FondCartera() {
   const q = busqueda.trim().toLowerCase();
 
   const porEstado = FILTROS[filtro] ? cartera.filter(f => FILTROS[filtro].includes(f.estado)) : cartera;
-  const filtradas = !q ? porEstado : porEstado.filter(f =>
+  const filtradas = (!q ? porEstado : porEstado.filter(f =>
     [f.id, f.ipi?.numero, f.pyme, f.contratante, f.transferencia?.referencia].some(v => (v ?? '').toLowerCase().includes(q))
-  );
+  )).sort(porFechaDesc);
 
   const totalFondeado = filtradas.reduce((a, f) => a + netoFactura(f), 0);
 

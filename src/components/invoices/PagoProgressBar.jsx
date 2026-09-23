@@ -3,6 +3,8 @@
 // (degradado #E0201C → #EF7A2C sobre #ECEAE7), en versión compacta de una sola
 // línea + barra para no sumar alto a las cards. Se muestra únicamente cuando la
 // factura está pagada parcialmente (acumulado > 0 y aún no al 100%).
+import { montoRestanteFactura } from './facturaUtils';
+
 const fmtXaf = (v) => new Intl.NumberFormat('de-DE').format(Number(v) || 0);
 
 export default function PagoProgressBar({ factura, className = '' }) {
@@ -10,7 +12,7 @@ export default function PagoProgressBar({ factura, className = '' }) {
   const pagado = Number(factura?.pagosAcumulados) || 0;
   if (!(pagado > 0 && pagado < total)) return null;
   const pct      = Math.min(100, Math.round((pagado / total) * 100));
-  const faltante = Math.max(total - pagado, 0);
+  const faltante = montoRestanteFactura(factura);
   return (
     <div className={`w-full ${className}`}>
       <div className="flex items-center justify-between gap-2 mb-0.5">

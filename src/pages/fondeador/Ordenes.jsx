@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Search, Eye, Building2, ScrollText, Receipt, History, ListFilter, Mail, Phone, ChevronDown, Zap, Send,
+  Search, Eye, Building2, ScrollText, Receipt, History, ListFilter, Mail, Phone, ChevronDown, Zap,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -16,7 +16,7 @@ import { INV } from '../../lib/invoiceStates';
 import { CST } from '../../lib/contractStates';
 import { nombrePymeContrato } from '../../components/contratos/contratoUtils';
 import { fmt } from '../empresa-pequena/epData';
-import { BANCO } from './fondeadorShared';
+import { BANCO, porFechaDesc } from './fondeadorShared';
 
 // ── CONSULTAS DEL BANCO FONDEADOR (rol `fondeador`) ────────────────────────────
 // El Banco Fondeador es un rol SOLO DE LECTURA: ya no valida IPIs ni pone
@@ -43,6 +43,9 @@ const FILTROS_ESTADO = ['Todos', 'Enviada', 'En Evaluación', 'Emitida', 'Con Re
 const FILTROS_ESTADO_KEY = { 'Enviada': INV.enviada, 'En Evaluación': INV.enEvaluacion, 'Emitida': INV.emitida, 'Con Requerimientos': INV.conRequerimientos, 'OTP Enviada': INV.otpEnviada, 'Pagada': INV.pagada, 'Saldo en Billetera': INV.billetera };
 
 const ESTADOS_FILTRO_CT = ['Todos', 'Pendiente de Configuración', 'Pendiente de Revisión', 'Con Requerimientos', 'En Discusión de Términos', 'Activo'];
+
+const ESTADOS_FILTRO_IPI = ['Todos', 'Recibida', 'Ejecutada'];
+const ipiEstadoBadge = (estado) => (estado === 'Ejecutada' ? 'green' : 'blue');
 
 const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 const fmtRegistro = (n) => `${new Intl.NumberFormat('de-DE').format(Number(n) || 0)} XAF`;
@@ -562,7 +565,8 @@ function TabFacturas() {
   const matchesQ = (f, fields) => !q || fields.some(v => (v ?? '').toLowerCase().includes(q));
 
   const facturasFiltradas = (filtroEstado === 'Todos' ? facturas : facturas.filter(f => f.estado === FILTROS_ESTADO_KEY[filtroEstado]))
-    .filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]));
+    .filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]))
+    .sort(porFechaDesc);
 
   return (
     <div className="bg-white rounded-[14px] border border-border p-5">
@@ -753,23 +757,23 @@ function ipisFondeador() {
       contrato: c.id,
       fecha: ops.reduce((a, o) => (o.fecha > a ? o.fecha : a), ops[0].fecha),
       monto: ops.reduce((a, o) => a + (Number(o.monto) || 0), 0),
+      // Recibida: el IPI llegó al banco pero aún tiene operaciones con pago
+      // parcial en curso. Ejecutada: todas sus operaciones ya se liquidaron
+      // por completo.
+      estado: ops.every(o => o.tipo === 'Completo') ? 'Ejecutada' : 'Recibida',
       ops,
     });
   });
 
-  return ipis.sort((a, b) => (b.fecha ?? '').localeCompare(a.fecha ?? ''));
+  return ipis.sort(porFechaDesc);
 }
 
 // ── Tab: IPIs (por contrato de las Empresas Contratantes) ─────────────────────
 function TabIPIs() {
   const [detalle, setDetalle] = useState(null);
-  const ipis = ipisFondeador();
-
-  const handleEnviarIpi = () => {
-    if (!detalle) return;
-    facturaService.enviarIpiDeContrato(detalle.ops);
-    setDetalle(null);
-  };
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const todosLosIpis = ipisFondeador();
+  const ipis = filtroEstado === 'Todos' ? todosLosIpis : todosLosIpis.filter(i => i.estado === filtroEstado);
 
   return (
     <div className="bg-white rounded-[14px] border border-border p-5">
@@ -779,6 +783,20 @@ function TabIPIs() {
         Icon={Zap}
         right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{ipis.length} IPIs</span>}
       />
+
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="relative flex items-center shrink-0">
+          <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+          <select
+            value={filtroEstado}
+            onChange={e => setFiltroEstado(e.target.value)}
+            className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+          >
+            {ESTADOS_FILTRO_IPI.map(e => <option key={e}>{e}</option>)}
+          </select>
+        </div>
+      </div>
 
       {/* Móvil: cards sin scroll lateral */}
       <div className="sm:hidden space-y-2">
@@ -790,14 +808,19 @@ function TabIPIs() {
               <span className="text-[12px] font-bold text-text-1 truncate">{i.contratante}</span>
               <span className="text-[11px] font-mono text-text-5 ml-auto shrink-0">{i.contrato}</span>
             </div>
-            <div className="text-[11px] text-text-4 truncate mt-0.5">
+            <div className="flex items-center gap-1.5 mt-1">
+              <Badge variant={ipiEstadoBadge(i.estado)}>{i.estado}</Badge>
+            </div>
+            <div className="text-[11px] text-text-4 truncate mt-1">
               {i.fecha} · {i.ops.length} operación{i.ops.length === 1 ? '' : 'es'}
             </div>
             <div className="text-[12px] font-bold text-text-1 mt-0.5">{fmt(i.monto)} XAF</div>
           </div>
         ))}
         {ipis.length === 0 && (
-          <div className="text-[12px] text-text-4 text-center py-8">No hay IPIs registrados.</div>
+          <div className="text-[12px] text-text-4 text-center py-8">
+            {todosLosIpis.length === 0 ? 'No hay IPIs registrados.' : 'No se encontraron IPIs con el filtro aplicado.'}
+          </div>
         )}
       </div>
 
@@ -806,9 +829,9 @@ function TabIPIs() {
         <table className="w-full">
           <thead className="bg-page-bg">
             <tr className="border-b border-border">
-              {['Empresa Contratante', 'Contrato', 'Operaciones', 'Fecha', 'Monto', 'Detalle'].map((h, i) => (
+              {['Empresa Contratante', 'Contrato', 'Operaciones', 'Estado', 'Fecha', 'Monto', 'Detalle'].map((h, i) => (
                 <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-2.5 py-3 whitespace-nowrap
-                  ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
+                  ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
                 `}>{h}</th>
               ))}
             </tr>
@@ -829,6 +852,9 @@ function TabIPIs() {
                 <td className="px-2.5 py-3 text-center">
                   <span className="text-[11px] font-semibold text-text-3 whitespace-nowrap">{i.ops.length}</span>
                 </td>
+                <td className="px-2.5 py-3 text-center">
+                  <Badge variant={ipiEstadoBadge(i.estado)}>{i.estado}</Badge>
+                </td>
                 <td className="px-2.5 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{i.fecha}</td>
                 <td className="px-2.5 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(i.monto)} XAF</td>
                 <td className="px-2.5 py-3 text-center">
@@ -843,7 +869,9 @@ function TabIPIs() {
             ))}
             {ipis.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">No hay IPIs registrados.</td>
+                <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
+                  {todosLosIpis.length === 0 ? 'No hay IPIs registrados.' : 'No se encontraron IPIs con el filtro aplicado.'}
+                </td>
               </tr>
             )}
           </tbody>
@@ -855,12 +883,7 @@ function TabIPIs() {
           title={`IPI · Resumen de operaciones (${detalle.ops.length})`}
           onClose={() => setDetalle(null)}
           footer={
-            <>
-              <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
-              <Button size="sm" onClick={handleEnviarIpi}>
-                <Send className="w-3.5 h-3.5 mr-1" /> Enviar IPI
-              </Button>
-            </>
+            <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
           }
         >
           <div className="space-y-4">
@@ -950,7 +973,7 @@ function registrosFondeador() {
     push(f.contratante, f.fecha, 'facturas', `Emitió la factura ${f.id} por ${fmtRegistro(f.monto)} (${f.pyme ?? '—'}).`);
   });
 
-  return ev.sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''));
+  return ev.sort(porFechaDesc);
 }
 
 export default function FondOrdenes() {

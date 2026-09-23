@@ -16,3 +16,13 @@ export const defaultVencimiento = () => {
   t.setDate(t.getDate() + 30);
   return `${pad2(t.getDate())}/${pad2(t.getMonth() + 1)}/${t.getFullYear()}`;
 };
+
+// Saldo pendiente de una factura: su monto original menos lo ya acumulado en
+// pagos previos (parciales). Fuente única de verdad para que el formulario de
+// pago (Contratante) y el servicio de facturación clampeen contra el mismo
+// número — nunca se puede pagar más de lo que queda pendiente.
+export const montoRestanteFactura = (factura) => {
+  const total = Number(factura?.monto) || 0;
+  const pagado = Math.min(Number(factura?.pagosAcumulados) || 0, total);
+  return Math.max(total - pagado, 0);
+};

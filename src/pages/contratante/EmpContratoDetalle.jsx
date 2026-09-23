@@ -11,6 +11,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import RequerirButton from '../../components/invoices/RequerirButton';
+import { montoRestanteFactura } from '../../components/invoices/facturaUtils';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
 import { facturaService } from '../../services/factura.service';
@@ -51,34 +52,51 @@ const esPagoAplicable = (e) =>
 // ── Bloque: Completar pago de la factura (Contratante) ───────────────────────
 // Dos checkboxes: "Pagar al completo" (habilita Aceptar al instante) o "Pagar
 // un % de la factura" (despliega % y monto con validación cruzada: el % no
-// puede ser 0 ni >100, el monto no puede superar el de la factura, y el sistema
-// solo calcula el otro campo). El botón Aceptar queda deshabilitado hasta elegir
-// una modalidad válida; por ahora Aceptar cierra el modal. Si el pago es parcial
-// (no se paga la factura completa), la factura NO cambia de estado.
+// puede ser 0 ni >100, el monto no puede superar el SALDO PENDIENTE, y el
+// sistema solo calcula el otro campo). El botón Aceptar queda deshabilitado
+// hasta elegir una modalidad válida. Si el pago es parcial (no se paga la
+// factura completa), la factura NO cambia de estado.
+//
+// Todos los topes (label, inputs, validación) se calculan contra el SALDO
+// PENDIENTE (montoRestanteFactura), no contra el monto original de la
+// factura: si ya hubo un pago parcial previo, "pagar al completo" solo cobra
+// lo que falta, y "%"/"monto a pagar" tampoco pueden superar ese resto —
+// nunca se puede volver a pedir un monto que ya fue cubierto.
 function PagoFacturaBlock({ factura, onAceptar }) {
   const [opcion, setOpcion]     = useState('');   // '' | 'total' | 'parcial'
   const [pctStr, setPctStr]     = useState('');
   const [montoStr, setMontoStr] = useState('');
+  const [enviando, setEnviando] = useState(false);
   const fmtMonto = (n) => new Intl.NumberFormat('de-DE').format(Number(n) || 0);
-  const total   = Number(factura?.monto) || 0;
+  const total    = Number(factura?.monto) || 0;
+  const yaPago   = Math.min(Number(factura?.pagosAcumulados) || 0, total);
+  const restante = montoRestanteFactura(factura);
   const pctN    = Number(String(pctStr).replace(/[^0-9]/g, '')) || 0;
   const montoN  = Number(String(montoStr).replace(/[^0-9]/g, '')) || 0;
   const pctValido   = pctN > 0 && pctN <= 100;
-  const montoValido = montoN > 0 && montoN <= total;
+  const montoValido = montoN > 0 && montoN <= restante;
   const aceptable   = opcion === 'total' || (opcion === 'parcial' && pctValido && montoValido);
-  const montoEquivalente = Math.round(total * pctN / 100);
+  const montoEquivalente = Math.round(restante * pctN / 100);
   const deshabilitar = pctN === 0 && montoN === 0;
 
   const onPctChange = (raw) => {
     const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
     setPctStr(String(n));
-    setMontoStr(total > 0 ? fmtMonto(Math.round(total * n / 100)) : '');
+    setMontoStr(restante > 0 ? fmtMonto(Math.round(restante * n / 100)) : '');
   };
   const onMontoChange = (raw) => {
     const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
     setMontoStr(n > 0 ? fmtMonto(n) : '');
-    setPctStr(total > 0 ? String(Number((n / total) * 100).toFixed(2)) : '');
+    setPctStr(restante > 0 ? String(Number((n / restante) * 100).toFixed(2)) : '');
   };
+
+  if (restante <= 0) {
+    return (
+      <div className="rounded-[12px] border border-border p-4" style={{ background: '#FBFAF8' }}>
+        <p className="text-[12px] text-text-4">Esta factura ya no tiene saldo pendiente de pago.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[12px] border border-border p-4" style={{ background: '#FBFAF8' }}>
@@ -94,9 +112,12 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           onChange={() => setOpcion(opcion === 'total' ? '' : 'total')}
           className="accent-orange w-4 h-4 shrink-0"
         />
-        <span className="text-[13px] font-medium text-text-1">Pagar la factura al completo</span>
-        <span className="ml-auto text-[11px] font-semibold text-text-3">{fmt(total)} XAF</span>
+        <span className="text-[13px] font-medium text-text-1">{yaPago > 0 ? 'Pagar el saldo restante' : 'Pagar la factura al completo'}</span>
+        <span className="ml-auto text-[11px] font-semibold text-text-3">{fmt(restante)} XAF</span>
       </label>
+      {yaPago > 0 && (
+        <p className="text-[10px] text-text-4 mt-1 ml-1">Factura original: {fmt(total)} XAF · Ya pagado: {fmt(yaPago)} XAF</p>
+      )}
 
       <label
         className={`mt-2 flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 cursor-pointer transition ${opcion === 'parcial' ? 'border-orange bg-orange-tint' : 'border-border bg-white'}`}
@@ -107,7 +128,7 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           onChange={() => setOpcion(opcion === 'parcial' ? '' : 'parcial')}
           className="accent-orange w-4 h-4 shrink-0"
         />
-        <span className="text-[13px] font-medium text-text-1">Pagar un % de la factura</span>
+        <span className="text-[13px] font-medium text-text-1">Pagar un % {yaPago > 0 ? 'del saldo pendiente' : 'de la factura'}</span>
       </label>
 
       {opcion === 'parcial' && (
@@ -138,8 +159,8 @@ function PagoFacturaBlock({ factura, onAceptar }) {
                 onChange={e => onMontoChange(e.target.value)}
                 className="h-10 w-full border-2 border-gray-200 rounded-[8px] bg-white px-3 text-[13px] font-semibold text-text-1 outline-none focus:border-orange transition caret-orange"
               />
-              {montoN > total && (
-                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>No puede superar {fmt(total)} XAF.</div>
+              {montoN > restante && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>No puede superar {fmt(restante)} XAF (saldo pendiente).</div>
               )}
               {montoN === 0 && !deshabilitar && (
                 <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>Debe ser mayor a 0.</div>
@@ -148,7 +169,7 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           </div>
           <p className="text-[11px] text-text-4 leading-relaxed">
             {pctValido && montoValido
-              ? <>Pagarás el <b>{pctN}%</b> ({fmt(montoEquivalente)} XAF). La factura quedará <b>Aprobada</b> hasta que se pague al completo.</>
+              ? <>Pagarás el <b>{pctN}%</b>{yaPago > 0 ? ' del saldo pendiente' : ''} ({fmt(montoEquivalente)} XAF). La factura quedará <b>Aprobada</b> hasta que se pague al completo.</>
               : 'Ingresá el % o el monto deseado; el sistema calcula el otro valor automáticamente.'}
           </p>
         </div>
@@ -157,12 +178,16 @@ function PagoFacturaBlock({ factura, onAceptar }) {
       <Button
         full
         className="mt-4 h-[44px] justify-center"
-        disabled={!aceptable}
-        onClick={() => onAceptar({
-          completo: opcion === 'total',
-          pct: opcion === 'parcial' ? pctN : 100,
-          monto: opcion === 'parcial' ? montoN : total,
-        })}
+        disabled={!aceptable || enviando}
+        onClick={() => {
+          if (enviando) return;
+          setEnviando(true);
+          onAceptar({
+            completo: opcion === 'total',
+            pct: opcion === 'parcial' ? pctN : 100,
+            monto: opcion === 'parcial' ? montoN : restante,
+          });
+        }}
       >
         Aceptar
       </Button>
@@ -232,15 +257,19 @@ export default function EmpContratoDetalle() {
   // generar el IPI del contrato (botón junto al filtro).
   const handleAceptarPago = (pago) => {
     if (!modalFac) return;
-    facturaService.pagar(modalFac.id, pago);
+    const actualizada = facturaService.pagar(modalFac.id, pago);
+    // Monto realmente aplicado por el servicio (ya recortado contra el saldo
+    // pendiente), no el que tecleó el usuario — así el resumen de "Generar
+    // IPI" siempre coincide con lo que de verdad quedó registrado.
+    const montoAplicado = (Number(actualizada.pagosAcumulados) || 0) - (Number(modalFac.pagosAcumulados) || 0);
     setOpsPago(prev => [...prev, {
       id: `${Date.now()}-${prev.length}`,
       facturaId: modalFac.id,
       pyme: modalFac.pyme,
       concepto: modalFac.concepto,
       tipo: pago.completo ? 'Completo' : 'Parcial',
-      monto: pago.completo ? Number(modalFac.monto) : Number(pago.monto) || 0,
-      pct: pago.completo ? 100 : Number(pago.pct) || 0,
+      monto: montoAplicado,
+      pct: actualizada.pagoParcial ? Number(actualizada.pagoParcial.pct) || 0 : 100,
       fecha: new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' }),
     }]);
     closeModal();

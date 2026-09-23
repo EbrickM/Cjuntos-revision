@@ -246,8 +246,11 @@ export default function EpMisProveedores() {
   const telefonoLocal = modal.telefono.replace(/\D/g, "");
   const telefonoValido = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido = telefonoLocal !== "" && !telefonoValido;
+  // Todos los campos obligatorios (los marcados con *) deben estar completos
+  // antes de habilitar "Guardar": Razón Social, Sector, Teléfono y Correo. El
+  // Nombre Comercial y el contrato son explícitamente opcionales.
   const formOk =
-    modal.razonSocial.trim() && telefonoValido && emailLimpio && !emailInvalido;
+    modal.razonSocial.trim() && !!modal.sector && telefonoValido && emailLimpio && !emailInvalido;
 
   const handleSave = () => {
     if (!formOk) return;
@@ -277,7 +280,6 @@ export default function EpMisProveedores() {
     } else {
       const newId = `p${Math.max(...providers.map((p) => Number(p.id.replace("p", ""))), 0) + 1}`;
       setProviders((prev) => [
-        ...prev,
         {
           id: newId,
           razonSocial: modal.razonSocial,
@@ -290,6 +292,7 @@ export default function EpMisProveedores() {
           kyc: "—",
           scoreCredito: null,
         },
+        ...prev,
       ]);
       showToast(
         `${modal.razonSocial} ha sido añadido al directorio de proveedores.`,

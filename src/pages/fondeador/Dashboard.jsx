@@ -5,7 +5,7 @@ import { LineChart } from '../../components/charts/Charts';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import { facturaService } from '../../services/factura.service';
 import { fmt } from '../empresa-pequena/epData';
-import { BANCO, BANCO_CORTO, netoFactura } from './fondeadorShared';
+import { BANCO, BANCO_CORTO, netoFactura, porFechaDesc } from './fondeadorShared';
 
 // ── INICIO (portal Banco Fondeador) ───────────────────────────────────────────
 // Vista general de la cartera del banco: órdenes de fondeo pendientes de
@@ -17,7 +17,7 @@ export default function FondDash() {
   const { go } = useApp();
 
   const ordenes = facturaService.bandejaOrdenes(BANCO);
-  const cartera = facturaService.carteraFondeador(BANCO);
+  const cartera = [...facturaService.carteraFondeador(BANCO)].sort(porFechaDesc);
 
   const porLiquidar = ordenes.reduce((a, f) => a + netoFactura(f), 0);
   const fondeado    = cartera.reduce((a, f) => a + netoFactura(f), 0);
@@ -142,7 +142,7 @@ export default function FondDash() {
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
                     {['Operación', 'Emp. Contratada', 'Estado', 'Monto fondeado', 'Fecha'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 3 ? 'text-right' : 'text-left'}`}>{h}</th>
+                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 3 ? 'text-right' : i === 4 ? 'text-center' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -156,7 +156,7 @@ export default function FondDash() {
                       <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
                       <td className="px-4 py-3"><InvoiceStatusBadge estado={f.estado} /></td>
                       <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(netoFactura(f))} XAF</td>
-                      <td className="px-4 py-3 text-[11px] text-text-5 whitespace-nowrap">{f.fecha ?? '—'}</td>
+                      <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.fecha ?? '—'}</td>
                     </tr>
                   ))}
                 </tbody>

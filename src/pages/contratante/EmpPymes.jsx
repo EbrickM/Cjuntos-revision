@@ -82,7 +82,10 @@ export default function EmpPymes() {
   const telefonoLocal    = agregar.telefono.replace(/\D/g, '');
   const telefonoValido   = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido = telefonoLocal !== '' && !telefonoValido;
-  const formOk = agregar.nombre.trim() && telefonoValido && !emailInvalido;
+  // Todos los campos obligatorios (los marcados con *) deben estar completos
+  // antes de habilitar "Guardar": Razón Social, Sector, Teléfono y Correo. El
+  // Nombre Comercial y el contrato son explícitamente opcionales.
+  const formOk = agregar.nombre.trim() && !!agregar.sector && telefonoValido && emailLimpio !== '' && !emailInvalido;
 
   const handleAgregar = () => {
     if (!formOk) return;
@@ -402,7 +405,7 @@ export default function EmpPymes() {
                   placeholder="Ej: Litogal"
                 />
               </FormGroup>
-              <FormGroup label="Sector Productivo">
+              <FormGroup label="Sector Productivo" required>
                 <Select
                   value={agregar.sector}
                   onChange={e => setAgregar(a => ({ ...a, sector: e.target.value }))}
@@ -428,7 +431,7 @@ export default function EmpPymes() {
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
               </FormGroup>
-              <FormGroup label="Correo">
+              <FormGroup label="Correo" required>
                 <Input
                   type="email"
                   value={agregar.correo}

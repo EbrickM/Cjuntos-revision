@@ -16,3 +16,20 @@ export function netoFactura(f) {
 }
 
 export const CONDICIONES_DEFAULT = { retencion: 3, gestionCobranza: 1.5, interes: 5 };
+
+// Toda fecha de la plataforma llega como string 'DD/MM/YYYY' (ver `hoy()` en
+// los servicios) — la parseamos a un entero YYYYMMDD ordenable en vez de
+// comparar los strings directamente (un localeCompare de '01/12/2026' vs
+// '12/01/2026' compara el día primero y da un orden cronológicamente falso).
+function fechaOrdenable(fecha) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fecha ?? '');
+  if (!m) return -Infinity;
+  const [, d, mo, y] = m;
+  return Number(`${y}${mo}${d}`);
+}
+
+// Orden estándar de todas las tablas del portal Banco Fondeador: la más
+// nueva primero, la más vieja al final.
+export function porFechaDesc(a, b) {
+  return fechaOrdenable(b.fecha) - fechaOrdenable(a.fecha);
+}
