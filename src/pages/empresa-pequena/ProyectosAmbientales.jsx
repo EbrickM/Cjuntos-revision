@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
   Leaf, Sprout, BadgeCheck, Wind, Recycle, Trophy, CircleDashed, ChevronRight,
-  Plus, FolderOpen, Target,
+  Plus, FolderOpen, Target, BarChart2,
   Upload, X as XIcon, FileText,
   Users, Heart, GraduationCap, Star, Briefcase,
 } from 'lucide-react';
@@ -101,7 +101,7 @@ const CardHeader = ({ title, sub, Icon, right }) => (
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function EpProyectosAmbientales() {
-  const [tab, setTab]         = useState('ambiental');
+  const [tab, setTab]         = useState('resumen');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm]           = useState(EMPTY_FORM);
   const [files, setFiles]         = useState([]);
@@ -137,8 +137,9 @@ export default function EpProyectosAmbientales() {
         {/* Tabs */}
         <div className="flex bg-white rounded-[10px] gap-1 w-fit">
           {[
-            { id: 'ambiental', lbl: 'Impacto Ambiental', Icon: Leaf  },
-            { id: 'social',    lbl: 'Impacto Social',    Icon: Users },
+            { id: 'resumen',   lbl: 'Resumen',   Icon: BarChart2 },
+            { id: 'ambiental', lbl: 'Ambiental', Icon: Leaf      },
+            { id: 'social',    lbl: 'Social',    Icon: Users     },
           ].map(({ id, lbl, Icon }) => (
             <button
               key={id}
@@ -151,6 +152,102 @@ export default function EpProyectosAmbientales() {
             </button>
           ))}
         </div>
+
+        {/* ═══════════════════ RESUMEN TAB ═══════════════════ */}
+        {tab === 'resumen' && (
+          <>
+            {/* Headline KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { value: String(animActivos),                     label: 'Proyectos activos', tone: 'gradient' },
+                { value: '7.800 t',                               label: 'Captura CO₂',       tone: 'gradient' },
+                { value: String(animEmpleosDir + animEmpleosInd), label: 'Empleos generados', tone: 'gradient' },
+                { value: fmtXAF(animInvSocial),                   label: 'Inversión social',  tone: 'gradient' },
+              ].map(({ value, label, tone }) => (
+                <StatCard key={label} label={label} value={value} tone={tone} />
+              ))}
+            </div>
+
+            {/* Status cards side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Ambiental */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[10px] bg-green-bg border border-green-border flex items-center justify-center shrink-0">
+                      <Leaf className="w-5 h-5 text-green-text" />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Ambiental</div>
+                      <div className="text-[11px] text-text-4">Proyectos y certificación</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-green-bg text-green-text border border-green-border whitespace-nowrap shrink-0">
+                    {activeCert.label}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {ESG_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setTab('ambiental')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold text-green-text hover:underline self-start"
+                >
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Social */}
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+                      <Users className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                    </div>
+                    <div>
+                      <div className="text-[13px] font-bold text-text-1">Impacto Social</div>
+                      <div className="text-[11px] text-text-4">Iniciativas y comunidades</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>
+                    {socialActiveCert.label}
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {SOCIAL_METAS.map(({ label, pct, color }) => (
+                    <div key={label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-semibold text-text-3">{label}</span>
+                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                      </div>
+                      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setTab('social')}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start"
+                  style={{ color: '#3B82F6' }}
+                >
+                  Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* ═══════════════════ AMBIENTAL TAB ═══════════════════ */}
         {tab === 'ambiental' && (
