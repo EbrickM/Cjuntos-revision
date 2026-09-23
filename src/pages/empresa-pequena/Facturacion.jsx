@@ -480,10 +480,19 @@ export default function EpFacturacion() {
           </div>
         </div>
 
-          {/* Cards de facturas */}
-          <div className="rounded-[14px] px-5 pt-2 pb-5">
+        {/* Tabla de facturas */}
+        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
           {vista === 'contratante' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
+            <>
+              {/* Header CT */}
+              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Contratante</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+              </div>
               {pagedCT.map((f, idx) => {
                 const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
                 if (pagoParcial) {
@@ -505,18 +514,10 @@ export default function EpFacturacion() {
                     onClick={() => setDetalle(f)}
                     className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
-                        <RequerimientoBadge
-                          factura={f}
-                          cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }}
-                        />
-                      </div>
+                    {/* ID */}
+                    <div>
+                      <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
                     </div>
                     {/* Contratante */}
                     <div>
@@ -532,7 +533,7 @@ export default function EpFacturacion() {
                       <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
                     </div>
                     {/* Acciones */}
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
                         className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
@@ -540,7 +541,7 @@ export default function EpFacturacion() {
                         <Eye className="w-4 h-4" />
                       </button>
                       <span className="w-6 h-6 flex items-center justify-center shrink-0">
-                        <RequerimientoBadge factura={f} variant="inline" />
+                        <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
                       </span>
                     </div>
                   </div>
@@ -552,7 +553,7 @@ export default function EpFacturacion() {
                 </div>
               )}
               <InfiniteScrollSentinel sentinelRef={sentinelCTRef} loading={loadingCT} hasMore={hasMoreCT} />
-            </div>
+            </>
           ) : (
             <>
               {/* Header PR */}
@@ -625,6 +626,7 @@ export default function EpFacturacion() {
           )}
         </div>
       </div>
+
 
       {/* â”€â”€ Modal: Nueva / Editar factura al Contratante â”€â”€ */}
       {ctModal.open && (
