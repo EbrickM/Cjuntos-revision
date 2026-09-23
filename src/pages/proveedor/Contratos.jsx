@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Search, ChevronRight, MessageSquare, Save,
+  LayoutGrid, CheckCircle, AlertCircle, Clock, Settings2, MessageCircle,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -15,6 +16,16 @@ import { TEXT4, fmt, provState, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
 import { useCountUp } from '../../hooks/useCountUp';
+
+const TAB_ICON = {
+  'Todos':                       LayoutGrid,
+  'Activo':                      CheckCircle,
+  'Con Requerimientos':          AlertCircle,
+  'Pendiente de Revisión':       Clock,
+  'Pendiente de Configuración':  Settings2,
+  'En Discusión de Términos':    MessageCircle,
+  'Borradores':                  Save,
+};
 
 // ── Sub-component: Contract Card ──────────────────────────────────────────────
 function ContractCard({ c, idx, go, setReqModal }) {
@@ -139,17 +150,20 @@ export default function ProvContratos() {
           <div className="flex items-center gap-3">
             <div className="overflow-x-auto pb-0.5 flex-1">
               <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
-                {TABS.map(t => (
-                  <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
-                      ${tab === t ? 'bg-orange shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
-                  >
-                    {t === 'Borradores' && <Save className="w-3.5 h-3.5 shrink-0" />}
-                    {t}
-                  </button>
-                ))}
+                {TABS.map(t => {
+                  const Icon = TAB_ICON[t] ?? LayoutGrid;
+                  return (
+                    <button
+                      key={t}
+                      onClick={() => setTab(t)}
+                      className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                        ${tab === t ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {t}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div className="relative shrink-0">
