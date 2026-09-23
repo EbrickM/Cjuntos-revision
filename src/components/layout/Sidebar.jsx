@@ -21,7 +21,7 @@ const NAV = {
     { id: 'epProveedores',   Icon: Users,      lbl: 'Mis Proveedores' },
     { id: 'epFacturacion',   Icon: Receipt,    lbl: 'Mis Facturas',   badge: '2' },
     { id: 'epSolicitudes',   Icon: Clock,      lbl: 'Solicitudes',    badge: '3' },
-    { id: 'epESG',           Icon: Leaf,       lbl: 'Huella Verde' },
+    { id: 'epESG',           Icon: Leaf,       lbl: 'Impacto' },
     { id: 'epPerfil',        Icon: User,       lbl: 'Mi Perfil' },
   ],
   contratante: [
