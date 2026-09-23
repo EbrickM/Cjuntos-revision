@@ -110,11 +110,11 @@ const EMPLEOS_TOTAL = 820;
 const INV_SOCIAL    = 180_000_000;
 
 const proyectos = [
-  { nombre: 'Parque Solar Malabo I',   estado: 'En ejecución', fin: 'XAF 120M' },
-  { nombre: 'Reforestación Costa GE',  estado: 'En ejecución', fin: 'XAF 85M'  },
-  { nombre: 'Biogás Residuos Bata',    estado: 'Planificado',  fin: 'XAF 65M'  },
-  { nombre: 'Agro Sostenible Norte',   estado: 'En ejecución', fin: 'XAF 42M'  },
-  { nombre: 'Huella Cero 2027',        estado: 'Planificado',  fin: 'XAF 200M' },
+  { nombre: 'Parque Solar Malabo I',   estado: 'En ejecución', fin: 120_000_000 },
+  { nombre: 'Reforestación Costa GE',  estado: 'En ejecución', fin: 85_000_000  },
+  { nombre: 'Biogás Residuos Bata',    estado: 'Planificado',  fin: 65_000_000  },
+  { nombre: 'Agro Sostenible Norte',   estado: 'En ejecución', fin: 42_000_000  },
+  { nombre: 'Huella Cero 2027',        estado: 'Planificado',  fin: 200_000_000 },
 ];
 
 const iniciativasSociales = [
@@ -599,7 +599,7 @@ export default function EmpDash() {
                         <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
                           <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{p.nombre}</td>
                           <td className="px-3 py-2.5 text-center whitespace-nowrap"><Badge variant={estadoBadge(p.estado)}>{p.estado}</Badge></td>
-                          <td className="px-3 py-2.5 text-right text-[11px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                          <td className="px-3 py-2.5 text-right text-[11px] font-bold text-text-1 whitespace-nowrap">{fmtXAF(p.fin)}</td>
                         </tr>
                       ))}
                     </tbody>
