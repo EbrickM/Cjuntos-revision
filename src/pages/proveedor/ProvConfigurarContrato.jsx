@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Landmark, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil,
-  Trash2, CheckCircle2,
+  Trash2, CheckCircle2, FileText, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import Toast from '../../components/ui/Toast';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { montoDisponibleProveedores, suministradores as directorioSuministradores, fmt } from './provData';
 import { contratoService } from '../../services/contrato.service';
-import { BANCO_FONDEADORES } from '../../lib/bancos';
+import { obtenerBorrador, guardarBorrador, eliminarBorrador } from '../../lib/borradores';
 
 // ── CONFIGURAR CONTRATO (Subproceso 3 del BPMN: el Proveedor reparte el
 // monto que le asignó la PYME entre sus propios Suministradores) ────────────
@@ -22,10 +23,17 @@ const PREFIJO_TEL = '+240';
 
 const SUMINISTRADOR_EMPTY = {
   open: false, editId: null, sumSel: '', suministradorLibre: '',
-  email: '', telefono: '', monto: '', cargaNomina: false,
+  email: '', telefono: '', monto: '', nominaDoc: '',
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (3.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
 
 function WizardHeader({ contrato, step, onExit }) {
   return (
@@ -63,27 +71,23 @@ export default function ProvConfigurarContrato() {
   const contrato = contratoService.obtener(opts?.contratoId)
     ?? contratoService.listarPendientes('proveedor')[0]
     ?? contratoService.listarPorVista('proveedor')[0]
-    ?? null;
+?? null;
+  const borrador = contrato ? obtenerBorrador('proveedor', contrato.id) : null;
 
-  const [step, setStep]                 = useState(0);
-  const [cuentaTipo, setCuentaTipo]     = useState(contrato?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaBanco, setCuentaBanco]   = useState(contrato?.cuentaBancaria?.numero ?? '');
-  const [suministradores, setSuministradores] = useState(contrato?.suministradoresAsignados ?? []);
+  useEffect(() => {
+    if (!contrato) go('provContratos');
+  }, [contrato, go]);
+
+  const [step, setStep]                 = useState(borrador?.paso ?? 0);
+const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? contrato?.cuentaBancaria?.tipo ?? 'bonafide');
+  const [suministradores, setSuministradores] = useState(borrador?.datos?.suministradores ?? contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
-  const [confirmado, setConfirmado]     = useState(false);
+  const [confirmado, setConfirmado]     = useState(borrador?.datos?.confirmado ?? false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
+  const [toast, setToast]               = useState(null);
   const [enviado, setEnviado]           = useState(false);
 
-  if (!contrato) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('provDash')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver al inicio
-        </Button>
-      </div>
-    );
-  }
+  if (!contrato) return null;
 
   const totalAsignado    = suministradores.reduce((s, x) => s + x.monto, 0);
   const disponibleGlobal = contrato.montoAsignado - totalAsignado;
@@ -120,7 +124,7 @@ export default function ProvConfigurarContrato() {
       sumSel: enDirectorio ? s.nombre : '__nueva__',
       suministradorLibre: enDirectorio ? '' : s.nombre,
       email: s.email, telefono: (s.telefono ?? '').replace(/^\+?\s*240\s*/, ''),
-      monto: String(s.monto), cargaNomina: s.cargaNomina,
+      monto: String(s.monto), nominaDoc: s.nominaDoc ?? '',
     });
   };
 
@@ -132,7 +136,7 @@ export default function ProvConfigurarContrato() {
       id: modal.editId ?? `SUM-${Date.now()}`,
       nombre: suministradorNombreResuelto, email: modal.email.trim(),
       telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
-      monto: montoNumLive, cargaNomina: modal.cargaNomina,
+      monto: montoNumLive, cargaNomina: !!modal.nominaDoc, nominaDoc: modal.nominaDoc || null,
     };
     setSuministradores(prev => modal.editId ? prev.map(s => s.id === modal.editId ? nuevo : s) : [...prev, nuevo]);
     setModal(SUMINISTRADOR_EMPTY);
@@ -141,6 +145,16 @@ export default function ProvConfigurarContrato() {
   const handleBack = () => setStep(s => Math.max(s - 1, 0));
   const handleNext = () => setStep(s => Math.min(s + 1, 2));
 
+  const handleGuardarBorrador = () => {
+    guardarBorrador({
+      rol: 'proveedor',
+      contratoId: contrato.id,
+      paso: step,
+      datos: { cuentaTipo, suministradores, confirmado },
+    });
+    setToast({ type: 'success', message: `Borrador del contrato ${contrato.id} guardado. Quedaste en el paso ${step + 1} de ${STEPS.length}.` });
+  };
+
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
@@ -148,16 +162,15 @@ export default function ProvConfigurarContrato() {
       contratoService.configurar(contrato.id, {
         cuentaBancaria: cuentaTipo === 'bonafide'
           ? { tipo: 'bonafide', numero: null }
-          : { tipo: 'banco', numero: cuentaBanco },
+          : { tipo: 'banco', numero: null },
         suministradoresAsignados: suministradores,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
+    eliminarBorrador('proveedor', contrato.id);
     setEnviado(true);
   };
 
-  const siguienteDeshabilitado =
-    (step === 0 && cuentaTipo === 'banco' && !cuentaBanco) ||
-    (step === 1 && suministradores.length === 0);
+  const siguienteDeshabilitado = step === 1 && suministradores.length === 0;
 
   // ── Pantalla de éxito ──
   if (enviado) {
@@ -204,17 +217,9 @@ export default function ProvConfigurarContrato() {
                   <input type="radio" name="cuenta" checked={cuentaTipo === 'banco'} onChange={() => setCuentaTipo('banco')} className="w-4 h-4 accent-orange shrink-0" />
                   <div>
                     <div className="text-[13px] font-semibold text-text-1">Cuenta en mi Banco</div>
-                    <div className="text-[12px] text-text-4">Selecciona tu banco para operar con tu cuenta.</div>
+                    <div className="text-[12px] text-text-4">Operarás este contrato desde tu cuenta en {contrato.bancoFondeador}.</div>
                   </div>
                 </label>
-                {cuentaTipo === 'banco' && (
-                  <FormGroup label="Banco" required className="mt-2 mb-0">
-                    <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
-                      <option value="">Seleccionar…</option>
-                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
-                    </Select>
-                  </FormGroup>
-                )}
               </div>
             </>
           )}
@@ -324,10 +329,15 @@ export default function ProvConfigurarContrato() {
         </div>
 
         {/* ── Navegación ── */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
-            <ArrowLeft className="w-4 h-4 mr-1" />Atrás
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
+              <ArrowLeft className="w-4 h-4 mr-1" />Atrás
+            </Button>
+            <Button variant="secondary" onClick={handleGuardarBorrador}>
+              <Save className="w-4 h-4 mr-1" />Guardar borrador
+            </Button>
+          </div>
           {step < 2 ? (
             <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
               Siguiente<ArrowRight className="w-4 h-4 ml-1" />
@@ -403,9 +413,9 @@ export default function ProvConfigurarContrato() {
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
                 inputMode="numeric"
-                value={modal.monto}
+                value={fmtMonto(modal.monto)}
                 onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                placeholder="Ej. 3000000"
+                placeholder="Ej. 3.000.000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>
@@ -415,13 +425,38 @@ export default function ProvConfigurarContrato() {
               </p>
             )}
 
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={modal.cargaNomina} onChange={e => setModal(m => ({ ...m, cargaNomina: e.target.checked }))} className="w-4 h-4 accent-orange cursor-pointer" />
-              <span className="text-[13px] text-text-2">También cargar nómina de este suministrador</span>
-            </label>
+            <FormGroup label="Nómina del suministrador (opcional)" className="mb-0">
+              {modal.nominaDoc ? (
+                <div className="border-2 border-solid border-green-border bg-green-bg rounded-[12px] p-5 text-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
+                  <div className="text-[12px] font-semibold text-green-text truncate">{modal.nominaDoc}</div>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, nominaDoc: '' }))} className="mt-2 text-[11px] text-red-text underline cursor-pointer">
+                    Quitar y elegir otro
+                  </button>
+                </div>
+              ) : (
+                <label className="block border-2 border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint rounded-[12px] p-5 text-center cursor-pointer transition-all">
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setModal(m => ({ ...m, nominaDoc: f.name }));
+                    }}
+                  />
+                  <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
+                  <div className="text-[13px] font-semibold text-text-1">Subir nómina del suministrador</div>
+                  <div className="text-[11px] text-text-4">PDF · JPG · PNG · máx 5MB</div>
+                </label>
+              )}
+            </FormGroup>
           </div>
         </Modal>
       )}
+
+      {/* ── Toast ── */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }

@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FileCheck, Wallet, Truck, ClipboardCheck, ArrowLeft, ArrowRight, Plus,
-  Pencil, Trash2, CheckCircle2, AlertTriangle,
+  Pencil, Trash2, CheckCircle2, AlertTriangle, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import Toast from '../../components/ui/Toast';
 import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
 import { montoDisponibleProveedores, fmt, initialProviders } from './epData';
 import { contratoService } from '../../services/contrato.service';
+import { obtenerBorrador, guardarBorrador, eliminarBorrador } from '../../lib/borradores';
 
 // ── CONFIGURAR CONTRATO (Subproceso 2 del BPMN: la PYME acepta los términos,
 // decide cómo gestiona sus fondos y reparte el monto asignado entre sus
@@ -19,10 +21,17 @@ const STEPS = ['Términos', 'Gestión de Fondos', 'Proveedores', 'Simulación'];
 
 const PROVEEDOR_EMPTY = {
   open: false, editId: null, provSel: '', proveedorNombreLibre: '',
-  email: '', telefono: '', monto: '', cargaNomina: false,
+  email: '', telefono: '', monto: '',
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (5.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
 
 // Ventana especializada: sin Sidebar ni Topbar del portal (mismo criterio que
 // EmpConfigurarContrato.jsx del lado Contratante) — la PYME queda enfocada
@@ -61,27 +70,24 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 export default function EpConfigurarContrato() {
   const { go, opts } = useApp();
   const contrato = contratoService.obtener(opts?.contratoId) ?? contratoService.listarPendientes('pyme')[0] ?? null;
+  const borrador = contrato ? obtenerBorrador('pyme', contrato.id) : null;
+
+  useEffect(() => {
+    if (!contrato) go('epCreditos');
+  }, [contrato, go]);
 
   const [modo, setModo]                 = useState('wizard'); // 'wizard' | 'rechazado' | 'enviado'
-  const [step, setStep]                 = useState(0);
+  const [step, setStep]                 = useState(borrador?.paso ?? 0);
   const [mostrarRechazo, setMostrarRechazo] = useState(false);
   const [comentarioRechazo, setComentarioRechazo] = useState('');
-  const [gestionFondos, setGestionFondos] = useState(contrato?.gestionFondos ?? null);
-  const [proveedores, setProveedores]   = useState(contrato?.proveedoresAsignados ?? []);
+  const [gestionFondos, setGestionFondos] = useState(borrador?.datos?.gestionFondos ?? contrato?.gestionFondos ?? null);
+  const [proveedores, setProveedores]   = useState(borrador?.datos?.proveedores ?? contrato?.proveedoresAsignados ?? []);
   const [modal, setModal]               = useState(PROVEEDOR_EMPTY);
-  const [confirmado, setConfirmado]     = useState(false);
+  const [confirmado, setConfirmado]     = useState(borrador?.datos?.confirmado ?? false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
+  const [toast, setToast]               = useState(null);
 
-  if (!contrato) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('epCreditos')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver a Mis Contratos
-        </Button>
-      </div>
-    );
-  }
+  if (!contrato) return null;
 
   const totalAsignado    = proveedores.reduce((s, p) => s + p.monto, 0);
   const disponibleGlobal = contrato.montoAsignado - totalAsignado;
@@ -111,7 +117,7 @@ export default function EpConfigurarContrato() {
       provSel: enDirectorio ? p.nombre : '__nueva__',
       proveedorNombreLibre: enDirectorio ? '' : p.nombre,
       email: p.email, telefono: p.telefono,
-      monto: String(p.monto), cargaNomina: p.cargaNomina,
+      monto: String(p.monto),
     });
   };
 
@@ -122,7 +128,7 @@ export default function EpConfigurarContrato() {
     const nuevo = {
       id: modal.editId ?? `PROV-${Date.now()}`,
       nombre: proveedorNombreResuelto, email: modal.email.trim(), telefono: modal.telefono.trim(),
-      monto: montoNumLive, cargaNomina: modal.cargaNomina,
+      monto: montoNumLive,
     };
     setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
     setModal(PROVEEDOR_EMPTY);
@@ -141,18 +147,27 @@ export default function EpConfigurarContrato() {
   const handleBack = () => setStep(s => Math.max(s - 1, 1));
   const handleNext = () => setStep(s => Math.min(s + 1, 3));
 
+  const handleGuardarBorrador = () => {
+    guardarBorrador({
+      rol: 'pyme',
+      contratoId: contrato.id,
+      paso: step,
+      datos: { gestionFondos, proveedores, confirmado },
+    });
+    setToast({ type: 'success', message: `Borrador del contrato ${contrato.id} guardado. Quedaste en el paso ${step + 1} de ${STEPS.length}.` });
+  };
+
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
     try {
       contratoService.configurar(contrato.id, { gestionFondos, proveedoresAsignados: proveedores });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
+    eliminarBorrador('pyme', contrato.id);
     setModo('enviado');
   };
 
-  const siguienteDeshabilitado =
-    (step === 1 && !gestionFondos) ||
-    (step === 2 && proveedores.length === 0);
+  const siguienteDeshabilitado = step === 1 && !gestionFondos;
 
   // ── Pantalla: términos rechazados ──
   if (modo === 'rechazado') {
@@ -324,7 +339,7 @@ export default function EpConfigurarContrato() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-bold text-text-1 truncate">{p.nombre}</div>
-                      <div className="text-[11px] text-text-4 truncate">{p.email}{p.cargaNomina ? ' · Con nómina' : ''}</div>
+                      <div className="text-[11px] text-text-4 truncate">{p.email}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-[13px] sm:text-[14px] font-extrabold text-text-1">{fmt(p.monto)} XAF</div>
@@ -399,23 +414,29 @@ export default function EpConfigurarContrato() {
           )}
         </div>
 
-        {/* ── Navegación (no aplica al Paso 1, que tiene sus propias acciones) ── */}
-        {step > 0 && (
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={handleBack} disabled={step === 1}>
-              <ArrowLeft className="w-4 h-4 mr-1" />Atrás
-            </Button>
-            {step < 3 ? (
-              <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
-                Siguiente<ArrowRight className="w-4 h-4 ml-1" />
-              </Button>
-            ) : (
-              <Button variant="primary" onClick={handleEnviarClick}>
-                Enviar a revisión<CheckCircle2 className="w-4 h-4 ml-1" />
+        {/* ── Navegación (el Paso 1 tiene sus propias acciones; Guardar
+             borrador está disponible en todos los pasos) ── */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            {step > 0 && (
+              <Button variant="ghost" onClick={handleBack} disabled={step === 1}>
+                <ArrowLeft className="w-4 h-4 mr-1" />Atrás
               </Button>
             )}
+            <Button variant="secondary" onClick={handleGuardarBorrador}>
+              <Save className="w-4 h-4 mr-1" />Guardar borrador
+            </Button>
           </div>
-        )}
+          {step > 0 && (step < 3 ? (
+            <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
+              Siguiente<ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          ) : (
+            <Button variant="primary" onClick={handleEnviarClick} disabled={!confirmado}>
+              Enviar a revisión<CheckCircle2 className="w-4 h-4 ml-1" />
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* ── Modal: agregar/editar proveedor ── */}
@@ -477,9 +498,9 @@ export default function EpConfigurarContrato() {
             <FormGroup label="Presupuesto / Factura (XAF)" required>
               <Input
                 inputMode="numeric"
-                value={modal.monto}
+                value={fmtMonto(modal.monto)}
                 onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                placeholder="Ej. 5000000"
+                placeholder="Ej. 5.000.000"
                 className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
               />
             </FormGroup>
@@ -488,14 +509,12 @@ export default function EpConfigurarContrato() {
                 {montoNumLive <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleParaModal)} XAF).`}
               </p>
             )}
-
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={modal.cargaNomina} onChange={e => setModal(m => ({ ...m, cargaNomina: e.target.checked }))} className="w-4 h-4 accent-orange cursor-pointer" />
-              <span className="text-[13px] text-text-2">También cargar nómina de este proveedor</span>
-            </label>
           </div>
         </Modal>
       )}
+
+      {/* ── Toast ── */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   );
 }

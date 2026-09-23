@@ -35,6 +35,30 @@ import RequerirButton from "../../components/invoices/RequerirButton";
 import AprobarButton from "../../components/invoices/AprobarButton";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import {
+  Building2, Upload, Paperclip, Search, Send, BadgeCheck, Check, Wallet as WalletIcon, X, ChevronDown, ListFilter,
+} from 'lucide-react';
+import { localDb } from '../../lib/localDb';
+import AppShell from '../../components/layout/AppShell';
+import { useApp } from '../../state/AppContext';
+import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
+import { StatCard } from '../../components/common/StatCard';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
+import Badge from '../../components/ui/Badge';
+import InfoRow from '../../components/ui/InfoRow';
+import FormGroup, { Input, Select, Textarea } from '../../components/ui/FormGroup';
+import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
+import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import RequerirButton from '../../components/invoices/RequerirButton';
+import AprobarButton from '../../components/invoices/AprobarButton';
+import InvoiceCardConPago from '../../components/invoices/InvoiceCardConPago';
+import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
+import { formatXaf, defaultVencimiento } from '../../components/invoices/facturaUtils';
+import { SELECT_ARROW } from '../../components/ui/selectArrow';
+import { facturaService } from '../../services/factura.service';
+import { contratoService } from '../../services/contrato.service';
+import { INV, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
   formatXaf,
   defaultVencimiento,
 } from "../../components/invoices/facturaUtils";
@@ -243,7 +267,21 @@ export default function EpFacturacion() {
     setInvoicesPr(next);
   };
 
-  // â”€â”€ CT handlers (mediante factura.service sobre localDb) â”€â”€
+  // ── CT handlers (mediante factura.service sobre localDb) ──
+  // "Refacturar": abre el modal de nueva factura precargado con los datos de la
+  // factura con requerimiento; al enviar se limpia el requerimiento y pasa a
+  // Emitida (facturaService.refacturar).
+  const abrirRefactura = (f) => setCtModal({
+    open: true,
+    editId: f.id,
+    refacturando: true,
+    contratoId: f.contrato,
+    monto: String(f.monto ?? ''),
+    concepto: f.concepto ?? '',
+    fechaVencimiento: f.fechaVencimiento ?? defaultVencimiento(),
+    documento: f.documentos?.[0] ?? null,
+  });
+
   const handleSaveCt = () => {
     const monto =
       Number(ctModal.monto.replace?.(/[^0-9]/g, "") ?? ctModal.monto) || 0;
@@ -252,14 +290,16 @@ export default function EpFacturacion() {
       .listarFactoring()
       .find((c) => c.id === ctModal.contratoId);
     if (contrato?.montoMax && monto > contrato.montoMax) return;
-    if (ctModal.editId) {
+    if (ctModal.refacturando) {
+      const patch = {
+        monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
+      };
+      if (ctModal.documento) patch.documentos = [{ name: ctModal.documento.name, url: ctModal.documento.url }];
+      facturaService.refacturar(ctModal.editId, patch);
+    } else if (ctModal.editId) {
       facturaService.corregirYReenviar(ctModal.editId, {
-        monto,
-        concepto: ctModal.concepto,
-        fechaVencimiento: ctModal.fechaVencimiento,
-        documentos: ctModal.documento
-          ? [{ name: ctModal.documento.name, url: ctModal.documento.url }]
-          : undefined,
+        monto, concepto: ctModal.concepto, fechaVencimiento: ctModal.fechaVencimiento,
+        documentos: ctModal.documento ? [{ name: ctModal.documento.name, url: ctModal.documento.url }] : undefined,
       });
     } else {
       facturaService.crear({
@@ -463,30 +503,45 @@ export default function EpFacturacion() {
           </div>
         </div>
 
-        {/* Tabla de facturas */}
-        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-          {vista === "contratante" ? (
-            <>
-              {/* Header CT */}
-              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Contratante</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-              </div>
-              {pagedCT.map((f) => {
+          {/* Cards de facturas */}
+          <div className="rounded-[14px] px-5 pt-2 pb-5">
+          {vista === 'contratante' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
+              {pagedCT.map((f, idx) => {
+                const accion = ctAction(f);
+                const hasAction = !!accion;
+                const pagoParcial = Number(f.pagosAcumulados || 0) > 0 && Number(f.pagosAcumulados || 0) < Number(f.monto || 0);
+                if (pagoParcial) {
+                  return (
+                    <InvoiceCardConPago
+                      key={f.id}
+                      factura={f}
+                      onClick={() => setDetalle(f)}
+                      entidad={f.contratante}
+                      concepto={f.contrato}
+                      className="card-enter"
+                      style={{ animationDelay: `${(idx % 8) * 60}ms` }}
+                    />
+                  );
+                }
                 return (
                   <div
                     key={f.id}
                     onClick={() => setDetalle(f)}
                     className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
-                    {/* ID */}
-                    <div>
-                      <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
-                      <div className="text-[11px] text-text-5">{f.fecha}</div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
+                        <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
+                        <RequerimientoBadge
+                          factura={f}
+                          cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }}
+                        />
+                      </div>
                     </div>
                     {/* Contratante */}
                     <div>

@@ -5,6 +5,17 @@ import {
   refreshAdminSession as apiRefreshAdminSession,
   logoutAdmin as apiLogoutAdmin,
 } from '../lib/authApi';
+import { localDb } from '../lib/localDb';
+
+// Cada inicio de sesión re-siembra el store mock de contratos: así los tres
+// portales (Contratante, PYME, Proveedor) vuelven a ofrecer su contrato
+// "Pendiente de Configuración" con la opción de configurarlo en el Topbar.
+// Son sesiones aparte y no comparten estado: dentro de una misma sesión,
+// configurar un portal solo consume ese portal; los otros dos se mantienen.
+const CONTRATOS_DEMO_KEY = 'contratos';
+function resetContratosDemo() {
+  localDb.reset(CONTRATOS_DEMO_KEY);
+}
 
 // Admin sessions carry their own token, issued by the separate `/auth/admin/*`
 // flow — kept fully apart from the client `session` rather than reusing the
@@ -23,20 +34,24 @@ export const useAuthStore = create()(
             ? { authorized }
             : { authorized: false, isAdmin: false, session: null, adminSession: null }
         ),
-      setSession: ({ accessToken, refreshToken, expiresIn, user }) =>
-        set({
+      setSession: ({ accessToken, refreshToken, expiresIn, user }) => {
+        resetContratosDemo();
+        return set({
           authorized: true,
           isAdmin: false,
           session: { accessToken, refreshToken, expiresAt: Date.now() + expiresIn * 1000, user },
           adminSession: null,
-        }),
-      setAdminSession: ({ accessToken, refreshToken, expiresIn, admin }) =>
-        set({
+        });
+      },
+      setAdminSession: ({ accessToken, refreshToken, expiresIn, admin }) => {
+        resetContratosDemo();
+        return set({
           authorized: true,
           isAdmin: true,
           adminSession: { accessToken, refreshToken, expiresAt: Date.now() + expiresIn * 1000, admin },
           session: null,
-        }),
+        });
+      },
       // Same shape as a fresh login response, but from a token refresh —
       // unlike setSession/setAdminSession, must not reset the rest of the
       // session already in progress.

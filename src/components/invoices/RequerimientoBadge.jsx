@@ -45,14 +45,28 @@ export default function RequerimientoBadge({ factura, variant = 'card', cta }) {
                 <p className="text-[11px] mt-2" style={{ color: '#A9A6A1' }}>Reportado el {req.fecha}</p>
               </div>
             </div>
-            <Button
-              variant="primary"
-              full
-              className="h-[46px] justify-center"
-              onClick={() => { setOpen(false); cta?.onClick?.(); }}
-            >
-              {cta?.label ?? 'Cerrar'}
-            </Button>
+            {cta ? (
+              <div className="flex gap-2">
+                <Button variant="ghost" full onClick={() => setOpen(false)}>Cerrar</Button>
+                <Button
+                  variant="primary"
+                  full
+                  className="h-[46px] justify-center"
+                  onClick={() => { setOpen(false); cta?.onClick?.(); }}
+                >
+                  {cta?.label ?? 'Continuar'}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="primary"
+                full
+                className="h-[46px] justify-center"
+                onClick={() => setOpen(false)}
+              >
+                Cerrar
+              </Button>
+            )}
           </div>
         </Modal>,
         document.body

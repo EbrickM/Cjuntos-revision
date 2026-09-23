@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Truck,
-  Receipt, ListFilter, Zap, X, Eye, Landmark,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -14,7 +14,8 @@ import { facturaService } from '../../services/factura.service';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './provShared';
 import { ORA, GREEN, TEXT4, fmt, facturas, suministradores, facturaBadge, scoreColor, kycBadge, provState } from './provData';
 import { contratoService } from '../../services/contrato.service';
-import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
+import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -27,6 +28,7 @@ const TABS_DETALLE = [
   { id: 'contrato',        lbl: 'Contrato',        Icon: FileText, iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'suministradores', lbl: 'Suministradores', Icon: Truck,    iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'facturas',        lbl: 'Facturas',        Icon: Receipt,  iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'registros',       lbl: 'Registros',       Icon: History,  iconBg: '#FFF3E0', iconColor: ORA },
 ];
 
 export default function ProvContratoDetalle() {
@@ -228,7 +230,7 @@ export default function ProvContratoDetalle() {
                   </div>
                   <span className="text-[12px] font-mono text-center" style={{ color: TEXT4 }}>{c.id}</span>
                   <div className="flex justify-center">
-                    <Badge variant={kycBadge(s.kyc)}>{s.kyc}</Badge>
+<Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge>
                   </div>
                   <div className="flex justify-center">
                     <div className="text-center">
@@ -258,6 +260,48 @@ export default function ProvContratoDetalle() {
                   Aún no se registraron suministradores.
                 </div>
               )}
+            </div>
+
+            {/* Desktop: tabla (mismo patrón que la tabla de PYMEs en Mis Contratos del Contratante) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead className="bg-page-bg">
+                  <tr className="border-b border-border">
+                    {['Suministrador', 'Contrato', 'Estado', 'Score', 'Monto asignado', ''].map((h, i) => (
+                      <th key={h || 'accion'} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 4 ? 'text-right' : i === 5 ? 'text-center' : 'text-left'}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {misSuministradores.map(s => (
+                    <tr key={s.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                      <td className="px-4 py-3 text-[12px] font-medium text-text-1">{s.nombre}</td>
+                      <td className="px-4 py-3 text-[12px] font-mono" style={{ color: TEXT4 }}>{c.id}</td>
+                      <td className="px-4 py-3"><Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge></td>
+                      <td className="px-4 py-3">
+                        {s.scoreCredito != null ? (
+                          <span className="text-[12px] font-bold" style={{ color: scoreColor(s.scoreCredito) }}>{s.scoreCredito}</span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(s.monto)} XAF</td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => setSumDetalle(s)}
+                          title="Ver detalle del suministrador"
+                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {misSuministradores.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">Aún no se registraron suministradores.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
@@ -343,6 +387,11 @@ export default function ProvContratoDetalle() {
             </div>
           );
         })()}
+
+        {/* ── Tab: Registros ── */}
+        {tab === 'registros' && (
+          <RegistrosTabla registros={registrosContrato(c, facturasContrato)} />
+        )}
 
       </div>
 

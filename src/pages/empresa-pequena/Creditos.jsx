@@ -19,7 +19,7 @@ import {
   MessageSquare,
   Eye,
   Upload,
-  Paperclip,
+  Paperclip, History, Save,
 } from "lucide-react";
 import { useApp } from "../../state/AppContext";
 import AppShell from "../../components/layout/AppShell";
@@ -38,7 +38,10 @@ import FormGroup, {
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import { SELECT_ARROW } from "../../components/ui/selectArrow";
+import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from "../../services/contrato.service";
+import { registrosContrato } from '../../components/contratos/contratoUtils';
+import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 
 const formatXaf = (value) =>
   `${new Intl.NumberFormat("de-DE").format(Number(value) || 0)} XAF`;
@@ -205,41 +208,12 @@ const initialInvoices = [
 const initialPagos = [];
 
 const TABS = [
-  {
-    id: "contrato",
-    label: "Contrato",
-    Icon: ScrollText,
-    iconBg: "#FFF3E0",
-    iconColor: "#EF7A2C",
-  },
-  {
-    id: "contratante",
-    label: "Contratante",
-    Icon: Building2,
-    iconBg: "#FFF3E0",
-    iconColor: "#EF7A2C",
-  },
-  {
-    id: "proveedores",
-    label: "Proveedores",
-    Icon: Truck,
-    iconBg: "#FFF3E0",
-    iconColor: "#EF7A2C",
-  },
-  {
-    id: "facturas",
-    label: "Facturas",
-    Icon: Receipt,
-    iconBg: "#FFF3E0",
-    iconColor: "#EF7A2C",
-  },
-  {
-    id: "pagos",
-    label: "Pagos",
-    Icon: CreditCard,
-    iconBg: "#FFF3E0",
-    iconColor: "#EF7A2C",
-  },
+  { id: 'contrato',     label: 'Contrato',     Icon: ScrollText,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'contratante',  label: 'Contratante',  Icon: Building2,   iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'proveedores',  label: 'Proveedores', Icon: Truck,       iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'facturas',     label: 'Facturas',     Icon: Receipt,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'pagos',        label: 'Pagos',        Icon: CreditCard,  iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
+  { id: 'registros',    label: 'Registros',    Icon: History,     iconBg: '#FFF3E0', iconColor: '#EF7A2C' },
 ];
 
 // ── Sub-component: Contract Card ─────────────────────────────────────────────
@@ -317,16 +291,16 @@ export default function EpCreditos() {
   const { go } = useApp();
   const contracts = contratoService.listarPorVista("pyme");
   const providers = initialProviders;
-  const [detailId, setDetailId] = useState(null);
-  const [activeTab, setActiveTab] = useState("contrato");
-  const [invoices, setInvoices] = useState(initialInvoices);
-  const [pagos, setPagos] = useState(initialPagos);
-  const [search, setSearch] = useState("");
-  const [filtroEstado, setFiltroEstado] = useState("Todos");
-  const [facSubTab, setFacSubTab]   = useState("contratante");
-  const [invCtModal, setInvCtModal] = useState(INV_CT_EMPTY);
-  const [invPrModal, setInvPrModal] = useState(INV_PR_EMPTY);
-  const [pagoModal, setPagoModal] = useState(PAGO_MODAL_EMPTY);
+  const [detailId, setDetailId]                   = useState(null);
+  const [activeTab, setActiveTab]                 = useState('contrato');
+  const [invoices, setInvoices]                   = useState(initialInvoices);
+  const [pagos, setPagos]                         = useState(initialPagos);
+  const [search, setSearch]                       = useState('');
+  const [filtroEstado, setFiltroEstado]           = useState('Todos');
+  const [verBorradores, setVerBorradores]         = useState(false);
+  const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
+  const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
+  const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
   const [reqModal, setReqModal] = useState(null);
   const [provDetailModal, setProvDetailModal] = useState(null);
 
@@ -661,11 +635,25 @@ export default function EpCreditos() {
                     ))}
                   </select>
                 </div>
+                <Button
+                  variant={verBorradores ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setVerBorradores(v => !v)}
+                  className="shrink-0"
+                >
+                  <Save className="w-3.5 h-3.5" />Borradores
+                </Button>
               </div>
             </div>
 
-            {/* Grid de tarjetas */}
-            <div className="rounded-[14px] pt-2 pb-5">
+            {verBorradores ? (
+              <BorradoresSeccion
+                rol="pyme"
+                onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId })}
+              />
+            ) : (
+            /* Grid de tarjetas */
+            <div className="rounded-[14px] px-5 pt-2 pb-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {pagedContracts.map((contract, idx) => (
                   <CreditoContractCard
@@ -689,6 +677,7 @@ export default function EpCreditos() {
                 />
               </div>
             </div>
+            )}
           </div>
         ) : /* ── DETALLE ── */
         detailContract ? (
@@ -1022,35 +1011,40 @@ export default function EpCreditos() {
               })()}
 
             {/* ── TAB: Proveedores ── */}
-            {activeTab === "proveedores" &&
-              (() => {
-                const filas = detailContract.distribucion
-                  .map((item) => ({
-                    item,
-                    prov: providers.find((p) => p.id === item.providerId),
-                  }))
-                  .filter(({ prov }) => prov);
-                return (
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-[14px] font-bold text-text-1">Proveedores</div>
-                      <div className="text-[12px] text-text-4">Proveedores de este contrato y el monto que le corresponde a cada uno.</div>
-                    </div>
-                    <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-                      <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Sector</span>
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-                      </div>
-                      {filas.map(({ item, prov }) => (
-                        <div
-                          key={item.id}
-                          onClick={() => setProvDetailModal(prov)}
-                          className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                        >
+            {activeTab === 'proveedores' && (() => {
+              // Si la PYME ya repartió el contrato en el wizard (Subproceso 2
+              // del BPMN), se muestran sus proveedoresAsignados; si no, se cae
+              // a las asignaciones de `distribucion` con un proveedor real
+              // vinculado (los conceptos sin proveedor no pertenecen a esta
+              // vista de solo lectura).
+              const asignados = detailContract.proveedoresAsignados ?? [];
+              const filas = asignados.length > 0
+                ? asignados.map(p => {
+                    const dir = providers.find(x => x.razonSocial === p.nombre);
+                    return {
+                      item: {
+                        id: p.id, providerName: p.nombre,
+                        concepto: p.email || '', providerSector: p.cargaNomina ? 'Con nómina' : '',
+                        monto: p.monto, providerId: dir?.id ?? '',
+                      },
+                      prov: dir ?? { kyc: 'sin KYC' },
+                    };
+                  })
+                : detailContract.distribucion
+                    .map(item => ({ item, prov: providers.find(p => p.id === item.providerId) }))
+                    .filter(({ prov }) => prov);
+              return (
+              <div className="space-y-5">
+                <div className="bg-white rounded-[14px] border border-border p-5">
+                  <SectionHeader icon={Truck} iconBg="#FFF3E0" iconColor="#EF7A2C"
+                    title="Proveedores" subtitle="Proveedores de este contrato y el monto que le corresponde a cada uno."
+                  />
+
+                  {/* Móvil: cards */}
+                  <div className="sm:hidden space-y-2">
+                    {filas.map(({ item, prov }) => (
+                      <div key={item.id} className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="text-[13px] font-bold text-text-1 truncate">{item.providerName}</div>
                           </div>
@@ -1241,219 +1235,119 @@ export default function EpCreditos() {
               })()}
 
             {/* ── TAB: Pagos ── */}
-            {activeTab === "pagos" &&
-              (() => {
-                const contractPagos = pagos.filter(
-                  (p) => p.contrato === detailContract.id,
-                );
-                return (
-                  <div className="space-y-5">
-                    <div className="bg-white rounded-[14px] border border-border p-5">
-                      <SectionHeader
-                        icon={CreditCard}
-                        iconBg="#FFF3E0"
-                        iconColor="#EF7A2C"
-                        title="Pagos"
-                        subtitle="Registra pagos a proveedores. Pueden vincularse a una factura recibida o ser pagos directos."
-                        action={
-                          <div className="flex items-center">
-                            <div className="sm:hidden">
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() =>
-                                  setPagoModal({
-                                    ...PAGO_MODAL_EMPTY,
-                                    open: true,
-                                  })
-                                }
-                              >
-                                <Plus className="w-4 h-4" />
-                              </Button>
-                            </div>
-                            <div className="hidden sm:block">
-                              <Button
-                                variant="primary"
-                                onClick={() =>
-                                  setPagoModal({
-                                    ...PAGO_MODAL_EMPTY,
-                                    open: true,
-                                  })
-                                }
-                              >
-                                Nuevo Pago
-                              </Button>
-                            </div>
+            {activeTab === 'pagos' && (() => {
+              const contractPagos     = pagos.filter(p => p.contrato === detailContract.id);
+              return (
+                <div className="space-y-5">
+                  <div className="bg-white rounded-[14px] border border-border p-5">
+                    <SectionHeader icon={CreditCard} iconBg="#FFF3E0" iconColor="#EF7A2C"
+                      title="Pagos"
+                      subtitle="Registra pagos a proveedores. Pueden vincularse a una factura recibida o ser pagos directos."
+                      action={
+                        <div className="flex items-center">
+                          <div className="sm:hidden">
+                            <Button variant="primary" size="sm" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>
+                              <Plus className="w-4 h-4" />
+                            </Button>
                           </div>
-                        }
-                      />
-                      <div className="space-y-3">
-                        {contractPagos.map((p) => {
-                          const linkedInv = p.facturaProvId
-                            ? invoices.find((inv) => inv.id === p.facturaProvId)
-                            : null;
-                          return (
-                            <div
-                              key={p.id}
-                              className="bg-white rounded-[16px] p-4 border border-border transition-all duration-200 cursor-default"
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.boxShadow =
-                                  "0 8px 32px rgba(46,125,91,0.12)";
-                                e.currentTarget.style.borderColor = "#A8D5BE";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.boxShadow = "";
-                                e.currentTarget.style.borderColor = "#ECEAE7";
-                              }}
-                            >
-                              {/* Mobile */}
-                              <div className="sm:hidden">
-                                <div className="flex items-center gap-2.5 mb-2">
-                                  <div className="bona-gradient-bg w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0">
-                                    <CreditCard className="w-4 h-4 text-white" />
-                                  </div>
-                                  <span className="text-[13px] font-bold text-text-1 truncate">
-                                    {p.id}
-                                  </span>
-                                  <span
-                                    className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
-                                    style={{
-                                      background: "#FFF3E0",
-                                      color: "#EF7A2C",
-                                    }}
-                                  >
-                                    {p.estado}
-                                  </span>
-                                  {p.documento && (
-                                    <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0">
-                                      <Paperclip className="w-3 h-3" /> Doc
-                                    </span>
-                                  )}
+                          <div className="hidden sm:block">
+                            <Button variant="primary" onClick={() => setPagoModal({ ...PAGO_MODAL_EMPTY, open: true })}>Nuevo Pago</Button>
+                          </div>
+                        </div>
+                      }
+                    />
+                    <div className="space-y-3">
+                      {contractPagos.map(p => {
+                        const linkedInv = p.facturaProvId ? invoices.find(inv => inv.id === p.facturaProvId) : null;
+                        return (
+                          <div key={p.id}
+                            className="bg-white rounded-[16px] p-4 border border-border transition-all duration-200 cursor-default"
+                            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 32px rgba(46,125,91,0.12)'; e.currentTarget.style.borderColor = '#A8D5BE'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = '#ECEAE7'; }}
+                          >
+                            {/* Mobile */}
+                            <div className="sm:hidden">
+                              <div className="flex items-center gap-2.5 mb-2">
+                                <div className="w-9 h-9 rounded-[11px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                                  <CreditCard className="w-4 h-4" style={{ color: '#EF7A2C' }} />
                                 </div>
-                                <div className="text-[12px] text-text-3 truncate mb-1">
-                                  {p.concepto}
+                                <span className="text-[13px] font-bold text-text-1 truncate">{p.id}</span>
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
+                                {p.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4 shrink-0"><Paperclip className="w-3 h-3" /> Doc</span>}
+                              </div>
+                              <div className="text-[12px] text-text-3 truncate mb-1">{p.concepto}</div>
+                              {linkedInv ? (
+                                <div className="flex items-center gap-1 text-[11px] text-text-5 mb-1">
+                                  <Receipt className="w-3 h-3 shrink-0" /> {linkedInv.id} · {linkedInv.proveedorNombre}
                                 </div>
+                              ) : p.proveedorNombre ? (
+                                <div className="text-[11px] text-text-5 mb-1">{p.proveedorNombre}</div>
+                              ) : (
+                                <div className="text-[11px] text-text-5 mb-1">Pago directo sin factura vinculada</div>
+                              )}
+                              <div className="flex items-center justify-between pt-2.5 border-t border-border">
+                                <div>
+                                  <div className="text-[14px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Desktop */}
+                            <div className="hidden sm:flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0" style={{ background: '#FFF3E0' }}>
+                                <CreditCard className="w-5 h-5" style={{ color: '#EF7A2C' }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="text-[13px] font-bold text-text-1">{p.id}</span>
+                                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: '#E3F4EA', color: '#2E7D5B' }}>{p.estado}</span>
+                                  {p.documento && <span className="flex items-center gap-0.5 text-[10px] text-text-4"><Paperclip className="w-3 h-3" /> Doc</span>}
+                                </div>
+                                <div className="text-[12px] text-text-3 truncate">{p.concepto}</div>
                                 {linkedInv ? (
-                                  <div className="flex items-center gap-1 text-[11px] text-text-5 mb-1">
-                                    <Receipt className="w-3 h-3 shrink-0" />{" "}
-                                    {linkedInv.id} · {linkedInv.proveedorNombre}
+                                  <div className="flex items-center gap-1 text-[11px] text-text-5 mt-0.5">
+                                    <Receipt className="w-3 h-3 shrink-0" /> {linkedInv.id} · {linkedInv.proveedorNombre}
                                   </div>
                                 ) : p.proveedorNombre ? (
-                                  <div className="text-[11px] text-text-5 mb-1">
-                                    {p.proveedorNombre}
-                                  </div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.proveedorNombre}</div>
                                 ) : (
-                                  <div className="text-[11px] text-text-5 mb-1">
-                                    Pago directo sin factura vinculada
-                                  </div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">Pago directo sin factura vinculada</div>
                                 )}
-                                <div className="flex items-center justify-between pt-2.5 border-t border-border">
-                                  <div>
-                                    <div className="text-[14px] font-extrabold text-text-1">
-                                      {formatXaf(p.monto)}
-                                    </div>
-                                    <div className="text-[11px] text-text-5 mt-0.5">
-                                      {p.fecha}
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() => handleOpenEditPago(p)}
-                                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeletePago(p.id)}
-                                      className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                </div>
                               </div>
-                              {/* Desktop */}
-                              <div className="hidden sm:flex items-center gap-4">
-                                <div className="bona-gradient-bg w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0">
-                                  <CreditCard className="w-5 h-5 text-white" />
+                              <div className="shrink-0 flex items-center gap-3">
+                                <div className="text-right">
+                                  <div className="text-[15px] font-extrabold text-text-1">{formatXaf(p.monto)}</div>
+                                  <div className="text-[11px] text-text-5 mt-0.5">{p.fecha}</div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-0.5">
-                                    <span className="text-[13px] font-bold text-text-1">
-                                      {p.id}
-                                    </span>
-                                    <span
-                                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                                      style={{
-                                        background: "#E3F4EA",
-                                        color: "#2E7D5B",
-                                      }}
-                                    >
-                                      {p.estado}
-                                    </span>
-                                    {p.documento && (
-                                      <span className="flex items-center gap-0.5 text-[10px] text-text-4">
-                                        <Paperclip className="w-3 h-3" /> Doc
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="text-[12px] text-text-3 truncate">
-                                    {p.concepto}
-                                  </div>
-                                  {linkedInv ? (
-                                    <div className="flex items-center gap-1 text-[11px] text-text-5 mt-0.5">
-                                      <Receipt className="w-3 h-3 shrink-0" />{" "}
-                                      {linkedInv.id} ·{" "}
-                                      {linkedInv.proveedorNombre}
-                                    </div>
-                                  ) : p.proveedorNombre ? (
-                                    <div className="text-[11px] text-text-5 mt-0.5">
-                                      {p.proveedorNombre}
-                                    </div>
-                                  ) : (
-                                    <div className="text-[11px] text-text-5 mt-0.5">
-                                      Pago directo sin factura vinculada
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="shrink-0 flex items-center gap-3">
-                                  <div className="text-right">
-                                    <div className="text-[15px] font-extrabold text-text-1">
-                                      {formatXaf(p.monto)}
-                                    </div>
-                                    <div className="text-[11px] text-text-5 mt-0.5">
-                                      {p.fecha}
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col gap-1 border-l border-border pl-3">
-                                    <button
-                                      onClick={() => handleOpenEditPago(p)}
-                                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
-                                    >
-                                      <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeletePago(p.id)}
-                                      className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
+                                <div className="flex flex-col gap-1 border-l border-border pl-3">
+                                  <button onClick={() => handleOpenEditPago(p)} className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"><Pencil className="w-3.5 h-3.5" /></button>
+                                  <button onClick={() => handleDeletePago(p.id)} className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"><Trash2 className="w-3.5 h-3.5" /></button>
                                 </div>
                               </div>
                             </div>
-                          );
-                        })}
-                        {contractPagos.length === 0 && (
-                          <div className="text-[12px] text-text-4 py-6 text-center">
-                            No hay pagos registrados para este contrato.
                           </div>
-                        )}
-                      </div>
+                        );
+                      })}
+                      {contractPagos.length === 0 && (
+                        <div className="text-[12px] text-text-4 py-6 text-center">No hay pagos registrados para este contrato.</div>
+                      )}
                     </div>
                   </div>
-                );
-              })()}
+                </div>
+              );
+            })()}
+
+            {/* ── TAB: Registros ── */}
+            {activeTab === 'registros' && (() => {
+              const contractInvoices = invoices.filter(inv => inv.contrato === detailContract.id);
+              return (
+                <RegistrosTabla registros={registrosContrato(detailContract, contractInvoices)} />
+              );
+            })()}
           </>
         ) : null}
       </div>

@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, ListFilter,
+  Search, ChevronRight, ListFilter, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import Button from '../../components/ui/Button';
 import { StatCard } from '../../components/common/StatCard';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
+import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from '../../services/contrato.service';
+import { CST } from '../../lib/contractStates';
 import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
 import { TEXT4, fmt, contratanteState, contratoBadge } from './contratanteData';
@@ -78,11 +81,13 @@ export default function EmpContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [verBorradores, setVerBorradores] = useState(false);
 
-  // Vista "Mis Contratos": asignaciones a PYMEs (los contratos-marco en
-  // pendiente viven en notificaciones / wizard, no en este listado).
+  // Vista "Mis Contratos": asignaciones a PYMEs + los contratos-marco que la
+  // Contratante ya configuró (los marcos aún pendientes de configuración viven
+  // en notificaciones / wizard, no en este listado).
   const contratos = contratoService.listarPorVista('contratante')
-    .filter(c => c.tipo !== 'marco')
+    .filter(c => c.tipo !== 'marco' || c.estado !== CST.pendienteConfiguracion)
     .map(aViewContrato);
 
   const totalAsignado   = contratos.reduce((a, c) => a + c.asignado,  0);
@@ -153,10 +158,24 @@ export default function EmpContratos() {
                 {ESTADOS.map(e => <option key={e}>{e}</option>)}
               </select>
             </div>
+            <Button
+              variant={verBorradores ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setVerBorradores(v => !v)}
+              className="shrink-0"
+            >
+              <Save className="w-3.5 h-3.5" />Borradores
+            </Button>
           </div>
         </div>
 
-        {/* Cards de contratos */}
+        {verBorradores ? (
+          <BorradoresSeccion
+            rol="contratante"
+            onContinuar={b => go('empConfigurarContrato', { marcoId: b.contratoId })}
+          />
+        ) : (
+
         <div className="rounded-[14px] pt-2 pb-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pagedContratos.map((c, idx) => (
@@ -170,6 +189,7 @@ export default function EmpContratos() {
           <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
         </div>
+        )}
 
       </div>
 

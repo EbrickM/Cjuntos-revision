@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -9,28 +9,164 @@ import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import InvoiceCard from '../../components/invoices/InvoiceCard';
+import RequerirButton from '../../components/invoices/RequerirButton';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
-import { aViewContrato } from '../../components/contratos/contratoUtils';
+import { facturaService } from '../../services/factura.service';
+import { INV, ESTADO_LABEL, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
+import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
+import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 import { ORA, GREEN, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
   : `Banco Fondeador · ${c.cuentaBancaria?.numero || '—'}`;
 
-const scoreLabel = (score) => {
-  if (!score) return 'Sin datos';
-  if (score >= 750) return 'Bajo';
-  if (score >= 600) return 'Moderado';
-  return 'Alto';
-};
+// Estados terminales del pipeline: ya no están "abiertas".
+const CERRADAS = new Set([INV.pagada, INV.billetera]);
+
+// Variante de Badge mixta: estados del pipeline (facturaService) resuelven con
+// el mapa unificado (invoiceStates); etiquetas heredadas del mock ("Recibida",
+// "Verificada") usan el mapa de la Contratante.
+const badgeDe = (e) => (ESTADO_LABEL[e] ? estadoBadge(e) : facturaBadge(e));
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
   { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'pyme',     lbl: 'Emp. Contratada', Icon: Users, iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'registros', lbl: 'Registros', Icon: History,   iconBg: '#FFF3E0', iconColor: ORA },
 ];
+
+// Estados en los que el bloque de pago no aplica: facturas con requerimientos
+// (no se paga una factura con deficiencias) o ya terminales de pago.
+const esPagoAplicable = (e) =>
+  e !== INV.conRequerimientos && e !== 'Con Requerimientos' &&
+  e !== INV.pagada && e !== INV.billetera &&
+  e !== 'Pagada' && e !== 'Saldo en Billetera';
+
+// ── Bloque: Completar pago de la factura (Contratante) ───────────────────────
+// Dos checkboxes: "Pagar al completo" (habilita Aceptar al instante) o "Pagar
+// un % de la factura" (despliega % y monto con validación cruzada: el % no
+// puede ser 0 ni >100, el monto no puede superar el de la factura, y el sistema
+// solo calcula el otro campo). El botón Aceptar queda deshabilitado hasta elegir
+// una modalidad válida; por ahora Aceptar cierra el modal. Si el pago es parcial
+// (no se paga la factura completa), la factura NO cambia de estado.
+function PagoFacturaBlock({ factura, onAceptar }) {
+  const [opcion, setOpcion]     = useState('');   // '' | 'total' | 'parcial'
+  const [pctStr, setPctStr]     = useState('');
+  const [montoStr, setMontoStr] = useState('');
+  const fmtMonto = (n) => new Intl.NumberFormat('de-DE').format(Number(n) || 0);
+  const total   = Number(factura?.monto) || 0;
+  const pctN    = Number(String(pctStr).replace(/[^0-9]/g, '')) || 0;
+  const montoN  = Number(String(montoStr).replace(/[^0-9]/g, '')) || 0;
+  const pctValido   = pctN > 0 && pctN <= 100;
+  const montoValido = montoN > 0 && montoN <= total;
+  const aceptable   = opcion === 'total' || (opcion === 'parcial' && pctValido && montoValido);
+  const montoEquivalente = Math.round(total * pctN / 100);
+  const deshabilitar = pctN === 0 && montoN === 0;
+
+  const onPctChange = (raw) => {
+    const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
+    setPctStr(String(n));
+    setMontoStr(total > 0 ? fmtMonto(Math.round(total * n / 100)) : '');
+  };
+  const onMontoChange = (raw) => {
+    const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
+    setMontoStr(n > 0 ? fmtMonto(n) : '');
+    setPctStr(total > 0 ? String(Number((n / total) * 100).toFixed(2)) : '');
+  };
+
+  return (
+    <div className="rounded-[12px] border border-border p-4" style={{ background: '#FBFAF8' }}>
+      <div className="text-[12px] font-bold text-text-1 mb-1">Completar pago</div>
+      <p className="text-[11px] text-text-4 mb-3">Marcá cómo querés pagar esta factura para habilitar el botón Aceptar.</p>
+
+      <label
+        className={`flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 cursor-pointer transition ${opcion === 'total' ? 'border-orange bg-orange-tint' : 'border-border bg-white'}`}
+      >
+        <input
+          type="checkbox"
+          checked={opcion === 'total'}
+          onChange={() => setOpcion(opcion === 'total' ? '' : 'total')}
+          className="accent-orange w-4 h-4 shrink-0"
+        />
+        <span className="text-[13px] font-medium text-text-1">Pagar la factura al completo</span>
+        <span className="ml-auto text-[11px] font-semibold text-text-3">{fmt(total)} XAF</span>
+      </label>
+
+      <label
+        className={`mt-2 flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 cursor-pointer transition ${opcion === 'parcial' ? 'border-orange bg-orange-tint' : 'border-border bg-white'}`}
+      >
+        <input
+          type="checkbox"
+          checked={opcion === 'parcial'}
+          onChange={() => setOpcion(opcion === 'parcial' ? '' : 'parcial')}
+          className="accent-orange w-4 h-4 shrink-0"
+        />
+        <span className="text-[13px] font-medium text-text-1">Pagar un % de la factura</span>
+      </label>
+
+      {opcion === 'parcial' && (
+        <div className="mt-3 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-1">% a pagar</div>
+              <input
+                value={pctStr}
+                inputMode="numeric"
+                placeholder="Ej: 50"
+                onChange={e => onPctChange(e.target.value)}
+                className="h-10 w-full border-2 border-gray-200 rounded-[8px] bg-white px-3 text-[13px] font-semibold text-text-1 outline-none focus:border-orange transition caret-orange"
+              />
+              {pctN > 100 && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>El % no puede superar 100.</div>
+              )}
+              {pctN === 0 && !deshabilitar && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>Debe ser mayor a 0.</div>
+              )}
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-1">Monto a pagar (XAF)</div>
+              <input
+                value={montoStr}
+                inputMode="numeric"
+                placeholder="Ej: 5,000,000"
+                onChange={e => onMontoChange(e.target.value)}
+                className="h-10 w-full border-2 border-gray-200 rounded-[8px] bg-white px-3 text-[13px] font-semibold text-text-1 outline-none focus:border-orange transition caret-orange"
+              />
+              {montoN > total && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>No puede superar {fmt(total)} XAF.</div>
+              )}
+              {montoN === 0 && !deshabilitar && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>Debe ser mayor a 0.</div>
+              )}
+            </div>
+          </div>
+          <p className="text-[11px] text-text-4 leading-relaxed">
+            {pctValido && montoValido
+              ? <>Pagarás el <b>{pctN}%</b> ({fmt(montoEquivalente)} XAF). La factura quedará <b>Aprobada</b> hasta que se pague al completo.</>
+              : 'Ingresá el % o el monto deseado; el sistema calcula el otro valor automáticamente.'}
+          </p>
+        </div>
+      )}
+
+      <Button
+        full
+        className="mt-4 h-[44px] justify-center"
+        disabled={!aceptable}
+        onClick={() => onAceptar({
+          completo: opcion === 'total',
+          pct: opcion === 'parcial' ? pctN : 100,
+          monto: opcion === 'parcial' ? montoN : total,
+        })}
+      >
+        Aceptar
+      </Button>
+    </div>
+  );
+}
 
 export default function EmpContratoDetalle() {
   const { go } = useApp();
@@ -40,30 +176,82 @@ export default function EmpContratoDetalle() {
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
   const [pymeDetalle, setPymeDetalle]   = useState(null);
+  // ── Acumulador de operaciones de pago de la sección Facturas ───────────────
+  // Cada vez que la Contratante confirma un pago desde el bloque "Completar
+  // pago" (al completo o a un %), se registra una operación aquí. Mientras no
+  // haya ninguna, NO se muestra el botón "Generar IPI" junto al filtro.
+  const [opsPago, setOpsPago]           = useState([]);
+  const [ipiOps, setIpiOps]             = useState(false); // modal resumen de operaciones
   const pymesDe = (nombre) => pymes.find(p => p.nombre === nombre) ?? null;
   const c    = contratanteState.selectedContrato
     ?? contratoService.listarPorVista('contratante').filter(x => x.tipo !== 'marco')[0] ?? null;
   const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
   const disp = c ? c.asignado - c.utilizado : 0;
-  const facturasContrato = c
-    ? facturas
-        .filter(f => f.contrato === c.id)
-        .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }))
-    : [];
+  // Todas las facturas ABIERTAS de este contrato: las del pipeline (la semilla
+  // de facturaService en localDb) más las heredadas del mock estático de la
+  // Contratante (FAC-2026-0911/0918 "Recibida", que sostienen el flujo manual
+  // Verificar → Emitir IPI de este portal). Se excluyen los estados terminales
+  // (Pagada / Saldo en Billetera) y se evitan duplicados por id.
+  const facturasContrato = c ? (() => {
+    const abiertas = facturaService
+      .listarPorRol('contratante')
+      .filter(f => f.contrato === c.id && !CERRADAS.has(f.estado));
+    const idsAbiertas = new Set(abiertas.map(f => f.id));
+    return [...abiertas, ...facturas.filter(f => f.contrato === c.id && !idsAbiertas.has(f.id))]
+      .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
+  })() : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
 
-  // PYMEs que comparten el mismo contrato-marco (Subproceso 1 del BPMN: la
-  // Contratante reparte un mismo monto base entre varias PYMEs) — si este
-  // contrato no tiene `marcoId` (dato legado), la tabla cae a mostrar solo
-  // esta PYME.
-  const hermanos = c?.marcoId
-    ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
-    : c ? [c] : [];
+  // PYMEs de este contrato: si la Contratante ya repartió el marco en el wizard
+  // (Subproceso 1 del BPMN), se muestran sus pymesAsignadas; si no, se cae a los
+  // hermanos del mismo contrato-marco (o a esta misma asignación como dato
+  // legado sin `marcoId`).
+  const hermanos = c?.pymesAsignadas?.length
+    ? c.pymesAsignadas.map(a => ({
+        id: a.id ?? a.pymeId ?? c.id,
+        pyme: a.pymeNombre,
+        estado: c.estado,
+        asignado: Number(a.monto) || 0,
+        plazoPago: a.plazoPago,
+        documentoNombre: a.documentoNombre,
+      }))
+    : c?.marcoId
+      ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
+      : c ? [c] : [];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
+
+  // Confirmación de pago desde el bloque "Completar pago". Al completo → la
+  // factura pasa a su estado terminal; parcial → queda Aprobada (acumulando
+  // pagos) hasta pagarse al 100%. Cada operación confirmada se acumula para
+  // generar el IPI del contrato (botón junto al filtro).
+  const handleAceptarPago = (pago) => {
+    if (!modalFac) return;
+    facturaService.pagar(modalFac.id, pago);
+    setOpsPago(prev => [...prev, {
+      id: `${Date.now()}-${prev.length}`,
+      facturaId: modalFac.id,
+      pyme: modalFac.pyme,
+      concepto: modalFac.concepto,
+      tipo: pago.completo ? 'Completo' : 'Parcial',
+      monto: pago.completo ? Number(modalFac.monto) : Number(pago.monto) || 0,
+      pct: pago.completo ? 100 : Number(pago.pct) || 0,
+      fecha: new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    }]);
+    closeModal();
+  };
+
+  // "Enviar IPI": manda a Bonafide el IPI global con todas las operaciones
+  // acumuladas y limpia el acumulador (el botón vuelve a ocultarse).
+  const handleEnviarIpi = () => {
+    if (!opsPago.length) return;
+    facturaService.enviarIpiDeContrato(opsPago);
+    setOpsPago([]);
+    setIpiOps(false);
+  };
 
   if (!c) return <AppShell active="empContratos" role="contratante" title="Detalle de Contrato" sub="—" back />;
 
@@ -91,9 +279,10 @@ export default function EmpContratoDetalle() {
           ))}
         </div>
 
-        {/* ── Tabs ── */}
-        <div className="flex bg-white rounded-[10px] gap-1 w-fit">
-          {TABS_DETALLE.map(({ id, lbl, Icon }) => {
+        {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
+              lateral en pantallas chicas ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-page-bg p-1 rounded-[10px]">
+          {TABS_DETALLE.map(({ id, lbl, Icon, iconBg, iconColor }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
@@ -242,7 +431,15 @@ export default function EmpContratoDetalle() {
                     <div className="text-[12px] text-text-4">Emitidas por la Empresa Contratada en este contrato</div>
                   </div>
                 </div>
-                <div className="relative flex items-center">
+              </div>
+              <div className="flex items-center gap-2">
+                {opsPago.length > 0 && (
+                  <Button size="sm" onClick={() => setIpiOps(true)} className="shrink-0">
+                    <Zap className="w-3.5 h-3.5 mr-1" /> Generar IPI
+                    <span className="ml-1.5 px-1.5 py-px rounded-full text-[10px] font-bold bg-white/25">{opsPago.length}</span>
+                  </Button>
+                )}
+                <div className="relative flex items-center self-center sm:self-auto">
                   <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
                   <select
                     value={filtroFac}
@@ -254,18 +451,18 @@ export default function EmpContratoDetalle() {
                   </select>
                 </div>
               </div>
-
-              <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-                <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Emp. Contratada</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-                </div>
-                {visibles.map(f => (
-                  <div
+            </div>
+            {(() => {
+              const visibles = filtroFac === 'Todos' ? facturasContrato : facturasContrato.filter(f => f.estado === filtroFac);
+              return visibles.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
+                <Receipt className="w-8 h-8" />
+                <p className="text-[13px] font-semibold">Sin facturas con estado "{filtroFac}"</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {visibles.map((f, idx) => (
+                  <InvoiceCard
                     key={f.id}
                     onClick={() => { setFacturaModal(f); setIpiStep(null); }}
                     className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
@@ -299,6 +496,11 @@ export default function EmpContratoDetalle() {
             </div>
           );
         })()}
+
+        {/* ── Tab: Registros ── */}
+        {tab === 'registros' && (
+          <RegistrosTabla registros={registrosContrato(c, facturasContrato)} />
+        )}
 
       </div>
 
@@ -378,6 +580,17 @@ export default function EmpContratoDetalle() {
                     <Zap className="w-3.5 h-3.5 mr-1" />Emitir IPI
                   </Button>
                 )}
+                <RequerirButton
+                  label="Poner requerimientos"
+                  factura={{ id: modalFac.id }}
+                  emisor="La Contratante"
+                  onEnviar={(msg) => {
+                    facturaService.enviarRequerimiento(modalFac.id, { mensaje: msg, emisor: 'La Contratante' });
+                    // Si la factura quedó con requerimiento, no se paga: se
+                    // cierran ambos modales (el de requerimiento y el de detalle).
+                    closeModal();
+                  }}
+                />
               </div>
             </>
           }
@@ -385,7 +598,7 @@ export default function EmpContratoDetalle() {
           <div className="space-y-5">
             {/* Estado + fecha */}
             <div className="flex items-center justify-between">
-              <Badge variant={facturaBadge(modalFac.estado)}>{modalFac.estado}</Badge>
+              <Badge variant={badgeDe(modalFac.estado)}>{estadoLabel(modalFac.estado)}</Badge>
               <span className="text-[12px]" style={{ color: TEXT4 }}>{modalFac.fecha}</span>
             </div>
             {/* Datos principales */}
@@ -404,6 +617,61 @@ export default function EmpContratoDetalle() {
                 <FileText className="w-4 h-4 shrink-0" />
                 <span className="text-[12px]">No se ha adjuntado documento a esta factura.</span>
               </div>
+            </div>
+            {esPagoAplicable(modalFac.estado) && (
+              <PagoFacturaBlock factura={modalFac} onAceptar={handleAceptarPago} />
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Modal IPI: resumen de operaciones acumuladas ── */}
+      {ipiOps && (
+        <Modal
+          title={`IPI · Resumen de operaciones (${opsPago.length})`}
+          onClose={() => setIpiOps(false)}
+          footer={
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setIpiOps(false)}>Cerrar</Button>
+              <Button size="sm" onClick={handleEnviarIpi} disabled={!opsPago.length}>
+                <Send className="w-3.5 h-3.5 mr-1" /> Enviar IPI
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-[12px] leading-relaxed" style={{ color: TEXT4 }}>
+              Se enviará a Bonafide un IPI que resume todas las operaciones de pago realizadas en el contrato <span className="font-mono font-semibold text-text-1">{c.id}</span>. La liquidación seguirá después el pipeline normal de cada factura.
+            </p>
+
+            <div className="space-y-2">
+              {opsPago.map(o => (
+                <div key={o.id} className="flex items-center justify-between gap-3 rounded-[10px] border border-border p-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-mono font-bold text-text-1 truncate">{o.facturaId}</span>
+                      <Badge variant={o.tipo === 'Completo' ? 'green' : 'orange'}>{o.tipo}</Badge>
+                    </div>
+                    <p className="text-[11px] mt-0.5 truncate" style={{ color: TEXT4 }}>
+                      {o.pyme}{o.concepto ? ` · ${o.concepto}` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-[13px] font-extrabold text-text-1 whitespace-nowrap">{fmt(o.monto)} XAF</div>
+                    <div className="text-[10px] font-semibold whitespace-nowrap" style={{ color: ORA }}>
+                      {o.tipo === 'Completo' ? '100%' : `${o.pct}%`}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="rounded-[12px] p-4 flex items-center justify-between gap-3" style={{ background: 'var(--bonafide-gradient)' }}>
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-white/80">Total operaciones</div>
+                <div className="text-[16px] sm:text-[20px] font-extrabold text-white leading-tight">{fmt(opsPago.reduce((a, o) => a + (Number(o.monto) || 0), 0))} XAF</div>
+              </div>
+              <Badge variant="gold">{opsPago.length} operación{opsPago.length === 1 ? '' : 'es'}</Badge>
             </div>
           </div>
         </Modal>

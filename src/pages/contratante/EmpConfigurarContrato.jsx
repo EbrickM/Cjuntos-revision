@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Landmark, Users, ClipboardCheck, ArrowLeft, ArrowRight, Plus, Pencil, Trash2,
-  Building2, CheckCircle2, FileText,
+  Building2, CheckCircle2, FileText, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import Stepper from '../../components/ui/Stepper';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import Toast from '../../components/ui/Toast';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow } from './contratanteShared';
-import { BANCO_FONDEADORES } from '../../lib/bancos';
 import { montoDisponibleMarco, pymes, fmt } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
+import { obtenerBorrador, guardarBorrador, eliminarBorrador } from '../../lib/borradores';
 
 // ── CONFIGURAR CONTRATO (Subproceso 1 del BPMN: Contratante reparte el
 // contrato-marco entre sus PYMEs y les asigna monto) ──────────────────────────
@@ -28,6 +29,13 @@ const ASIGNACION_EMPTY = {
 };
 
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (50.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
 
 // Ventana especializada: sin Sidebar ni Topbar del portal (igual que el
 // KycWizard de onboarding) — el contratante queda enfocado solo en configurar
@@ -66,26 +74,22 @@ function StepHeader({ icon: Icon, title, subtitle }) {
 export default function EmpConfigurarContrato() {
   const { go, opts } = useApp();
   const marco = contratoService.obtener(opts?.marcoId) ?? contratoService.listarPendientes('contratante')[0] ?? null;
+  const borrador = marco ? obtenerBorrador('contratante', marco.id) : null;
 
-  const [step, setStep]               = useState(0);
-  const [cuentaTipo, setCuentaTipo]   = useState(marco?.cuentaBancaria?.tipo ?? 'bonafide');
-  const [cuentaBanco, setCuentaBanco] = useState(marco?.cuentaBancaria?.numero ?? '');
-  const [asignaciones, setAsignaciones] = useState(marco?.pymesAsignadas ?? []);
+  useEffect(() => {
+    if (!marco) go('empContratos');
+  }, [marco, go]);
+
+  const [step, setStep]               = useState(borrador?.paso ?? 0);
+  const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? marco?.cuentaBancaria?.tipo ?? 'bonafide');
+  const [asignaciones, setAsignaciones] = useState(borrador?.datos?.asignaciones ?? marco?.pymesAsignadas ?? []);
   const [modal, setModal]             = useState(ASIGNACION_EMPTY);
-  const [confirmado, setConfirmado]   = useState(false);
+  const [confirmado, setConfirmado]   = useState(borrador?.datos?.confirmado ?? false);
   const [intentoEnvio, setIntentoEnvio] = useState(false);
+  const [toast, setToast]             = useState(null);
   const [enviado, setEnviado]         = useState(false);
 
-  if (!marco) {
-    return (
-      <div className="min-h-screen bg-page-bg flex flex-col items-center justify-center fade-in px-5">
-        <p className="text-[13px] text-text-4 mb-4">No se encontró el contrato a configurar.</p>
-        <Button variant="ghost" onClick={() => go('empContratos')}>
-          <ArrowLeft className="w-4 h-4 mr-1" />Volver a Mis Contratos
-        </Button>
-      </div>
-    );
-  }
+  if (!marco) return null;
 
   const totalAsignado   = asignaciones.reduce((s, a) => s + a.monto, 0);
   const disponibleGlobal = marco.montoBase - totalAsignado;
@@ -103,7 +107,7 @@ export default function EmpConfigurarContrato() {
   const telefonoValido     = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido   = telefonoLocal !== '' && !telefonoValido;
 
-  const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
+  const puedeGuardar = !!pymeNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido && !!modal.documentoNombre;
 
   const openAdd = () => {
     const primera = pymes[0] ?? null;
@@ -146,6 +150,16 @@ export default function EmpConfigurarContrato() {
   const handleBack = () => setStep(s => Math.max(s - 1, 0));
   const handleNext = () => setStep(s => Math.min(s + 1, 2));
 
+  const handleGuardarBorrador = () => {
+    guardarBorrador({
+      rol: 'contratante',
+      contratoId: marco.id,
+      paso: step,
+      datos: { cuentaTipo, asignaciones, confirmado },
+    });
+    setToast({ type: 'success', message: `Borrador del contrato ${marco.id} guardado. Quedaste en el paso ${step + 1} de ${STEPS.length}.` });
+  };
+
   const handleEnviarClick = () => {
     setIntentoEnvio(true);
     if (!confirmado) return;
@@ -153,16 +167,15 @@ export default function EmpConfigurarContrato() {
       contratoService.configurar(marco.id, {
         cuentaBancaria: cuentaTipo === 'bonafide'
           ? { tipo: 'bonafide', numero: null }
-          : { tipo: 'fondeador', numero: cuentaBanco },
+          : { tipo: 'fondeador', numero: null },
         pymesAsignadas: asignaciones,
       });
     } catch { /* la transición ya no aplica; se conserva el estado actual */ }
+    eliminarBorrador('contratante', marco.id);
     setEnviado(true);
   };
 
-  const siguienteDeshabilitado =
-    (step === 0 && cuentaTipo === 'fondeador' && !cuentaBanco) ||
-    (step === 1 && asignaciones.length === 0);
+  const siguienteDeshabilitado = false;
 
   // ── Pantalla de éxito ──
   if (enviado) {
@@ -219,17 +232,9 @@ export default function EmpConfigurarContrato() {
                   <input type="radio" name="cuenta" checked={cuentaTipo === 'fondeador'} onChange={() => setCuentaTipo('fondeador')} className="w-4 h-4 accent-orange shrink-0" />
                   <div>
                     <div className="text-[13px] font-semibold text-text-1">Cuenta en mi Banco Fondeador</div>
-                    <div className="text-[12px] text-text-4">Selecciona el banco de tu cuenta para operar este contrato.</div>
+                    <div className="text-[12px] text-text-4">Operarás este contrato desde tu cuenta en {marco.bancoFondeador}.</div>
                   </div>
                 </label>
-                {cuentaTipo === 'fondeador' && (
-                  <FormGroup label="Banco" required className="mt-2 mb-0">
-                    <Select value={cuentaBanco} onChange={e => setCuentaBanco(e.target.value)}>
-                      <option value="">Seleccionar…</option>
-                      {BANCO_FONDEADORES.map(b => <option key={b}>{b}</option>)}
-                    </Select>
-                  </FormGroup>
-                )}
               </div>
             </>
           )}
@@ -284,7 +289,7 @@ export default function EmpConfigurarContrato() {
                   </div>
                 ))}
                 {asignaciones.length === 0 && (
-                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna Empresa Contratada a este contrato.</div>
+                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna Emp. Contratada a este contrato. Puedes continuar sin asignar ningunga si aún no defines la distribución.</div>
                 )}
               </div>
             </>
@@ -296,8 +301,8 @@ export default function EmpConfigurarContrato() {
               <StepHeader icon={ClipboardCheck} title="Revisión y envío" subtitle="Confirma los datos antes de enviarlos a Bonafide" />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
-                <InfoRow label="Cuenta bancaria" value={cuentaTipo === 'bonafide' ? 'Cuenta Bonafide existente' : `Banco Fondeador · ${cuentaBanco || '—'}`} />
-                <InfoRow label="Emp. Contratadas agregadas" value={String(asignaciones.length)} />
+                <InfoRow label="Cuenta bancaria" value={cuentaTipo === 'bonafide' ? 'Cuenta Bonafide existente' : `Banco Fondeador · ${marco.bancoFondeador}`} />
+                <InfoRow label="PYMEs agregadas" value={String(asignaciones.length)} />
               </div>
 
               <div className="rounded-[12px] border border-border overflow-hidden mb-5">
@@ -335,7 +340,7 @@ export default function EmpConfigurarContrato() {
               <div className={`rounded-[12px] border-2 p-5 transition-colors ${intentoEnvio && !confirmado ? 'border-red-400' : 'border-gray-200'}`}>
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} className="mt-0.5 w-5 h-5 accent-orange cursor-pointer shrink-0" />
-                  <span className="text-[13px] text-text-2">Confirmo que los datos de las Empresas Contratadas y los montos asignados son correctos.</span>
+                  <span className="text-[13px] text-text-2">Confirmo que la cuenta y los datos de las PYMEs y montos asignados (si los hay) son correctos.</span>
                 </label>
                 {intentoEnvio && !confirmado && (
                   <p className="text-xs text-red-500 mt-2 ml-8">Debes confirmar antes de enviar.</p>
@@ -346,10 +351,15 @@ export default function EmpConfigurarContrato() {
         </div>
 
         {/* ── Navegación ── */}
-        <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
-            <ArrowLeft className="w-4 h-4 mr-1" />Atrás
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={handleBack} disabled={step === 0}>
+              <ArrowLeft className="w-4 h-4 mr-1" />Atrás
+            </Button>
+            <Button variant="secondary" onClick={handleGuardarBorrador}>
+              <Save className="w-4 h-4 mr-1" />Guardar borrador
+            </Button>
+          </div>
           {step < 2 ? (
             <Button variant="primary" onClick={handleNext} disabled={siguienteDeshabilitado}>
               Siguiente<ArrowRight className="w-4 h-4 ml-1" />
@@ -361,6 +371,9 @@ export default function EmpConfigurarContrato() {
           )}
         </div>
       </div>
+
+      {/* ── Toast ── */}
+      <Toast toast={toast} onDismiss={() => setToast(null)} />
 
       {/* ── Modal: agregar/editar PYME ── */}
       {modal.open && (
@@ -405,9 +418,9 @@ export default function EmpConfigurarContrato() {
               <FormGroup label="Monto (XAF)" required className="mb-0">
                 <Input
                   inputMode="numeric"
-                  value={modal.monto}
+                  value={fmtMonto(modal.monto)}
                   onChange={e => setModal(m => ({ ...m, monto: e.target.value.replace(/\D/g, '') }))}
-                  placeholder="Ej. 50000000"
+                  placeholder="Ej. 50.000.000"
                   className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
                 />
               </FormGroup>
@@ -444,27 +457,34 @@ export default function EmpConfigurarContrato() {
               </div>
             </div>
 
-            <FormGroup label="Contrato Comercial (documentación adjunta)">
-              <div
-                onClick={() => setModal(m => ({ ...m, documentoNombre: m.documentoNombre ? m.documentoNombre : 'contrato_comercial.pdf' }))}
-                className={`border-2 rounded-[12px] p-5 text-center cursor-pointer transition-all
-                  ${modal.documentoNombre
-                    ? 'border-solid border-orange-border bg-orange-tint'
-                    : 'border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint'}`}
-              >
-                {modal.documentoNombre ? (
-                  <>
-                    <CheckCircle2 className="w-6 h-6 text-orange mx-auto mb-1.5" />
-                    <div className="text-[12px] font-semibold text-orange">{modal.documentoNombre}</div>
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
-                    <div className="text-[13px] font-semibold text-text-1">Subir contrato comercial</div>
-                    <div className="text-[11px] text-text-4">PDF · máx 5MB</div>
-                  </>
-                )}
-              </div>
+            <FormGroup label="Contrato Comercial (documentación adjunta)" required className="mb-0">
+              {modal.documentoNombre ? (
+                <div className="border-2 border-solid border-green-border bg-green-bg rounded-[12px] p-5 text-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
+                  <div className="text-[12px] font-semibold text-green-text truncate">{modal.documentoNombre}</div>
+                  <button type="button" onClick={() => setModal(m => ({ ...m, documentoNombre: '' }))} className="mt-2 text-[11px] text-red-text underline cursor-pointer">
+                    Quitar y elegir otro
+                  </button>
+                </div>
+              ) : (
+                <label className="block border-2 border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint rounded-[12px] p-5 text-center cursor-pointer transition-all">
+                  <input
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    className="hidden"
+                    onChange={e => {
+                      const f = e.target.files?.[0];
+                      if (f) setModal(m => ({ ...m, documentoNombre: f.name }));
+                    }}
+                  />
+                  <FileText className="w-6 h-6 text-text-4 mx-auto mb-1.5" />
+                  <div className="text-[13px] font-semibold text-text-1">Subir contrato comercial</div>
+                  <div className="text-[11px] text-text-4">PDF · JPG · PNG · máx 5MB</div>
+                </label>
+              )}
+              {!modal.documentoNombre && (
+                <p className="text-xs text-red-500">Adjunta el contrato comercial para poder guardar la asignación.</p>
+              )}
             </FormGroup>
           </div>
         </Modal>
