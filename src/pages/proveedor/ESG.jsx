@@ -29,11 +29,11 @@ const suministradorCerts = [
 ];
 
 const provProyectos = [
-  { nombre: 'Flota de Transporte Bajo Emisiones', estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 12M'  },
-  { nombre: 'Optimización de Rutas Logísticas',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde',          fin: 'XAF 6M'   },
-  { nombre: 'Reciclaje de Repuestos',             estado: 'Planificado',  riesgo: 'Medio', cert: 'Eco en Proceso', fin: 'XAF 4.5M' },
-  { nombre: 'Capacitación en Manejo Defensivo',   estado: 'Finalizado',   riesgo: 'Bajo',  cert: 'Verde',          fin: 'XAF 1.8M' },
-  { nombre: 'Mantenimiento Preventivo de Flota',  estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 3.2M' },
+  { nombre: 'Flota de Transporte Bajo Emisiones', estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 12_000_000 },
+  { nombre: 'Optimización de Rutas Logísticas',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde',          fin: 6_000_000  },
+  { nombre: 'Reciclaje de Repuestos',             estado: 'Planificado',  riesgo: 'Medio', cert: 'Eco en Proceso', fin: 4_500_000  },
+  { nombre: 'Capacitación en Manejo Defensivo',   estado: 'Finalizado',   riesgo: 'Bajo',  cert: 'Verde',          fin: 1_800_000  },
+  { nombre: 'Mantenimiento Preventivo de Flota',  estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 3_200_000  },
 ];
 
 const ESG_METAS = [
@@ -345,7 +345,7 @@ export default function ProvESG() {
                       </div>
                       <div>
                         <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Financiamiento</p>
-                        <p className="text-[13px] font-bold text-text-1">{p.fin}</p>
+                        <p className="text-[13px] font-bold text-text-1">{fmtXAF(p.fin)}</p>
                       </div>
                       <div className="col-span-2">
                         <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Certificación</p>
@@ -374,7 +374,7 @@ export default function ProvESG() {
                         <td className="px-4 py-3">
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border whitespace-nowrap">{p.cert}</span>
                         </td>
-                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmtXAF(p.fin)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -28,11 +28,11 @@ const pymeCerts = [
 ];
 
 const empProyectos = [
-  { nombre: 'Parque Solar Malabo I',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde CO₂',      fin: 'XAF 120M' },
-  { nombre: 'Reforestación Costa GE',  estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 'XAF 85M'  },
-  { nombre: 'Biogás Residuos Bata',    estado: 'Planificado',  riesgo: 'Medio', cert: 'Verde CO₂',      fin: 'XAF 65M'  },
-  { nombre: 'Agro Sostenible Norte',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde',          fin: 'XAF 42M'  },
-  { nombre: 'Huella Cero 2027',        estado: 'Planificado',  riesgo: 'Bajo',  cert: 'Verde Neutro',   fin: 'XAF 200M' },
+  { nombre: 'Parque Solar Malabo I',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde CO₂',      fin: 120_000_000 },
+  { nombre: 'Reforestación Costa GE',  estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde Bonafide', fin: 85_000_000  },
+  { nombre: 'Biogás Residuos Bata',    estado: 'Planificado',  riesgo: 'Medio', cert: 'Verde CO₂',      fin: 65_000_000  },
+  { nombre: 'Agro Sostenible Norte',   estado: 'En ejecución', riesgo: 'Bajo',  cert: 'Verde',          fin: 42_000_000  },
+  { nombre: 'Huella Cero 2027',        estado: 'Planificado',  riesgo: 'Bajo',  cert: 'Verde Neutro',   fin: 200_000_000 },
 ];
 
 const ESG_METAS = [
@@ -345,7 +345,7 @@ export default function EmpESG() {
                       </div>
                       <div>
                         <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Financiamiento</p>
-                        <p className="text-[13px] font-bold text-text-1">{p.fin}</p>
+                        <p className="text-[13px] font-bold text-text-1">{fmtXAF(p.fin)}</p>
                       </div>
                       <div className="col-span-2">
                         <p className="text-[9px] font-semibold uppercase tracking-wide mb-1" style={{ color: '#A9A6A1' }}>Certificación</p>
@@ -374,7 +374,7 @@ export default function EmpESG() {
                         <td className="px-4 py-3">
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-bg text-green-text border border-green-border whitespace-nowrap">{p.cert}</span>
                         </td>
-                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{p.fin}</td>
+                        <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmtXAF(p.fin)}</td>
                       </tr>
                     ))}
                   </tbody>
