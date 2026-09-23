@@ -6,7 +6,7 @@ import {
   Building2,
   FileText,
   Search,
-  ChevronRight,
+  Eye,
   CheckCircle2,
   ShieldCheck,
   Star,
@@ -62,7 +62,7 @@ const KYC_BADGE = {
 
 const scoreStyle = (score) => {
   if (!score) return { bg: "#F6F5F3", color: "#A9A6A1", label: "Sin datos" };
-  if (score >= 750) return { bg: "#E3F4EA", color: "#2E7D5B", label: "Bajo" };
+  if (score >= 750) return { bg: "#FFF3E0", color: "#EF7A2C", label: "Bajo" };
   if (score >= 600)
     return { bg: "#FDF6E8", color: "#C68A1D", label: "Moderado" };
   return { bg: "#FDEEEB", color: "#B8352A", label: "Alto" };
@@ -313,130 +313,90 @@ export default function EpMisProveedores() {
           </div>
         </div>
 
-        <div className="rounded-[14px] pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pagedProviders.map((p, idx) => {
+        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+          {/* Header */}
+          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_0.8fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">RUC</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+          </div>
+
+          {/* Rows */}
+          {pagedProviders.map((p) => {
             const kycStyle = KYC_BADGE[p.kyc] ?? KYC_BADGE.pendiente;
             const sStyle = scoreStyle(p.scoreCredito);
             return (
               <div
                 key={p.id}
                 onClick={() => setDetalle(p)}
-                className="bg-white rounded-[16px] p-5 flex flex-col gap-4 card-enter cursor-pointer transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]"
-                style={{ animationDelay: `${idx * 70}ms` }}
+                className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_0.8fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
               >
-                {/* Icono + nombre + sector + RUC | Score (esquina sup. der.) */}
-                <div className="flex items-start gap-3">
+                {/* Proveedor */}
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
                     style={{ background: "var(--bonafide-gradient)" }}
                   >
-                    <span className="text-white text-[13px] font-extrabold leading-none tracking-wide">
+                    <span className="text-white text-[11px] font-extrabold leading-none tracking-wide">
                       {initials(p.razonSocial)}
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-[14px] font-bold text-text-1 leading-tight truncate">
-                      {p.razonSocial}
-                    </div>
-                    <div className="text-[11px] text-text-4 mt-0.5">
-                      {p.sector}
-                    </div>
-                    <div className="text-[11px] font-mono text-text-5 mt-0.5">
-                      {p.ruc}
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className="text-[9px] font-semibold uppercase tracking-wide text-text-4">
-                      Score
-                    </div>
-                    <div
-                      className="text-[18px] font-extrabold leading-tight"
-                      style={{ color: sStyle.color }}
-                    >
-                      {p.scoreCredito ?? "—"}
-                    </div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.razonSocial}</div>
+                    <div className="text-[11px] text-text-4">{p.sector}</div>
                   </div>
                 </div>
 
-                {/* Badges: Cliente Bonafide + KYC + Riesgo */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {p.esClienteBonafide && (
-                    <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                      style={{
-                        background: "#FDEEEB",
-                        color: "#E0201C",
-                        border: "1px solid rgba(224,32,28,0.2)",
-                      }}
-                    >
-                      Cliente Bonafide
-                    </span>
-                  )}
+                {/* RUC */}
+                <span className="text-[12px] font-mono text-text-3 text-center">{p.ruc}</span>
+
+                {/* KYC */}
+                <div className="flex justify-center">
                   <span
                     className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                    style={{
-                      background: kycStyle.bg,
-                      color: kycStyle.color,
-                      border: kycStyle.border,
-                    }}
+                    style={{ background: kycStyle.bg, color: kycStyle.color, border: kycStyle.border }}
                   >
                     {kycStyle.label}
                   </span>
-                  <span
-                    className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                    style={{
-                      background: sStyle.bg,
-                      color: sStyle.color,
-                      border: `1px solid ${sStyle.color}22`,
-                    }}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ background: sStyle.color }}
-                    />
-                    Riesgo {sStyle.label}
-                  </span>
                 </div>
 
-                {/* Footer: contratos (izq) + acciones (der) */}
-                <div className="mt-auto space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 text-[11px] text-text-4">
-                      <FileText className="w-3.5 h-3.5 shrink-0" />
-                      <span>
-                        {numContratos(p)}{" "}
-                        {numContratos(p) === 1 ? "contrato" : "contratos"}
-                      </span>
+                {/* Score */}
+                <div className="flex justify-center">
+                  <div>
+                    <div className="text-[13px] font-bold" style={{ color: sStyle.color }}>
+                      {p.scoreCredito ?? "—"}
                     </div>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(p);
-                        }}
-                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(p.id);
-                        }}
-                        className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    <div className="text-[10px]" style={{ color: sStyle.color }}>Riesgo {sStyle.label}</div>
                   </div>
+                </div>
+
+                {/* Contratos */}
+                <div className="text-[12px] text-text-3 text-center">
+                  {numContratos(p)} <span className="text-text-4">{numContratos(p) === 1 ? "contrato" : "contratos"}</span>
+                </div>
+
+                {/* Acciones */}
+                <div className="flex items-center justify-center gap-0.5">
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDetalle(p);
-                    }}
-                    className="ml-auto w-fit flex items-center gap-0.5 text-[11px] font-semibold text-orange-dark hover:opacity-75 transition cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(p); }}
+                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
                   >
-                    Ver detalles <ChevronRight className="w-3.5 h-3.5" />
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
+                    className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setDetalle(p); }}
+                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -444,7 +404,7 @@ export default function EpMisProveedores() {
           })}
 
           {filteredProviders.length === 0 && (
-            <div className="col-span-full text-[12px] text-text-4 py-10 text-center">
+            <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
               {search.trim()
                 ? `Sin resultados para "${search}".`
                 : "No hay proveedores registrados aún."}

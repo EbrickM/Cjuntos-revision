@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle, Banknote, Send, ShieldCheck, Check, X, ChevronDown, Search, ListFilter,
+  CheckCircle, Banknote, Send, ShieldCheck, Check, X, Eye, Search, ListFilter,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -35,22 +35,6 @@ const ESTADO_LABEL = {
 };
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 
-const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-    <div className="flex items-center gap-3">
-      {Icon && (
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-          <Icon className="w-4 h-4" style={{ color: iconColor }} />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-bold text-text-1">{title}</div>
-        {subtitle && <div className="text-[12px] text-text-4">{subtitle}</div>}
-      </div>
-    </div>
-    {action && <div>{action}</div>}
-  </div>
-);
 
 // ── MIS FACTURAS (portal Contratante) ─────────────────────────────────────────
 // Fase 1 BPMN: la PYME emite → la Contratante evalúa/aprueba (o devuelve con
@@ -141,11 +125,8 @@ export default function EmpFacturas() {
           ))}
         </div>
 
-        {/* Filtros + Cards */}
-        {/* Título + buscador + estado */}
-        <SectionHeader
-            title="Facturas de PYMEs"
-          />
+        {/* Filtros + Tabla */}
+        <div className="text-[14px] font-bold text-text-1">Facturas de PYMEs</div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
@@ -169,68 +150,59 @@ export default function EmpFacturas() {
             </div>
           </div>
 
-          {/* Cards de facturas */}
-          <div className="rounded-[14px] pt-2 pb-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
-          {pagedFacturas.map((f, idx) => {
-            const hasAction = !!accion(f);
-            return (
-              <div
-                key={f.id}
-                onClick={() => { setDetalle(f); }}
-                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-              >
-                <div className="flex items-start justify-between gap-2">
+          {/* Tabla de facturas */}
+          <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+            {/* Header */}
+            <div className="min-w-[680px] grid grid-cols-[1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID / Fecha</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">PYME / Contrato</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+            </div>
+            {/* Rows */}
+            {pagedFacturas.map((f) => {
+              return (
+                <div
+                  key={f.id}
+                  onClick={() => setDetalle(f)}
+                  className="min-w-[680px] grid grid-cols-[1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                >
                   <div>
-                    <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+                    <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
+                    <p className="text-[11px] text-text-5">{f.fecha}</p>
                   </div>
-                  <Badge variant={estadoBadge(f.estado)}>
-                    {estadoLabel(f.estado)}
-                  </Badge>
-                  <RequerimientoBadge factura={f} />
-                </div>
-
-                <div>
-                  <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.pyme}</p>
-                  <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{f.contrato}</p>
-                </div>
-
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
-                  <div className="text-[17px] font-extrabold text-text-1 leading-tight">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</div>
-                </div>
-
-                <div className="mt-auto pt-1 flex items-center justify-between">
-                  {hasAction ? (
-                    <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
-                      <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
-                      Acción requerida
-                    </span>
-                  ) : <span />}
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    {f.estado === INV.enviada && (
-                      <AprobarButton onClick={() => setEvaluando(f)} />
-                    )}
-                    <RequerirButton factura={{ id: f.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(f.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
+                  <div>
+                    <p className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</p>
+                    <p className="text-[11px] font-mono text-text-4">{f.contrato}</p>
+                  </div>
+                  <p className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</p>
+                  <p className="text-[13px] font-extrabold text-text-1 whitespace-nowrap text-center">{new Intl.NumberFormat('de-DE').format(f.monto)} XAF</p>
+                  <div className="flex justify-center">
+                    <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
+                  </div>
+                  <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                      className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
+                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
                     >
-                      Ver detalle <ChevronDown className="w-3.5 h-3.5 rotate-[-90deg]" />
+                      <Eye className="w-4 h-4" />
                     </button>
+                    <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <RequerimientoBadge factura={f} variant="inline" />
+                    </span>
+                    {f.estado === INV.enviada && <AprobarButton onClick={() => setEvaluando(f)} />}
+                    <RequerirButton factura={{ id: f.id }} emisor="La Contratante" onEnviar={(msg) => { facturaService.enviarRequerimiento(f.id, { mensaje: msg, emisor: 'La Contratante' }); bump(); }} />
                   </div>
                 </div>
-              </div>
-            );
-          })}
-          {filtered.length === 0 && (
-            <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas con los filtros aplicados.</div>
-          )}
-          <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
+              );
+            })}
+            {filtered.length === 0 && (
+              <div className="min-w-[680px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas con los filtros aplicados.</div>
+            )}
+            <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
-        </div>
 
       </div>
 

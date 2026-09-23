@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  ChevronRight, ShieldCheck, ClipboardList, Leaf, Building2,
+  Eye, ShieldCheck, ClipboardList, Leaf, Building2,
   User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
@@ -50,7 +50,7 @@ export default function ProvSuministradores() {
         </div>
 
         {/* Header + buscador */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pl-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <p className="text-[13px] font-bold text-text-1">Suministradores contratados</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Score crediticio, fondo asignado y semáforo de riesgo</p>
@@ -66,54 +66,69 @@ export default function ProvSuministradores() {
           </div>
         </div>
 
-        {/* Grid de Suministradores */}
-        <div className="rounded-[14px] px-5 pt-2 pb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pagedSuministradores.map((p, idx) => (
+        {/* Tabla de Suministradores */}
+        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+          {/* Header */}
+          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Fondo</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Semáforo</span>
+            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+          </div>
+
+          {/* Rows */}
+          {pagedSuministradores.map((p) => (
             <div
               key={p.nombre}
               onClick={() => setSumModal(p)}
-              className="bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-              style={{ animationDelay: `${idx * 70}ms` }}
+              className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
             >
-              <div className="min-w-0">
-                <div className="flex items-center justify-between gap-2 mb-0.5">
+              {/* Suministrador */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <IniAvatar ini={p.ini} size={32} />
+                <div className="min-w-0">
                   <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
-                  <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
+                  <div className="text-[11px] text-text-4">{p.sector}</div>
                 </div>
-                <div className="text-[11px] text-text-4">{p.sector}</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              {/* Contratos */}
+              <span className="text-[12px] text-text-3 text-center">{p.contratos}</span>
+
+              {/* Fondo */}
+              <span className="text-[12px] font-semibold text-text-1 text-center">{fmt(p.montoTotal)} XAF</span>
+
+              {/* Score */}
+              <div className="flex justify-center">
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Contratos</div>
-                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{p.contratos}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Fondo</div>
-                  <div className="text-[15px] font-extrabold text-text-1 leading-tight">{fmt(p.montoTotal)} XAF</div>
+                  <div className="text-[12px] font-semibold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</div>
+                  <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
+                    <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-auto space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] text-text-4">Score crediticio</span>
-                  <span className="text-[11px] font-bold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                  <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
-                </div>
+              {/* Semáforo */}
+              <div className="flex justify-center">
+                <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
               </div>
 
-              <button
-                onClick={e => { e.stopPropagation(); setSumModal(p); }}
-                className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange-dark hover:opacity-75 transition cursor-pointer"
-              >
-                Ver detalles <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              {/* Acciones */}
+              <div className="flex justify-center">
+                <button
+                  onClick={e => { e.stopPropagation(); setSumModal(p); }}
+                  className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
+
           {filtradas.length === 0 && (
-            <div className="col-span-full text-[13px] text-text-4 text-center py-12">
+            <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
               Sin resultados para "{busqueda}".
             </div>
           )}

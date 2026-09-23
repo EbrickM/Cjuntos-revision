@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
-  ChevronRight, FileText, Banknote, Search, ListFilter, Receipt,
+  Eye, FileText, Banknote, Search, ListFilter, Receipt,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -131,7 +131,6 @@ export default function ProvFacturas() {
           ))}
         </div>
 
-        {/* Filtros + Cards */}
         {/* Título + buscador + estado */}
         <SectionHeader
             icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
@@ -143,7 +142,7 @@ export default function ProvFacturas() {
               </Button>
             }
           />
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pl-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div className="relative flex-1 sm:max-w-xs">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
               <input
@@ -166,71 +165,79 @@ export default function ProvFacturas() {
             </div>
           </div>
 
-          {/* Cards de facturas */}
-          <div className="rounded-[14px] px-5 pt-2 pb-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7">
-          {paged.map((f, idx) => {
-            const pago = pagoDe(f.id);
-            return (
-              <div
-                key={f.id}
-                onClick={() => setDetalle(f)}
-                className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
-                style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-              >
-                <div className="flex items-start justify-between gap-2">
+          {/* Tabla de facturas */}
+          <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+            {/* Header */}
+            <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+            </div>
+
+            {/* Rows */}
+            {paged.map((f) => {
+              const pago = pagoDe(f.id);
+              return (
+                <div
+                  key={f.id}
+                  onClick={() => setDetalle(f)}
+                  className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                >
+                  {/* ID */}
                   <div>
-                    <p className="text-[13px] font-mono font-bold text-text-1">{f.id}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+                    <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
+                    <div className="text-[11px] text-text-5">{f.fecha}</div>
                   </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                  <InvoiceStatusBadge estado={f.estado} />
-                </div>
-                <RequerimientoBadge factura={f} />
-                </div>
 
-                <div>
-                  <p className="text-[12px] font-semibold text-text-1 leading-snug">{f.suministrador}</p>
-                  <p className="text-[10px] font-mono" style={{ color: '#A9A6A1' }}>{f.contrato} · {f.contratante}</p>
-                </div>
-
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto</div>
-                  <div className="text-[17px] font-extrabold text-text-1 leading-tight">{fmt(f.monto)} XAF</div>
-                </div>
-
-                {pago && (
-                  <div className="flex items-center gap-2 p-2.5 rounded-[10px]" style={{ background: pago.metodo === 'cheque' ? '#FDF6E8' : '#E3F4EA' }}>
-                    {pago.metodo === 'cheque' ? <FileText className="w-3.5 h-3.5 text-yellow-text shrink-0" /> : <Banknote className="w-3.5 h-3.5 text-green-text shrink-0" />}
-                    <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'green'}>
-                      {pago.metodo === 'cheque' ? pago.cheque : `Transferencia · ${pago.cuenta ?? 'core bancario'}`}
-                    </Badge>
+                  {/* Suministrador */}
+                  <div>
+                    <div className="text-[12px] font-bold text-text-1">{f.suministrador}</div>
+                    <div className="text-[11px] font-mono text-text-4">{f.contrato} · {f.contratante}</div>
                   </div>
-                )}
 
-                <div className="mt-auto pt-1 flex items-center justify-between">
-                  {f.estado === INV.aprobada ? (
-                    <span className="text-[9px] font-semibold flex items-center gap-1" style={{ color: '#E8A000' }}>
-                      <span className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ background: '#E8A000' }} />
-                      En proceso de pago
+                  {/* Concepto */}
+                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
+
+                  {/* Monto */}
+                  <div className="text-[13px] font-extrabold text-text-1 text-center">{fmt(f.monto)} XAF</div>
+
+                  {/* Estado */}
+                  <div className="flex justify-center flex-wrap gap-1">
+                    <InvoiceStatusBadge estado={f.estado} />
+                    {pago && (
+                      <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'green'}>
+                        {pago.metodo === 'cheque' ? <FileText className="w-3 h-3 inline mr-0.5" /> : <Banknote className="w-3 h-3 inline mr-0.5" />}
+                        {pago.metodo === 'cheque' ? pago.cheque : 'Transf.'}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex items-center justify-center gap-1">
+                    <button
+                      onClick={e => { e.stopPropagation(); setDetalle(f); }}
+                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                      <RequerimientoBadge factura={f} variant="inline" />
                     </span>
-                  ) : <span />}
-                  <button
-                    onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                    className="text-[11px] font-semibold flex items-center gap-0.5 hover:opacity-75 cursor-pointer transition text-orange"
-                  >
-                    Ver detalle <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                  </div>
                 </div>
+              );
+            })}
+
+            {filtered.length === 0 && (
+              <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                No hay facturas con los filtros aplicados.
               </div>
-            );
-          })}
-          {filtered.length === 0 && (
-            <div className="col-span-full text-[13px] text-text-4 text-center py-10">No hay facturas con los filtros aplicados.</div>
-          )}
-          <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
+            )}
+            <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
-        </div>
 
       </div>
 
