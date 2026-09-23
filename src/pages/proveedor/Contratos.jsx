@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Search, ChevronRight, MessageSquare, ListFilter, Save,
+  Search, ChevronRight, MessageSquare, Save,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -13,7 +13,6 @@ import Modal from '../../components/ui/Modal';
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { TEXT4, fmt, provState, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
-import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { aViewContrato } from '../../components/contratos/contratoUtils';
 import { useCountUp } from '../../hooks/useCountUp';
 
@@ -84,8 +83,7 @@ function ContractCard({ c, idx, go, setReqModal }) {
 export default function ProvContratos() {
   const { go } = useApp();
   const [busqueda, setBusqueda] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('Todos');
-  const [verBorradores, setVerBorradores] = useState(false);
+  const [tab, setTab] = useState('Todos');
   const [reqModal, setReqModal] = useState(null);
 
   // Vista "Mis Contratos" del Proveedor (mismo store local que admin/portales).
@@ -101,10 +99,10 @@ export default function ProvContratos() {
   const animUtilizado   = useCountUp(totalUtilizado,  1500,  300);
   const animDisponible  = useCountUp(totalDisponible, 1500,  400);
 
-  const ESTADOS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean)))];
+  const TABS = ['Todos', ...Array.from(new Set(contratos.map(c => c.estado).filter(Boolean))), 'Borradores'];
 
   const filtrados = contratos.filter(c =>
-    (filtroEstado === 'Todos' || c.estado === filtroEstado) &&
+    (tab === 'Todos' || c.estado === tab) &&
     (!busqueda ||
     c.pyme.toLowerCase().includes(busqueda.toLowerCase()) ||
     c.id.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -132,9 +130,9 @@ export default function ProvContratos() {
           ))}
         </div>
 
-        {/* Título + buscador */}
-        <div>
-          <div className="mb-3">
+        {/* Título + buscador + tabs */}
+        <div className="space-y-3">
+          <div>
             <p className="text-[13px] font-bold text-text-1">Contratos</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Distribución, utilización y facturas por contrato</p>
           </div>
@@ -148,29 +146,25 @@ export default function ProvContratos() {
                 className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>
-            <div className="relative flex items-center shrink-0">
-              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-              <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
-                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-              >
-                {ESTADOS.map(e => <option key={e}>{e}</option>)}
-              </select>
+          </div>
+          <div className="overflow-x-auto pb-0.5">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              {TABS.map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                    ${tab === t ? 'bg-orange shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                >
+                  {t === 'Borradores' && <Save className="w-3.5 h-3.5 shrink-0" />}
+                  {t}
+                </button>
+              ))}
             </div>
-            <Button
-              variant={verBorradores ? 'primary' : 'secondary'}
-              size="sm"
-              onClick={() => setVerBorradores(v => !v)}
-              className="shrink-0"
-            >
-              <Save className="w-3.5 h-3.5" />Borradores
-            </Button>
           </div>
         </div>
 
-        {verBorradores ? (
+        {tab === 'Borradores' ? (
           <BorradoresSeccion
             rol="proveedor"
             onContinuar={b => go('provConfigurarContrato', { contratoId: b.contratoId })}
