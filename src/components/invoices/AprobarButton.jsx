@@ -9,8 +9,7 @@ export default function AprobarButton({ onClick, title = 'Aprobar factura', clas
       type="button"
       title={title}
       onClick={e => { e.stopPropagation(); onClick?.(e); }}
-      className={`p-1.5 rounded-[8px] hover:bg-green-bg transition cursor-pointer flex items-center justify-center shrink-0 ${className}`}
-      style={{ color: '#2E7D5B' }}
+      className={`p-1.5 rounded-[8px] transition cursor-pointer flex items-center justify-center shrink-0 text-text-4 hover:text-orange ${className}`}
     >
       <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
     </button>

@@ -464,7 +464,7 @@ export default function EpFacturacion() {
           {vista === "contratante" ? (
             <>
               {/* Header CT */}
-              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Contratante</span>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
@@ -501,7 +501,7 @@ export default function EpFacturacion() {
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
-                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -522,7 +522,7 @@ export default function EpFacturacion() {
           ) : (
             <>
               {/* Header PR */}
-              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
@@ -565,7 +565,7 @@ export default function EpFacturacion() {
                     <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={(e) => { e.stopPropagation(); setPrDetalle(inv); }}
-                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
                       >
                         <Eye className="w-4 h-4" />
                       </button>

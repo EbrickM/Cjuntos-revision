@@ -168,7 +168,7 @@ export default function ProvFacturas() {
           {/* Tabla de facturas */}
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
             {/* Header */}
-            <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+            <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
@@ -219,7 +219,7 @@ export default function ProvFacturas() {
                   <div className="flex items-center justify-center gap-1">
                     <button
                       onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
                     >
                       <Eye className="w-4 h-4" />
                     </button>

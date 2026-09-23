@@ -185,7 +185,7 @@ export default function EmpFacturas() {
                   <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
                     <button
                       onClick={e => { e.stopPropagation(); setDetalle(f); }}
-                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
                     >
                       <Eye className="w-4 h-4" />
                     </button>

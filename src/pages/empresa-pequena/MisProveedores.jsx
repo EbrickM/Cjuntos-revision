@@ -315,7 +315,7 @@ export default function EpMisProveedores() {
 
         <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
           {/* Header */}
-          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_0.8fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_0.8fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">RUC</span>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
@@ -382,19 +382,19 @@ export default function EpMisProveedores() {
                 <div className="flex items-center justify-center gap-0.5">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleOpenEdit(p); }}
-                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
-                    className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); setDetalle(p); }}
-                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </button>

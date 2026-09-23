@@ -69,7 +69,7 @@ export default function ProvSuministradores() {
         {/* Tabla de Suministradores */}
         <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
           {/* Header */}
-          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border">
+          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Fondo</span>
@@ -119,7 +119,7 @@ export default function ProvSuministradores() {
               <div className="flex justify-center">
                 <button
                   onClick={e => { e.stopPropagation(); setSumModal(p); }}
-                  className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
