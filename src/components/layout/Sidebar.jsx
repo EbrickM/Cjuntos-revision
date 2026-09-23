@@ -1,7 +1,7 @@
 import {
   Home, Building2,
   ClipboardList, Users, Receipt,
-  User, LogOut, Leaf, X, Clock, Landmark, Truck, Banknote,
+  User, LogOut, Leaf, X, Clock, Landmark, Truck, Network,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { logout } from '../../stores/authStore';
@@ -35,7 +35,7 @@ const NAV = {
   ],
   fondeador: [
     { id: 'fondDash',    Icon: Home,          lbl: 'Inicio' },
-    { id: 'fondOrdenes', Icon: Banknote,      lbl: 'Órdenes de Fondeo' },
+    { id: 'fondOrdenes', Icon: Network,       lbl: 'Sistema' },
     { id: 'fondCartera', Icon: ClipboardList, lbl: 'Cartera' },
   ],
   proveedor: [

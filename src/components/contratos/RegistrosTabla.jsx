@@ -1,18 +1,26 @@
 import Badge from '../ui/Badge';
 
-// Asunto → variante de Badge. Tres tipos posibles, cada uno con un color
-// distinto ya usado en la app: 'contrato' (slate, neutro frío), 'facturas'
-// (orange, CTA) e 'indicación' (red, alerta).
-const ASUNTO_BADGE = { contrato: 'slate', facturas: 'orange', indicación: 'red' };
+// Asunto → variante de Badge. Cada asunto con su propio color: 'contrato'
+// (slate, neutro frío), 'facturas' (orange, CTA), 'administración' (blue,
+// gestión), 'cliente' (gold, onboarding) e 'indicación' (red, alerta).
+const ASUNTO_BADGE = {
+  contrato: 'slate',
+  facturas: 'orange',
+  administración: 'blue',
+  cliente: 'gold',
+  indicación: 'red',
+};
 
 const asuntoBadge = (a) => ASUNTO_BADGE[a] ?? 'slate';
 
 // Tabla compartida de la pestaña "Registros" de los detalles de contrato
-// (Contratante / PYME / Proveedor): Referente · Fecha · Asunto · Registro,
-// con el mismo patrón móvil (cards) + desktop (tabla) que el resto de la app.
-export default function RegistrosTabla({ registros = [], titulo = 'Registros', sub = 'Todos los movimientos y actuaciones de las partes sobre este contrato' }) {
+// (Contratante / PYME / Proveedor / Fondeador): Referente · Fecha · Asunto ·
+// Registro, con el mismo patrón móvil (cards) + desktop (tabla) que el resto de
+// la app. `noAnim` quita la animación de entrada (la usa el portal del Fondeador
+// para que el tab Registros se vea igual que las demás tablas).
+export default function RegistrosTabla({ registros = [], titulo = 'Registros', sub = 'Todos los movimientos y actuaciones de las partes sobre este contrato', noAnim = false }) {
   return (
-    <div className="card-enter bg-white rounded-[14px] border border-border p-5">
+    <div className={`bg-white rounded-[14px] border border-border p-5 ${noAnim ? '' : 'card-enter'}`}>
       <div className="flex items-center justify-between gap-2 mb-4">
         <div>
           <div className="text-[14px] font-bold text-text-1">{titulo} ({registros.length})</div>

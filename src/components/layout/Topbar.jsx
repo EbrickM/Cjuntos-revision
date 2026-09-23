@@ -92,7 +92,7 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
         cuerpo: `${f.contratante} envió la orden del IPI ${f.ipi?.numero ?? f.id} por ${fmt(f.monto)} XAF. Confirma la transferencia a Bonafide.`,
         dt: f.ipi?.fechaEmision ?? f.fecha,
         leida: false,
-        accion: { label: 'Ir a Órdenes de Fondeo', screenId: 'fondOrdenes' },
+        accion: { label: 'Ir a Sistema', screenId: 'fondOrdenes' },
       }));
     }
     return [];
