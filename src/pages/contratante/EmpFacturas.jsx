@@ -154,9 +154,10 @@ export default function EmpFacturas() {
           {/* Tabla de facturas */}
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
             {/* Header */}
-            <div className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+            <div className="min-w-[840px] grid [grid-template-columns:1.5fr_1.3fr_1fr_1.8fr_1.2fr_1.5fr_1.4fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Emp. Contratada</span>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Contrato</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
@@ -166,7 +167,7 @@ export default function EmpFacturas() {
               <div
                 key={f.id}
                 onClick={() => setDetalle(f)}
-                className="min-w-[720px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1.4fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                className="min-w-[840px] grid [grid-template-columns:1.5fr_1.3fr_1fr_1.8fr_1.2fr_1.5fr_1.4fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
               >
                 {/* ID */}
                 <div>
@@ -174,10 +175,9 @@ export default function EmpFacturas() {
                   <p className="text-[11px] text-text-5">{f.fecha}</p>
                 </div>
                 {/* Emp. Contratada */}
-                <div>
-                  <p className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</p>
-                  <p className="text-[11px] font-mono text-text-4">{f.contrato}</p>
-                </div>
+                <div className="text-[12px] font-semibold text-text-1 truncate">{f.pyme}</div>
+                {/* Contrato */}
+                <div className="text-[12px] font-mono text-text-4">{f.contrato || '—'}</div>
                 {/* Concepto */}
                 <div className="text-[12px] text-text-3 truncate text-center">{f.concepto || '—'}</div>
                 {/* Monto */}
@@ -214,7 +214,7 @@ export default function EmpFacturas() {
               </div>
             ))}
             {filtered.length === 0 && (
-              <div className="min-w-[720px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas con los filtros aplicados.</div>
+              <div className="min-w-[840px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas con los filtros aplicados.</div>
             )}
             <InfiniteScrollSentinel sentinelRef={sentinelRef} loading={loading} hasMore={hasMore} />
           </div>
