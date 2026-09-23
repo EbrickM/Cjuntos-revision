@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import ScoreGauge from '../../components/common/ScoreGauge';
-import { TrendingUp, Leaf, ChevronRight, Shield, Clock, Users } from 'lucide-react';
+import { TrendingUp, Leaf, ChevronRight, Shield, Clock, Users, BadgeCheck, GraduationCap, Heart, Briefcase } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
@@ -308,19 +308,18 @@ const iniciativasSociales = [
   { nombre: 'Clínica móvil zonas rurales',         categoria: 'Salud',         estado: 'Planificado',  beneficiarios: 320 },
 ];
 
-const estadoBadge    = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
-const categoriaBadge = (c) => c === 'Educación' ? 'brand' : c === 'Salud' ? 'green' : c === 'Empleabilidad' ? 'orange' : 'amber';
+const estadoBadge = (e) => e === 'En ejecución' ? 'orange' : e === 'Planificado' ? 'amber' : e === 'Finalizado' ? 'green' : e === 'Suspendido' ? 'red' : 'gray';
 const fmtXAF      = (n) => n.toLocaleString('de-DE').replace(/,/g, '.') + ' XAF';
 
 // ── Datos Impacto (resumen para home) ────────────────────────────────────────
 const HOME_ESG_METAS = [
-  { label: 'Captura de CO₂',       pct: 45, color: '#2E7D5B' },
-  { label: 'Proyectos activos',     pct: 63, color: '#3B82F6' },
-  { label: 'Reducción de residuos', pct: 30, color: '#C68A1D' },
+  { label: 'Captura de CO₂',       pct: 45, color: GREEN },
+  { label: 'Proyectos activos',     pct: 63, color: WARN  },
+  { label: 'Reducción de residuos', pct: 30, color: WARN  },
 ];
 const HOME_SOCIAL_METAS = [
   { label: 'Empleabilidad',     pct: 75, color: ORA   },
-  { label: 'Educación',         pct: 68, color: '#3B82F6' },
+  { label: 'Educación',         pct: 68, color: WARN  },
   { label: 'Salud comunitaria', pct: 45, color: GREEN },
 ];
 const EMPLEOS_TOTAL = 167;
@@ -345,8 +344,10 @@ export default function EpHome() {
   const animScore       = useCountUp(SCORE,                 1500, 300);
   const animSolXaf      = useCountUp(SOLICITUDES_XAF,      1400, 500);
   const animFactMonto   = useCountUp(FACTURAS_TOTAL_MONTO, 1400, 350);
-  const animEmpleos     = useCountUp(EMPLEOS_TOTAL,         1400, 600);
-  const animInvSocial   = useCountUp(INV_SOCIAL,            1500, 700);
+  const animProyActivos = useCountUp(4,               900,  100);
+  const animCO2         = useCountUp(12450,           1000, 200);
+  const animEmpleos     = useCountUp(EMPLEOS_TOTAL,   1400, 600);
+  const animInvSocial   = useCountUp(INV_SOCIAL,      1500, 700);
 
   // Zona del score calculada sobre el valor animado — los colores cambian
   // en tiempo real al cruzar los umbrales (Crítico → Alto → Medio → Bajo).
@@ -367,6 +368,13 @@ export default function EpHome() {
     const id = setTimeout(() => setBarsVisible(true), 450);
     return () => clearTimeout(id);
   }, []);
+
+  // Trigger para barras de impacto: se reinicia al salir de la pestaña
+  const [impactoBars, setImpactoBars] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setImpactoBars(tab === 'impacto'), tab === 'impacto' ? 300 : 0);
+    return () => clearTimeout(id);
+  }, [tab]);
 
   const evoWindowStart = evolucionData.length - evoPeriodo;
   const evolucionHasData = evolucionData.some((d, i) =>
@@ -726,18 +734,17 @@ export default function EpHome() {
             {/* KPIs combinados */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
               {[
-                { value: '4',                   label: 'Proyectos activos',   sub: 'Ambiental',           color: GREEN      },
-                { value: '12.450 t',             label: 'Captura CO₂',        sub: 'Potencial',            color: '#3B82F6'  },
-                { value: String(animEmpleos),    label: 'Empleos generados',   sub: 'Directo + indirecto', color: ORA        },
-                { value: fmtXAF(animInvSocial),  label: 'Inversión social',    sub: 'Acumulada',            color: GREEN      },
-              ].map(({ value, label, sub, color }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] border border-border overflow-hidden">
+                { value: String(animProyActivos),                           label: 'Proyectos activos'  },
+                { value: `${animCO2.toLocaleString('de-DE')} t`,            label: 'Captura CO₂'        },
+                { value: String(animEmpleos),                               label: 'Empleos generados'  },
+                { value: fmtXAF(animInvSocial),                             label: 'Inversión social'   },
+              ].map(({ value, label }) => (
+                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02] cursor-default">
                   <div className="p-4 flex flex-col gap-1">
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                     <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
-                    <span className="text-[10px]" style={{ color }}>{sub}</span>
                   </div>
-                  <div className="h-[3px]" style={{ background: color }} />
+                  <div className="h-[4px]" style={{ background: 'var(--bonafide-gradient)' }} />
                 </div>
               ))}
             </div>
@@ -745,19 +752,20 @@ export default function EpHome() {
             {/* Cards de estado: Ambiental + Social */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Ambiental */}
-              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#E3F4EA', border: '1px solid #A8D5BE' }}>
-                      <Leaf className="w-5 h-5" style={{ color: GREEN }} />
+                    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+                      <Leaf className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <div className="text-[13px] font-bold text-text-1">Impacto Ambiental</div>
                       <div className="text-[11px] text-text-4">Proyectos y certificación</div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap shrink-0"
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0"
                     style={{ background: '#E3F4EA', color: GREEN, border: '1px solid #A8D5BE' }}>
+                    <BadgeCheck className="w-3.5 h-3.5 shrink-0" />
                     Verde Bonafide
                   </span>
                 </div>
@@ -766,17 +774,17 @@ export default function EpHome() {
                     <div key={label}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px] font-semibold text-text-3">{label}</span>
-                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                        <span className="text-[11px] font-extrabold text-text-1">{pct}%</span>
                       </div>
                       <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                        <div className="h-full rounded-full" style={{ width: impactoBars ? `${pct}%` : '0%', background: color, transition: 'width 0.9s cubic-bezier(0.22, 1, 0.36, 1)' }} />
                       </div>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={() => go('epESG')}
-                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start"
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start cursor-pointer"
                   style={{ color: GREEN }}
                 >
                   Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
@@ -784,19 +792,20 @@ export default function EpHome() {
               </div>
 
               {/* Social */}
-              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4">
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
-                      <Users className="w-5 h-5" style={{ color: '#3B82F6' }} />
+                    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+                      <Users className="w-5 h-5 text-white" />
                     </div>
                     <div>
                       <div className="text-[13px] font-bold text-text-1">Impacto Social</div>
                       <div className="text-[11px] text-text-4">Iniciativas y comunidades</div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap shrink-0"
-                    style={{ background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap shrink-0"
+                    style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.35)' }}>
+                    <Users className="w-3.5 h-3.5 shrink-0" />
                     Impacto Local
                   </span>
                 </div>
@@ -805,18 +814,18 @@ export default function EpHome() {
                     <div key={label}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px] font-semibold text-text-3">{label}</span>
-                        <span className="text-[11px] font-extrabold" style={{ color }}>{pct}%</span>
+                        <span className="text-[11px] font-extrabold text-text-1">{pct}%</span>
                       </div>
                       <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                        <div className="h-full rounded-full" style={{ width: impactoBars ? `${pct}%` : '0%', background: color, transition: 'width 0.9s cubic-bezier(0.22, 1, 0.36, 1)' }} />
                       </div>
                     </div>
                   ))}
                 </div>
                 <button
                   onClick={() => go('epESG')}
-                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start"
-                  style={{ color: '#3B82F6' }}
+                  className="mt-auto flex items-center gap-1 text-[12px] font-semibold hover:underline self-start cursor-pointer"
+                  style={{ color: ORA }}
                 >
                   Ver detalle completo <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -827,13 +836,13 @@ export default function EpHome() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Proyectos Ambientales */}
-              <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-[13px] font-bold text-text-1">Proyectos Ambientales</div>
                     <div className="text-[11px] text-text-4">Últimos proyectos registrados</div>
                   </div>
-                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold" style={{ color: GREEN }}>
+                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold cursor-pointer" style={{ color: GREEN }}>
                     Ver todos <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -860,13 +869,13 @@ export default function EpHome() {
               </div>
 
               {/* Iniciativas Sociales */}
-              <div className="bg-white rounded-[14px] border border-border p-5">
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-[13px] font-bold text-text-1">Iniciativas Sociales</div>
                     <div className="text-[11px] text-text-4">Programas de impacto social activos</div>
                   </div>
-                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold" style={{ color: '#3B82F6' }}>
+                  <button onClick={() => go('epESG')} className="flex items-center gap-0.5 text-[11px] font-bold cursor-pointer" style={{ color: ORA }}>
                     Ver todos <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -880,13 +889,27 @@ export default function EpHome() {
                       </tr>
                     </thead>
                     <tbody>
-                      {iniciativasSociales.map((ini, i) => (
-                        <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
-                          <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{ini.nombre}</td>
-                          <td className="px-3 py-2.5 text-center whitespace-nowrap"><Badge variant={categoriaBadge(ini.categoria)}>{ini.categoria}</Badge></td>
-                          <td className="px-3 py-2.5 text-right text-[12px] font-bold text-text-1">{ini.beneficiarios.toLocaleString('de-DE')}</td>
-                        </tr>
-                      ))}
+                      {iniciativasSociales.map((ini, i) => {
+                        const catStyles = {
+                          'Educación':     { bg: '#FDF6E8', color: WARN,  border: 'rgba(198,138,29,0.35)', Icon: GraduationCap },
+                          'Salud':         { bg: '#E3F4EA', color: GREEN, border: '#A8D5BE',               Icon: Heart         },
+                          'Empleabilidad': { bg: '#FFF3E0', color: ORA,   border: 'rgba(239,122,44,0.35)', Icon: Briefcase     },
+                        };
+                        const cs = catStyles[ini.categoria] ?? { bg: '#F5F4F2', color: TEXT4, border: '#ECEAE7', Icon: Shield };
+                        return (
+                          <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
+                            <td className="px-3 py-2.5 text-[12px] font-medium text-text-1 max-w-[140px] truncate">{ini.nombre}</td>
+                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full"
+                                style={{ background: cs.bg, color: cs.color, border: `1px solid ${cs.border}` }}>
+                                <cs.Icon className="w-3 h-3 shrink-0" />
+                                {ini.categoria}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 text-right text-[12px] font-bold text-text-1">{ini.beneficiarios.toLocaleString('de-DE')}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
