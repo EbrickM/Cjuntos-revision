@@ -42,9 +42,9 @@ const SECTORES = [
 const KYC_BADGE = {
   vigente: {
     label: "KYC Vigente",
-    bg: "#E3F4EA",
-    color: "#2E7D5B",
-    border: "1px solid #A8D5BE",
+    bg: "#FFF3E0",
+    color: "#EF7A2C",
+    border: "1px solid rgba(239,122,44,.3)",
   },
   pendiente: {
     label: "KYC Pendiente",
@@ -105,10 +105,7 @@ const ModalLabel = ({ text, Icon }) => (
 const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
   <div className="rounded-[12px] border border-border p-4">
     <div className="flex items-center gap-2.5 mb-2.5">
-      <div
-        className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-        style={{ background: iconBg }}
-      >
+      <div className="w-9 h-9 flex items-center justify-center shrink-0">
         <Icon className="w-5 h-5" style={{ color: iconColor }} />
       </div>
       <div>
@@ -810,7 +807,7 @@ export default function EpMisProveedores() {
                             ? "#B8352A"
                             : pct > 70
                               ? "#C68A1D"
-                              : "#2E7D5B";
+                              : "#EF7A2C";
                         return (
                           <div
                             key={c.id}
@@ -821,7 +818,7 @@ export default function EpMisProveedores() {
                                 <span className="text-[12px] font-bold text-text-1 font-mono">
                                   {c.id}
                                 </span>
-                                <Badge variant="green">Activo</Badge>
+                                <Badge variant="orange">Activo</Badge>
                               </div>
                               <p className="text-[11px] truncate text-text-4">
                                 {c.objeto}

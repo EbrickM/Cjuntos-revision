@@ -42,12 +42,12 @@ const contractBadge = (estado) => ({
   'Pendiente de Revisión':      { variant: 'orange', label: 'Pend. Revisión' },
   'Con Requerimientos':         { variant: 'red', label: 'Con Requerimientos' },
   'En Discusión de Términos':   { variant: 'brand', label: 'En Discusión' },
-  'Activo':                     { variant: 'green', label: 'Activo' },
+  'Activo':                     { variant: 'orange', label: 'Activo' },
 }[estado] ?? { variant: 'amber', label: estado || 'Pendiente' });
 
 const ESTADOS_FILTRO = ['Todos', 'Pendiente de Configuración', 'Pendiente de Revisión', 'Con Requerimientos', 'En Discusión de Términos', 'Activo'];
 
-const ENTIDADES_REQUERIMIENTO = ['Empresa Contratante', 'PYME', 'Proveedor'];
+const ENTIDADES_REQUERIMIENTO = ['Empresa Contratante', 'Empresa Contratada', 'Proveedor'];
 const REQ_MODAL_EMPTY = { open: false, contractId: null, entidades: [], pymes: [], proveedores: [], mensaje: '' };
 
 const TABS = [
@@ -186,7 +186,7 @@ export default function AdminContratos() {
     ...m, proveedores: m.proveedores.includes(p) ? m.proveedores.filter(x => x !== p) : [...m.proveedores, p],
   }));
 
-  const reqFaltaSeleccionPyme       = reqModal.entidades.includes('PYME')      && pymesDisponibles.length > 0       && reqModal.pymes.length === 0;
+  const reqFaltaSeleccionPyme       = reqModal.entidades.includes('Empresa Contratada')      && pymesDisponibles.length > 0       && reqModal.pymes.length === 0;
   const reqFaltaSeleccionProveedor  = reqModal.entidades.includes('Proveedor') && proveedoresDisponibles.length > 0 && reqModal.proveedores.length === 0;
   const reqPuedeEnviar = reqModal.entidades.length > 0 && reqModal.mensaje.trim() && !reqFaltaSeleccionPyme && !reqFaltaSeleccionProveedor;
 
@@ -364,7 +364,7 @@ export default function AdminContratos() {
                 <table className="w-full min-w-[820px]">
                   <thead className="bg-page-bg">
                     <tr className="border-b border-border">
-                      {['Contrato', 'PYME', 'Contratante', 'Estado', 'Monto', 'Acciones'].map((h, i) => (
+                      {['Contrato', 'Emp. Contratada', 'Contratante', 'Estado', 'Monto', 'Acciones'].map((h, i) => (
                         <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                           ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
                         `}>{h}</th>
@@ -490,7 +490,7 @@ export default function AdminContratos() {
                       <div className="text-[14px] font-bold">Datos de Identidad del Contratante</div>
                       <div className="text-[12px] text-text-4">Información legal y fiscal de la empresa contratante.</div>
                     </div>
-                    <Badge variant={detailContract.contratante.confirmado ? 'green' : detailContract.estado === 'Pendiente de Configuración' ? 'yellow' : 'blue'}>
+                    <Badge variant={detailContract.contratante.confirmado ? 'orange' : detailContract.estado === 'Pendiente de Configuración' ? 'yellow' : 'blue'}>
                       {detailContract.contratante.confirmado ? 'Confirmado' : detailContract.estado === 'Pendiente de Configuración' ? 'Pendiente' : 'En revisión'}
                     </Badge>
                   </div>
@@ -685,7 +685,7 @@ export default function AdminContratos() {
         >
           <div className="space-y-5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <ReadField label="PYME"        value={reviewModal.pymeNombre} />
+              <ReadField label="Emp. Contratada"        value={reviewModal.pymeNombre} />
               <ReadField label="Monto"       value={formatXaf(reviewModal.monto)} />
               <ReadField label="Asignado"    value={formatXaf(reviewModal.asignado)} />
               <ReadField label="Disponible"  value={formatXaf(reviewModal.disponible)} />
@@ -743,7 +743,7 @@ export default function AdminContratos() {
         >
           <div className="space-y-5">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <ReadField label="PYME" value={detalleModal.pymeNombre} />
+              <ReadField label="Emp. Contratada" value={detalleModal.pymeNombre} />
               <ReadField label="Monto" value={formatXaf(detalleModal.monto)} />
               <ReadField label="Asignado" value={formatXaf(detalleModal.asignado)} />
               <ReadField label="Disponible" value={formatXaf(detalleModal.disponible)} />
@@ -846,14 +846,14 @@ export default function AdminContratos() {
 
                     {/* Un contrato puede tener varias PYMEs o proveedores —
                         hay que precisar cuál(es), no solo el tipo de entidad. */}
-                    {ent === 'PYME' && reqModal.entidades.includes('PYME') && (
+                    {ent === 'Empresa Contratada' && reqModal.entidades.includes('Empresa Contratada') && (
                       <div className="ml-7 mt-1.5 mb-1 space-y-2">
                         {pymesDisponibles.length === 0 ? (
-                          <p className="text-[11px] text-text-5 italic">No hay PYMEs registradas en este contrato.</p>
+                          <p className="text-[11px] text-text-5 italic">No hay Empresas Contratadas registradas en este contrato.</p>
                         ) : (
                           <>
                             <Select value="" onChange={e => { if (e.target.value) toggleReqPyme(e.target.value); }}>
-                              <option value="">+ Seleccionar PYME…</option>
+                              <option value="">+ Seleccionar Empresa Contratada…</option>
                               {pymesDisponibles.filter(p => !reqModal.pymes.includes(p)).map(p => (
                                 <option key={p} value={p}>{p}</option>
                               ))}

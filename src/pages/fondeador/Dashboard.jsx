@@ -58,7 +58,7 @@ export default function FondDash() {
             <div className="text-[12px] text-text-4 leading-snug">Monto por liquidar</div>
           </div>
           <div className="card-enter bg-white rounded-[14px] border border-border p-4">
-            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-green-text tabular-nums">{animCartera}</div>
+            <div className="text-[22px] font-extrabold leading-none mb-2 truncate text-orange tabular-nums">{animCartera}</div>
             <div className="text-[12px] text-text-4 leading-snug">Operaciones fondeadas</div>
           </div>
           <div className="card-enter bg-white rounded-[14px] border border-border p-4">
@@ -109,7 +109,7 @@ export default function FondDash() {
                       <div className="text-[10px] font-mono text-text-4">{o.ipi?.numero ?? o.id}</div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[12px] font-extrabold text-green-text whitespace-nowrap">{fmt(netoFactura(o))} XAF</div>
+                      <div className="text-[12px] font-extrabold text-orange whitespace-nowrap">{fmt(netoFactura(o))} XAF</div>
                       <div className="text-[10px] text-text-4">a transferir</div>
                     </div>
                   </div>
@@ -141,7 +141,7 @@ export default function FondDash() {
               <table className="w-full min-w-[640px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['Operación', 'PYME', 'Estado', 'Monto fondeado', 'Fecha'].map((h, i) => (
+                    {['Operación', 'Emp. Contratada', 'Estado', 'Monto fondeado', 'Fecha'].map((h, i) => (
                       <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 3 ? 'text-right' : 'text-left'}`}>{h}</th>
                     ))}
                   </tr>

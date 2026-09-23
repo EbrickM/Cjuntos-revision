@@ -132,7 +132,7 @@ export default function FondOrdenes() {
             <table className="w-full min-w-[760px]">
               <thead className="bg-page-bg">
                 <tr className="border-b border-border">
-                  {['IPI', 'PYME', 'Contratante', 'Monto', 'Emisión', 'Estado', 'Detalle', 'Acción'].map((h, i) => (
+                  {['IPI', 'Emp. Contratada', 'Contratante', 'Monto', 'Emisión', 'Estado', 'Detalle', 'Acción'].map((h, i) => (
                     <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-3 py-3
                       ${i === 0 ? 'text-left' : i === 3 ? 'text-right' : 'text-center'}
                     `}>{h}</th>
@@ -166,7 +166,7 @@ export default function FondOrdenes() {
                           <MessageSquare className="w-4 h-4" />
                         </button>
                         <button onClick={() => setValidando(f)} title="Validar IPI"
-                          className="p-1.5 rounded-[8px] hover:bg-green-bg transition text-green-text cursor-pointer">
+                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-orange cursor-pointer">
                           <CheckCircle className="w-4 h-4" />
                         </button>
                       </div>
@@ -194,7 +194,7 @@ export default function FondOrdenes() {
         />
       )}
 
-      {/* ── Modal: Poner requerimiento a la PYME ── */}
+      {/* ── Modal: Poner requerimiento a la Empresa Contratada ── */}
       {requerimiento && (
         <RequerimientoIpiModal
           factura={requerimiento}
@@ -206,7 +206,7 @@ export default function FondOrdenes() {
   );
 }
 
-// ── Modal: poner requerimiento a la PYME desde la Bandeja de validación ───────
+// ── Modal: poner requerimiento a la Empresa Contratada desde la Bandeja de validación ───────
 function RequerimientoIpiModal({ factura, onClose, onConfirm }) {
   const [mensaje, setMensaje] = useState('');
 
@@ -225,19 +225,19 @@ function RequerimientoIpiModal({ factura, onClose, onConfirm }) {
     >
       <div className="space-y-4">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <InfoRow label="PYME" value={factura.pyme} />
+          <InfoRow label="Empresa Contratada" value={factura.pyme} />
           <InfoRow label="Contrato" value={factura.contrato} />
           <InfoRow label="Monto IPI" value={`${fmt(factura.monto)} XAF`} />
           <InfoRow label="Vence" value={factura.fechaVencimiento ?? '—'} />
         </div>
 
         <div>
-          <label className="text-[11px] text-text-4 mb-1 block">Mensaje para la PYME</label>
+          <label className="text-[11px] text-text-4 mb-1 block">Mensaje para la Empresa Contratada</label>
           <textarea
             value={mensaje}
             onChange={e => setMensaje(e.target.value)}
             rows={4}
-            placeholder="Escribe el requerimiento que debe corregir la PYME…"
+            placeholder="Escribe el requerimiento que debe corregir la Empresa Contratada…"
             className="w-full rounded-[10px] border-2 border-input-border focus:border-orange focus:outline-none px-3 py-2 text-[13px] resize-none"
           />
         </div>
@@ -273,7 +273,7 @@ function ValidacionIpiModal({ factura, onClose, onConfirm }) {
     >
       <div className="space-y-5">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <InfoRow label="PYME" value={factura.pyme} />
+          <InfoRow label="Empresa Contratada" value={factura.pyme} />
           <InfoRow label="Contrato" value={factura.contrato} />
           <InfoRow label="Monto IPI" value={`${fmt(factura.monto)} XAF`} />
           <InfoRow label="Vence" value={factura.fechaVencimiento ?? '—'} />
@@ -322,12 +322,12 @@ function ValidacionIpiModal({ factura, onClose, onConfirm }) {
           </div>
           <div className="flex justify-between border-t border-border pt-2.5">
             <span className="text-[12px] font-semibold text-text-1">Monto a transferir</span>
-            <span className="text-[16px] font-extrabold text-green-text">{fmt(neto)} XAF</span>
+            <span className="text-[16px] font-extrabold text-orange">{fmt(neto)} XAF</span>
           </div>
         </div>
 
         <div>
-          <label className="text-[11px] text-text-4 mb-1 block">Observación para la PYME (requerimiento)</label>
+          <label className="text-[11px] text-text-4 mb-1 block">Observación para la Empresa Contratada (requerimiento)</label>
           <input
             type="text"
             value={observacion}

@@ -138,7 +138,7 @@ export default function EmpContratos() {
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar contrato, PYME…"
+                placeholder="Buscar contrato, Emp. Contratada…"
                 className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
               />
             </div>

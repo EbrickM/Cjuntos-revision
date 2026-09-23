@@ -11,6 +11,8 @@ import {
   X,
   Eye,
   ListFilter,
+  Building2,
+  Truck,
 } from "lucide-react";
 import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
@@ -386,16 +388,18 @@ export default function EpFacturacion() {
           <div className="flex bg-white rounded-[10px] gap-1 h-25px w-max-[370px]">
             <button
               onClick={() => setVista("contratante")}
-              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap
+              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
                   ${vista === "contratante" ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1 cursor-pointer"}`}
             >
+              <Building2 className="w-3.5 h-3.5 shrink-0" />
               Facturas al Contratante
             </button>
             <button
               onClick={() => setVista("proveedor")}
-              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap
+              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
                   ${vista === "proveedor" ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1 cursor-pointer"}`}
             >
+              <Truck className="w-3.5 h-3.5 shrink-0" />
               Facturas de Proveedores
             </button>
           </div>

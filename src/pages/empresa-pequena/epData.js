@@ -41,7 +41,7 @@ export const pymeContratosPendientes = [
       { id: 'PROV-9001', nombre: 'Lideshore Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
     ],
     requerimiento: {
-      entidades: ['PYME'],
+      entidades: ['Empresa Contratada'],
       mensaje: 'El proveedor "Lideshore Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
       fecha: '21/06/2026',
     },

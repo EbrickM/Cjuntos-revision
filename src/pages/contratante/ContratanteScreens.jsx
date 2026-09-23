@@ -185,11 +185,11 @@ const solicitudesPymes = [
 ];
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
-const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'IPI emitido': 'terra', 'Pagada': 'green' }[e] ?? 'gray');
-  const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
-  const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'amber' : 'red';
-const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
-const scoreColor   = n => n >= 750 ? GREEN : n >= 500 ? WARN : ERR;
+const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'IPI emitido': 'terra', 'Pagada': 'orange' }[e] ?? 'gray');
+  const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'orange', 'Rechazada': 'red' }[e] ?? 'gray');
+  const semBadge     = s => s === 'Verde' ? 'orange' : s === 'Amarillo' ? 'amber' : 'red';
+const semColor     = s => s === 'Verde' ? ORA : s === 'Amarillo' ? WARN : ERR;
+const scoreColor   = n => n >= 750 ? ORA : n >= 500 ? WARN : ERR;
 
 // ── InfoRow (igual que en PYME) ───────────────────────────────────────────────
 const InfoRow = ({ label, value }) => (
@@ -297,7 +297,7 @@ export function EmpContratos() {
                       <p className="text-[11px]" style={{ color: TEXT4 }}>{c.sector}</p>
                     </div>
                   </div>
-                  <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
+                  <Badge variant={c.estado === 'Activo' ? 'orange' : 'gray'}>{c.estado}</Badge>
                 </div>
 
                 {/* Utilización */}
@@ -848,7 +848,7 @@ export function EmpPymes() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="text-[12px] font-bold text-text-1 font-mono">{c.id}</span>
-                              <Badge variant={c.estado === 'Activo' ? 'green' : 'gray'}>{c.estado}</Badge>
+                              <Badge variant={c.estado === 'Activo' ? 'orange' : 'gray'}>{c.estado}</Badge>
                             </div>
                             <p className="text-[11px] truncate" style={{ color: TEXT4 }}>{c.objeto}</p>
                           </div>

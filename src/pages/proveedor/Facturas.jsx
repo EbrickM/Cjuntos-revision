@@ -208,7 +208,7 @@ export default function ProvFacturas() {
                   <div className="flex justify-center flex-wrap gap-1">
                     <InvoiceStatusBadge estado={f.estado} />
                     {pago && (
-                      <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'green'}>
+                      <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'orange'}>
                         {pago.metodo === 'cheque' ? <FileText className="w-3 h-3 inline mr-0.5" /> : <Banknote className="w-3 h-3 inline mr-0.5" />}
                         {pago.metodo === 'cheque' ? pago.cheque : 'Transf.'}
                       </Badge>
@@ -264,7 +264,7 @@ export default function ProvFacturas() {
                 <div className="flex items-center gap-2">
                   {pagoDe(viva.id) && (
                     <div className="flex items-center gap-2">
-                      <Badge variant={pagoDe(viva.id).metodo === 'cheque' ? 'yellow' : 'green'}>
+                      <Badge variant={pagoDe(viva.id).metodo === 'cheque' ? 'yellow' : 'orange'}>
                         {pagoDe(viva.id).metodo === 'cheque' ? pagoDe(viva.id).cheque : 'Transferencia core'}
                       </Badge>
                     </div>

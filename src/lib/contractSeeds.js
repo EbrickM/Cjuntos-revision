@@ -127,7 +127,7 @@ export const seedContratos = [
       { id: 'PROV-9001', nombre: 'Lideshore Este', email: 'ventas@suminest.gq', telefono: '+240 222 808 909', monto: 12_000_000, cargaNomina: false },
     ],
     requerimiento: {
-      entidades: ['PYME'],
+      entidades: ['Empresa Contratada'],
       mensaje: 'El proveedor "Lideshore Este" no tiene monto suficiente sustentado con factura. Adjunta o corrige el presupuesto antes de continuar.',
       fecha: '21/06/2026',
     },
@@ -368,8 +368,8 @@ export const seedContratos = [
     estado: CST.conRequerimientos,
     nota: 'La configuración enviada no cumple los requisitos. Se solicitó una corrección a la parte responsable.',
     requerimiento: {
-      entidades: ['PYME'],
-      mensaje: 'La PYME APEX Tech no adjuntó la documentación de respaldo requerida para validar el monto asignado por el contratante. Favor de adjuntar el contrato comercial actualizado antes de continuar con la autorización.',
+      entidades: ['Empresa Contratada'],
+      mensaje: 'La Empresa Contratada APEX Tech no adjuntó la documentación de respaldo requerida para validar el monto asignado por el contratante. Favor de adjuntar el contrato comercial actualizado antes de continuar con la autorización.',
       fecha: '11/07/2026',
     },
     contratante: {

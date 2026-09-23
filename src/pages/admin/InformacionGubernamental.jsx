@@ -53,7 +53,7 @@ const INFORMES_INICIALES = {
   ],
 };
 
-const informeBadge = (estado) => estado === 'Notificado' ? 'green' : 'yellow';
+const informeBadge = (estado) => estado === 'Notificado' ? 'orange' : 'yellow';
 
 // Contenido que se exporta en la notificación de cada informe, por ministerio.
 const contenidoExport = (ministerio) =>

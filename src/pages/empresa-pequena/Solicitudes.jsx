@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
+  Mail,
 } from "lucide-react";
 import { useApp } from "../../state/AppContext";
 import AppShell from "../../components/layout/AppShell";
@@ -25,7 +26,7 @@ const BORDER = "#E5E7EB";
 const fmt = (n) => `${new Intl.NumberFormat("de-DE").format(n)} XAF`;
 
 const solicBadge = (e) =>
-  ({ "En revisión": "amber", Aprobada: "green", Rechazada: "red" })[e] ??
+  ({ "En revisión": "amber", Aprobada: "orange", Rechazada: "red" })[e] ??
   "gray";
 
 const solicIconCfg = {
@@ -177,18 +178,19 @@ export default function EpSolicitudes() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex bg-white rounded-[10px] gap-1 h-25px w-max-[370px]">
             {[
-              { id: "mis", lbl: "Mis solicitudes" },
-              { id: "invitaciones", lbl: "Invitaciones" },
+              { id: "mis",          lbl: "Mis solicitudes", Icon: ClipboardList },
+              { id: "invitaciones", lbl: "Invitaciones",    Icon: Mail          },
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`bona-btn flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
+                className={`bona-btn flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
                   tab === t.id
                     ? "bg-[#EF7A2C] shadow-sm text-white"
                     : "text-text-3 hover:text-text-1 cursor-pointer"
                 }`}
               >
+                <t.Icon className="w-3.5 h-3.5 shrink-0" />
                 {t.lbl}
               </button>
             ))}
@@ -212,12 +214,10 @@ export default function EpSolicitudes() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ background: cfg.iconBg }}
+                        className="bona-gradient-bg w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                       >
                         <cfg.Icon
-                          className="w-5 h-5"
-                          style={{ color: cfg.iconColor }}
+                          className="w-5 h-5 text-white"
                         />
                       </div>
                       <div>
@@ -358,12 +358,10 @@ export default function EpSolicitudes() {
                   style={{ background: "#F8F7F5" }}
                 >
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: cfg.iconBg }}
+                    className="bona-gradient-bg w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                   >
                     <cfg.Icon
-                      className="w-6 h-6"
-                      style={{ color: cfg.iconColor }}
+                      className="w-6 h-6 text-white"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -400,11 +398,11 @@ export default function EpSolicitudes() {
                       const dotColor = step.done
                         ? step.isRechazada
                           ? ERR
-                          : GREEN
+                          : ORA
                         : step.active
                           ? ORA
                           : BORDER;
-                      const lineColor = steps[i + 1]?.done ? GREEN : BORDER;
+                      const lineColor = steps[i + 1]?.done ? ORA : BORDER;
                       return (
                         <div
                           key={i}
@@ -445,7 +443,7 @@ export default function EpSolicitudes() {
                                 step.done && step.isRechazada
                                   ? ERR
                                   : step.done && step.isResult
-                                    ? GREEN
+                                    ? ORA
                                     : step.active
                                       ? ORA
                                       : TEXT4,
@@ -463,24 +461,21 @@ export default function EpSolicitudes() {
                   <div
                     className="flex items-start gap-3 p-4 rounded-[12px]"
                     style={{
-                      background: "#E3F4EA",
-                      border: "1px solid #B6DFC9",
+                      background: "#FFF3E0",
+                      border: "1px solid rgba(239,122,44,.3)",
                     }}
                   >
                     <CheckCircle2
-                      className="w-5 h-5 shrink-0 mt-0.5"
-                      style={{ color: GREEN }}
+                      className="w-5 h-5 shrink-0 mt-0.5 text-orange"
                     />
                     <div>
                       <p
-                        className="text-[13px] font-semibold"
-                        style={{ color: GREEN }}
+                        className="text-[13px] font-semibold text-orange-dark"
                       >
                         Solicitud aprobada
                       </p>
                       <p
-                        className="text-[11px] mt-0.5"
-                        style={{ color: GREEN }}
+                        className="text-[11px] mt-0.5 text-orange-dark"
                       >
                         Bonafide ha procesado tu solicitud satisfactoriamente.
                         El equipo de gestión se pondrá en contacto pronto.

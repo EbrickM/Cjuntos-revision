@@ -16,7 +16,7 @@ import { contratoService } from '../../services/contrato.service';
 // ── CONFIGURAR CONTRATO (Subproceso 1 del BPMN: Contratante reparte el
 // contrato-marco entre sus PYMEs y les asigna monto) ──────────────────────────
 
-const STEPS  = ['Cuenta bancaria', 'PYMEs y montos', 'Revisión y envío'];
+const STEPS  = ['Cuenta bancaria', 'Empresas Contratadas y montos', 'Revisión y envío'];
 const PLAZOS = [30, 60, 90];
 
 const EMAIL_REGEX  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -174,7 +174,7 @@ export default function EmpConfigurarContrato() {
           </div>
           <h2 className="text-[20px] font-bold text-text-1 mb-2">Contrato enviado a revisión</h2>
           <p className="text-[13px] text-text-3 leading-relaxed mb-6">
-            Bonafide revisará la configuración del contrato {marco.id} y su distribución entre las PYMEs asignadas. Te notificaremos cuando el contrato esté activo.
+            Bonafide revisará la configuración del contrato {marco.id} y su distribución entre las Empresas Contratadas asignadas. Te notificaremos cuando el contrato esté activo.
           </p>
           <Button variant="primary" full className="h-[48px]" onClick={() => go('empContratos')}>
             Volver a Mis Contratos
@@ -237,7 +237,7 @@ export default function EmpConfigurarContrato() {
           {/* ── Paso 2: PYMEs y montos ── */}
           {step === 1 && (
             <>
-              <StepHeader icon={Users} title="PYMEs y montos asignados" subtitle="Agrega cada Empresa Contratada (PYME) y el monto que le corresponde" />
+              <StepHeader icon={Users} title="Empresas Contratadas y montos asignados" subtitle="Agrega cada Empresa Contratada y el monto que le corresponde" />
 
               <div className="grid grid-cols-3 gap-3 mb-5">
                 <div className="p-3 rounded-[10px] bg-page-bg text-center">
@@ -249,14 +249,14 @@ export default function EmpConfigurarContrato() {
                   <div className="text-[9px] sm:text-[10px] font-semibold text-text-4 uppercase tracking-wide">Asignado</div>
                 </div>
                 <div className="p-3 rounded-[10px] bg-page-bg text-center">
-                  <div className="text-[15px] sm:text-[16px] font-extrabold text-green-text">{fmt(disponibleGlobal)}</div>
+                  <div className="text-[15px] sm:text-[16px] font-extrabold text-orange">{fmt(disponibleGlobal)}</div>
                   <div className="text-[9px] sm:text-[10px] font-semibold text-text-4 uppercase tracking-wide">Disponible</div>
                 </div>
               </div>
 
               <div className="flex justify-end mb-4">
                 <Button variant="primary" size="sm" onClick={openAdd} disabled={disponibleGlobal <= 0}>
-                  <Plus className="w-3.5 h-3.5" />Agregar PYME
+                  <Plus className="w-3.5 h-3.5" />Agregar Empresa Contratada
                 </Button>
               </div>
 
@@ -284,7 +284,7 @@ export default function EmpConfigurarContrato() {
                   </div>
                 ))}
                 {asignaciones.length === 0 && (
-                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna PYME a este contrato.</div>
+                  <div className="text-[12px] text-text-4 text-center py-8">Aún no agregaste ninguna Empresa Contratada a este contrato.</div>
                 )}
               </div>
             </>
@@ -297,14 +297,14 @@ export default function EmpConfigurarContrato() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <InfoRow label="Cuenta bancaria" value={cuentaTipo === 'bonafide' ? 'Cuenta Bonafide existente' : `Banco Fondeador · ${cuentaBanco || '—'}`} />
-                <InfoRow label="PYMEs agregadas" value={String(asignaciones.length)} />
+                <InfoRow label="Emp. Contratadas agregadas" value={String(asignaciones.length)} />
               </div>
 
               <div className="rounded-[12px] border border-border overflow-hidden mb-5">
                 <table className="w-full text-[12px]">
                   <thead className="bg-page-bg text-text-4">
                     <tr>
-                      <th className="text-left px-3 py-2 font-semibold">PYME</th>
+                      <th className="text-left px-3 py-2 font-semibold">Emp. Contratada</th>
                       <th className="text-left px-3 py-2 font-semibold">Plazo</th>
                       <th className="text-right px-3 py-2 font-semibold">Monto</th>
                     </tr>
@@ -327,7 +327,7 @@ export default function EmpConfigurarContrato() {
                   <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Total asignado</div>
                 </div>
                 <div className="p-3 rounded-[10px] bg-page-bg text-center">
-                  <div className="text-[16px] font-extrabold text-green-text">{fmt(disponibleGlobal)}</div>
+                  <div className="text-[16px] font-extrabold text-orange">{fmt(disponibleGlobal)}</div>
                   <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide">Disponible restante</div>
                 </div>
               </div>
@@ -335,7 +335,7 @@ export default function EmpConfigurarContrato() {
               <div className={`rounded-[12px] border-2 p-5 transition-colors ${intentoEnvio && !confirmado ? 'border-red-400' : 'border-gray-200'}`}>
                 <label className="flex items-start gap-3 cursor-pointer">
                   <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} className="mt-0.5 w-5 h-5 accent-orange cursor-pointer shrink-0" />
-                  <span className="text-[13px] text-text-2">Confirmo que los datos de las PYMEs y los montos asignados son correctos.</span>
+                  <span className="text-[13px] text-text-2">Confirmo que los datos de las Empresas Contratadas y los montos asignados son correctos.</span>
                 </label>
                 {intentoEnvio && !confirmado && (
                   <p className="text-xs text-red-500 mt-2 ml-8">Debes confirmar antes de enviar.</p>
@@ -365,7 +365,7 @@ export default function EmpConfigurarContrato() {
       {/* ── Modal: agregar/editar PYME ── */}
       {modal.open && (
         <Modal
-          title={modal.editId ? 'Editar PYME / reasignar monto' : 'Agregar PYME'}
+          title={modal.editId ? 'Editar Empresa Contratada / reasignar monto' : 'Agregar Empresa Contratada'}
           onClose={() => setModal(ASIGNACION_EMPTY)}
           footer={
             <>
@@ -375,7 +375,7 @@ export default function EmpConfigurarContrato() {
           }
         >
           <div className="space-y-4">
-            <FormGroup label="PYME" required>
+            <FormGroup label="Empresa Contratada" required>
               <Select value={modal.pymeSel} onChange={e => {
                 const v = e.target.value;
                 const p = pymes.find(x => x.nombre === v);
@@ -391,8 +391,8 @@ export default function EmpConfigurarContrato() {
             </FormGroup>
 
             {modal.pymeSel === '__nueva__' && (
-              <FormGroup label="Nombre de la nueva PYME" required>
-                <Input value={modal.pymeNombreLibre} onChange={e => setModal(m => ({ ...m, pymeNombreLibre: e.target.value }))} placeholder="Nombre o RUC de la PYME" />
+              <FormGroup label="Nombre de la nueva Empresa Contratada" required>
+                <Input value={modal.pymeNombreLibre} onChange={e => setModal(m => ({ ...m, pymeNombreLibre: e.target.value }))} placeholder="Nombre o RUC de la Empresa Contratada" />
               </FormGroup>
             )}
 
@@ -449,13 +449,13 @@ export default function EmpConfigurarContrato() {
                 onClick={() => setModal(m => ({ ...m, documentoNombre: m.documentoNombre ? m.documentoNombre : 'contrato_comercial.pdf' }))}
                 className={`border-2 rounded-[12px] p-5 text-center cursor-pointer transition-all
                   ${modal.documentoNombre
-                    ? 'border-solid border-green-border bg-green-bg'
+                    ? 'border-solid border-orange-border bg-orange-tint'
                     : 'border-dashed border-input-border bg-page-bg hover:border-orange hover:bg-orange-tint'}`}
               >
                 {modal.documentoNombre ? (
                   <>
-                    <CheckCircle2 className="w-6 h-6 text-green-text mx-auto mb-1.5" />
-                    <div className="text-[12px] font-semibold text-green-text">{modal.documentoNombre}</div>
+                    <CheckCircle2 className="w-6 h-6 text-orange mx-auto mb-1.5" />
+                    <div className="text-[12px] font-semibold text-orange">{modal.documentoNombre}</div>
                   </>
                 ) : (
                   <>

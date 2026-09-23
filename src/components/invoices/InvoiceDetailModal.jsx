@@ -33,7 +33,7 @@ export default function InvoiceDetailModal({ factura, title, onClose, footer, ch
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <InfoRow label="Nº Factura" value={f.id} />
-          <InfoRow label={esInverso ? 'PYME' : 'PYME'} value={f.pyme ?? '—'} />
+          <InfoRow label="Emp. Contratada" value={f.pyme ?? '—'} />
           <InfoRow label="Contratante" value={f.contratante ?? '—'} />
           {f.proveedor && <InfoRow label="Proveedor" value={f.proveedor} />}
           {f.suministrador && <InfoRow label="Suministrador" value={f.suministrador} />}
@@ -107,7 +107,7 @@ export default function InvoiceDetailModal({ factura, title, onClose, footer, ch
             </div>
             <div className="mt-3 pt-3 border-t border-border flex justify-between text-[12px]">
               <span style={{ color: '#A9A6A1' }}>Monto a transferir (neto)</span>
-              <span className="font-extrabold text-green-text">{fmt(f.condiciones.neto)} XAF</span>
+              <span className="font-extrabold text-orange">{fmt(f.condiciones.neto)} XAF</span>
             </div>
           </div>
         )}

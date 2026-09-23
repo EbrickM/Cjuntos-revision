@@ -34,7 +34,7 @@ export const contratos = [
     // contrato-marco en `contratosMarco` que el wizard debe reabrir.
     requerimiento: {
       entidades: ['Empresa Contratante'],
-      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más Empresas Contratadas o adjunta el sustento correspondiente.',
       fecha: '16/06/2026',
       marcoId: 'CTM-2026-0011',
     },
@@ -68,18 +68,18 @@ export const solicitudesPymes = [
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
 // Cada estado distinto mapea a una variante distinta (Anexo Digital MIC v1.0).
-export const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'Emitida': 'orange', 'Pagada': 'green' }[e] ?? 'gray');
-export const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'green', 'Rechazada': 'red' }[e] ?? 'gray');
-export const semBadge     = s => s === 'Verde' ? 'green' : s === 'Amarillo' ? 'amber' : 'red';
+export const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'Emitida': 'orange', 'Pagada': 'orange' }[e] ?? 'gray');
+export const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'orange', 'Rechazada': 'red' }[e] ?? 'gray');
+export const semBadge     = s => s === 'Verde' ? 'orange' : s === 'Amarillo' ? 'amber' : 'red';
 // Badge de estado de contrato (todas las secciones): cada estado del ciclo de
 // vida de la configuración con su color distinto (misma escala que contractStates).
 export const contratoBadge = e =>
-  e === 'Activo' ? 'green' :
+  e === 'Activo' ? 'orange' :
   e === 'Con Requerimientos' ? 'red' :
   e === 'En Discusión de Términos' ? 'brand' :
-  e === 'Pendiente de Revisión' ? 'orange' : 'amber';
-export const semColor     = s => s === 'Verde' ? GREEN : s === 'Amarillo' ? WARN : ERR;
-export const scoreColor   = n => n >= 750 ? GREEN : n >= 500 ? WARN : ERR;
+  e === 'Pendiente de Revisión' ? 'amber' : 'amber';
+export const semColor     = s => s === 'Verde' ? ORA : s === 'Amarillo' ? WARN : ERR;
+export const scoreColor   = n => n >= 750 ? ORA : n >= 500 ? WARN : ERR;
 
 // ── Contratos-marco pendientes de configuración ────────────────────────────────
 // Creados por Bonafide (Fase 1 del proceso BPMN maestro, fuera de este alcance)
@@ -122,7 +122,7 @@ export const contratosMarco = [
     ],
     requerimiento: {
       entidades: ['Empresa Contratante'],
-      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más PYMEs o adjunta el sustento correspondiente.',
+      mensaje: 'El monto asignado a Martinez Hermanos (MH) supera el 70% del contrato base sin justificación adjunta. Redistribuye el monto entre más Empresas Contratadas o adjunta el sustento correspondiente.',
       fecha: '16/06/2026',
     },
   },

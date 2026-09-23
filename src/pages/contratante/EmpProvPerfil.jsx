@@ -20,7 +20,7 @@ export default function EmpProvPerfil() {
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
-              {[['🟢 Verde','Bajo Riesgo','bg-green-bg border-green-border'],['🌿 Verde B.','Etiqueta ESG','bg-green-bg border-green-border'],['820/1000','Score financiero','bg-orange-tint border-orange-border']].map(([val,lbl,cls]) => (
+              {[['🟠 Bajo','Bajo Riesgo','bg-orange-tint border-orange-border'],['🌿 Verde B.','Etiqueta ESG','bg-green-bg border-green-border'],['820/1000','Score financiero','bg-orange-tint border-orange-border']].map(([val,lbl,cls]) => (
                 <div key={lbl} className={`${cls} border rounded-[12px] p-3.5 text-center min-w-[90px]`}>
                   <div className="text-[18px] font-bold mb-0.5">{val}</div>
                   <div className="text-[11px] text-text-4">{lbl}</div>
@@ -38,7 +38,7 @@ export default function EmpProvPerfil() {
             <table className="w-full border-collapse">
               <thead><tr>{['ID','Monto','Estado','Fecha'].map(h=><th key={h} className="text-left px-4 py-2 text-[11px] font-semibold text-text-4 uppercase bg-[#FAFBFC] border-b border-border">{h}</th>)}</tr></thead>
               <tbody>
-                {[['CONF-04821','12,500,000','green','Aprobada','12/05'],['CONF-04803','9,800,000','green','Aprobada','28/04'],['CONF-04789','7,200,000','green','Aprobada','15/04']].map(([id,a,cls,st,dt]) => (
+                {[['CONF-04821','12,500,000','orange','Aprobada','12/05'],['CONF-04803','9,800,000','orange','Aprobada','28/04'],['CONF-04789','7,200,000','orange','Aprobada','15/04']].map(([id,a,cls,st,dt]) => (
                   <tr key={id} className="border-b border-page-bg last:border-0 hover:bg-[#FFFAF8] cursor-pointer">
                     <td className="px-4 py-3 font-mono text-[11px] text-text-4">{id}</td>
                     <td className="px-4 py-3 font-bold">{a}</td>
@@ -53,7 +53,7 @@ export default function EmpProvPerfil() {
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-[14px] border border-border p-5">
               <div className="text-[13px] font-bold mb-3">Compliance / KYC</div>
-              {[['✅','KYC verificado','green'],['✅','AML aprobado','green'],['✅','Documentos vigentes','green'],['⚠️','RUC vence Jun 2026','yellow']].map(([ico,lbl,cls]) => (
+              {[['✅','KYC verificado','orange'],['✅','AML aprobado','orange'],['✅','Documentos vigentes','orange'],['⚠️','RUC vence Jun 2026','yellow']].map(([ico,lbl,cls]) => (
                 <div key={lbl} className="flex items-center gap-2.5 py-2.5 border-b border-page-bg last:border-0">
                   <span className="text-[18px]">{ico}</span>
                   <span className="text-[13px] flex-1">{lbl}</span>

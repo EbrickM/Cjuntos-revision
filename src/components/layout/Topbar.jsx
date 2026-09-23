@@ -10,7 +10,7 @@ import Logo from './Logo';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
 
 const ROLE_META = {
-  'empresa-pequena': { roleLabel: 'Empresa PYME',       pill: { lbl: 'PYME',  cls: 'bg-green-bg text-green-text border-green-border'    } },
+  'empresa-pequena': { roleLabel: 'Empresa Contratada',  pill: null },
   contratante:       { roleLabel: 'Empresa Contratante', pill: null },
   admin:             { roleLabel: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
   proveedor:         { roleLabel: 'Proveedor',           pill: { lbl: 'Proveedor', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
@@ -59,7 +59,7 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
       return contratoService.listarPendientes('contratante').map(m => ({
         id: `marco-${m.id}`,
         titulo: 'Bonafide te asignó un nuevo contrato',
-        cuerpo: `Contrato ${m.id} por ${fmt(m.montoBase)} XAF, financiado por ${m.bancoFondeador}. Repártelo entre tus PYMEs para activarlo.`,
+        cuerpo: `Contrato ${m.id} por ${fmt(m.montoBase)} XAF, financiado por ${m.bancoFondeador}. Repártelo entre tus Empresas Contratadas para activarlo.`,
         dt: m.fechaCreacion,
         leida: false,
         accion: { label: 'Proceder con el contrato', screenId: 'empConfigurarContrato', opts: { marcoId: m.id } },

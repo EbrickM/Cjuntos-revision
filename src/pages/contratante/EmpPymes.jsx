@@ -40,15 +40,15 @@ export default function EmpPymes() {
     useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
 
   return (
-    <AppShell active="empPymes" role="contratante" title="PYMEs" sub="Empresas con contrato activo" back>
+    <AppShell active="empPymes" role="contratante" title="Empresas Contratadas" sub="Empresas con contrato activo" back>
       <div className="fade-in space-y-5">
 
         {/* KPIs de semáforo de riesgo */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { lbl: 'Riesgo bajo',  val: `${animVerde} PYME${verde !== 1 ? 's' : ''}` },
-            { lbl: 'Riesgo medio', val: `${animAmarillo} PYME${amarillo !== 1 ? 's' : ''}` },
-            { lbl: 'Riesgo alto',  val: `${animRojo} PYME${rojo !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo bajo',  val: `${animVerde} Emp. Contratada${verde !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo medio', val: `${animAmarillo} Emp. Contratada${amarillo !== 1 ? 's' : ''}` },
+            { lbl: 'Riesgo alto',  val: `${animRojo} Emp. Contratada${rojo !== 1 ? 's' : ''}` },
           ].map(({ lbl, val }) => (
             <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
@@ -57,7 +57,7 @@ export default function EmpPymes() {
         {/* Header + buscador */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pl-5">
           <div>
-            <p className="text-[13px] font-bold text-text-1">PYMEs contratadas</p>
+            <p className="text-[13px] font-bold text-text-1">Empresas Contratadas</p>
             <p className="text-[11px]" style={{ color: TEXT4 }}>Score crediticio, fondo asignado y semáforo de riesgo</p>
           </div>
           <div className="relative w-full sm:w-52">
@@ -65,7 +65,7 @@ export default function EmpPymes() {
             <input
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              placeholder="Buscar PYME o sector…"
+              placeholder="Buscar Empresa Contratada o sector…"
               className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
             />
           </div>

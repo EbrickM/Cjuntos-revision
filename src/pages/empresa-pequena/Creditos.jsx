@@ -35,7 +35,6 @@ import FormGroup, {
   Select,
   Textarea,
 } from "../../components/ui/FormGroup";
-import InvoiceCard from "../../components/invoices/InvoiceCard";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import { SELECT_ARROW } from "../../components/ui/selectArrow";
@@ -62,7 +61,7 @@ const scoreStyle = (score) => {
 
 const ctBadgeStyle = (estado) =>
   estado === "Pagada"
-    ? { background: "#E3F4EA", color: "#2E7D5B" }
+    ? { background: "#FFF3E0", color: "#EF7A2C" }
     : estado === "Validada"
       ? { background: "#EFF6FF", color: "#3B82F6" }
       : estado === "Emitida"
@@ -75,13 +74,13 @@ const ctBadgeStyle = (estado) =>
 // estado del ciclo de vida con su color distinto (Anexo Digital MIC v1.0).
 const contratoBadge = (estado) =>
   estado === "Activo"
-    ? "green"
+    ? "orange"
     : estado === "Con Requerimientos"
       ? "red"
       : estado === "En Discusión de Términos"
         ? "brand"
         : estado === "Pendiente de Revisión"
-          ? "orange"
+          ? "amber"
           : "amber";
 
 const InfoRow = ({ label, value }) => (
@@ -176,7 +175,7 @@ const initialProviders = [
   },
 ];
 
-const KYC_BADGE = { vigente: "green", pendiente: "yellow", vencido: "red" };
+const KYC_BADGE = { vigente: "orange", pendiente: "yellow", vencido: "red" };
 
 const initialInvoices = [
   {
@@ -324,6 +323,7 @@ export default function EpCreditos() {
   const [pagos, setPagos] = useState(initialPagos);
   const [search, setSearch] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [facSubTab, setFacSubTab]   = useState("contratante");
   const [invCtModal, setInvCtModal] = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal] = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal] = useState(PAGO_MODAL_EMPTY);
@@ -1024,9 +1024,6 @@ export default function EpCreditos() {
             {/* ── TAB: Proveedores ── */}
             {activeTab === "proveedores" &&
               (() => {
-                // Solo se listan asignaciones con un proveedor real vinculado —
-                // los conceptos sin proveedor (ej. "Compra de Materiales" sin
-                // asignar) no pertenecen a esta vista de solo lectura.
                 const filas = detailContract.distribucion
                   .map((item) => ({
                     item,
@@ -1034,130 +1031,50 @@ export default function EpCreditos() {
                   }))
                   .filter(({ prov }) => prov);
                 return (
-                  <div className="space-y-5">
-                    <div className="bg-white rounded-[14px] border border-border p-5">
-                      <SectionHeader
-                        icon={Truck}
-                        iconBg="#FFF3E0"
-                        iconColor="#EF7A2C"
-                        title="Proveedores"
-                        subtitle="Proveedores de este contrato y el monto que le corresponde a cada uno."
-                      />
-
-                      {/* Móvil: cards */}
-                      <div className="sm:hidden space-y-2">
-                        {filas.map(({ item, prov }) => (
-                          <div
-                            key={item.id}
-                            className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="text-[13px] font-bold text-text-1 truncate">
-                                  {item.providerName}
-                                </p>
-                                <p className="text-[11px] text-text-4">
-                                  {item.concepto}
-                                  {item.providerSector
-                                    ? ` · ${item.providerSector}`
-                                    : ""}
-                                </p>
-                              </div>
-                              <Badge variant={KYC_BADGE[prov.kyc] ?? "yellow"}>
-                                {prov.kyc}
-                              </Badge>
-                            </div>
-                            <div className="flex items-center justify-between pt-2 border-t border-border">
-                              <div className="text-[13px] font-extrabold text-text-1">
-                                {formatXaf(item.monto)}
-                              </div>
-                              <button
-                                onClick={() => setProvDetailModal(prov)}
-                                className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        {filas.length === 0 && (
-                          <div className="text-[12px] text-text-4 text-center py-8">
-                            No hay proveedores asignados aún.
-                          </div>
-                        )}
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-[14px] font-bold text-text-1">Proveedores</div>
+                      <div className="text-[12px] text-text-4">Proveedores de este contrato y el monto que le corresponde a cada uno.</div>
+                    </div>
+                    <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                      <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Sector</span>
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+                        <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
                       </div>
-
-                      {/* Desktop: tabla (mismo patrón que la tabla de PYMEs en Mis Contratos del Contratante) */}
-                      <div className="hidden sm:block overflow-x-auto">
-                        <table className="w-full min-w-[680px]">
-                          <thead className="bg-page-bg">
-                            <tr className="border-b border-border">
-                              {[
-                                "Proveedor",
-                                "Concepto",
-                                "Sector",
-                                "Estado",
-                                "Monto",
-                                "",
-                              ].map((h, i) => (
-                                <th
-                                  key={h || "accion"}
-                                  className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 4 ? "text-right" : i === 5 ? "text-center" : "text-left"}`}
-                                >
-                                  {h}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filas.map(({ item, prov }) => (
-                              <tr
-                                key={item.id}
-                                className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors"
-                              >
-                                <td className="px-4 py-3 text-[12px] font-medium text-text-1">
-                                  {item.providerName}
-                                </td>
-                                <td className="px-4 py-3 text-[12px] text-text-4">
-                                  {item.concepto}
-                                </td>
-                                <td className="px-4 py-3 text-[12px] text-text-4">
-                                  {item.providerSector || "—"}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Badge
-                                    variant={KYC_BADGE[prov.kyc] ?? "yellow"}
-                                  >
-                                    {prov.kyc}
-                                  </Badge>
-                                </td>
-                                <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">
-                                  {formatXaf(item.monto)}
-                                </td>
-                                <td className="px-4 py-3 text-center">
-                                  <button
-                                    onClick={() => setProvDetailModal(prov)}
-                                    title="Ver proveedor"
-                                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange-dark cursor-pointer"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                            {filas.length === 0 && (
-                              <tr>
-                                <td
-                                  colSpan={6}
-                                  className="px-4 py-8 text-center text-[12px] text-text-4"
-                                >
-                                  No hay proveedores asignados aún.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
+                      {filas.map(({ item, prov }) => (
+                        <div
+                          key={item.id}
+                          onClick={() => setProvDetailModal(prov)}
+                          className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-bold text-text-1 truncate">{item.providerName}</div>
+                          </div>
+                          <div className="text-[12px] text-text-3 truncate text-center">{item.concepto}</div>
+                          <span className="text-[12px] text-text-4 text-center">{item.providerSector || "—"}</span>
+                          <div className="flex justify-center">
+                            <Badge variant={KYC_BADGE[prov.kyc] ?? "yellow"}>{prov.kyc}</Badge>
+                          </div>
+                          <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
+                          <div className="flex justify-center">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setProvDetailModal(prov); }}
+                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      {filas.length === 0 && (
+                        <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                          No hay proveedores asignados aún.
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -1176,189 +1093,149 @@ export default function EpCreditos() {
                   (inv) => inv.tipo === "proveedor",
                 );
                 return (
-                  <div className="space-y-5">
+                  <div className="space-y-4">
+                    {/* Sub-tabs */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex bg-white rounded-[10px] gap-1 p-1">
+                        {[
+                          { id: "contratante", lbl: `Al Contratante (${contratanteInvoices.length})`, Icon: Building2 },
+                          { id: "proveedor",   lbl: `De Proveedores (${proveedorInvoices.length})`,  Icon: Truck },
+                        ].map(({ id, lbl, Icon }) => (
+                          <button
+                            key={id}
+                            onClick={() => setFacSubTab(id)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all whitespace-nowrap cursor-pointer
+                              ${facSubTab === id ? "bg-[#EF7A2C] text-white font-semibold shadow-sm" : "text-text-3 hover:text-text-1"}`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                      {facSubTab === "contratante" ? (
+                        <Button
+                          variant="primary"
+                          onClick={() => setInvCtModal({ ...INV_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}
+                        >
+                          Nueva Factura
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          onClick={() => setInvPrModal({ ...INV_PR_EMPTY, open: true })}
+                        >
+                          Importar Factura
+                        </Button>
+                      )}
+                    </div>
+
                     {/* Facturas al Contratante */}
-                    <div className="bg-white rounded-[14px] border border-border p-5">
-                      <SectionHeader
-                        icon={Building2}
-                        iconBg="#FFF3E0"
-                        iconColor="#EF7A2C"
-                        title="Facturas al Contratante"
-                        subtitle="Facturas emitidas por la PYME al contratante."
-                        action={
-                          <div className="flex items-center">
-                            <div className="sm:hidden">
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() =>
-                                  setInvCtModal({
-                                    ...INV_CT_EMPTY,
-                                    open: true,
-                                    fechaVencimiento: defaultVencimiento(),
-                                  })
-                                }
-                              >
-                                <Plus className="w-4 h-4" />
-                              </Button>
+                    {facSubTab === "contratante" && (
+                      <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                        <div className="min-w-[640px] grid [grid-template-columns:1.5fr_2.5fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                        </div>
+                        {contratanteInvoices.map((inv) => (
+                          <div
+                            key={inv.id}
+                            onClick={() => handleOpenEditCTInvoice(inv)}
+                            className="min-w-[640px] grid [grid-template-columns:1.5fr_2.5fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                          >
+                            <div>
+                              <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
+                              <div className="text-[11px] text-text-5">{inv.fecha}</div>
                             </div>
-                            <div className="hidden sm:block">
-                              <Button
-                                variant="primary"
-                                onClick={() =>
-                                  setInvCtModal({
-                                    ...INV_CT_EMPTY,
-                                    open: true,
-                                    fechaVencimiento: defaultVencimiento(),
-                                  })
-                                }
+                            <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto}</div>
+                            <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
+                            <div className="flex justify-center">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={ctBadgeStyle(inv.estado)}>{inv.estado}</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleOpenEditCTInvoice(inv); }}
+                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                               >
-                                Nueva Factura
-                              </Button>
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
+                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
                             </div>
                           </div>
-                        }
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {contratanteInvoices.map((inv, idx) => (
-                          <InvoiceCard
-                            key={inv.id}
-                            factura={inv}
-                            entidad={detailContract.contratante?.razonSocial}
-                            concepto={inv.concepto}
-                            badge={
-                              <span
-                                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                style={ctBadgeStyle(inv.estado)}
-                              >
-                                {inv.estado}
-                              </span>
-                            }
-                            extra={
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenEditCTInvoice(inv);
-                                  }}
-                                  className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteInvoice(inv.id);
-                                  }}
-                                  className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </>
-                            }
-                            style={{ animationDelay: `${(idx % 8) * 60}ms` }}
-                            onClick={() => handleOpenEditCTInvoice(inv)}
-                          />
                         ))}
                         {contratanteInvoices.length === 0 && (
-                          <div className="col-span-full text-[12px] text-text-4 py-6 text-center">
+                          <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
                             No hay facturas al contratante para este contrato.
                           </div>
                         )}
                       </div>
-                    </div>
+                    )}
 
                     {/* Facturas de Proveedores */}
-                    <div className="bg-white rounded-[14px] border border-border p-5">
-                      <SectionHeader
-                        icon={Truck}
-                        iconBg="#FFF3E0"
-                        iconColor="#EF7A2C"
-                        title="Facturas de Proveedores"
-                        subtitle="Recibidas de proveedores. Importadas para control interno de pagos."
-                        action={
-                          <div className="flex items-center">
-                            <div className="sm:hidden">
-                              <Button
-                                variant="primary"
-                                size="sm"
-                                onClick={() =>
-                                  setInvPrModal({ ...INV_PR_EMPTY, open: true })
-                                }
-                              >
-                                <Upload className="w-4 h-4" />
-                              </Button>
-                            </div>
-                            <div className="hidden sm:block">
-                              <Button
-                                variant="primary"
-                                onClick={() =>
-                                  setInvPrModal({ ...INV_PR_EMPTY, open: true })
-                                }
-                              >
-                                Importar Factura
-                              </Button>
-                            </div>
-                          </div>
-                        }
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {proveedorInvoices.map((inv, idx) => {
+                    {facSubTab === "proveedor" && (
+                      <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                        <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                        </div>
+                        {proveedorInvoices.map((inv) => {
                           const estadoStyle =
                             inv.estado === "Pagada"
-                              ? { background: "#E3F4EA", color: "#2E7D5B" }
+                              ? { background: "#FFF3E0", color: "#EF7A2C" }
                               : inv.estado === "Vencida"
                                 ? { background: "#FDEEEB", color: "#B8352A" }
                                 : { background: "#FDF6E8", color: "#C68A1D" };
                           return (
-                            <InvoiceCard
+                            <div
                               key={inv.id}
-                              factura={inv}
-                              entidad={inv.proveedorNombre}
-                              concepto={inv.concepto || inv.proveedorNombre}
-                              badge={
-                                <span
-                                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                                  style={estadoStyle}
-                                >
-                                  {inv.estado}
-                                </span>
-                              }
-                              extra={
-                                <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleOpenEditPRInvoice(inv);
-                                    }}
-                                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteInvoice(inv.id);
-                                    }}
-                                    className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </>
-                              }
-                              style={{ animationDelay: `${(idx % 8) * 60}ms` }}
                               onClick={() => handleOpenEditPRInvoice(inv)}
-                            />
+                              className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                            >
+                              <div>
+                                <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
+                                <div className="text-[11px] text-text-5">{inv.fecha}</div>
+                              </div>
+                              <div className="text-[12px] font-bold text-text-1 truncate">{inv.proveedorNombre}</div>
+                              <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto || inv.proveedorNombre}</div>
+                              <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
+                              <div className="flex justify-center">
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={estadoStyle}>{inv.estado}</span>
+                              </div>
+                              <div className="flex items-center justify-center gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleOpenEditPRInvoice(inv); }}
+                                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
+                                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
                           );
                         })}
                         {proveedorInvoices.length === 0 && (
-                          <div className="col-span-full text-[12px] text-text-4 py-6 text-center">
-                            No hay facturas de proveedores importadas para este
-                            contrato.
+                          <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                            No hay facturas de proveedores importadas para este contrato.
                           </div>
                         )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })()}
@@ -1441,8 +1318,8 @@ export default function EpCreditos() {
                                   <span
                                     className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
                                     style={{
-                                      background: "#E3F4EA",
-                                      color: "#2E7D5B",
+                                      background: "#FFF3E0",
+                                      color: "#EF7A2C",
                                     }}
                                   >
                                     {p.estado}

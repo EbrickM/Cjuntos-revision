@@ -32,7 +32,7 @@ export const ESTADO_BADGE_CT = {
   [CST.pendienteRevision]:      'orange',
   [CST.conRequerimientos]:      'red',
   [CST.enDiscusionTerminos]:    'brand',
-  [CST.activo]:                 'green',
+  [CST.activo]:                 'orange',
 };
 
 // Transiciones válidas entre estados (machine state).

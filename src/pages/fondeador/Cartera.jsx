@@ -64,7 +64,7 @@ export default function FondCartera() {
               <input
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar por Nº, IPI, PYME, contratante o referencia…"
+                placeholder="Buscar por Nº, IPI, Emp. Contratada, contratante o referencia…"
                 className="w-full pl-8 pr-3 py-2 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
               />
             </div>
@@ -85,7 +85,7 @@ export default function FondCartera() {
             <table className="w-full min-w-[1000px]">
               <thead className="bg-page-bg">
                 <tr className="border-b border-border">
-                  {['Operación', 'PYME', 'Contratante', 'Modalidad', 'Estado', 'Monto fondeado', 'Referencia', 'Fecha'].map((h, i) => (
+                  {['Operación', 'Emp. Contratada', 'Contratante', 'Modalidad', 'Estado', 'Monto fondeado', 'Referencia', 'Fecha'].map((h, i) => (
                     <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                       ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
                     `}>{h}</th>
@@ -107,7 +107,7 @@ export default function FondCartera() {
                         <span className="block truncate">{f.contratante}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <Badge variant={billetera ? 'blue' : 'green'}>{billetera ? 'Billetera Virtual' : 'Retiro Total'}</Badge>
+                        <Badge variant={billetera ? 'blue' : 'orange'}>{billetera ? 'Billetera Virtual' : 'Retiro Total'}</Badge>
                       </td>
                       <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={f.estado} /></td>
                       <td className="px-4 py-3 text-right text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(netoFactura(f))} XAF</td>

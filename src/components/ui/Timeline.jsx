@@ -7,10 +7,10 @@ export default function Timeline({ items }) {
           <div key={i} className="flex gap-3.5 relative">
             {!isLast && (
               <div className={`absolute left-[15px] top-8 bottom-[-4px] w-0.5
-                ${item.done ? 'bg-green' : 'bg-border'}`} />
+                ${item.done ? 'bg-orange' : 'bg-border'}`} />
             )}
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[14px] shrink-0 border-2
-              ${item.done   ? 'bg-green-bg border-green text-green' : ''}
+              ${item.done   ? 'bg-orange-tint border-orange text-orange' : ''}
               ${item.active ? 'bg-orange-tint border-orange text-orange' : ''}
               ${!item.done && !item.active ? 'bg-page-bg border-input-border text-text-4' : ''}`}>
               {item.icon}

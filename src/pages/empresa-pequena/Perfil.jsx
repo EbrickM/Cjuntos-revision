@@ -18,13 +18,13 @@ const SCORE            = 820;
 const scoreZone = SCORE < 400 ? { label: 'Crítico', color: '#B8352A' }
   : SCORE < 600 ? { label: 'Alto',  color: '#EF7A2C' }
   : SCORE < 750 ? { label: 'Medio', color: '#C68A1D' }
-  : { label: 'Bajo', color: '#2E7D5B' };
+  : { label: 'Bajo', color: '#EF7A2C' };
 const KYC_VENCIMIENTO  = '31/12/2026';
 const ULTIMA_AUDITORIA = '15/03/2026';
 
 const HeroBadge = ({ label, value, Icon, bg, color }) => (
   <div className="flex items-center gap-3 px-4 py-3 rounded-[12px]" style={{ background: bg }}>
-    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-white/60">
+    <div className="w-9 h-9 flex items-center justify-center shrink-0">
       <Icon className="w-5 h-5" style={{ color }} />
     </div>
     <div>
@@ -52,7 +52,7 @@ const SectionHeader = ({ title, sub, Icon, right }) => (
 const ComplianceItem = ({ label, value, sub, Icon, iconBg, iconColor }) => (
   <div className="rounded-[12px] border border-border p-4">
     <div className="flex items-center gap-2.5 mb-2.5">
-      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
+      <div className="w-9 h-9 flex items-center justify-center shrink-0">
         <Icon className="w-5 h-5" style={{ color: iconColor }} />
       </div>
       <div>
@@ -121,9 +121,9 @@ export default function EpPerfil() {
 
           {/* Separador + badges distribuidos en fila */}
           <div className="border-t border-border mt-5 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <HeroBadge label="Nivel de Riesgo" value="Bajo"     Icon={Shield}       bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Nivel de Riesgo" value="Bajo"     Icon={Shield}       bg="#FFF3E0" color="#EF7A2C" />
             <HeroBadge label="Calificación ESG" value="Verde"   Icon={Leaf}         bg="#E3F4EA" color="#2E7D5B" />
-            <HeroBadge label="Estado KYC"       value="Vigente" Icon={CheckCircle2} bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Estado KYC"       value="Vigente" Icon={CheckCircle2} bg="#FFF3E0" color="#EF7A2C" />
           </div>
         </div>
 
@@ -167,7 +167,7 @@ export default function EpPerfil() {
               Icon={ShieldCheck}
               right={
                 <span className="text-[11px] font-bold px-3 py-1.5 rounded-[8px] shrink-0"
-                      style={{ background: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE' }}>
+                      style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,.3)' }}>
                   Aprobado
                 </span>
               }
@@ -177,12 +177,12 @@ export default function EpPerfil() {
               <ComplianceItem
                 label="KYC" value="Vigente"
                 sub={<>Vence el <span className="font-semibold text-text-2">{KYC_VENCIMIENTO}</span></>}
-                Icon={CheckCircle2} iconBg="#E3F4EA" iconColor="#2E7D5B"
+                Icon={CheckCircle2} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="AML" value="Aprobado"
                 sub="Sin alertas de lavado de activos"
-                Icon={Shield} iconBg="#E3F4EA" iconColor="#2E7D5B"
+                Icon={Shield} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Documentos" value="4 / 4"

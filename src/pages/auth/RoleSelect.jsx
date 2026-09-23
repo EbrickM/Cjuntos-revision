@@ -22,12 +22,12 @@ const roles = [
     Icon: Briefcase,
     gradient: 'from-[#EF7A2C] to-[#FF9800]',
     badge: 'Empresa financiada',
-    title: 'Empresa PYME',
+    title: 'Empresa Contratada',
     subtitle: 'Pequeña y Mediana Empresa',
     description:
       'Accede a financiamiento, gestiona tus contratos de crédito y distribuye fondos dentro de la red Bonafide Microbank.',
 
-    buttonLabel: 'Acceder como PYME',
+    buttonLabel: 'Acceder como Emp. Contratada',
     buttonVariant: 'primary',
   },
   {
@@ -38,7 +38,7 @@ const roles = [
     title: 'Proveedor',
     subtitle: 'Proveedor de Bienes y Servicios',
     description:
-      'Gestiona los contratos que te asignan tus PYMEs y distribuye fondos entre tus propios suministradores.',
+      'Gestiona los contratos que te asignan tus Empresas Contratadas y distribuye fondos entre tus propios suministradores.',
 
     buttonLabel: 'Acceder como Proveedor',
     buttonVariant: 'primary',

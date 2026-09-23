@@ -44,7 +44,7 @@ const header = (title, sub, right) => (
 );
 
 const estadoVariant = (estado) => (
-  estado === 'Pagada' ? 'green' : estado === 'Aprobada' ? 'terra' : estado === 'Enviada' ? 'blue' : 'amber'
+  estado === 'Pagada' ? 'orange' : estado === 'Aprobada' ? 'terra' : estado === 'Enviada' ? 'blue' : 'amber'
 );
 
 const pesquisa = (rows, q, filtro) => {
@@ -88,7 +88,7 @@ const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetal
     <SearchBar
       value={busqueda}
       onChange={setBusqueda}
-      placeholder={proveedor ? 'Buscar por Nº, proveedor, PYME o concepto…' : 'Buscar por Nº, contratante, PYME o concepto…'}
+      placeholder={proveedor ? 'Buscar por Nº, proveedor, Emp. Contratada o concepto…' : 'Buscar por Nº, contratante, Emp. Contratada o concepto…'}
       compact
       withEstado
       estado={filtro}
@@ -102,7 +102,7 @@ const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetal
             {[
               'Nº Factura',
               proveedor ? 'Proveedor' : 'Contratante',
-              'PYME', 'Estado', 'Monto', 'Fecha', 'Detalle',
+              'Emp. Contratada', 'Estado', 'Monto', 'Fecha', 'Detalle',
             ].map((h, i) => (
               <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                 ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
@@ -177,7 +177,7 @@ export default function AdminRisk() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { value: ctFacturas.length,       label: 'Facturas al contratante',          cls: 'text-blue-text' },
-            { value: formatXaf(totalPagadoCt), label: 'Pagado por contratantes (cobrado)',cls: 'text-green-text', small: true },
+            { value: formatXaf(totalPagadoCt), label: 'Pagado por contratantes (cobrado)',cls: 'text-orange',     small: true },
             { value: formatXaf(totalLiberado), label: 'Fondos liberados a proveedores',  cls: 'text-orange',     small: true },
           ].map(({ value, label, cls, small }) => (
             <div key={label} className="bg-white rounded-[14px] border border-border p-4">
@@ -224,7 +224,7 @@ export default function AdminRisk() {
           <div className="bg-white rounded-[14px] border border-border p-5">
             {header(
               'Fondos liberados a proveedores',
-              'Pagos realizados a proveedores desde el crédito de cada PYME.',
+              'Pagos realizados a proveedores desde el crédito de cada Empresa Contratada.',
               <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{provFacturas.length} facturas</span>
             )}
             <TablaFacturas
@@ -253,7 +253,7 @@ export default function AdminRisk() {
             <InfoRow label="Tipo" value={detalle.tipo === 'proveedor' ? 'Proveedor' : 'Contratante'} />
             <InfoRow label="Contrato" value={detalle.contrato} />
             <InfoRow label="Contratante" value={contratos[detalle.contrato]} />
-            <InfoRow label="PYME" value={detalle.pyme} />
+            <InfoRow label="Empresa Contratada" value={detalle.pyme} />
             {detalle.proveedor && <InfoRow label="Proveedor" value={detalle.proveedor} />}
             <InfoRow label="Estado" value={detalle.estado} />
             <InfoRow label="Monto" value={`${formatXaf(detalle.monto)}`} />

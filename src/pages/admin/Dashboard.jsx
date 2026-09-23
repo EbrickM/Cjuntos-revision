@@ -77,11 +77,11 @@ export default function AdminDash() {
 
   const generalKpis = [
     { value: 'XAF 180M',             label: 'Monto total financiado', sub: 'Total acumulado 2026',     cls: 'text-orange-dark', trend: 'Activo',  tUp: null },
-    { value: String(animOpsActivas),  label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-green-text',  trend: 'Estable', tUp: null },
+    { value: String(animOpsActivas),  label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-orange-dark', trend: 'Estable', tUp: null },
     { value: String(animContratantes),label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable', tUp: null },
-    { value: String(animPymes),       label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-green-text',  trend: 'Estable', tUp: null },
+    { value: String(animPymes),       label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-orange-dark', trend: 'Estable', tUp: null },
     { value: 'XAF 47.5M',            label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange-dark', trend: 'Estable', tUp: null },
-    { value: '870/1000',             label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
+    { value: '870/1000',             label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-orange-dark', trend: 'Bajo',    tUp: null },
   ];
 
   const riesgoKpis = [
@@ -90,7 +90,7 @@ export default function AdminDash() {
     { value: String(animDocsVencidos),label: 'Documentos vencidos',   sub: 'Necesitan renovación',   cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
     { value: String(animKycPend),     label: 'KYC pendientes',        sub: 'Verificación requerida', cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
     { value: String(animAlertas),     label: 'Alertas abiertas',      sub: 'Sin resolver',           cls: 'text-orange-dark', trend: 'Ninguna', tUp: null },
-    { value: 'XAF 0',                label: 'Exposición total',       sub: 'Capital en riesgo',      cls: 'text-green-text',  trend: 'Bajo',    tUp: null },
+    { value: 'XAF 0',                label: 'Exposición total',       sub: 'Capital en riesgo',      cls: 'text-orange-dark', trend: 'Bajo',    tUp: null },
   ];
 
   return (
@@ -127,7 +127,7 @@ export default function AdminDash() {
                   <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
                   <div className="text-[10px] text-text-5 leading-snug">{sub}</div>
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    tUp === true ? 'bg-green-bg text-green-text' :
+                    tUp === true ? 'bg-orange-tint text-orange-dark' :
                     tUp === false ? 'bg-red-bg text-red-text' :
                     'bg-orange-tint text-orange-dark'
                   }`}>{trend}</span>
@@ -145,9 +145,9 @@ export default function AdminDash() {
                     <div className="text-[14px] font-bold text-text-1">Evolución de financiación</div>
                     <div className="text-[11px] text-text-4">Enero – Junio 2026 · millones XAF</div>
                   </div>
-                  <div className="flex items-center gap-1.5 bg-green-bg px-2.5 py-1 rounded-[6px]">
-                    <TrendingUp className="w-3 h-3 text-green-text" />
-                    <span className="text-[11px] font-bold text-green-text">+217% en 6 meses</span>
+                  <div className="flex items-center gap-1.5 bg-orange-tint px-2.5 py-1 rounded-[6px]">
+                    <TrendingUp className="w-3 h-3 text-orange-dark" />
+                    <span className="text-[11px] font-bold text-orange-dark">+217% en 6 meses</span>
                   </div>
                 </div>
                 <div className="flex-1 min-h-[200px]">
@@ -221,7 +221,7 @@ export default function AdminDash() {
                           </span>
                         </td>
                         <td className="py-2.5 pl-2 pr-2">
-                          <Badge variant={op.estado === 'Activa' ? 'green' : 'yellow'}>{op.estado}</Badge>
+                          <Badge variant={op.estado === 'Activa' ? 'orange' : 'yellow'}>{op.estado}</Badge>
                         </td>
                         <td className="py-2.5 text-right text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(op.monto)}</td>
                       </tr>
@@ -245,7 +245,7 @@ export default function AdminDash() {
                   <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
                   <div className="text-[10px] text-text-5 leading-snug">{sub}</div>
                   <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    tUp === true ? 'bg-green-bg text-green-text' :
+                    tUp === true ? 'bg-orange-tint text-orange-dark' :
                     tUp === false ? 'bg-red-bg text-red-text' :
                     'bg-orange-tint text-orange-dark'
                   }`}>{trend}</span>
@@ -287,8 +287,8 @@ export default function AdminDash() {
                   <div className="text-[11px] text-text-4">Requieren acción inmediata</div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-green-text" />
-                  <span className="text-[11px] font-bold text-green-text">Sin alertas abiertas</span>
+                  <AlertTriangle className="w-4 h-4 text-orange-dark" />
+                  <span className="text-[11px] font-bold text-orange-dark">Sin alertas abiertas</span>
                 </div>
               </div>
               <table className="w-full">
@@ -309,7 +309,7 @@ export default function AdminDash() {
                       <td className="py-2.5 text-[12px] font-medium text-text-1 pr-3">{a.empresa}</td>
                       <td className="py-2.5 pl-3 pr-3 text-[12px] text-text-2">{a.alerta}</td>
                       <td className="py-2.5 pl-3">
-                        <Badge variant={a.prioridad === 'Alta' ? 'red' : a.prioridad === 'Media' ? 'yellow' : 'green'}>
+                        <Badge variant={a.prioridad === 'Alta' ? 'red' : a.prioridad === 'Media' ? 'yellow' : 'orange'}>
                           {a.prioridad}
                         </Badge>
                       </td>

@@ -42,7 +42,7 @@ export default function EmpVerifContr() {
         <div className="flex flex-col gap-4">
           {contratos.map(ct => (
             <div key={ct.id} className={`bg-white rounded-[14px] border-2 p-5 transition-all
-              ${verificados[ct.id] ? 'border-green-border' : 'border-border'}`}>
+              ${verificados[ct.id] ? 'border-orange-border' : 'border-border'}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-11 h-11 rounded-[12px] bg-orange-tint flex items-center justify-center text-orange font-bold text-[16px]">
@@ -54,7 +54,7 @@ export default function EmpVerifContr() {
                   </div>
                 </div>
                 {verificados[ct.id]
-                  ? <Badge variant="green">✅ Verificado</Badge>
+                  ? <Badge variant="orange">✅ Verificado</Badge>
                   : <Badge variant="yellow">⏳ Pendiente tu verificación</Badge>}
               </div>
 
@@ -92,7 +92,7 @@ export default function EmpVerifContr() {
                   </>
                 )}
                 {verificados[ct.id] && (
-                  <span className="text-[13px] text-green-text font-semibold flex items-center gap-1">
+                  <span className="text-[13px] text-orange-dark font-semibold flex items-center gap-1">
                     ✅ Has verificado este contrato — Bonafide puede proceder
                   </span>
                 )}

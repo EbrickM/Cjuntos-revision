@@ -101,7 +101,7 @@ export default function FacturasAdmin() {
   const kpis = [
     { value: facturas.filter(f => f.estado === INV.ordenFondeador).length, label: 'Órdenes al Fondeador', numCls: 'text-orange' },
     { value: facturas.filter(f => ![INV.pagada, INV.billetera].includes(f.estado)).length, label: 'En proceso', numCls: 'text-blue-text' },
-    { value: facturas.filter(f => f.estado === INV.pagada).length, label: 'Pagadas', numCls: 'text-green-text' },
+    { value: facturas.filter(f => f.estado === INV.pagada).length, label: 'Pagadas', numCls: 'text-orange' },
     { value: fmt(billeteras.reduce((a, b) => a + (b.saldoDisponible ?? 0), 0)) + ' XAF', label: 'Saldo en Billetera', numCls: 'text-yellow-text' },
   ];
 
@@ -143,7 +143,7 @@ export default function FacturasAdmin() {
             <SearchBar
               value={busqueda}
               onChange={setBusqueda}
-              placeholder="Buscar por Nº, PYME, contratante, contrato o concepto…"
+              placeholder="Buscar por Nº, Emp. Contratada, contratante, contrato o concepto…"
               compact
               withEstado
               estado={filtroEstado}
@@ -156,7 +156,7 @@ export default function FacturasAdmin() {
               <table className="w-full min-w-[900px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['Nº Factura', 'PYME', 'Contratante', 'Contrato', 'Estado', 'Monto', 'Fecha', 'Detalle'].map((h, i) => (
+                    {['Nº Factura', 'Emp. Contratada', 'Contratante', 'Contrato', 'Estado', 'Monto', 'Fecha', 'Detalle'].map((h, i) => (
                       <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                         ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
                       `}>{h}</th>
@@ -212,12 +212,12 @@ export default function FacturasAdmin() {
               title="Billeteras Virtuales"
               sub="Fondos de Bonafide desbloqueados y a la espera de distribución a proveedores."
               Icon={Wallet}
-              right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} PYMEs</span>}
+              right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} Emp. Contratadas</span>}
             />
             <SearchBar
               value={busqueda}
               onChange={setBusqueda}
-              placeholder="Buscar por PYME…"
+              placeholder="Buscar por Empresa Contratada…"
               compact
               withEstado
               estado={filtroBilletera}
@@ -227,7 +227,7 @@ export default function FacturasAdmin() {
 
             {billeterasFiltradas.length === 0 && (
               <div className="text-[13px] text-text-4 py-10 text-center">
-                {billeteras.length === 0 ? 'Aún no hay PYMEs con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
+                {billeteras.length === 0 ? 'Aún no hay Empresas Contratadas con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
               </div>
             )}
 
@@ -236,7 +236,7 @@ export default function FacturasAdmin() {
               <table className="w-full min-w-[760px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['PYME', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
+                    {['Emp. Contratada', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
                       <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                         ${i === 0 ? 'text-left' : i >= 1 && i <= 3 ? 'text-right' : 'text-center'}
                       `}>{h}</th>
@@ -248,7 +248,7 @@ export default function FacturasAdmin() {
                     <tr key={b.pyme} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
                       <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{b.pyme}</td>
                       <td className="px-4 py-3 text-right text-[12px] font-semibold text-text-1 whitespace-nowrap">{fmt(b.montoPresupuestado ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-green-text whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
+                      <td className="px-4 py-3 text-right text-[12px] font-bold text-orange whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
                       <td className="px-4 py-3 text-right text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
                       <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
                       <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
@@ -297,7 +297,7 @@ export default function FacturasAdmin() {
                       <td className="px-4 py-3 text-center text-[11px] font-mono text-text-5 whitespace-nowrap">{pago.facturaId}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
-                          <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'green'}>
+                          <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'orange'}>
                             {pago.metodo === 'cheque' ? pago.cheque : 'Transferencia'}
                           </Badge>
                           {pago.estado === 'Pendiente de Cobro' && (
@@ -381,7 +381,7 @@ function DetalleBilleteraModal({ billetera, facturas, onClose }) {
     >
       <div className="space-y-5">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <InfoRow label="PYME" value={billetera.pyme} />
+          <InfoRow label="Empresa Contratada" value={billetera.pyme} />
           <InfoRow label="Monto presupuestado" value={`${fmt(billetera.montoPresupuestado ?? 0)} XAF`} />
           <InfoRow label="Saldo disponible" value={`${fmt(billetera.saldoDisponible ?? 0)} XAF`} />
           <InfoRow label="Total distribuido" value={`${fmt(billetera.totalDistribuido ?? 0)} XAF`} />

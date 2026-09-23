@@ -60,8 +60,8 @@ export const ESTADO_BADGE = {
   fondeado:          'copper',    // fondos acreditados
   otp_enviada:       'gold',      // esperando verificación
   otp_verificada:    'terra',     // verificación completada
-  pagada:            'green',     // éxito terminal (retiro)
-  billetera:         'green',     // éxito terminal (billetera virtual)
+  pagada:            'orange',    // éxito terminal (retiro)
+  billetera:         'orange',    // éxito terminal (billetera virtual)
 };
 
 // Transiciones válidas entre estados (machine state).

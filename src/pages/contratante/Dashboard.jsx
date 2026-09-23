@@ -41,7 +41,7 @@ function MiniRangeInput({ label, min, max, step = 1, value, onChange, format }) 
 
 // ── Tab config ─────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'fondos',         line1: 'Dashboard de', line2: 'Fondos y PYMEs', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
+  { id: 'fondos',         line1: 'Dashboard de', line2: 'Fondos y Emp. Contratadas', Icon: TrendingUp, iconBg: '#FFF3E0', iconColor: ORA   },
   { id: 'medioambiental', line1: 'Dashboard',    line2: 'Medioambiental', Icon: TreePine,   iconBg: '#E3F4EA', iconColor: GREEN },
 ];
 
@@ -251,7 +251,7 @@ export default function EmpDash() {
                               className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
                               style={{ background: '#FFF3E0', color: ORA, border: '1px solid rgba(239,122,44,0.25)' }}>
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: ORA }} />
-                        {PYMES_FINANC} PYMEs financiadas
+                        {PYMES_FINANC} Emp. Contratada{PYMES_FINANC === 1 ? '' : 's'} financiada{PYMES_FINANC === 1 ? '' : 's'}
                       </button>
                       <button onClick={() => go('empFacturas')}
                               className="inline-flex items-center gap-1.5 text-[11px] max-[765px]:text-xs font-semibold px-2.5 py-1 rounded-[6px] cursor-pointer transition-transform duration-150 hover:scale-105"
@@ -413,7 +413,7 @@ export default function EmpDash() {
 
                   {/* Distribución del Fondo por PYME */}
                   <div>
-                    <p className="text-[13px] font-bold text-text-1 mb-1">Distribución del Fondo por PYME</p>
+                    <p className="text-[13px] font-bold text-text-1 mb-1">Distribución del Fondo por Empresa Contratada</p>
                     <p className="text-[11px] text-text-4 mb-4">¿Quién usa los fondos? · millones XAF</p>
                     <HBarChart data={pymeDist} fmtVal={v => `${v}M XAF`} visible={barsVisible} />
                     <div className="mt-4 pt-3 border-t border-border flex justify-between items-center">

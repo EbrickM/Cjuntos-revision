@@ -334,7 +334,6 @@ export default function EpProyectosAmbientales() {
           {/* Sección 1 — Información general */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-4">
-              <FolderOpen className="w-4 h-4 text-orange" />
               <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Información del proyecto</span>
             </div>
             <div className="mb-0">
@@ -394,7 +393,6 @@ export default function EpProyectosAmbientales() {
           {/* Sección 2 — Descripción */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-4">
-              <FileText className="w-4 h-4 text-orange" />
               <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Descripción</span>
             </div>
             <FormGroup label="Descripción del proyecto">
@@ -414,7 +412,6 @@ export default function EpProyectosAmbientales() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Upload className="w-4 h-4 text-orange" />
                 <span className="text-[12px] font-bold text-text-1 uppercase tracking-wide">Documentos adjuntos</span>
               </div>
               {files.length > 0 && (
