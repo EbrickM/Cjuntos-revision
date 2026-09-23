@@ -654,29 +654,27 @@ export default function EpCreditos() {
               />
             ) : (
             /* Grid de tarjetas */
-            <div className="rounded-[14px] px-5 pt-2 pb-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {pagedContracts.map((contract, idx) => (
-                  <CreditoContractCard
-                    key={contract.id}
-                    contract={contract}
-                    idx={idx}
-                    setDetailId={setDetailId}
-                    setActiveTab={setActiveTab}
-                    setReqModal={setReqModal}
-                  />
-                ))}
-                {filteredContracts.length === 0 && (
-                  <div className="col-span-full text-[13px] text-text-4 text-center py-12">
-                    No se encontraron contratos para "{search}".
-                  </div>
-                )}
-                <InfiniteScrollSentinel
-                  sentinelRef={contractsSentinelRef}
-                  loading={loadingContracts}
-                  hasMore={hasMoreContracts}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {pagedContracts.map((contract, idx) => (
+                <CreditoContractCard
+                  key={contract.id}
+                  contract={contract}
+                  idx={idx}
+                  setDetailId={setDetailId}
+                  setActiveTab={setActiveTab}
+                  setReqModal={setReqModal}
                 />
-              </div>
+              ))}
+              {filteredContracts.length === 0 && (
+                <div className="col-span-full text-[13px] text-text-4 text-center py-12">
+                  No se encontraron contratos para &ldquo;{search}&rdquo;.
+                </div>
+              )}
+              <InfiniteScrollSentinel
+                sentinelRef={contractsSentinelRef}
+                loading={loadingContracts}
+                hasMore={hasMoreContracts}
+              />
             </div>
             )}
           </div>
