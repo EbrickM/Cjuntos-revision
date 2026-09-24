@@ -49,12 +49,12 @@ const riesgoDona = [
 ];
 
 const exposicionBars = [
-  { label: 'Tradex',        value: 48, color: '#e0201c' },
-  { label: 'APEX',          value: 32, color: '#e0201c' },
-  { label: 'APEX Tech',     value: 25, color: '#e0201c' },
-  { label: 'GEOMS',         value: 18, color: '#e0201c' },
-  { label: 'Conexxia Log',  value: 14, color: '#e0201c' },
-  { label: 'MH Pinturas',   value: 9,  color: '#e0201c' },
+  { label: 'Tradex',        value: 48, color: '#ef7a2c' },
+  { label: 'APEX',          value: 32, color: '#ef7a2c' },
+  { label: 'APEX Tech',     value: 25, color: '#ef7a2c' },
+  { label: 'GEOMS',         value: 18, color: '#ef7a2c' },
+  { label: 'Conexxia Log',  value: 14, color: '#ef7a2c' },
+  { label: 'MH Pinturas',   value: 9,  color: '#ef7a2c' },
 ];
 
 const alertasAbiertas = [];
