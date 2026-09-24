@@ -10,9 +10,12 @@ import {
   Wallet as WalletIcon,
   X,
   Eye,
-  ListFilter,
   Building2,
   Truck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Layers2,
 } from "lucide-react";
 import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
@@ -22,7 +25,6 @@ import { StatCard } from "../../components/common/StatCard";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
-import Badge from "../../components/ui/Badge";
 import InfoRow from "../../components/ui/InfoRow";
 import FormGroup, {
   Input,
@@ -30,19 +32,19 @@ import FormGroup, {
   Textarea,
 } from "../../components/ui/FormGroup";
 import InvoiceDetailModal from "../../components/invoices/InvoiceDetailModal";
+import InvoiceStatusBadge from "../../components/invoices/InvoiceStatusBadge";
 import RequerimientoBadge from "../../components/invoices/RequerimientoBadge";
 import RequerirButton from "../../components/invoices/RequerirButton";
 import AprobarButton from "../../components/invoices/AprobarButton";
-import PagoProgressBar from "../../components/invoices/PagoProgressBar";
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
+
 import {
   formatXaf,
   defaultVencimiento,
 } from "../../components/invoices/facturaUtils";
-import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import { facturaService } from "../../services/factura.service";
 import { contratoService } from "../../services/contrato.service";
-import { INV, estadoLabel, estadoBadge } from "../../lib/invoiceStates";
+import { INV, estadoLabel } from "../../lib/invoiceStates";
 
 const BADGE_LABEL = {
   [INV.creada]: "Creada",
@@ -129,6 +131,34 @@ export default function EpFacturacion() {
   const [filtroEstadoPr, setFiltroEstadoPr] = useState("Todos");
   const [searchCT, setSearchCT] = useState("");
   const [searchPr, setSearchPr] = useState("");
+  const [sortCT, setSortCT] = useState({ key: null, dir: 'asc' });
+  const [groupByCT, setGroupByCT] = useState(null);
+  const toggleSortCT = (key) => setSortCT(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroupCT = (key) => setGroupByCT(g => g === key ? null : key);
+  const [sortPR, setSortPR] = useState({ key: null, dir: 'asc' });
+  const [groupByPR, setGroupByPR] = useState(null);
+  const toggleSortPR = (key) => setSortPR(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroupPR = (key) => setGroupByPR(g => g === key ? null : key);
+  const sortIconCT = (k) => sortCT.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortCT.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const sortIconPR = (k) => sortPR.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortPR.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconCT = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByCT === k ? 'text-orange' : 'opacity-30'}`} />;
+  const groupIconPR = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByPR === k ? 'text-orange' : 'opacity-30'}`} />;
 
   const bump = () =>
     setFacturas(facturaService.listarPorRol("empresa-pequena"));
@@ -168,25 +198,69 @@ export default function EpFacturacion() {
           .includes(searchPr.toLowerCase())),
   );
 
+  const parseDateEP = (d) => {
+    if (!d) return '';
+    const [dd, mm, yyyy] = (d || '').split('/');
+    return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`;
+  };
+
+  const sortedCT = (() => {
+    const effectiveKey = groupByCT || sortCT.key;
+    if (!effectiveKey) return filteredCT;
+    const dir = groupByCT ? 1 : (sortCT.dir === 'asc' ? 1 : -1);
+    return [...filteredCT].sort((a, b) => {
+      if (effectiveKey === 'contrato') return (a.contrato ?? '').localeCompare(b.contrato ?? '');
+      if (effectiveKey === 'empresa') {
+        const ea = a.contratante ?? '';
+        const eb = b.contratante ?? '';
+        return dir * ea.localeCompare(eb);
+      }
+      if (effectiveKey === 'fecha') return dir * parseDateEP(a.fecha).localeCompare(parseDateEP(b.fecha));
+      if (effectiveKey === 'monto') return dir * (a.monto - b.monto);
+      if (effectiveKey === 'pagado') return dir * ((a.pagosAcumulados ?? 0) - (b.pagosAcumulados ?? 0));
+      if (effectiveKey === 'estado') return dir * estadoLabel(a.estado).localeCompare(estadoLabel(b.estado));
+      return 0;
+    });
+  })();
+
+  const sortedPR = (() => {
+    const effectiveKey = groupByPR || sortPR.key;
+    if (!effectiveKey) return filteredPr;
+    const dir = groupByPR ? 1 : (sortPR.dir === 'asc' ? 1 : -1);
+    return [...filteredPr].sort((a, b) => {
+      if (effectiveKey === 'contrato') return (a.contrato ?? '').localeCompare(b.contrato ?? '');
+      if (effectiveKey === 'empresa') {
+        const ea = a.proveedorNombre ?? '';
+        const eb = b.proveedorNombre ?? '';
+        return dir * ea.localeCompare(eb);
+      }
+      if (effectiveKey === 'fecha') return dir * parseDateEP(a.fecha).localeCompare(parseDateEP(b.fecha));
+      if (effectiveKey === 'monto') return dir * (a.monto - b.monto);
+      if (effectiveKey === 'pagado') return dir * ((a.pagosAcumulados ?? 0) - (b.pagosAcumulados ?? 0));
+      if (effectiveKey === 'estado') return dir * String(a.estado ?? '').localeCompare(String(b.estado ?? ''));
+      return 0;
+    });
+  })();
+
   const {
     visibleItems: pagedCT,
     hasMore: hasMoreCT,
     loading: loadingCT,
     sentinelRef: sentinelCTRef,
-  } = useInfiniteScroll(filteredCT, {
+  } = useInfiniteScroll(sortedCT, {
     pageSize: 10,
     delay: 0,
-    resetKey: `${searchCT}|${filtroEstado}`,
+    resetKey: `${searchCT}|${filtroEstado}|${sortCT.key}|${sortCT.dir}|${groupByCT}`,
   });
   const {
     visibleItems: pagedPR,
     hasMore: hasMorePR,
     loading: loadingPR,
     sentinelRef: sentinelPRRef,
-  } = useInfiniteScroll(filteredPr, {
+  } = useInfiniteScroll(sortedPR, {
     pageSize: 10,
     delay: 0,
-    resetKey: `${searchPr}|${filtroEstadoPr}`,
+    resetKey: `${searchPr}|${filtroEstadoPr}|${sortPR.key}|${sortPR.dir}|${groupByPR}`,
   });
 
   // â”€â”€ AcciÃ³n segÃºn el estado del BPMN (lado PYME) â”€â”€
@@ -438,9 +512,25 @@ export default function EpFacturacion() {
           </Button>
         </div>
 
-        {/* Filtros: bÃºsqueda + estado */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <div className="relative flex-1 sm:max-w-xs">
+        {/* Filtros: tabs de estado + búsqueda */}
+        <div className="flex items-center gap-3">
+          <div className="overflow-x-auto pb-0.5 flex-1">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              {(vista === "contratante" ? ESTADOS : ESTADOS_PR).map((e) => (
+                <button
+                  key={e}
+                  onClick={() => vista === "contratante" ? setFiltroEstado(e) : setFiltroEstadoPr(e)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
+                    ${(vista === "contratante" ? filtroEstado : filtroEstadoPr) === e
+                      ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold'
+                      : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="relative shrink-0">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
             <input
               value={vista === "contratante" ? searchCT : searchPr}
@@ -449,34 +539,9 @@ export default function EpFacturacion() {
                   ? setSearchCT(e.target.value)
                   : setSearchPr(e.target.value)
               }
-              placeholder={
-                vista === "contratante"
-                  ? "Buscar factura o contrato, "
-                  : "Buscar por , proveedor o concepto"
-              }
-              className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+              placeholder={vista === "contratante" ? "Buscar factura o contrato…" : "Buscar proveedor o concepto…"}
+              className="h-8 w-56 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
             />
-          </div>
-          <div className="relative flex items-center shrink-0">
-            <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-            <select
-              value={vista === "contratante" ? filtroEstado : filtroEstadoPr}
-              onChange={(e) =>
-                vista === "contratante"
-                  ? setFiltroEstado(e.target.value)
-                  : setFiltroEstadoPr(e.target.value)
-              }
-              className="h-9 lg:w-[150px] w-auto pl-8  text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
-              style={{
-                backgroundImage: SELECT_ARROW,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 8px center",
-              }}
-            >
-              {(vista === "contratante" ? ESTADOS : ESTADOS_PR).map((e) => (
-                <option key={e}>{e}</option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -485,57 +550,103 @@ export default function EpFacturacion() {
           {vista === 'contratante' ? (
             <>
               {/* Header CT */}
-              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Contratante</span>
+              <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                <button onClick={() => toggleGroupCT('contrato')}
+                  className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByCT === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
+                  Contrato {groupIconCT('contrato')}
+                </button>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                <button onClick={() => toggleSortCT('fecha')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                  Fecha {sortIconCT('fecha')}
+                </button>
+                <button onClick={() => toggleGroupCT('empresa')}
+                  className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupByCT === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
+                  Contratante {groupIconCT('empresa')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+                <button onClick={() => toggleSortCT('monto')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+                  Monto {sortIconCT('monto')}
+                </button>
+                <button onClick={() => toggleSortCT('pagado')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                  Pagado {sortIconCT('pagado')}
+                </button>
+                <button onClick={() => toggleSortCT('estado')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                  Estado {sortIconCT('estado')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
               </div>
-              {pagedCT.map((f) => (
-                <div
-                  key={f.id}
-                  onClick={() => setDetalle(f)}
-                  className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                >
-                  {/* ID */}
-                  <div>
-                    <p className="text-[12px] font-mono font-bold text-text-1">{f.id}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#A9A6A1' }}>{f.fecha}</p>
+              {pagedCT.flatMap((f, i) => {
+                const gVal = groupByCT === 'contrato' ? (f.contrato || '—')
+                           : groupByCT === 'empresa'  ? (f.contratante ?? '—')
+                           : null;
+                const prevGVal = i === 0 ? null
+                  : groupByCT === 'contrato' ? (pagedCT[i-1].contrato || '—')
+                  : groupByCT === 'empresa'  ? (pagedCT[i-1].contratante ?? '—')
+                  : null;
+                const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                const groupSep = isNewGroup ? [
+                  <div key={`grp-ct-${i}`} className="min-w-[1020px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                    <span className="text-[11px] font-bold text-orange">{gVal}</span>
                   </div>
-                  {/* Contratante */}
-                  <div>
-                    <div className="text-[12px] font-bold text-text-1">{f.contratante}</div>
-                    <div className="text-[11px] font-mono text-text-4">{f.contrato}</div>
+                ] : [];
+                const rowDiv = (
+                  <div
+                    key={f.id}
+                    onClick={() => setDetalle(f)}
+                    className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                  >
+                    {/* 1. Contrato */}
+                    <div className="text-[13px] font-bold text-text-1">{f.contrato || '—'}</div>
+                    {/* 2. Cod. Factura */}
+                    <div className="text-[12px] font-mono font-bold text-text-2">{f.id}</div>
+                    {/* 3. Fecha */}
+                    <div className="text-[11px] text-text-4">{f.fecha || '—'}</div>
+                    {/* 4. Contratante */}
+                    <div className="text-[12px] font-semibold text-text-2 truncate text-center">{f.contratante ?? '—'}</div>
+                    {/* 5. Concepto */}
+                    <div className="text-[11px] text-text-4 truncate text-center">{f.concepto || '—'}</div>
+                    {/* 6. Monto */}
+                    <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">
+                      {formatXaf(f.monto)}
+                    </div>
+                    {/* 7. Pagado/% */}
+                    {(() => {
+                      const total  = Number(f.monto) || 0;
+                      const pagado = Number(f.pagosAcumulados) || 0;
+                      const isPaid = f.estado === INV.pagada || f.estado === INV.billetera;
+                      if (isPaid || pagado > 0) {
+                        const amount = isPaid ? total : pagado;
+                        const pct = total > 0 ? Math.round((amount / total) * 100) : 100;
+                        return <span className="text-[12px] font-bold text-center block" style={{ color: '#EF7A2C' }}>{pct}%</span>;
+                      }
+                      return <span className="text-[12px] text-text-4 text-center block">—</span>;
+                    })()}
+                    {/* 8. Estado */}
+                    <div className="flex justify-center">
+                      <InvoiceStatusBadge estado={f.estado} noDot />
+                    </div>
+                    {/* 9. Acciones */}
+                    <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <span className="w-6 h-6 flex items-center justify-center shrink-0">
+                        <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
+                      </span>
+                    </div>
                   </div>
-                  {/* Concepto */}
-                  <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
-                  {/* Monto */}
-                  <div className="text-center">
-                    <div className="text-[13px] font-extrabold text-text-1">{formatXaf(f.monto)}</div>
-                    <PagoProgressBar factura={f} className="mt-1" />
-                  </div>
-                  {/* Estado */}
-                  <div className="flex justify-center">
-                    <Badge variant={estadoBadge(f.estado)}>{estadoLabel(f.estado)}</Badge>
-                  </div>
-                  {/* Acciones */}
-                  <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setDetalle(f); }}
-                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <span className="w-6 h-6 flex items-center justify-center shrink-0">
-                      <RequerimientoBadge factura={f} variant="inline" cta={{ label: 'Refacturar', onClick: () => abrirRefactura(f) }} />
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+                return [...groupSep, rowDiv];
+              })}
               {filteredCT.length === 0 && (
-                <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                <div className="min-w-[1020px] px-4 py-10 text-center text-[13px] text-text-4">
                   No hay facturas en este estado.
                 </div>
               )}
@@ -544,46 +655,86 @@ export default function EpFacturacion() {
           ) : (
             <>
               {/* Header PR */}
-              <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
+              <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+                <button onClick={() => toggleGroupPR('contrato')}
+                  className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByPR === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
+                  Contrato {groupIconPR('contrato')}
+                </button>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                <button onClick={() => toggleSortPR('fecha')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                  Fecha {sortIconPR('fecha')}
+                </button>
+                <button onClick={() => toggleGroupPR('empresa')}
+                  className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupByPR === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
+                  Proveedor {groupIconPR('empresa')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
+                <button onClick={() => toggleSortPR('monto')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+                  Monto {sortIconPR('monto')}
+                </button>
+                <button onClick={() => toggleSortPR('pagado')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                  Pagado {sortIconPR('pagado')}
+                </button>
+                <button onClick={() => toggleSortPR('estado')}
+                  className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                  Estado {sortIconPR('estado')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
               </div>
-              {pagedPR.map((inv) => {
-                const estilo = prEstadoStyle(inv.estado);
-                return (
+              {pagedPR.flatMap((inv, i) => {
+                const gVal = groupByPR === 'contrato' ? (inv.contrato || '—')
+                           : groupByPR === 'empresa'  ? (inv.proveedorNombre ?? '—')
+                           : null;
+                const prevGVal = i === 0 ? null
+                  : groupByPR === 'contrato' ? (pagedPR[i-1].contrato || '—')
+                  : groupByPR === 'empresa'  ? (pagedPR[i-1].proveedorNombre ?? '—')
+                  : null;
+                const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                const groupSep = isNewGroup ? [
+                  <div key={`grp-pr-${i}`} className="min-w-[1020px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                    <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                  </div>
+                ] : [];
+                const rowDiv = (
                   <div
                     key={inv.id}
                     onClick={() => setPrDetalle(inv)}
-                    className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                    className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
-                    {/* ID */}
-                    <div>
-                      <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
-                      <div className="text-[11px] text-text-5">{inv.fecha}</div>
+                    {/* 1. Contrato */}
+                    <div className="text-[13px] font-bold text-text-1">{inv.contrato || '—'}</div>
+                    {/* 2. Cod. Factura */}
+                    <div className="text-[12px] font-mono font-bold text-text-2">{inv.id}</div>
+                    {/* 3. Fecha */}
+                    <div className="text-[11px] text-text-4">{inv.fecha || '—'}</div>
+                    {/* 4. Proveedor */}
+                    <div className="text-[12px] font-semibold text-text-2 truncate text-center">{inv.proveedorNombre ?? '—'}</div>
+                    {/* 5. Concepto */}
+                    <div className="text-[11px] text-text-4 truncate text-center">{inv.concepto || '—'}</div>
+                    {/* 6. Monto */}
+                    <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">
+                      {formatXaf(inv.monto)}
                     </div>
-                    {/* Proveedor */}
-                    <div>
-                      <div className="text-[12px] font-bold text-text-1">{inv.proveedorNombre}</div>
-                      <div className="text-[11px] font-mono text-text-4">{inv.contrato}</div>
-                    </div>
-                    {/* Concepto */}
-                    <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto}</div>
-                    {/* Monto */}
-                    <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
-                    {/* Estado */}
+                    {/* 7. Pagado/% */}
+                    {(() => {
+                      const total  = Number(inv.monto) || 0;
+                      const pagado = Number(inv.pagosAcumulados) || 0;
+                      const isPaid = inv.estado === 'Pagada' || inv.estado === 'Aprobada';
+                      if (isPaid || pagado > 0) {
+                        const amount = isPaid ? total : pagado;
+                        const pct = total > 0 ? Math.round((amount / total) * 100) : 100;
+                        return <span className="text-[12px] font-bold text-center block" style={{ color: '#EF7A2C' }}>{pct}%</span>;
+                      }
+                      return <span className="text-[12px] text-text-4 text-center block">—</span>;
+                    })()}
+                    {/* 8. Estado */}
                     <div className="flex justify-center">
-                      <span
-                        className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
-                        style={estilo}
-                      >
-                        {inv.estado}
-                      </span>
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap" style={prEstadoStyle(inv.estado)}>{inv.estado}</span>
                     </div>
-                    {/* Acciones */}
+                    {/* 9. Acciones */}
                     <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={(e) => { e.stopPropagation(); setPrDetalle(inv); }}
@@ -602,9 +753,10 @@ export default function EpFacturacion() {
                     </div>
                   </div>
                 );
+                return [...groupSep, rowDiv];
               })}
               {proveedorInvoices.length === 0 && (
-                <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                <div className="min-w-[1020px] px-4 py-10 text-center text-[13px] text-text-4">
                   No hay facturas de proveedores importadas.
                 </div>
               )}

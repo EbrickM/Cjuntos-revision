@@ -38,6 +38,15 @@ export default function InvoiceDetailModal({ factura, title, onClose, footer, ch
           {f.suministrador && <InfoRow label="Suministrador" value={f.suministrador} />}
           <InfoRow label="Contrato" value={f.contrato} />
           <InfoRow label="Monto" value={`${fmt(f.monto)} XAF`} />
+          {(() => {
+            const total  = Number(f.monto) || 0;
+            const pagado = Number(f.pagosAcumulados) || 0;
+            const isPaid = f.estado === 'pagada' || f.estado === 'billetera';
+            if (!isPaid && pagado <= 0) return null;
+            const amount = isPaid ? total : pagado;
+            const pct    = total > 0 ? Math.round((amount / total) * 100) : 100;
+            return <InfoRow label="Pagado" value={<span style={{ color: '#EF7A2C' }} className="font-bold">{fmt(amount)} XAF ({pct}%)</span>} />;
+          })()}
           <InfoRow label="Fecha" value={f.fecha} />
           <InfoRow label="Vence" value={f.fechaVencimiento ?? '—'} />
           <InfoRow label="Concepto" value={f.concepto} />

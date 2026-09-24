@@ -5,9 +5,9 @@
 import Badge from '../ui/Badge';
 import { estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 
-export default function InvoiceStatusBadge({ estado, className = '' }) {
+export default function InvoiceStatusBadge({ estado, className = '', noDot = false }) {
   return (
-    <Badge variant={estadoBadge(estado)} className={className}>
+    <Badge variant={estadoBadge(estado)} className={className} noDot={noDot}>
       {estadoLabel(estado)}
     </Badge>
   );

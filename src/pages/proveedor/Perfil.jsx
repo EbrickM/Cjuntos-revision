@@ -78,9 +78,9 @@ export default function ProvPerfil() {
 
           {/* Badges */}
           <div className="border-t border-border mt-5 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <HeroBadge label="Nivel de Riesgo"  value="Bajo"      Icon={Shield}       bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Nivel de Riesgo"  value="Bajo"      Icon={Shield}       bg="#FFF3E0" color="#EF7A2C" />
             <HeroBadge label="Calificación ESG"  value="Verde Bonafide" Icon={Leaf}    bg="#E3F4EA" color="#2E7D5B" />
-            <HeroBadge label="Estado KYC"        value="Vigente"   Icon={CheckCircle2} bg="#E3F4EA" color="#2E7D5B" />
+            <HeroBadge label="Estado KYC"        value="Vigente"   Icon={CheckCircle2} bg="#FFF3E0" color="#EF7A2C" />
           </div>
         </div>
 
@@ -124,7 +124,7 @@ export default function ProvPerfil() {
               Icon={ShieldCheck}
               right={
                 <span className="text-[11px] font-bold px-3 py-1.5 rounded-[8px] shrink-0"
-                      style={{ background: '#E3F4EA', color: '#2E7D5B', border: '1px solid #A8D5BE' }}>
+                      style={{ background: '#FFF3E0', color: '#EF7A2C', border: '1px solid rgba(239,122,44,.3)' }}>
                   Aprobado
                 </span>
               }
@@ -133,12 +133,12 @@ export default function ProvPerfil() {
               <ComplianceItem
                 label="KYC" value="Vigente"
                 sub={<>Vence el <span className="font-semibold text-text-2">{KYC_VENC}</span></>}
-                Icon={CheckCircle2} iconBg="#E3F4EA" iconColor="#2E7D5B"
+                Icon={CheckCircle2} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="AML" value="Aprobado"
                 sub="Sin alertas de lavado de activos"
-                Icon={Shield} iconBg="#E3F4EA" iconColor="#2E7D5B"
+                Icon={Shield} iconBg="#FFF3E0" iconColor="#EF7A2C"
               />
               <ComplianceItem
                 label="Documentos" value="4 / 4"

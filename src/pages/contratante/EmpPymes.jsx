@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
   ShieldCheck, ClipboardList, Leaf, Building2,
-  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Eye, Plus, Trash2,
+  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Eye,
+  ArrowUpDown, ArrowUp, ArrowDown, Plus, Trash2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -55,6 +56,17 @@ export default function EmpPymes() {
   const [lista, setLista] = useEmpresasContratadas();
   const [agregar, setAgregar] = useState(NUEVA_PYME_EMPTY);
   const [eliminar, setEliminar] = useState(null);
+  const [sort, setSort] = useState({ key: null, dir: 'asc' });
+  const toggleSort = (key) => setSort(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const sortIcon = (k) => sort.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sort.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
 
   const verde    = lista.filter(p => p.semaforo === 'Verde').length;
   const amarillo = lista.filter(p => p.semaforo === 'Amarillo').length;
@@ -71,8 +83,22 @@ export default function EmpPymes() {
       )
     : lista;
 
+  const SEM_ORDER = { Verde: 0, Amarillo: 1, Rojo: 2 };
+  const sortedPymes = (() => {
+    if (!sort.key) return filtradas;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...filtradas].sort((a, b) => {
+      if (sort.key === 'nombre')    return dir * a.nombre.localeCompare(b.nombre);
+      if (sort.key === 'semaforo')  return dir * ((SEM_ORDER[a.semaforo] ?? 1) - (SEM_ORDER[b.semaforo] ?? 1));
+      if (sort.key === 'score')     return dir * (a.score - b.score);
+      if (sort.key === 'contratos') return dir * (a.contratos - b.contratos);
+      if (sort.key === 'fondo')     return dir * (a.montoTotal - b.montoTotal);
+      return 0;
+    });
+  })();
+
   const { visibleItems: pagedPymes, hasMore, loading, sentinelRef } =
-    useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
+    useInfiniteScroll(sortedPymes, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${sort.key}|${sort.dir}` });
 
   // Contratos activos del portal (para asignar la nueva entidad opcionalmente).
   const contratosActivos = contratoService
@@ -163,13 +189,28 @@ export default function EmpPymes() {
         <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
 
           {/* Header */}
-          <div className="min-w-[760px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_0.8fr_1.5fr_0.7fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Empresa</span>
+          <div className="min-w-[760px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_0.8fr_1.5fr_0.7fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+            <button onClick={() => toggleSort('nombre')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+              Empresa {sortIcon('nombre')}
+            </button>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">RUC</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Semáforo</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-right">Fondo total</span>
+            <button onClick={() => toggleSort('semaforo')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Semáforo {sortIcon('semaforo')}
+            </button>
+            <button onClick={() => toggleSort('score')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Score {sortIcon('score')}
+            </button>
+            <button onClick={() => toggleSort('contratos')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Contratos {sortIcon('contratos')}
+            </button>
+            <button onClick={() => toggleSort('fondo')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+              Fondo total {sortIcon('fondo')}
+            </button>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
           </div>
 

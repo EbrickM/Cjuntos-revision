@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Truck,
+<<<<<<< HEAD
   Receipt, ListFilter, Zap, X, Eye, Landmark, History, Plus, Trash2,
+=======
+  Zap, X, Eye, Landmark, History, Search, LayoutGrid, Send, FileCheck, Plus,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
+>>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -13,11 +18,23 @@ import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
-import { InfoRow, SectionHeader, IpiVerificacionModal, useSuministradores } from './provShared';
+import { InfoRow, SectionHeader, IpiVerificacionModal, IniAvatar, useSuministradores } from './provShared';
+import { StatCard } from '../../components/common/StatCard';
 import { ORA, GREEN, TEXT4, fmt, facturas, facturaBadge, scoreColor, kycBadge, provState } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
+
+const iniFor    = n => (n || '').split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase().slice(0, 2) || '??';
+const KYC_ORDER = { vigente: 0, pendiente: 1, vencido: 2 };
+const parseDate = d => { if (!d) return ''; const [dd, mm, yyyy] = d.split('/'); return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`; };
+
+const TAB_ICON_FAC = {
+  'Todos':     LayoutGrid,
+  'Recibida':  Send,
+  'Verificada': CheckCircle,
+  'Emitida':   FileCheck,
+};
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -48,7 +65,7 @@ const initialesDe = (name = '') => {
 const TABS_DETALLE = [
   { id: 'contrato',        lbl: 'Contrato',        Icon: FileText, iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'suministradores', lbl: 'Suministradores', Icon: Truck,    iconBg: '#FFF3E0', iconColor: ORA },
-  { id: 'facturas',        lbl: 'Facturas',        Icon: Receipt,  iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'facturas',        lbl: 'Facturas',        Icon: FileText, iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'registros',       lbl: 'Registros',       Icon: History,  iconBg: '#FFF3E0', iconColor: ORA },
 ];
 
@@ -59,6 +76,11 @@ export default function ProvContratoDetalle() {
   const [ipiStep, setIpiStep]           = useState(null);
   const [estadoMap, setEstadoMap]       = useState({});
   const [filtroFac, setFiltroFac]       = useState('Todos');
+  const [busquedaFac, setBusquedaFac]   = useState('');
+  const [sortSum, setSortSum]           = useState({ key: null, dir: 'asc' });
+  const [groupBySum, setGroupBySum]     = useState(null);
+  const [sortFac, setSortFac]           = useState({ key: null, dir: 'asc' });
+  const [groupByFac, setGroupByFac]     = useState(null);
   const [sumDetalle, setSumDetalle]     = useState(null);
   const [facCtModal, setFacCtModal]     = useState(INIT_FAC_EMPTY);
   // ── Agregar Suministrador directamente desde este contrato ────────────────
@@ -77,6 +99,16 @@ export default function ProvContratoDetalle() {
   const [eliminarSum, setEliminarSum] = useState(null);
   const [, setTick] = useState(0);
   const bump = () => setTick(t => t + 1);
+
+  const toggleSortSum  = k => setSortSum(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupSum = k => setGroupBySum(g => g === k ? null : k);
+  const sortIconSum    = k => sortSum.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortSum.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconSum   = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupBySum === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const toggleSortFac  = k => setSortFac(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupFac = k => setGroupByFac(g => g === k ? null : k);
+  const sortIconFac    = k => sortFac.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortFac.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconFac   = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupByFac === k ? 'text-orange' : 'opacity-30'}`} />;
   const c    = provState.selectedContrato
     ?? contratoService.listarPorVista('proveedor').map(aViewContrato)[0] ?? null;
   const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
@@ -226,17 +258,7 @@ export default function ProvContratoDetalle() {
             { lbl: 'Disponible',     val: `${fmt(disp)} XAF` },
             { lbl: '% Utilización',  val: `${pct}%` },
           ].map(({ lbl, val }) => (
-            <div key={lbl} className="rounded-[14px] shadow-sm p-4" style={{ background: 'var(--bonafide-gradient)' }}>
-              <div className="text-[10px] text-white/80 uppercase tracking-wide mb-1.5 leading-tight">{lbl}</div>
-              {val.endsWith(' XAF') ? (
-                <>
-                  <div className="text-[18px] sm:text-[22px] font-extrabold leading-tight text-white truncate">{val.slice(0, -4)}</div>
-                  <div className="text-[10px] font-semibold text-white/80 leading-tight">XAF</div>
-                </>
-              ) : (
-                <div className="text-[22px] font-extrabold leading-tight text-white truncate">{val}</div>
-              )}
-            </div>
+            <StatCard key={lbl} label={lbl} value={val} tone="gradient" />
           ))}
         </div>
 
@@ -246,8 +268,8 @@ export default function ProvContratoDetalle() {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
-                  ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'}`}
+                className={`bona-btn flex-1 py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+                  ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}
@@ -322,6 +344,7 @@ export default function ProvContratoDetalle() {
               </div>
             </div>
 
+<<<<<<< HEAD
             <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
               <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
@@ -371,96 +394,210 @@ export default function ProvContratoDetalle() {
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+=======
+            {(() => {
+              const effectiveSum = groupBySum || sortSum.key;
+              const sortedSum = !effectiveSum ? misSuministradores : [...misSuministradores].sort((a, b) => {
+                const dir = groupBySum ? 1 : (sortSum.dir === 'asc' ? 1 : -1);
+                if (effectiveSum === 'nombre') return dir * (a.nombre ?? '').localeCompare(b.nombre ?? '');
+                if (effectiveSum === 'kyc')    return dir * ((KYC_ORDER[(a.kyc ?? '').toLowerCase()] ?? 3) - (KYC_ORDER[(b.kyc ?? '').toLowerCase()] ?? 3));
+                if (effectiveSum === 'score')  return dir * ((a.scoreCredito ?? 0) - (b.scoreCredito ?? 0));
+                if (effectiveSum === 'monto')  return dir * (a.monto - b.monto);
+                return 0;
+              });
+              return (
+                <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                  <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                    <button onClick={() => toggleSortSum('nombre')}
+                      className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                      Suministrador {sortIconSum('nombre')}
+                    </button>
+                    <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contrato</span>
+                    <button onClick={() => toggleGroupSum('kyc')}
+                      className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center ${groupBySum === 'kyc' ? 'text-orange' : 'text-text-4'}`}>
+                      KYC {groupIconSum('kyc')}
+                    </button>
+                    <button onClick={() => toggleSortSum('score')}
+                      className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                      Score {sortIconSum('score')}
+                    </button>
+                    <button onClick={() => toggleSortSum('monto')}
+                      className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                      Monto asignado {sortIconSum('monto')}
+                    </button>
+                    <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+>>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
                   </div>
+                  {sortedSum.flatMap((s, i) => {
+                    const isNewGroup = groupBySum === 'kyc' && (i === 0 || (sortedSum[i - 1].kyc ?? 'sin KYC') !== (s.kyc ?? 'sin KYC'));
+                    const groupSep = isNewGroup ? [
+                      <div key={`grp-sum-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                        <span className="text-[11px] font-bold text-orange">{s.kyc ?? 'sin KYC'}</span>
+                      </div>
+                    ] : [];
+                    const row = (
+                      <div key={s.id ?? s.nombre}
+                        onClick={() => setSumDetalle(s)}
+                        className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <IniAvatar ini={s.ini ?? iniFor(s.nombre)} size={32} />
+                          <div className="min-w-0">
+                            <div className="text-[13px] font-bold text-text-1 truncate">{s.nombre}</div>
+                          </div>
+                        </div>
+                        <span className="text-[12px] font-mono text-center" style={{ color: TEXT4 }}>{c.id}</span>
+                        <div className="flex justify-center">
+                          <Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge>
+                        </div>
+                        <div className="flex justify-center">
+                          {s.scoreCredito != null ? (
+                            <div className="text-center">
+                              <div className="text-[13px] font-bold" style={{ color: scoreColor(s.scoreCredito) }}>{s.scoreCredito}</div>
+                              <div className="text-[10px]" style={{ color: scoreColor(s.scoreCredito) }}>Riesgo {s.scoreCredito >= 750 ? 'Bajo' : s.scoreCredito >= 500 ? 'Medio' : 'Alto'}</div>
+                            </div>
+                          ) : <span className="text-[12px] text-text-4">—</span>}
+                        </div>
+                        <span className="text-[13px] font-extrabold text-text-1 text-center">{fmt(s.monto)} XAF</span>
+                        <div className="flex justify-center">
+                          <button onClick={e => { e.stopPropagation(); setSumDetalle(s); }}
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                    return [...groupSep, row];
+                  })}
+                  {misSuministradores.length === 0 && (
+                    <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
+                      Aún no se registraron suministradores.
+                    </div>
+                  )}
                 </div>
-              ))}
-              {misSuministradores.length === 0 && (
-                <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                  Aún no se registraron suministradores.
-                </div>
-              )}
-            </div>
+              );
+            })()}
+
           </div>
         )}
 
         {/* ── Tab: Facturas ── */}
         {tab === 'facturas' && (() => {
           const estadosDisponibles = ['Todos', ...Array.from(new Set(facturasContrato.map(f => f.estado)))];
-          const visibles = filtroFac === 'Todos' ? facturasContrato : facturasContrato.filter(f => f.estado === filtroFac);
+          const visibles = facturasContrato.filter(f =>
+            (filtroFac === 'Todos' || f.estado === filtroFac) &&
+            (!busquedaFac.trim() ||
+              f.id.toLowerCase().includes(busquedaFac.toLowerCase()) ||
+              (f.suministrador || '').toLowerCase().includes(busquedaFac.toLowerCase()) ||
+              (f.concepto || '').toLowerCase().includes(busquedaFac.toLowerCase()))
+          );
           return (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-                    <Receipt className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-[14px] font-bold text-text-1">Facturas ({facturasContrato.length})</div>
-                    <div className="text-[12px] text-text-4">Emitidas por el Suministrador en este contrato</div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-[14px] font-bold text-text-1">Facturas ({facturasContrato.length})</div>
+                <Button onClick={() => setFacCtModal({ ...INIT_FAC_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
+                  Nueva Factura
+                </Button>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="overflow-x-auto pb-0.5 flex-1">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                    {estadosDisponibles.map(e => {
+                      const Icon = TAB_ICON_FAC[e] ?? FileText;
+                      return (
+                        <button key={e} onClick={() => setFiltroFac(e)}
+                          className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                            filtroFac === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                          }`}>
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {e}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex items-center">
-                    <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
-                    <select
-                      value={filtroFac}
-                      onChange={e => setFiltroFac(e.target.value)}
-                      className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
-                      style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-                    >
-                      {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
-                    </select>
-                  </div>
-                  <Button
-                    onClick={() => setFacCtModal({ ...INIT_FAC_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}
-                    className="w-full sm:w-auto"
-                  >
-                    Nueva Factura
-                  </Button>
+                <div className="relative shrink-0">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                  <input
+                    value={busquedaFac}
+                    onChange={e => setBusquedaFac(e.target.value)}
+                    placeholder="Buscar factura…"
+                    className="h-8 w-48 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                  />
                 </div>
               </div>
 
-              <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-                <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-                </div>
-                {visibles.map(f => (
-                  <div
-                    key={f.id}
-                    onClick={() => { setFacturaModal(f); setIpiStep(null); }}
-                    className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                  >
-                    <div>
-                      <div className="text-[12px] font-mono font-bold text-text-1">{f.id}</div>
-                      <div className="text-[11px] text-text-5">{f.fecha}</div>
-                    </div>
-                    <div className="text-[12px] font-bold text-text-1 truncate">{f.suministrador}</div>
-                    <div className="text-[12px] text-text-3 truncate text-center">{f.concepto}</div>
-                    <div className="text-[13px] font-extrabold text-text-1 text-center">{fmt(f.monto)} XAF</div>
-                    <div className="flex justify-center">
-                      <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
-                    </div>
-                    <div className="flex justify-center">
-                      <button
-                        onClick={e => { e.stopPropagation(); setFacturaModal(f); setIpiStep(null); }}
-                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" />
+              {(() => {
+                const effectiveFac = groupByFac || sortFac.key;
+                const sortedVisibles = !effectiveFac ? visibles : [...visibles].sort((a, b) => {
+                  const dir = groupByFac ? 1 : (sortFac.dir === 'asc' ? 1 : -1);
+                  if (effectiveFac === 'suministrador') return dir * (a.suministrador ?? '').localeCompare(b.suministrador ?? '');
+                  if (effectiveFac === 'fecha')  return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+                  if (effectiveFac === 'monto')  return dir * (a.monto - b.monto);
+                  if (effectiveFac === 'estado') return dir * (a.estado ?? '').localeCompare(b.estado ?? '');
+                  return 0;
+                });
+                return (
+                  <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                    <div className="min-w-[700px] grid [grid-template-columns:1.4fr_0.9fr_1.2fr_1.4fr_1.2fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                      <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                      <button onClick={() => toggleSortFac('fecha')}
+                        className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                        Fecha {sortIconFac('fecha')}
                       </button>
+                      <button onClick={() => toggleGroupFac('suministrador')}
+                        className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByFac === 'suministrador' ? 'text-orange' : 'text-text-4'}`}>
+                        Suministrador {groupIconFac('suministrador')}
+                      </button>
+                      <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                      <button onClick={() => toggleSortFac('monto')}
+                        className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+                        Monto {sortIconFac('monto')}
+                      </button>
+                      <button onClick={() => toggleSortFac('estado')}
+                        className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                        Estado {sortIconFac('estado')}
+                      </button>
+                      <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
                     </div>
+                    {sortedVisibles.flatMap((f, i) => {
+                      const isNewGroup = groupByFac === 'suministrador' && (i === 0 || (sortedVisibles[i - 1].suministrador ?? '—') !== (f.suministrador ?? '—'));
+                      const groupSep = isNewGroup ? [
+                        <div key={`grp-fac-${i}`} className="min-w-[700px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                          <span className="text-[11px] font-bold text-orange">{f.suministrador ?? '—'}</span>
+                        </div>
+                      ] : [];
+                      const row = (
+                        <div key={f.id}
+                          onClick={() => { setFacturaModal(f); setIpiStep(null); }}
+                          className="min-w-[700px] grid [grid-template-columns:1.4fr_0.9fr_1.2fr_1.4fr_1.2fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                        >
+                          <div className="text-[12px] font-mono font-bold text-text-2">{f.id}</div>
+                          <div className="text-[11px] text-text-4">{f.fecha || '—'}</div>
+                          <div className="text-[12px] font-semibold text-text-2 truncate">{f.suministrador || '—'}</div>
+                          <div className="text-[11px] text-text-4 truncate text-center">{f.concepto || '—'}</div>
+                          <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">{fmt(f.monto)} XAF</div>
+                          <div className="flex justify-center">
+                            <Badge variant={facturaBadge(f.estado)}>{f.estado}</Badge>
+                          </div>
+                          <div className="flex justify-center">
+                            <button onClick={e => { e.stopPropagation(); setFacturaModal(f); setIpiStep(null); }}
+                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                      return [...groupSep, row];
+                    })}
+                    {visibles.length === 0 && (
+                      <div className="min-w-[700px] px-4 py-10 text-center text-[13px] text-text-4">
+                        No hay facturas con los filtros aplicados.
+                      </div>
+                    )}
                   </div>
-                ))}
-                {visibles.length === 0 && (
-                  <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                    Sin facturas con estado "{filtroFac}".
-                  </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
           );
         })()}

@@ -7,7 +7,7 @@ import {
   Search,
   ChevronRight,
   Plus,
-  ListFilter,
+  LayoutGrid, CheckCircle, AlertCircle, Clock, Settings2, MessageCircle,
   Truck,
   Receipt,
   Building2,
@@ -20,6 +20,7 @@ import {
   Eye,
   Upload,
   Paperclip, History, Save,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from "lucide-react";
 import { useApp } from "../../state/AppContext";
 import AppShell from "../../components/layout/AppShell";
@@ -38,13 +39,22 @@ import FormGroup, {
 import FacturaContratanteModal from "../../components/invoices/FacturaContratanteModal";
 import InvoiceStatusBadge from "../../components/invoices/InvoiceStatusBadge";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
-import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import { contratoService } from "../../services/contrato.service";
 import { useProviders } from "./epData";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
+
+const TAB_ICON = {
+  'Todos':                       LayoutGrid,
+  'Activo':                      CheckCircle,
+  'Con Requerimientos':          AlertCircle,
+  'Pendiente de Revisión':       Clock,
+  'Pendiente de Configuración':  Settings2,
+  'En Discusión de Términos':    MessageCircle,
+  'Borradores':                  Save,
+};
 
 const formatXaf = (value) =>
   `${new Intl.NumberFormat("de-DE").format(Number(value) || 0)} XAF`;
@@ -184,22 +194,19 @@ const TABS = [
 
 // ── Sub-component: Contract Card ─────────────────────────────────────────────
 function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqModal }) {
-  const pctVal  = parseFloat(pct(contract.asignado, contract.monto));
-  const animPct = useCountUp(Math.round(pctVal), 1200, 80 + idx * 60);
-  const ctName  = contract.contratante?.razonSocial || contract.contratanteNombre || "—";
-  const sector  = contract.contratante?.sectorProductivo || "";
-  const score   = contract.contratante?.scoreCredito ?? null;
-  const sStyle  = score !== null ? scoreStyle(score) : null;
+  const usedPct = contract.monto > 0 ? Math.round((contract.asignado / contract.monto) * 100) : 0;
+  const animPct = useCountUp(usedPct, 1200, 80 + idx * 60);
+  const ctName  = contract.contratante?.razonSocial || contract.contratanteNombre || '—';
+
   return (
     <div
-      onClick={() => { setDetailId(contract.id); setActiveTab("contrato"); }}
-      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
+      onClick={() => { setDetailId(contract.id); setActiveTab('contrato'); }}
+      className="relative bg-white rounded-[16px] p-5 cursor-pointer flex flex-col gap-3.5 transition-all duration-200 hover:scale-[1.015] shadow-[0_3px_10px_rgba(0,0,0,0.10),0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] card-enter"
       style={{ animationDelay: `${idx * 70}ms` }}
     >
-      {/* Ícono flotante: contrato con requerimiento de Bonafide */}
       {contract.requerimiento && (
         <button
-          onClick={(e) => { e.stopPropagation(); setReqModal(contract); }}
+          onClick={e => { e.stopPropagation(); setReqModal(contract); }}
           title="Ver requerimiento"
           className="absolute -top-2.5 -right-2.5 w-8 h-8 rounded-full bg-orange-dark text-white flex items-center justify-center shadow-lg animate-bounce cursor-pointer z-10"
         >
@@ -207,48 +214,53 @@ function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqM
         </button>
       )}
 
-      {/* ID + empresa + sector + score */}
+      {/* Fila 1: ID + estado */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[15px] font-extrabold text-text-1 tracking-wide">{contract.id}</span>
+        <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
+      </div>
+
+      {/* Fila 2: Empresa Contratante */}
       <div className="min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-0.5">
-          <div className="text-[10px] font-semibold text-text-4">{contract.id}</div>
-          <Badge variant={contratoBadge(contract.estado)}>{contract.estado}</Badge>
-        </div>
-        <div className="flex items-center gap-1.5 min-w-0">
-          <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{ctName}</div>
-          {sStyle && (
-            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-[5px]" style={{ background: sStyle.bg, color: sStyle.color }}>
-              {score}
-            </span>
-          )}
-        </div>
-        {sector && <div className="text-[11px] text-text-4 mt-0.5">{sector}</div>}
+        <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Empresa Contratante</p>
+        <p className="text-[13px] font-medium text-text-3 leading-tight truncate">{ctName}</p>
       </div>
 
-      {/* Monto */}
-      <div>
-        <div className="text-[10px] font-semibold uppercase tracking-wide text-text-4 mb-0.5">Monto del crédito</div>
-        <div className="text-[17px] font-extrabold text-text-1 leading-tight">{formatXaf(contract.monto)}</div>
+      {/* Fila 3: Monto Asignado + Disponible */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Monto Asignado</p>
+          <p className="text-[12px] font-semibold text-text-3 tabular-nums leading-tight">{formatXaf(contract.monto)}</p>
+        </div>
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-wider text-text-4 mb-0.5">Disponible</p>
+          <p className="text-[12px] font-semibold tabular-nums leading-tight" style={{ color: '#EF7A2C' }}>{formatXaf(contract.disponible)}</p>
+        </div>
       </div>
 
-      {/* Barra de distribución */}
-      <div className="mt-auto space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] text-text-4">Distribuido</span>
-          <span className="text-[11px] font-bold" style={{ color: "#EF7A2C" }}>{animPct}%</span>
+      {/* Fila 4: Barra de progreso + utilizado */}
+      <div className="space-y-1.5">
+        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
+          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
         </div>
-        <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#ECEAE7" }}>
-          <div className="h-full rounded-full" style={{ width: `${animPct}%`, background: "linear-gradient(90deg, #E0201C, #EF7A2C)" }} />
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-semibold tabular-nums" style={{ color: '#E0201C' }}>Utilizado: {formatXaf(contract.asignado)}</span>
+          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#E0201C' }}>{animPct}%</span>
         </div>
-        <div className="text-[10px] text-text-5">Disponible: {formatXaf(contract.disponible)}</div>
       </div>
 
-      {/* Botón Ver */}
-      <button
-        onClick={(e) => { e.stopPropagation(); setDetailId(contract.id); setActiveTab("contrato"); }}
-        className="self-end flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
-      >
-        Ver contrato <ChevronRight className="w-3.5 h-3.5" />
-      </button>
+      {/* Fila 5: Facturas + Ver contrato */}
+      <div className="flex items-center justify-between mt-auto pt-0.5">
+        <span className="inline-flex items-center gap-1 text-[11px] text-text-4">
+          <Receipt className="w-3.5 h-3.5 shrink-0" />{contract.facturas ?? 0} facturas
+        </span>
+        <button
+          onClick={e => { e.stopPropagation(); setDetailId(contract.id); setActiveTab('contrato'); }}
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-orange hover:opacity-75 transition cursor-pointer"
+        >
+          Ver contrato <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -263,7 +275,6 @@ export default function EpCreditos() {
   const [pagos, setPagos]                         = useState(initialPagos);
   const [search, setSearch]                       = useState('');
   const [filtroEstado, setFiltroEstado]           = useState('Todos');
-  const [verBorradores, setVerBorradores]         = useState(false);
   const [invCtModal, setInvCtModal]               = useState(INV_CT_EMPTY);
   const [invPrModal, setInvPrModal]               = useState(INV_PR_EMPTY);
   const [pagoModal, setPagoModal]                 = useState(PAGO_MODAL_EMPTY);
@@ -271,16 +282,21 @@ export default function EpCreditos() {
   const [provDetailModal, setProvDetailModal] = useState(null);
   const [facSubTab, setFacSubTab]             = useState('contratante');
   const [agregarProv, setAgregarProv]         = useState(NUEVO_PROV_EMPTY);
-  // Proveedores agregados desde el detalle de un contrato (botón "Agregar
-  // Proveedor"): se guardan por contrato porque esta pantalla no se desmonta
-  // al navegar entre contratos (misma ruta siempre), y se muestran arriba de
-  // la tabla "Proveedores" de ese mismo contrato de inmediato.
   const [provManualesPorContrato, setProvManualesPorContrato] = useState({});
+<<<<<<< HEAD
   // Proveedores de un contrato que se "eliminaron" desde esa misma tabla (los
   // que venían de la asignación del contrato, no del directorio — esos se
   // sacan directo del directorio con setProviders).
   const [provOcultosPorContrato, setProvOcultosPorContrato] = useState({});
   const [eliminarProv, setEliminarProv] = useState(null);
+=======
+  const [sortFacCT, setSortFacCT]     = useState({ key: null, dir: 'asc' });
+  const [groupByFacCT, setGroupByFacCT] = useState(null);
+  const [sortFacPR, setSortFacPR]     = useState({ key: null, dir: 'asc' });
+  const [groupByFacPR, setGroupByFacPR] = useState(null);
+  const [sortProv, setSortProv]       = useState({ key: null, dir: 'asc' });
+  const [groupByProv, setGroupByProv] = useState(null);
+>>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
 
   const detailContract = detailId
     ? (contracts.find((c) => c.id === detailId) ?? null)
@@ -370,9 +386,10 @@ export default function EpCreditos() {
           .includes(search.toLowerCase())),
   );
 
-  const ESTADOS = [
+  const ESTADO_TABS = [
     "Todos",
     ...Array.from(new Set(contracts.map((c) => c.estado).filter(Boolean))),
+    "Borradores",
   ];
 
   // Sin delay: en producción, en cuanto el backend devuelva la siguiente
@@ -385,7 +402,7 @@ export default function EpCreditos() {
   } = useInfiniteScroll(filteredContracts, {
     pageSize: 10,
     delay: 0,
-    resetKey: `${search}|${filtroEstado}`,
+    resetKey: `${search}|${filtroEstado === 'Borradores' ? 'todos' : filtroEstado}`,
   });
 
   // ── Facturas handlers ──
@@ -599,6 +616,23 @@ export default function EpCreditos() {
       documento: p.documento || null,
     });
 
+  const toggleSortFacCT  = k => setSortFacCT(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupFacCT = k => setGroupByFacCT(g => g === k ? null : k);
+  const sortIconFacCT    = k => sortFacCT.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortFacCT.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconFacCT   = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupByFacCT === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const toggleSortFacPR  = k => setSortFacPR(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupFacPR = k => setGroupByFacPR(g => g === k ? null : k);
+  const sortIconFacPR    = k => sortFacPR.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortFacPR.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconFacPR   = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupByFacPR === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const toggleSortProv  = k => setSortProv(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupProv = k => setGroupByProv(g => g === k ? null : k);
+  const sortIconProv    = k => sortProv.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortProv.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconProv   = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupByProv === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const parseDate = d => { if (!d) return ''; const [dd, mm, yyyy] = d.split('/'); return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`; };
+
   return (
     <AppShell
       active="epCreditos"
@@ -647,45 +681,38 @@ export default function EpCreditos() {
                   Contratos de crédito activos con tus contratantes.
                 </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                <div className="relative flex-1 sm:max-w-xs">
+              <div className="flex items-center gap-3">
+                <div className="overflow-x-auto pb-0.5 flex-1">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                    {ESTADO_TABS.map(t => {
+                      const Icon = TAB_ICON[t] ?? LayoutGrid;
+                      return (
+                        <button
+                          key={t}
+                          onClick={() => setFiltroEstado(t)}
+                          className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                            ${filtroEstado === t ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="relative shrink-0">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Buscar contrato…"
-                    className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+                    className="h-8 w-64 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
                   />
                 </div>
-                <div className="relative flex items-center shrink-0">
-                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-                  <select
-                    value={filtroEstado}
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                    className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                    style={{
-                      backgroundImage: SELECT_ARROW,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 8px center",
-                    }}
-                  >
-                    {ESTADOS.map((e) => (
-                      <option key={e}>{e}</option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  variant={verBorradores ? 'primary' : 'secondary'}
-                  size="sm"
-                  onClick={() => setVerBorradores(v => !v)}
-                  className="shrink-0"
-                >
-                  <Save className="w-3.5 h-3.5" />Borradores
-                </Button>
               </div>
             </div>
 
-            {verBorradores ? (
+            {filtroEstado === 'Borradores' ? (
               <BorradoresSeccion
                 rol="pyme"
                 onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId })}
@@ -762,14 +789,14 @@ export default function EpCreditos() {
             </div>
 
             {/* Tabs */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:flex gap-1 mb-5 bg-white rounded-[10px] p-1">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 mb-5">
               {TABS.map(({ id, label, Icon }) => {
                 const isActive = activeTab === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
+                    className={`bona-btn flex-1 py-1.5 px-3 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer
                       ${isActive ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1"}`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -1086,18 +1113,99 @@ export default function EpCreditos() {
                     }
                   />
 
-                  <div className="space-y-2">
+                  {/* Desktop table */}
+                  <div className="hidden sm:block overflow-x-auto -mx-5 -mb-5">
+                    {(() => {
+                      const sortedFil = (() => {
+                        const ek = groupByProv || sortProv.key;
+                        if (!ek) return filas;
+                        const dir = groupByProv ? 1 : (sortProv.dir === 'asc' ? 1 : -1);
+                        return [...filas].sort((a, b) => {
+                          if (ek === 'nombre') return dir * (a.item.providerName ?? '').localeCompare(b.item.providerName ?? '');
+                          if (ek === 'kyc') return dir * (a.prov.kyc ?? '').localeCompare(b.prov.kyc ?? '');
+                          if (ek === 'score') return dir * ((a.prov.scoreCredito ?? 0) - (b.prov.scoreCredito ?? 0));
+                          if (ek === 'monto') return dir * (a.item.monto - b.item.monto);
+                          return 0;
+                        });
+                      })();
+                      return (
+                        <div className="min-w-[640px] rounded-b-[14px] overflow-hidden">
+                          <div className="grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-t border-border gap-3 items-center">
+                            <button onClick={() => toggleSortProv('nombre')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                              Proveedor {sortIconProv('nombre')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Sector</span>
+                            <button onClick={() => toggleGroupProv('kyc')} className={`text-[11px] font-semibold uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 ${groupByProv === 'kyc' ? 'text-orange' : 'text-text-4'}`}>
+                              KYC {groupIconProv('kyc')}
+                            </button>
+                            <button onClick={() => toggleSortProv('score')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                              Score {sortIconProv('score')}
+                            </button>
+                            <button onClick={() => toggleSortProv('monto')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                              Monto {sortIconProv('monto')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                          </div>
+                          {sortedFil.flatMap(({ item, prov }, i) => {
+                            const gVal = groupByProv === 'kyc' ? (prov.kyc ?? 'sin KYC') : null;
+                            const prevGVal = i === 0 ? null : groupByProv === 'kyc' ? (sortedFil[i-1].prov.kyc ?? 'sin KYC') : null;
+                            const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                            const sStyle = prov.scoreCredito != null ? scoreStyle(prov.scoreCredito) : null;
+                            const groupSep = isNewGroup ? [
+                              <div key={`grp-pv-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                                <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                              </div>
+                            ] : [];
+                            const row = (
+                              <div key={item.id}
+                                onClick={() => setProvDetailModal(prov)}
+                                className="grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] px-4 py-3 border-t border-border cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                              >
+                                <div className="min-w-0">
+                                  <div className="text-[13px] font-bold text-text-1 truncate">{item.providerName}</div>
+                                  {item.concepto && <div className="text-[11px] text-text-4 truncate">{item.concepto}</div>}
+                                </div>
+                                <span className="text-[12px] text-text-4">{item.providerSector || '—'}</span>
+                                <div className="flex justify-center">
+                                  <Badge variant={KYC_BADGE[prov.kyc] ?? 'yellow'}>{prov.kyc ?? 'sin KYC'}</Badge>
+                                </div>
+                                <div className="flex justify-center">
+                                  {sStyle ? (
+                                    <div className="text-center">
+                                      <div className="text-[13px] font-bold" style={{ color: sStyle.color }}>{prov.scoreCredito}</div>
+                                    </div>
+                                  ) : <span className="text-[12px] text-text-4">—</span>}
+                                </div>
+                                <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
+                                <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+                                  <button onClick={e => { e.stopPropagation(); setProvDetailModal(prov); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                            return [...groupSep, row];
+                          })}
+                          {filas.length === 0 && (
+                            <div className="px-4 py-10 text-center text-[13px] text-text-4">No hay proveedores asignados aún.</div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  {/* Mobile cards */}
+                  <div className="sm:hidden space-y-2 mt-0">
                     {filas.map(({ item, prov }) => (
                       <div key={item.id} className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="text-[13px] font-bold text-text-1 truncate">{item.providerName}</div>
                           </div>
-                          <div className="text-[12px] text-text-3 truncate text-center">{item.concepto}</div>
-                          <span className="text-[12px] text-text-4 text-center">{item.providerSector || "—"}</span>
                           <div className="flex justify-center">
                             <Badge variant={KYC_BADGE[prov.kyc] ?? "yellow"}>{prov.kyc}</Badge>
                           </div>
+<<<<<<< HEAD
                           <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
                           <div className="flex items-center justify-center gap-0.5">
                             <button
@@ -1113,19 +1221,25 @@ export default function EpCreditos() {
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
+=======
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-border">
+                          <span className="text-[13px] font-extrabold text-text-1">{formatXaf(item.monto)}</span>
+                          <button onClick={() => setProvDetailModal(prov)} className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+>>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
                         </div>
                       </div>
-                      ))}
-                      {filas.length === 0 && (
-                        <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                          No hay proveedores asignados aún.
-                        </div>
-                      )}
-                    </div>
+                    ))}
+                    {filas.length === 0 && (
+                      <div className="py-8 text-center text-[13px] text-text-4">No hay proveedores asignados aún.</div>
+                    )}
                   </div>
                 </div>
-                );
-              })()}
+              </div>
+              );
+            })()}
 
             {/* ── TAB: Facturas ── */}
             {activeTab === "facturas" &&
@@ -1177,106 +1291,155 @@ export default function EpCreditos() {
                     </div>
 
                     {/* Facturas al Contratante */}
-                    {facSubTab === "contratante" && (
-                      <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-                        <div className="min-w-[640px] grid [grid-template-columns:1.5fr_2.5fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                    {facSubTab === "contratante" && (() => {
+                      const sortedInvCT = (() => {
+                        const ek = groupByFacCT || sortFacCT.key;
+                        if (!ek) return contratanteInvoices;
+                        const dir = groupByFacCT ? 1 : (sortFacCT.dir === 'asc' ? 1 : -1);
+                        return [...contratanteInvoices].sort((a, b) => {
+                          if (ek === 'fecha') return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+                          if (ek === 'monto') return dir * (a.monto - b.monto);
+                          if (ek === 'estado') return dir * (a.estado ?? '').localeCompare(b.estado ?? '');
+                          return 0;
+                        });
+                      })();
+                      return (
+                        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                          <div className="min-w-[640px] grid [grid-template-columns:1.4fr_0.9fr_1.6fr_1.2fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                            <button onClick={() => toggleSortFacCT('fecha')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                              Fecha {sortIconFacCT('fecha')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                            <button onClick={() => toggleSortFacCT('monto')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-end gap-1 cursor-pointer hover:text-text-1">
+                              Monto {sortIconFacCT('monto')}
+                            </button>
+                            <button onClick={() => toggleGroupFacCT('estado')} className={`text-[11px] font-semibold uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 ${groupByFacCT === 'estado' ? 'text-orange' : 'text-text-4'}`}>
+                              Estado {groupIconFacCT('estado')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                          </div>
+                          {sortedInvCT.flatMap((inv, i) => {
+                            const gVal = groupByFacCT === 'estado' ? (inv.estado || '—') : null;
+                            const prevGVal = i === 0 ? null : groupByFacCT === 'estado' ? (sortedInvCT[i-1].estado || '—') : null;
+                            const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                            const groupSep = isNewGroup ? [
+                              <div key={`grp-ct-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                                <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                              </div>
+                            ] : [];
+                            const row = (
+                              <div key={inv.id}
+                                onClick={() => handleOpenEditCTInvoice(inv)}
+                                className="min-w-[640px] grid [grid-template-columns:1.4fr_0.9fr_1.6fr_1.2fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                              >
+                                <div>
+                                  <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
+                                </div>
+                                <div className="text-[11px] text-text-4">{inv.fecha || '—'}</div>
+                                <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto}</div>
+                                <div className="text-[13px] font-extrabold text-text-1 text-right">{formatXaf(inv.monto)}</div>
+                                <div className="flex justify-center">
+                                  <InvoiceStatusBadge estado={inv.estado} noDot />
+                                </div>
+                                <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
+                                  <button onClick={e => { e.stopPropagation(); handleOpenEditCTInvoice(inv); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={e => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                            return [...groupSep, row];
+                          })}
+                          {contratanteInvoices.length === 0 && (
+                            <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas al contratante para este contrato.</div>
+                          )}
                         </div>
-                        {contratanteInvoices.map((inv) => (
-                          <div
-                            key={inv.id}
-                            onClick={() => handleOpenEditCTInvoice(inv)}
-                            className="min-w-[640px] grid [grid-template-columns:1.5fr_2.5fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                          >
-                            <div>
-                              <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
-                              <div className="text-[11px] text-text-5">{inv.fecha}</div>
-                            </div>
-                            <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto}</div>
-                            <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
-                            <div className="flex justify-center">
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"><InvoiceStatusBadge estado={inv.estado} /></span>
-                            </div>
-                            <div className="flex items-center justify-center gap-1">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleOpenEditCTInvoice(inv); }}
-                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
-                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                        {contratanteInvoices.length === 0 && (
-                          <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                            No hay facturas al contratante para este contrato.
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Facturas de Proveedores */}
-                    {facSubTab === "proveedor" && (
-                      <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-                        <div className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">ID</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                          <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-                        </div>
-                        {proveedorInvoices.map((inv) => {
-                          return (
-                            <div
-                              key={inv.id}
-                              onClick={() => handleOpenEditPRInvoice(inv)}
-                              className="min-w-[640px] grid [grid-template-columns:1.5fr_1.5fr_2fr_1.2fr_1.5fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                            >
-                              <div>
-                                <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
-                                <div className="text-[11px] text-text-5">{inv.fecha}</div>
-                              </div>
-                              <div className="text-[12px] font-bold text-text-1 truncate">{inv.proveedorNombre}</div>
-                              <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto || inv.proveedorNombre}</div>
-                              <div className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(inv.monto)}</div>
-                              <div className="flex justify-center">
-                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"><InvoiceStatusBadge estado={inv.estado} /></span>
-                              </div>
-                              <div className="flex items-center justify-center gap-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleOpenEditPRInvoice(inv); }}
-                                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
-                                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {proveedorInvoices.length === 0 && (
-                          <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
-                            No hay facturas de proveedores importadas para este contrato.
+                    {facSubTab === "proveedor" && (() => {
+                      const sortedInvPR = (() => {
+                        const ek = groupByFacPR || sortFacPR.key;
+                        if (!ek) return proveedorInvoices;
+                        const dir = groupByFacPR ? 1 : (sortFacPR.dir === 'asc' ? 1 : -1);
+                        return [...proveedorInvoices].sort((a, b) => {
+                          if (ek === 'fecha') return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+                          if (ek === 'proveedor') return dir * (a.proveedorNombre ?? '').localeCompare(b.proveedorNombre ?? '');
+                          if (ek === 'monto') return dir * (a.monto - b.monto);
+                          if (ek === 'estado') return dir * (a.estado ?? '').localeCompare(b.estado ?? '');
+                          return 0;
+                        });
+                      })();
+                      return (
+                        <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                          <div className="min-w-[640px] grid [grid-template-columns:1.4fr_0.9fr_1.4fr_1.4fr_1.2fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                            <button onClick={() => toggleSortFacPR('fecha')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                              Fecha {sortIconFacPR('fecha')}
+                            </button>
+                            <button onClick={() => toggleGroupFacPR('proveedor')} className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByFacPR === 'proveedor' ? 'text-orange' : 'text-text-4'}`}>
+                              Proveedor {groupIconFacPR('proveedor')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
+                            <button onClick={() => toggleSortFacPR('monto')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-end gap-1 cursor-pointer hover:text-text-1">
+                              Monto {sortIconFacPR('monto')}
+                            </button>
+                            <button onClick={() => toggleSortFacPR('estado')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                              Estado {sortIconFacPR('estado')}
+                            </button>
+                            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
                           </div>
-                        )}
-                      </div>
-                    )}
+                          {sortedInvPR.flatMap((inv, i) => {
+                            const gVal = groupByFacPR === 'proveedor' ? (inv.proveedorNombre || '—') : null;
+                            const prevGVal = i === 0 ? null : groupByFacPR === 'proveedor' ? (sortedInvPR[i-1].proveedorNombre || '—') : null;
+                            const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                            const groupSep = isNewGroup ? [
+                              <div key={`grp-pr-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                                <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                              </div>
+                            ] : [];
+                            const row = (
+                              <div key={inv.id}
+                                onClick={() => handleOpenEditPRInvoice(inv)}
+                                className="min-w-[640px] grid [grid-template-columns:1.4fr_0.9fr_1.4fr_1.4fr_1.2fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                              >
+                                <div>
+                                  <div className="text-[12px] font-mono font-bold text-text-1">{inv.id}</div>
+                                </div>
+                                <div className="text-[11px] text-text-4">{inv.fecha || '—'}</div>
+                                <div className="text-[12px] font-bold text-text-1 truncate">{inv.proveedorNombre}</div>
+                                <div className="text-[12px] text-text-3 truncate text-center">{inv.concepto || inv.proveedorNombre}</div>
+                                <div className="text-[13px] font-extrabold text-text-1 text-right">{formatXaf(inv.monto)}</div>
+                                <div className="flex justify-center">
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"><InvoiceStatusBadge estado={inv.estado} noDot /></span>
+                                </div>
+                                <div className="flex items-center justify-center gap-1" onClick={e => e.stopPropagation()}>
+                                  <button onClick={e => { e.stopPropagation(); handleOpenEditPRInvoice(inv); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={e => { e.stopPropagation(); handleDeleteInvoice(inv.id); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                            return [...groupSep, row];
+                          })}
+                          {proveedorInvoices.length === 0 && (
+                            <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">No hay facturas de proveedores importadas para este contrato.</div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })()}

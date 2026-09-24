@@ -10,11 +10,11 @@ import Logo from './Logo';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
 
 const ROLE_META = {
-  'empresa-pequena': { roleLabel: 'Empresa Contratada',  pill: null },
-  contratante:       { roleLabel: 'Empresa Contratante', pill: null },
-  admin:             { roleLabel: 'Ops. Bonafide',       pill: { lbl: 'Admin', cls: 'bg-orange-tint text-orange border-orange-border' } },
-  proveedor:         { roleLabel: 'Proveedor',           pill: { lbl: 'Proveedor', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
-  fondeador:         { roleLabel: 'Banco Fondeador · BGFI', pill: { lbl: 'Fondeador', cls: 'bg-blue-bg text-blue-text border-blue-text/20' } },
+  'empresa-pequena': { roleLabel: 'Empresa Contratada'     },
+  contratante:       { roleLabel: 'Empresa Contratante'    },
+  admin:             { roleLabel: 'Ops. Bonafide'          },
+  proveedor:         { roleLabel: 'Proveedor'              },
+  fondeador:         { roleLabel: 'Banco Fondeador · BGFI' },
 };
 
 function getInitials(fullName = '') {
@@ -143,11 +143,6 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
             <p className="text-sm font-medium text-text-1 leading-tight truncate max-w-[160px]">{fullName || '—'}</p>
             <p className="text-xs text-text-4 leading-tight">{meta.roleLabel}</p>
           </div>
-          {meta.pill && (
-            <span className={`hidden sm:inline text-[9px] font-bold px-[7px] py-0.5 rounded-full border ${meta.pill.cls}`}>
-              {meta.pill.lbl}
-            </span>
-          )}
         </div>
 
         {/* Notificaciones */}
