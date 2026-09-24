@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  CheckCircle, Banknote, Send, ShieldCheck, Check, X, Eye, Search, ListFilter,
+  CheckCircle, Banknote, Send, ShieldCheck, Check, X, Eye, Search,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
@@ -15,7 +15,6 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import AprobarButton from '../../components/invoices/AprobarButton';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
-import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { facturaService } from '../../services/factura.service';
 import { INV, estadoLabel } from '../../lib/invoiceStates';
 
@@ -167,33 +166,36 @@ export default function EmpFacturas() {
 
         {/* Filtros + Tabla */}
         <div className="text-[14px] font-bold text-text-1">Facturas de Empresas Contratadas</div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-              <input
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar factura, Emp. Contratada, contrato…"
-                className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
-              />
-            </div>
-            <div className="relative flex items-center shrink-0">
-              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-              <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
-                className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-              >
-                {ESTADOS.map(e => <option key={e}>{e}</option>)}
-              </select>
+        <div className="flex items-center gap-3">
+          <div className="overflow-x-auto pb-0.5 flex-1">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              {ESTADOS.map(e => (
+                <button
+                  key={e}
+                  onClick={() => setFiltroEstado(e)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
+                    ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                >
+                  {e}
+                </button>
+              ))}
             </div>
           </div>
+          <div className="relative shrink-0">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar factura, contrato…"
+              className="h-8 w-56 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+            />
+          </div>
+        </div>
 
           {/* Tabla de facturas */}
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
             {/* Header */}
-            <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+            <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.8fr_1.3fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
               <button onClick={() => toggleGroup('contrato')}
                 className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupBy === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
                 Contrato {groupIcon('contrato')}
@@ -240,7 +242,7 @@ export default function EmpFacturas() {
                 <div
                   key={f.id}
                   onClick={() => setDetalle(f)}
-                  className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                  className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.8fr_1.3fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                 >
                   {/* 1. Contrato */}
                   <div className="text-[13px] font-bold text-text-1">{f.contrato || '—'}</div>
