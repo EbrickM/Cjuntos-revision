@@ -94,7 +94,7 @@ export default function AdminInformacionGubernamental() {
     { label: '% Contenido Nacional Promedio',               value: `${animCnPct}%` },
     { label: 'PYMEs Locales Certificadas',                   value: String(animHcPymes) },
     { label: 'Empleo Local Generado',                        value: `${animEmpleo} personas` },
-    { label: 'Contratos con Cláusula de Contenido Nacional', value: String(animHcContratos) },
+    { label: 'Contratos con Cláusula CN',                    value: String(animHcContratos) },
   ];
 
   const KPIS_HACIENDA = [
