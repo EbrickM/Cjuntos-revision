@@ -10,7 +10,6 @@ import {
   Wallet as WalletIcon,
   X,
   Eye,
-  ListFilter,
   Building2,
   Truck,
   ArrowUpDown,
@@ -42,7 +41,6 @@ import {
   formatXaf,
   defaultVencimiento,
 } from "../../components/invoices/facturaUtils";
-import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import { facturaService } from "../../services/factura.service";
 import { contratoService } from "../../services/contrato.service";
 import { INV, estadoLabel } from "../../lib/invoiceStates";
@@ -511,9 +509,25 @@ export default function EpFacturacion() {
           </Button>
         </div>
 
-        {/* Filtros: bÃºsqueda + estado */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-          <div className="relative flex-1 sm:max-w-xs">
+        {/* Filtros: tabs de estado + búsqueda */}
+        <div className="flex items-center gap-3">
+          <div className="overflow-x-auto pb-0.5 flex-1">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              {(vista === "contratante" ? ESTADOS : ESTADOS_PR).map((e) => (
+                <button
+                  key={e}
+                  onClick={() => vista === "contratante" ? setFiltroEstado(e) : setFiltroEstadoPr(e)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
+                    ${(vista === "contratante" ? filtroEstado : filtroEstadoPr) === e
+                      ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold'
+                      : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="relative shrink-0">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
             <input
               value={vista === "contratante" ? searchCT : searchPr}
@@ -522,34 +536,9 @@ export default function EpFacturacion() {
                   ? setSearchCT(e.target.value)
                   : setSearchPr(e.target.value)
               }
-              placeholder={
-                vista === "contratante"
-                  ? "Buscar factura o contrato, "
-                  : "Buscar por , proveedor o concepto"
-              }
-              className="h-9 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+              placeholder={vista === "contratante" ? "Buscar factura o contrato…" : "Buscar proveedor o concepto…"}
+              className="h-8 w-56 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
             />
-          </div>
-          <div className="relative flex items-center shrink-0">
-            <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-            <select
-              value={vista === "contratante" ? filtroEstado : filtroEstadoPr}
-              onChange={(e) =>
-                vista === "contratante"
-                  ? setFiltroEstado(e.target.value)
-                  : setFiltroEstadoPr(e.target.value)
-              }
-              className="h-9 lg:w-[150px] w-auto pl-8  text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
-              style={{
-                backgroundImage: SELECT_ARROW,
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "right 8px center",
-              }}
-            >
-              {(vista === "contratante" ? ESTADOS : ESTADOS_PR).map((e) => (
-                <option key={e}>{e}</option>
-              ))}
-            </select>
           </div>
         </div>
 
