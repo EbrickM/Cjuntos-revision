@@ -188,15 +188,13 @@ export default function ProvDash() {
             </div>
             <div className="text-[13px] text-text-4">Gestión de fondo y suministradores · Agosto 2026</div>
           </div>
-          <div className="hidden min-[1156px]:flex gap-1 bg-page-bg p-1 rounded-xl">
+          <div className="hidden min-[1156px]:flex gap-1 bg-white rounded-[10px]">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+                className={`bona-btn flex items-center gap-2 px-3 py-2 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white' : 'text-text-3 hover:text-text-1'
                 }`}>
-                <div className={`w-7 h-7 rounded-[7px] flex items-center justify-center shrink-0 transition-all ${tab === t.id ? 'bona-gradient-bg' : 'opacity-50'}`}>
-                  <t.Icon className="w-4 h-4" style={{ color: tab === t.id ? 'white' : t.iconColor }} />
-                </div>
+                <t.Icon className={`w-4 h-4 shrink-0 transition-all ${tab === t.id ? '' : 'opacity-50'}`} style={{ color: tab === t.id ? 'white' : t.iconColor }} />
                 {t.line1} {t.line2}
               </button>
             ))}
@@ -204,15 +202,13 @@ export default function ProvDash() {
         </div>
 
         {/* ── Tab nav compacto — visible por debajo de 1156px ─────────────────── */}
-        <div className="flex min-[1156px]:hidden gap-1 bg-page-bg p-1 rounded-xl w-full">
+        <div className="flex min-[1156px]:hidden gap-1 bg-white rounded-[10px] w-full">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
-                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              className={`bona-btn flex-1 flex flex-col items-center gap-1.5 px-3 py-2.5 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer text-center ${
+                tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white' : 'text-text-3 hover:text-text-1'
               }`}>
-              <div className={`w-9 h-9 rounded-[9px] flex items-center justify-center transition-all ${tab === t.id ? 'bona-gradient-bg' : 'opacity-50'}`}>
-                <t.Icon className="w-5 h-5" style={{ color: tab === t.id ? 'white' : t.iconColor }} />
-              </div>
+              <t.Icon className={`w-5 h-5 shrink-0 transition-all ${tab === t.id ? '' : 'opacity-50'}`} style={{ color: tab === t.id ? 'white' : t.iconColor }} />
               <span className="leading-[1.25]">
                 <span className="block">{t.line1}</span>
                 <span className="block">{t.line2}</span>

@@ -104,11 +104,11 @@ export default function AdminDash() {
         </div>
 
         {/* Tab nav */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
+        <div className="flex gap-1 bg-white rounded-[10px] w-full sm:w-fit">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              className={`bona-btn flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
+                tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white' : 'text-text-3 hover:text-text-1'
               }`}>
               {t.lbl}
             </button>

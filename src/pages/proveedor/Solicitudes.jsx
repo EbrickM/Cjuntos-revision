@@ -43,26 +43,25 @@ export default function ProvSolicitudes() {
   };
 
   return (
-    <AppShell active="provSolicitudes" role="proveedor" title="Solicitudes" sub="Mis solicitudes y oportunidades de Suministradores" back>
-      <div className="fade-in space-y-4">
-
-        {/* Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex bg-white rounded-[10px] gap-1">
-            {[
-              { id: 'mis',           lbl: 'Mis solicitudes',                  Icon: ClipboardList },
-              { id: 'suministradores', lbl: 'Solicitudes de Suministradores', Icon: Store         },
-            ].map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)}
-                className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
-                  tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'
-                }`}>
-                <t.Icon className="w-3.5 h-3.5 shrink-0" />
-                {t.lbl}
-              </button>
-            ))}
-          </div>
+    <AppShell active="provSolicitudes" role="proveedor" title="Solicitudes" sub="Mis solicitudes y oportunidades de Suministradores" back
+      headerRight={
+        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
+          {[
+            { id: 'mis',             lbl: 'Mis solicitudes',                  Icon: ClipboardList },
+            { id: 'suministradores', lbl: 'Solicitudes de Suministradores',   Icon: Store         },
+          ].map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
+                tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'
+              }`}>
+              <t.Icon className="w-3.5 h-3.5 shrink-0" />
+              {t.lbl}
+            </button>
+          ))}
         </div>
+      }
+    >
+      <div className="fade-in space-y-4">
 
         {/* ── Mis solicitudes ── */}
         {tab === 'mis' && (
