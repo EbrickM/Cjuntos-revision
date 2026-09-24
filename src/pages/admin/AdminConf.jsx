@@ -12,17 +12,19 @@ const confRows = [
   ['CONF-04818','Chevron','Conexxia Agro','5,700,000','5,586,000','blue','En revisión','09/05/26'],
 ];
 
+const fmtXaf = n => `${new Intl.NumberFormat('de-DE').format(Math.round(n))} XAF`;
+
 export default function AdminConf() {
-  const animOps    = useCountUp(24,  1200,   0);
-  const animMonto  = useCountUp(847, 1500,  60);
-  const animPend   = useCountUp(5,   1200, 120);
-  const animVence  = useCountUp(124, 1500, 180);
+  const animOps    = useCountUp(24,          1200,   0);
+  const animMonto  = useCountUp(847_000_000, 1500,  60);
+  const animPend   = useCountUp(5,           1200, 120);
+  const animVence  = useCountUp(124_000_000, 1500, 180);
 
   const kpis = [
-    { label: 'Operaciones activas',   value: String(animOps)   },
-    { label: 'Desembolsado total',    value: `XAF ${animMonto}M` },
-    { label: 'Pendientes aprobación', value: String(animPend)  },
-    { label: 'Vence este mes',        value: `XAF ${animVence}M` },
+    { label: 'Operaciones activas',   value: String(animOps)     },
+    { label: 'Desembolsado total',    value: fmtXaf(animMonto)   },
+    { label: 'Pendientes aprobación', value: String(animPend)    },
+    { label: 'Vence este mes',        value: fmtXaf(animVence)   },
   ];
 
   return (

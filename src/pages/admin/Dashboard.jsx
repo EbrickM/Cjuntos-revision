@@ -64,13 +64,15 @@ export default function AdminDash() {
   const { go } = useApp();
   const [tab, setTab] = useState('general');
 
+  const fmtXaf = n => `${new Intl.NumberFormat('de-DE').format(Math.round(n))} XAF`;
+
   // General KPI animated values
-  const animFinanciado   = useCountUp(180,  1500, 100);
-  const animOpsActivas   = useCountUp(1,     900, 200);
-  const animContratantes = useCountUp(1,     900, 300);
-  const animPymes        = useCountUp(1,     900, 400);
-  const animFactDirecto  = useCountUp(47,   1500, 500);
-  const animScore        = useCountUp(870,  1500, 600);
+  const animFinanciado   = useCountUp(180_000_000, 1500, 100);
+  const animOpsActivas   = useCountUp(1,            900, 200);
+  const animContratantes = useCountUp(1,            900, 300);
+  const animPymes        = useCountUp(1,            900, 400);
+  const animFactDirecto  = useCountUp(47_000_000,  1500, 500);
+  const animScore        = useCountUp(870,          1500, 600);
 
   // Riesgo KPI animated values
   const animAltoRiesgo   = useCountUp(0, 900, 100);
@@ -81,12 +83,12 @@ export default function AdminDash() {
   const animExposicion   = useCountUp(0, 900, 600);
 
   const generalKpis = [
-    { value: `XAF ${animFinanciado}M`,   label: 'Monto total financiado' },
-    { value: String(animOpsActivas),      label: 'Operaciones activas' },
-    { value: String(animContratantes),    label: 'Empresas contratantes' },
-    { value: String(animPymes),           label: 'PYMEs activas' },
-    { value: `XAF ${animFactDirecto}M`,  label: 'Fondos Fact. Directo' },
-    { value: `${animScore}/1000`,         label: 'Riesgo promedio' },
+    { value: fmtXaf(animFinanciado),     label: 'Monto total financiado' },
+    { value: String(animOpsActivas),     label: 'Operaciones activas' },
+    { value: String(animContratantes),   label: 'Empresas contratantes' },
+    { value: String(animPymes),          label: 'PYMEs activas' },
+    { value: fmtXaf(animFactDirecto),   label: 'Fondos Fact. Directo' },
+    { value: `${animScore}/1000`,        label: 'Riesgo promedio' },
   ];
 
   const riesgoKpis = [
@@ -95,7 +97,7 @@ export default function AdminDash() {
     { value: String(animDocsVencidos), label: 'Documentos vencidos' },
     { value: String(animKycPend),      label: 'KYC pendientes' },
     { value: String(animAlertas),      label: 'Alertas abiertas' },
-    { value: `XAF ${animExposicion}`,  label: 'Exposición total' },
+    { value: fmtXaf(animExposicion),   label: 'Exposición total' },
   ];
 
   return (

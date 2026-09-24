@@ -105,13 +105,13 @@ export default function FacturasAdmin() {
   const animOrdenes  = useCountUp(facturas.filter(f => f.estado === INV.ordenFondeador).length);
   const animEnProceso = useCountUp(facturas.filter(f => ![INV.pagada, INV.billetera].includes(f.estado)).length);
   const animPagadas  = useCountUp(facturas.filter(f => f.estado === INV.pagada).length);
-  const animSaldo    = useCountUp(Math.round(totalSaldoRaw / 1_000_000));
+  const animSaldo    = useCountUp(totalSaldoRaw);
 
   const kpis = [
-    { value: animOrdenes,              label: 'Órdenes al Fondeador' },
-    { value: animEnProceso,            label: 'En proceso'           },
-    { value: animPagadas,              label: 'Pagadas'              },
-    { value: `${animSaldo}M XAF`,      label: 'Saldo en Billetera'   },
+    { value: animOrdenes,                    label: 'Órdenes al Fondeador' },
+    { value: animEnProceso,                  label: 'En proceso'           },
+    { value: animPagadas,                    label: 'Pagadas'              },
+    { value: `${fmt(animSaldo)} XAF`,        label: 'Saldo en Billetera'   },
   ];
 
   return (

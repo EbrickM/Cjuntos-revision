@@ -171,14 +171,16 @@ export default function AdminRisk() {
   const ctFiltradas   = pesquisa(ctFacturas, busquedaCt, filtroCt);
   const provFiltradas = pesquisa(provFacturas, busquedaProv, filtroProv);
 
-  const animCount    = useCountUp(ctFacturas.length,                       900,   0);
-  const animPagado   = useCountUp(Math.round(totalPagadoCt / 1_000_000), 1400,  60);
-  const animLiberado = useCountUp(Math.round(totalLiberado / 1_000_000), 1400, 120);
+  const fmtXaf = n => `${new Intl.NumberFormat('de-DE').format(Math.round(n))} XAF`;
+
+  const animCount    = useCountUp(ctFacturas.length, 900,    0);
+  const animPagado   = useCountUp(totalPagadoCt,     1400,  60);
+  const animLiberado = useCountUp(totalLiberado,      1400, 120);
 
   const kpiCards = [
-    { label: 'Facturas al contratante',           value: String(animCount)    },
-    { label: 'Pagado por contratantes (cobrado)',  value: `XAF ${animPagado}M` },
-    { label: 'Fondos liberados a proveedores',     value: `XAF ${animLiberado}M` },
+    { label: 'Facturas al contratante',           value: String(animCount)       },
+    { label: 'Pagado por contratantes (cobrado)',  value: fmtXaf(animPagado)     },
+    { label: 'Fondos liberados a proveedores',     value: fmtXaf(animLiberado)   },
   ];
 
   return (

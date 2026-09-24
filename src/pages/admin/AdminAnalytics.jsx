@@ -3,14 +3,16 @@ import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
 
 /* ─── Admin Analytics ─── */
+const fmtXaf = n => `${new Intl.NumberFormat('de-DE').format(Math.round(n))} XAF`;
+
 export default function AdminAnalytics() {
-  const animVolumen     = useCountUp(2,  1500,   0);
-  const animPrestamos   = useCountUp(47,  900,  60);
-  const animReembolso   = useCountUp(98,  900, 120);
-  const animCrecimiento = useCountUp(23,  900, 180);
+  const animVolumen     = useCountUp(2_400_000_000, 1500,   0);
+  const animPrestamos   = useCountUp(47,             900,  60);
+  const animReembolso   = useCountUp(98,             900, 120);
+  const animCrecimiento = useCountUp(23,             900, 180);
 
   const kpiCards = [
-    { label: 'Volumen acumulado',  value: `XAF ${animVolumen}B`  },
+    { label: 'Volumen acumulado',  value: fmtXaf(animVolumen)    },
     { label: 'Préstamos activos',  value: String(animPrestamos)  },
     { label: 'Tasa de reembolso',  value: `${animReembolso}%`    },
     { label: 'Crecimiento mensual',value: `+${animCrecimiento}%` },

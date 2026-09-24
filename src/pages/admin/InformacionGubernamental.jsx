@@ -81,14 +81,14 @@ export default function AdminInformacionGubernamental() {
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [detalleInf, setDetalleInf] = useState(null);
 
-  const animHcPymes      = useCountUp(18,  900,   100);
-  const animHcContratos  = useCountUp(27,  900,   200);
-  const animCnPct        = useCountUp(62,  900,     0);
-  const animEmpleo       = useCountUp(340, 900,   300);
-  const animHaEmpresas   = useCountUp(46,  900,   100);
-  const animRecaudacion  = useCountUp(210, 1500,    0);
-  const animDigit        = useCountUp(78,  900,   100);
-  const animRetenciones  = useCountUp(12,  1500,  200);
+  const animHcPymes      = useCountUp(18,          900,   100);
+  const animHcContratos  = useCountUp(27,          900,   200);
+  const animCnPct        = useCountUp(62,          900,     0);
+  const animEmpleo       = useCountUp(340,         900,   300);
+  const animHaEmpresas   = useCountUp(46,          900,   100);
+  const animRecaudacion  = useCountUp(210_000_000, 1500,    0);
+  const animDigit        = useCountUp(78,          900,   100);
+  const animRetenciones  = useCountUp(12_500_000,  1500,  200);
 
   const KPIS_HIDROCARBUROS = [
     { label: '% Contenido Nacional Promedio',               value: `${animCnPct}%` },
@@ -98,9 +98,9 @@ export default function AdminInformacionGubernamental() {
   ];
 
   const KPIS_HACIENDA = [
-    { label: 'Recaudación Fiscal Facilitada',         value: `XAF ${animRecaudacion}M` },
+    { label: 'Recaudación Fiscal Facilitada',         value: `${fmt(animRecaudacion)} XAF` },
     { label: '% Transacciones Digitalizadas',         value: `${animDigit}%` },
-    { label: 'Retenciones Reportadas',                value: `XAF ${animRetenciones}M` },
+    { label: 'Retenciones Reportadas',                value: `${fmt(animRetenciones)} XAF` },
     { label: 'Empresas Bancarizadas vía Plataforma',  value: String(animHaEmpresas) },
   ];
 
