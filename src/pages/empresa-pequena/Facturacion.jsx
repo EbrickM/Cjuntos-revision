@@ -563,7 +563,7 @@ export default function EpFacturacion() {
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByCT === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
                   Contrato
                 </button>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Código de Factura</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
                 <button onClick={() => toggleSortCT('fecha')}
                   className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
                   Fecha {sortIconCT('fecha')}
@@ -609,7 +609,7 @@ export default function EpFacturacion() {
                   >
                     {/* 1. Contrato */}
                     <div className="text-[13px] font-bold text-text-1">{f.contrato || '—'}</div>
-                    {/* 2. Código de Factura */}
+                    {/* 2. Cod. Factura */}
                     <div className="text-[12px] font-mono font-bold text-text-2">{f.id}</div>
                     {/* 3. Fecha */}
                     <div className="text-[11px] text-text-4">{f.fecha || '—'}</div>
@@ -619,7 +619,7 @@ export default function EpFacturacion() {
                     <div className="text-[11px] text-text-4 truncate text-center">{f.concepto || '—'}</div>
                     {/* 6. Monto */}
                     <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">
-                      {formatXaf(f.monto)} XAF
+                      {formatXaf(f.monto)}
                     </div>
                     {/* 7. Pagado/% */}
                     {(() => {
@@ -629,14 +629,9 @@ export default function EpFacturacion() {
                       if (pagado > 0 && pagado < total) {
                         const pct = Math.round((pagado / total) * 100);
                         return (
-                          <div>
-                            <div className="flex items-center justify-between gap-1 mb-0.5">
-                              <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
-                              <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
-                            </div>
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
-                            </div>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
+                            <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
                           </div>
                         );
                       }
@@ -680,7 +675,7 @@ export default function EpFacturacion() {
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByPR === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
                   Contrato
                 </button>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Código de Factura</span>
+                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
                 <button onClick={() => toggleSortPR('fecha')}
                   className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
                   Fecha {sortIconPR('fecha')}
@@ -726,7 +721,7 @@ export default function EpFacturacion() {
                   >
                     {/* 1. Contrato */}
                     <div className="text-[13px] font-bold text-text-1">{inv.contrato || '—'}</div>
-                    {/* 2. Código de Factura */}
+                    {/* 2. Cod. Factura */}
                     <div className="text-[12px] font-mono font-bold text-text-2">{inv.id}</div>
                     {/* 3. Fecha */}
                     <div className="text-[11px] text-text-4">{inv.fecha || '—'}</div>
@@ -736,7 +731,7 @@ export default function EpFacturacion() {
                     <div className="text-[11px] text-text-4 truncate text-center">{inv.concepto || '—'}</div>
                     {/* 6. Monto */}
                     <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">
-                      {formatXaf(inv.monto)} XAF
+                      {formatXaf(inv.monto)}
                     </div>
                     {/* 7. Pagado/% */}
                     {(() => {
@@ -746,14 +741,9 @@ export default function EpFacturacion() {
                       if (pagado > 0 && pagado < total) {
                         const pct = Math.round((pagado / total) * 100);
                         return (
-                          <div>
-                            <div className="flex items-center justify-between gap-1 mb-0.5">
-                              <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
-                              <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
-                            </div>
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#ECEAE7' }}>
-                              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #E0201C, #EF7A2C)' }} />
-                            </div>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
+                            <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
                           </div>
                         );
                       }
