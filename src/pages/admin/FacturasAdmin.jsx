@@ -57,15 +57,28 @@ const Header = ({ title, sub, Icon, right }) => (
   </div>
 );
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
+const EstadoTabsConSearch = ({ tabs, filtro, setFiltro, busqueda, setBusqueda, placeholder }) => (
+  <div className="flex items-center gap-3 mb-4">
+    <div className="overflow-x-auto min-w-0 flex-1">
+      <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+        {tabs.map(({ value, label, Icon }) => (
+          <button key={value} onClick={() => setFiltro(value)}
+            className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+              filtro === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+            }`}>
+            <Icon className="w-3 h-3 shrink-0" />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div className="relative shrink-0">
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
       <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
+        value={busqueda}
+        onChange={e => setBusqueda(e.target.value)}
         placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
+        className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-48"
       />
     </div>
   </div>
@@ -146,24 +159,13 @@ export default function FacturasAdmin() {
               Icon={Receipt}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{facturas.length} registradas</span>}
             />
-            <div className="overflow-x-auto mb-3">
-              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-                {ESTADO_TABS.map(({ value, label, Icon }) => (
-                  <button key={value} onClick={() => setFiltroEstado(value)}
-                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                      filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-                    }`}>
-                    <Icon className="w-3 h-3 shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <SearchBar
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder="Buscar por Nº, Emp. Contratada, contratante, contrato o concepto…"
-              compact
+            <EstadoTabsConSearch
+              tabs={ESTADO_TABS}
+              filtro={filtroEstado}
+              setFiltro={setFiltroEstado}
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              placeholder="Buscar Nº, contratante, contrato…"
             />
 
             {/* Tabla */}
@@ -229,24 +231,13 @@ export default function FacturasAdmin() {
               Icon={Wallet}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} Emp. Contratadas</span>}
             />
-            <div className="overflow-x-auto mb-3">
-              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-                {ESTADO_TABS.map(({ value, label, Icon }) => (
-                  <button key={value} onClick={() => setFiltroBilletera(value)}
-                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                      filtroBilletera === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-                    }`}>
-                    <Icon className="w-3 h-3 shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <SearchBar
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder="Buscar por Empresa Contratada…"
-              compact
+            <EstadoTabsConSearch
+              tabs={ESTADO_TABS}
+              filtro={filtroBilletera}
+              setFiltro={setFiltroBilletera}
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              placeholder="Buscar Empresa Contratada…"
             />
 
             {billeterasFiltradas.length === 0 && (
@@ -299,7 +290,17 @@ export default function FacturasAdmin() {
               Icon={Banknote}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{pagos.length} pagos</span>}
             />
-            <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por proveedor, Nº de pago o factura…" compact />
+            <div className="flex justify-end mb-4">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                <input
+                  value={busqueda}
+                  onChange={e => setBusqueda(e.target.value)}
+                  placeholder="Buscar proveedor, Nº de pago…"
+                  className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-52"
+                />
+              </div>
+            </div>
 
             {/* Tabla */}
             <div className="overflow-x-auto">

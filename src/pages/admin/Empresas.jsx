@@ -119,15 +119,17 @@ export default function AdminEmpresas() {
             <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{empresas.length} registrados</span>
           </div>
 
-          {/* Buscador */}
-          <div className="relative w-full max-w-[380px] mb-4">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar por empresa, RUC, sector o contrato…"
-              className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none"
-            />
+          {/* Buscador alineado a la derecha */}
+          <div className="flex justify-end mb-4">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar empresa, RUC o sector…"
+                className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-56"
+              />
+            </div>
           </div>
 
           {/* Móvil: cards */}

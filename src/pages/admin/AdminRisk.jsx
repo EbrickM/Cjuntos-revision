@@ -64,46 +64,37 @@ const pesquisa = (rows, q, filtro) => {
   );
 };
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className={`relative ${compact ? 'w-full max-w-[380px]' : 'flex-1'}`}>
-      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-      <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
-      />
-    </div>
-  </div>
-);
-
 // ── Tabla estilo Admin (igual que Contratos/FacturasAdmin) ────────────────────
 const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetalle, proveedor }) => (
   <>
-    {/* Estado tabs */}
-    <div className="overflow-x-auto mb-3">
-      <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-        {FILTROS_ESTADO.map(e => {
-          const Icon = ESTADO_ICON[e];
-          return (
-            <button key={e} onClick={() => setFiltro(e)}
-              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                filtro === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-              }`}>
-              {Icon && <Icon className="w-3 h-3 shrink-0" />}
-              {e}
-            </button>
-          );
-        })}
+    {/* Tabs + Search en la misma fila */}
+    <div className="flex items-center gap-3 mb-4">
+      <div className="overflow-x-auto min-w-0 flex-1">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+          {FILTROS_ESTADO.map(e => {
+            const Icon = ESTADO_ICON[e];
+            return (
+              <button key={e} onClick={() => setFiltro(e)}
+                className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                  filtro === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                }`}>
+                {Icon && <Icon className="w-3 h-3 shrink-0" />}
+                {e}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="relative shrink-0">
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+        <input
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+          placeholder={proveedor ? 'Buscar por Nº, proveedor…' : 'Buscar por Nº, contratante…'}
+          className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-48"
+        />
       </div>
     </div>
-    <SearchBar
-      value={busqueda}
-      onChange={setBusqueda}
-      placeholder={proveedor ? 'Buscar por Nº, proveedor, Emp. Contratada o concepto…' : 'Buscar por Nº, contratante, Emp. Contratada o concepto…'}
-      compact
-    />
     <div className="overflow-x-auto">
       <table className="w-full min-w-[820px]">
         <thead className="bg-page-bg">

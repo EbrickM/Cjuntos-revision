@@ -294,30 +294,30 @@ export default function AdminContratos() {
                 }
               />
 
-              {/* Filtro de estado — tabs */}
-              <div className="overflow-x-auto mb-3">
-                <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-                  {ESTADOS_FILTRO_TABS.map(({ value, label, Icon }) => (
-                    <button key={value} onClick={() => setFiltroEstado(value)}
-                      className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                        filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-                      }`}>
-                      <Icon className="w-3 h-3 shrink-0" />
-                      {label}
-                    </button>
-                  ))}
+              {/* Tabs + Search en la misma fila */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="overflow-x-auto min-w-0 flex-1">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+                    {ESTADOS_FILTRO_TABS.map(({ value, label, Icon }) => (
+                      <button key={value} onClick={() => setFiltroEstado(value)}
+                        className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                          filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                        }`}>
+                        <Icon className="w-3 h-3 shrink-0" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              {/* Buscador */}
-              <div className="relative w-full max-w-[300px] mb-4">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Buscar contrato…"
-                  className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none"
-                />
+                <div className="relative shrink-0">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Buscar contrato…"
+                    className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-48"
+                  />
+                </div>
               </div>
 
               {/* Móvil: cards */}
