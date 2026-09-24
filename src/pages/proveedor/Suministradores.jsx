@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Eye, ShieldCheck, ClipboardList, Leaf, Building2,
   User, FileCheck, CheckCircle2, Shield, Star, Clock, Search,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -13,10 +14,28 @@ import Modal from '../../components/ui/Modal';
 import { InfoRow, ComplianceItem, IniAvatar } from './provShared';
 import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
 
+const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
+const SEM_ORDER  = { Verde: 0, Amarillo: 1, Rojo: 2 };
+
 // ── SUMINISTRADORES ───────────────────────────────────────────────────────────
 export default function ProvSuministradores() {
   const [busqueda, setBusqueda] = useState('');
   const [sumModal, setSumModal] = useState(null);
+  const [sort, setSort]       = useState({ key: null, dir: 'asc' });
+  const [groupBy, setGroupBy] = useState(null);
+
+  const toggleSort  = (key) => setSort(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroup = (key) => setGroupBy(g => g === key ? null : key);
+  const sortIcon  = (k) => sort.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sort.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
 
   const verde    = suministradores.filter(p => p.semaforo === 'Verde').length;
   const amarillo = suministradores.filter(p => p.semaforo === 'Amarillo').length;
@@ -29,10 +48,24 @@ export default function ProvSuministradores() {
       )
     : suministradores;
 
+  const sorted = (() => {
+    const effectiveKey = groupBy || sort.key;
+    if (!effectiveKey) return filtradas;
+    const dir = groupBy ? 1 : (sort.dir === 'asc' ? 1 : -1);
+    return [...filtradas].sort((a, b) => {
+      if (effectiveKey === 'nombre')    return dir * a.nombre.localeCompare(b.nombre);
+      if (effectiveKey === 'semaforo')  return dir * ((SEM_ORDER[a.semaforo] ?? 1) - (SEM_ORDER[b.semaforo] ?? 1));
+      if (effectiveKey === 'score')     return dir * (a.score - b.score);
+      if (effectiveKey === 'contratos') return dir * (a.contratos - b.contratos);
+      if (effectiveKey === 'fondo')     return dir * (a.montoTotal - b.montoTotal);
+      return 0;
+    });
+  })();
+
   // Sin delay artificial: al conectar el backend, la siguiente página debe
   // mostrarse en cuanto llegue, no tras una espera puesta a mano.
   const { visibleItems: pagedSuministradores, hasMore, loading, sentinelRef } =
-    useInfiniteScroll(filtradas, { pageSize: 10, delay: 0, resetKey: busqueda });
+    useInfiniteScroll(sorted, { pageSize: 10, delay: 0, resetKey: `${busqueda}|${sort.key}|${sort.dir}|${groupBy}` });
 
   return (
     <AppShell active="provSuministradores" role="proveedor" title="Suministradores" sub="Suministradores con contrato activo" back>
@@ -69,63 +102,86 @@ export default function ProvSuministradores() {
         {/* Tabla de Suministradores */}
         <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
           {/* Header */}
-          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Fondo</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Semáforo</span>
+          <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+            <button onClick={() => toggleSort('nombre')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+              Suministrador {sortIcon('nombre')}
+            </button>
+            <button onClick={() => toggleSort('contratos')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Contratos {sortIcon('contratos')}
+            </button>
+            <button onClick={() => toggleSort('fondo')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Fondo {sortIcon('fondo')}
+            </button>
+            <button onClick={() => toggleSort('score')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Score {sortIcon('score')}
+            </button>
+            <button onClick={() => toggleGroup('semaforo')}
+              className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center ${groupBy === 'semaforo' ? 'text-orange' : 'text-text-4'}`}>
+              Semáforo {groupIcon('semaforo')}
+            </button>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
           </div>
 
           {/* Rows */}
-          {pagedSuministradores.map((p) => (
-            <div
-              key={p.nombre}
-              onClick={() => setSumModal(p)}
-              className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-            >
-              {/* Suministrador */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <IniAvatar ini={p.ini} size={32} />
-                <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
-                  <div className="text-[11px] text-text-4">{p.sector}</div>
-                </div>
+          {pagedSuministradores.flatMap((p, i) => {
+            const isNewGroup = groupBy === 'semaforo' && (i === 0 || pagedSuministradores[i - 1].semaforo !== p.semaforo);
+            const groupSep = isNewGroup ? [
+              <div key={`grp-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                <span className="text-[11px] font-bold text-orange">{p.semaforo}</span>
               </div>
-
-              {/* Contratos */}
-              <span className="text-[12px] text-text-3 text-center">{p.contratos}</span>
-
-              {/* Fondo */}
-              <span className="text-[12px] font-semibold text-text-1 text-center">{fmt(p.montoTotal)} XAF</span>
-
-              {/* Score */}
-              <div className="flex justify-center">
-                <div className="text-center">
-                  <div className="text-[12px] font-semibold" style={{ color: scoreColor(p.score) }}>{p.score}/1000</div>
-                  <div className="h-1.5 w-20 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
-                    <div className="h-full rounded-full" style={{ width: `${p.score / 10}%`, background: scoreColor(p.score) }} />
+            ] : [];
+            const sc = scoreColor(p.score);
+            const rowDiv = (
+              <div
+                key={p.nombre}
+                onClick={() => setSumModal(p)}
+                className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1.2fr_1fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+              >
+                {/* Suministrador */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <IniAvatar ini={p.ini} size={32} />
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-bold text-text-1 leading-tight truncate">{p.nombre}</div>
+                    <div className="text-[11px] text-text-4">{p.sector}</div>
                   </div>
                 </div>
-              </div>
 
-              {/* Semáforo */}
-              <div className="flex justify-center">
-                <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
-              </div>
+                {/* Contratos */}
+                <span className="text-[12px] text-text-3 text-center">{p.contratos}</span>
 
-              {/* Acciones */}
-              <div className="flex justify-center">
-                <button
-                  onClick={e => { e.stopPropagation(); setSumModal(p); }}
-                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
+                {/* Fondo */}
+                <span className="text-[12px] font-semibold text-text-1 text-center">{fmt(p.montoTotal)} XAF</span>
+
+                {/* Score */}
+                <div className="flex justify-center">
+                  <div className="text-center">
+                    <div className="text-[13px] font-bold" style={{ color: sc }}>{p.score}</div>
+                    <div className="text-[10px]" style={{ color: sc }}>Riesgo {scoreLabel(p.score)}</div>
+                  </div>
+                </div>
+
+                {/* Semáforo */}
+                <div className="flex justify-center">
+                  <Badge variant={semBadge(p.semaforo)}>{p.semaforo}</Badge>
+                </div>
+
+                {/* Acciones */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={e => { e.stopPropagation(); setSumModal(p); }}
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+            return [...groupSep, rowDiv];
+          })}
 
           {filtradas.length === 0 && (
             <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
