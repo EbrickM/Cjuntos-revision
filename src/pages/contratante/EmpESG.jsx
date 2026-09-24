@@ -53,7 +53,7 @@ const SOCIAL_PATH = [
 
 const SOCIAL_METAS = [
   { label: 'Empleabilidad cadena',   pct: 82, color: '#EF7A2C' },
-  { label: 'Educación y formación',  pct: 71, color: '#3B82F6' },
+  { label: 'Educación y formación',  pct: 71, color: '#EF7A2C' },
   { label: 'Salud comunitaria',      pct: 58, color: '#2E7D5B' },
   { label: 'Infraestructura social', pct: 44, color: '#C68A1D' },
 ];
@@ -133,26 +133,24 @@ export default function EmpESG() {
   const animInvSocial    = useCountUp(180_000_000, 1500, 200);
 
   return (
-    <AppShell active="empESG" role="contratante" title="Impacto" sub="Impacto Ambiental y Social de tu empresa" back>
-      <div className="fade-in space-y-5">
-
-        {/* Tabs */}
-        <div className="flex bg-white rounded-[10px] gap-1 w-fit">
+    <AppShell active="empESG" role="contratante" title="Impacto" sub="Impacto Ambiental y Social de tu empresa" back
+      headerRight={
+        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
           {[
-            { id: 'ambiental', lbl: 'Ambiental', Icon: Leaf      },
-            { id: 'social',    lbl: 'Social',    Icon: Users     },
+            { id: 'ambiental', lbl: 'Ambiental', Icon: Leaf  },
+            { id: 'social',    lbl: 'Social',    Icon: Users },
           ].map(({ id, lbl, Icon }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
+            <button key={id} onClick={() => setTab(id)}
               className={`bona-btn py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
-                ${tab === id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
-            >
+                ${tab === id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}>
               <Icon className="w-3.5 h-3.5 shrink-0" />
               {lbl}
             </button>
           ))}
         </div>
+      }
+    >
+      <div className="fade-in space-y-5">
 
         {/* ═══════════════════ AMBIENTAL TAB ═══════════════════ */}
         {tab === 'ambiental' && (
@@ -174,13 +172,7 @@ export default function EmpESG() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               {/* Certification Journey — 2/5 */}
               <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Leaf className="w-4 h-4 text-green-text" />
-                    <div className="text-[14px] font-bold text-text-1">Camino de Certificación</div>
-                  </div>
-                  <div className="text-[11px] text-text-4">Progresión de tu empresa</div>
-                </div>
+                <CardHeader title="Camino de Certificación" sub="Progresión de tu empresa" Icon={Leaf} />
                 <div className="relative">
                   {CERT_PATH.map((cert, i) => {
                     const isLast    = i === CERT_PATH.length - 1;
@@ -416,14 +408,14 @@ export default function EmpESG() {
                         {!isLast && (
                           <div
                             className="absolute left-[19px] top-10 bottom-0 w-0.5"
-                            style={{ background: isDone ? '#BFDBFE' : isActive ? 'rgba(191,219,254,0.5)' : '#ECEAE7' }}
+                            style={{ background: isDone ? 'rgba(239,122,44,0.25)' : isActive ? 'rgba(239,122,44,0.12)' : '#ECEAE7' }}
                           />
                         )}
                         <div
                           className="relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2"
                           style={
-                            isActive  ? { background: '#EFF6FF', borderColor: '#3B82F6', boxShadow: '0 0 0 4px rgba(59,130,246,0.12)' } :
-                            isDone    ? { background: '#EFF6FF', borderColor: '#BFDBFE' } :
+                            isActive  ? { background: 'rgba(239,122,44,0.08)', borderColor: '#EF7A2C', boxShadow: '0 0 0 4px rgba(239,122,44,0.12)' } :
+                            isDone    ? { background: 'rgba(239,122,44,0.05)', borderColor: 'rgba(239,122,44,0.25)' } :
                                         { background: '#F9F8F6', borderColor: '#ECEAE7' }
                           }
                         >
@@ -432,16 +424,16 @@ export default function EmpESG() {
                         <div className={`flex-1 pt-1.5 ${isPending ? 'opacity-50' : ''}`}>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[13px] font-bold"
-                              style={{ color: isActive ? '#3B82F6' : isDone ? '#1E293B' : '#9CA3AF' }}>
+                              style={{ color: isActive ? '#EF7A2C' : isDone ? '#1E293B' : '#9CA3AF' }}>
                               {cert.label}
                             </span>
                             {isActive && (
                               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                                style={{ background: '#EFF6FF', color: '#3B82F6', border: '1px solid #BFDBFE' }}>
+                                style={{ background: 'rgba(239,122,44,0.08)', color: '#EF7A2C', border: '1px solid rgba(239,122,44,0.3)' }}>
                                 Nivel actual
                               </span>
                             )}
-                            {isDone && <span className="text-[10px] font-semibold" style={{ color: '#3B82F6' }}>✓</span>}
+                            {isDone && <span className="text-[10px] font-semibold" style={{ color: '#EF7A2C' }}>✓</span>}
                           </div>
                           <div className="text-[10px] text-text-4 mt-0.5 leading-snug">{cert.desc}</div>
                           {cert.date && <div className="text-[10px] text-text-5 mt-0.5">{cert.date}</div>}
@@ -455,19 +447,19 @@ export default function EmpESG() {
               {/* Right column — 3/5 */}
               <div className="lg:col-span-3 flex flex-col gap-4">
                 {/* Current social level */}
-                <div className="card-enter rounded-[14px] border p-5" style={{ background: '#EFF6FF', borderColor: '#BFDBFE' }}>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: '#3B82F6' }}>
+                <div className="card-enter rounded-[14px] border p-5" style={{ background: 'rgba(239,122,44,0.06)', borderColor: 'rgba(239,122,44,0.2)' }}>
+                  <div className="text-[11px] font-semibold uppercase tracking-wide mb-3" style={{ color: '#EF7A2C' }}>
                     Nivel de impacto actual
                   </div>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 rounded-[12px] bg-white flex items-center justify-center shrink-0" style={{ border: '1px solid #BFDBFE' }}>
-                      <socialActiveCert.Icon className="w-6 h-6" style={{ color: '#8B5CF6' }} />
+                    <div className="bona-gradient-bg w-12 h-12 rounded-[12px] flex items-center justify-center shrink-0">
+                      <socialActiveCert.Icon className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-[20px] font-extrabold leading-none" style={{ color: '#8B5CF6' }}>
+                      <div className="text-[20px] font-extrabold leading-none" style={{ color: '#EF7A2C' }}>
                         {socialActiveCert.label}
                       </div>
-                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(139,92,246,0.8)' }}>
+                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(239,122,44,0.75)' }}>
                         {socialActiveCert.desc}
                       </div>
                     </div>
@@ -482,8 +474,8 @@ export default function EmpESG() {
                       Siguiente nivel — {socialNextCert.label}
                     </div>
                     <div className="flex items-start gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-                        <socialNextCert.Icon className="w-5 h-5" style={{ color: '#059669' }} />
+                      <div className="bona-gradient-bg w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0">
+                        <socialNextCert.Icon className="w-5 h-5 text-white" />
                       </div>
                       <div>
                         <div className="text-[13px] font-bold text-text-1 mb-0.5">{socialNextCert.label}</div>
@@ -498,7 +490,7 @@ export default function EmpESG() {
                         'Informe de impacto educativo auditado por tercero',
                       ].map(req => (
                         <div key={req} className="flex items-start gap-2">
-                          <ChevronRight className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#059669' }} />
+                          <ChevronRight className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: '#EF7A2C' }} />
                           <span className="text-[11px] text-text-4 leading-snug">{req}</span>
                         </div>
                       ))}
@@ -509,8 +501,7 @@ export default function EmpESG() {
                 {/* Metas sociales 2026 */}
                 <div className="card-enter bg-white rounded-[14px] border border-border p-5" style={{ animationDelay: '140ms' }}>
                   <div className="flex items-center gap-2.5 mb-4">
-                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0"
-                         style={{ background: 'linear-gradient(135deg, #3B82F6, #6366F1)' }}>
+                    <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
                       <Target className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -544,8 +535,8 @@ export default function EmpESG() {
                 right={
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="flex items-center gap-1.5">
-                      <Users className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                      <span className="text-[11px] font-bold whitespace-nowrap" style={{ color: '#3B82F6' }}>3.090 beneficiarios</span>
+                      <Users className="w-4 h-4 text-orange" />
+                      <span className="text-[11px] font-bold whitespace-nowrap text-orange">3.090 beneficiarios</span>
                     </div>
                     <Button variant="primary" size="sm" onClick={() => setShowSocialModal(true)}>
                       <Plus className="w-3.5 h-3.5" />
