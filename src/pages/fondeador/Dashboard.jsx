@@ -1,21 +1,25 @@
-import { useApp } from '../../state/AppContext';
+import { useState, useEffect } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import AppShell from '../../components/layout/AppShell';
-import { LineChart } from '../../components/charts/Charts';
-import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
+import { MultiLineChart, HBarChart, VBarChart, DonutChart } from '../../components/charts/Charts';
 import { facturaService } from '../../services/factura.service';
+import { INV, MODALIDAD } from '../../lib/invoiceStates';
 import { fmt } from '../empresa-pequena/epData';
-import { BANCO, BANCO_CORTO, netoFactura, porFechaDesc } from './fondeadorShared';
+import { BANCO, netoFactura, porFechaDesc } from './fondeadorShared';
 
 // ── INICIO (portal Banco Fondeador) ───────────────────────────────────────────
-// Vista general de la cartera del banco: órdenes de fondeo pendientes de
-// liquidar, monto ya fondeado y su evolución mensual.
+// Vista general de la cartera del banco: KPIs, fondeado vs. pendiente por mes,
+// exposición por contratante y por Empresa Contratada, embudo del pipeline y
+// composición de cartera.
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const SERIE_DEMO = MESES.slice(3, 9).map((mes, i) => ({ mes, monto: [0, 0, 18, 24, 9, 32][i] }));
 
-export default function FondDash() {
-  const { go } = useApp();
+const PALETA = ['#ef7a2c', '#3B82F6', '#059669', '#C68A1D', '#B8352A', '#8A4A1F'];
+// Formato compacto (millones) para los HBarChart — el monto completo con
+// separadores de miles no cabe en tarjetas angostas.
+const fmtM = v => `${fmt(Math.round(v / 1_000_000))}M XAF`;
 
+export default function FondDash() {
   const ordenes = facturaService.bandejaOrdenes(BANCO);
   const cartera = [...facturaService.carteraFondeador(BANCO)].sort(porFechaDesc);
 
@@ -28,6 +32,15 @@ export default function FondDash() {
   const animCartera     = useCountUp(cartera.length, 800,  300);
   const animFondeado    = useCountUp(fondeado,       1400, 350);
 
+  // Animación de relleno al cargar (mismo patrón que Contratante/Proveedor):
+  // las barras horizontales arrancan en 0 y crecen a su ancho final una vez
+  // montado el componente.
+  const [barsVisible, setBarsVisible] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setBarsVisible(true), 450);
+    return () => clearTimeout(id);
+  }, []);
+
   const serie = MESES.map((mes, i) => {
     const mm = String(i + 1).padStart(2, '0');
     const total = cartera
@@ -37,6 +50,81 @@ export default function FondDash() {
   }).filter(d => d.monto > 0);
   const lineData = serie.length >= 2 ? serie : SERIE_DEMO;
 
+  // ── Fondeado vs. Pendiente por mes: compara el monto ya liquidado contra el
+  // que sigue en cola de órdenes, mes a mes — salud del flujo de fondeo.
+  const pendientePorMes = MESES.map((mes, i) => {
+    const mm = String(i + 1).padStart(2, '0');
+    const total = ordenes
+      .filter(f => (f.fecha ?? '').split('/')[1] === mm)
+      .reduce((a, f) => a + netoFactura(f), 0);
+    return Math.round(total / 1_000_000);
+  });
+  const multiLineData = MESES.map((mes, i) => ({
+    label: mes,
+    fondeado: lineData.find(d => d.mes === mes)?.monto ?? 0,
+    pendiente: pendientePorMes[i],
+  }));
+  const multiLineSeries = [
+    { key: 'fondeado',  label: 'Fondeado',  color: '#ef7a2c' },
+    { key: 'pendiente', label: 'Pendiente', color: '#3B82F6' },
+  ];
+  const multiLineHasData = multiLineData.some(d => d.fondeado > 0 || d.pendiente > 0);
+
+  // ── Exposición por Empresa Contratante: top contratantes por monto neto ya
+  // fondeado, para ver de un vistazo dónde se concentra el riesgo de cartera.
+  const exposicionMap = new Map();
+  cartera.forEach(f => {
+    const key = f.contratante || 'Sin dato';
+    exposicionMap.set(key, (exposicionMap.get(key) || 0) + netoFactura(f));
+  });
+  const exposicionData = [...exposicionMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([label, value], i) => ({ label, value, color: PALETA[i % PALETA.length] }));
+
+  // ── Top Empresas Contratadas por monto fondeado: la misma lectura de
+  // concentración que la exposición por contratante, pero del lado de la
+  // Empresa Contratada — quién recibe más liquidez de este banco.
+  const pymeMap = new Map();
+  cartera.forEach(f => {
+    const key = f.pyme || 'Sin dato';
+    pymeMap.set(key, (pymeMap.get(key) || 0) + netoFactura(f));
+  });
+  const pymeData = [...pymeMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([label, value], i) => ({ label, value, color: PALETA[(i + 2) % PALETA.length] }));
+
+  // ── Embudo del pipeline de fondeo: cuántas operaciones de este banco hay en
+  // cada etapa, para detectar dónde se atasca el flujo.
+  const operacionesBanco = facturaService.listarPorBanco(BANCO).filter(f => facturaService.esOperacionDeFondeo(f));
+  const embudoData = [
+    { label: 'Orden',       value: operacionesBanco.filter(f => f.estado === INV.ordenFondeador).length, color: '#9CA3AF' },
+    { label: 'Fondeado',    value: operacionesBanco.filter(f => f.estado === INV.fondeado).length,       color: '#3B82F6' },
+    { label: 'OTP env.',    value: operacionesBanco.filter(f => f.estado === INV.otpEnviada).length,     color: '#ef7a2c' },
+    { label: 'OTP verif.',  value: operacionesBanco.filter(f => f.estado === INV.otpVerificada).length,  color: '#C68A1D' },
+    { label: 'Pagada',      value: operacionesBanco.filter(f => f.estado === INV.pagada || f.estado === INV.billetera).length, color: '#059669' },
+  ];
+
+  // ── Cartera por modalidad de pago: qué tan expuesto está el banco a cada
+  // modalidad de desembolso (retiro total vs. billetera virtual).
+  const retiroCount    = cartera.filter(f => (f.modalidadPago || MODALIDAD.retiroTotal) === MODALIDAD.retiroTotal).length;
+  const billeteraCount = cartera.length - retiroCount;
+  const modalidadData = cartera.length > 0
+    ? [
+        { tipo: 'Retiro Total',     pct: Math.round((retiroCount / cartera.length) * 100),    color: '#ef7a2c' },
+        { tipo: 'Billetera Virtual', pct: Math.round((billeteraCount / cartera.length) * 100), color: '#3B82F6' },
+      ]
+    : [{ tipo: 'Sin datos', pct: 100, color: '#D8D5D0' }];
+
+  // ── Estructura de referencia (Junior/Mezzanine/Senior): pila de absorción de
+  // pérdidas de referencia del programa — dato fijo, no un cálculo sobre la
+  // cartera (la app todavía no modela tranches por operación).
+  const capitalStackData = [
+    { tipo: 'Senior',     pct: 70, color: '#059669' },
+    { tipo: 'Mezzanine',  pct: 20, color: '#8A4A1F' },
+    { tipo: 'Junior',     pct: 10, color: '#C68A1D' },
+  ];
 
   return (
     <AppShell
@@ -67,102 +155,122 @@ export default function FondDash() {
           </div>
         </div>
 
-        {/* Evolución + órdenes recientes */}
+        {/* Evolución (fondeado vs. pendiente) + exposición por contratante */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
           <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
-            <div className="mb-4">
-              <div className="text-[14px] font-bold text-text-1">Fondeo por mes</div>
-              <div className="text-[11px] text-text-4">Monto neto acreditado · millones XAF</div>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <div className="text-[14px] font-bold text-text-1">Fondeado vs. Pendiente por mes</div>
+                <div className="text-[11px] text-text-4">Monto neto · millones XAF</div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                {multiLineSeries.map(s => (
+                  <span key={s.key} className="flex items-center gap-1.5 text-[11px] font-semibold text-text-3">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: s.color }} />
+                    {s.label}
+                  </span>
+                ))}
+              </div>
             </div>
             <div className="flex-1 min-h-[200px]">
-              <LineChart id="fond-general" data={lineData} color="#ef7a2c" xKey="mes" yKey="monto" unit="M" h={180} />
+              {multiLineHasData ? (
+                <MultiLineChart data={multiLineData} series={multiLineSeries} h={200} vbW={620} tipFmt={v => `${v}M`} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-[13px] text-text-4">Aún no hay suficientes datos mensuales.</div>
+              )}
             </div>
           </div>
 
-          <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <div className="text-[14px] font-bold text-text-1">Órdenes por liquidar</div>
-                <div className="text-[11px] text-text-4">Recibidas de las Contratantes</div>
-              </div>
-              <button
-                onClick={() => go('fondOrdenes')}
-                className="text-[12px] text-orange-dark font-semibold hover:opacity-75 transition cursor-pointer whitespace-nowrap"
-              >
-                Ver todas →
-              </button>
+          <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-4 flex flex-col min-w-0">
+            <div className="mb-3">
+              <div className="text-[13px] font-bold text-text-1">Exposición por Empresa Contratante</div>
+              <div className="text-[10px] text-text-4">Monto neto fondeado, top contratantes</div>
             </div>
-
-            {ordenes.length === 0 ? (
-              <div className="text-[13px] text-text-4 py-8 text-center">No hay órdenes pendientes.</div>
+            {exposicionData.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-[13px] text-text-4 py-6 text-center">Aún no hay operaciones fondeadas.</div>
             ) : (
-              <div className="space-y-3">
-                {ordenes.slice(0, 4).map(o => (
-                  <div
-                    key={o.id}
-                    onClick={() => go('fondOrdenes')}
-                    className="slide-up flex items-center justify-between gap-3 p-3 rounded-[10px] border border-border hover:bg-orange-tint/30 cursor-pointer transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <div className="text-[12px] font-bold text-text-1 truncate">{o.pyme}</div>
-                      <div className="text-[10px] font-mono text-text-4">{o.ipi?.numero ?? o.id}</div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-[12px] font-extrabold text-orange whitespace-nowrap">{fmt(netoFactura(o))} XAF</div>
-                      <div className="text-[10px] text-text-4">a transferir</div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex-1 flex items-center min-w-0 w-full">
+                <HBarChart data={exposicionData} fmtVal={fmtM} visible={barsVisible} />
               </div>
             )}
           </div>
         </div>
 
-        {/* Cartera reciente */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <div className="text-[14px] font-bold text-text-1">Cartera reciente</div>
-              <div className="text-[11px] text-text-4">Operaciones fondeadas por {BANCO_CORTO}</div>
+        {/* Embudo del pipeline + top empresas contratadas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col">
+            <div className="mb-4">
+              <div className="text-[14px] font-bold text-text-1">Embudo del pipeline de fondeo</div>
+              <div className="text-[11px] text-text-4">Operaciones de {BANCO} por etapa</div>
             </div>
-            <button
-              onClick={() => go('fondCartera')}
-              className="text-[12px] text-orange-dark font-semibold hover:opacity-75 transition cursor-pointer whitespace-nowrap"
-            >
-              Ver historial →
-            </button>
+            <div className="flex-1 min-h-[180px]">
+              <VBarChart id="fond-embudo" data={embudoData} h={180} vbW={520} />
+            </div>
           </div>
 
-          {cartera.length === 0 ? (
-            <div className="text-[13px] text-text-4 py-8 text-center">Aún no hay operaciones fondeadas.</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px]">
-                <thead className="bg-page-bg">
-                  <tr className="border-b border-border">
-                    {['Operación', 'Emp. Contratada', 'Estado', 'Monto fondeado', 'Fecha'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 3 ? 'text-right' : i === 4 ? 'text-center' : 'text-left'}`}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {cartera.slice(0, 5).map(f => (
-                    <tr key={f.id} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="text-[12px] font-bold text-text-1">{f.id}</div>
-                        <div className="text-[10px] font-mono text-text-4">{f.ipi?.numero ?? '—'}</div>
-                      </td>
-                      <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
-                      <td className="px-4 py-3"><InvoiceStatusBadge estado={f.estado} /></td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(netoFactura(f))} XAF</td>
-                      <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.fecha ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col min-w-0">
+            <div className="mb-4">
+              <div className="text-[14px] font-bold text-text-1">Top Empresas Contratadas</div>
+              <div className="text-[11px] text-text-4">Monto neto fondeado, top receptoras</div>
             </div>
-          )}
+            {pymeData.length === 0 ? (
+              <div className="flex-1 flex items-center justify-center text-[13px] text-text-4 py-6 text-center">Aún no hay operaciones fondeadas.</div>
+            ) : (
+              <div className="flex-1 flex items-center min-w-0 w-full">
+                <HBarChart data={pymeData} fmtVal={fmtM} visible={barsVisible} />
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Cartera por modalidad de pago + estructura de referencia */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col items-center">
+            <div className="w-full mb-4">
+              <div className="text-[14px] font-bold text-text-1">Cartera por modalidad de pago</div>
+              <div className="text-[11px] text-text-4">Retiro Total vs. Billetera Virtual</div>
+            </div>
+            <div className="flex-1 flex items-center">
+              <DonutChart data={modalidadData} centerLabel={`${cartera.length}`} centerSub="operaciones" size={170} />
+            </div>
+            <div className="w-full flex flex-col gap-1.5 mt-4">
+              {modalidadData.map(d => (
+                <div key={d.tipo} className="flex items-center justify-between text-[11px]">
+                  <span className="flex items-center gap-1.5 text-text-4">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+                    {d.tipo}
+                  </span>
+                  <span className="font-semibold text-text-1">{d.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col items-center">
+            <div className="w-full mb-4">
+              <div className="text-[14px] font-bold text-text-1">Estructura de referencia</div>
+              <div className="text-[11px] text-text-4">Pila Junior / Mezzanine / Senior del programa</div>
+            </div>
+            <div className="flex-1 flex items-center">
+              <DonutChart data={capitalStackData} centerLabel="10·20·70" centerSub="J / M / S" size={170} />
+            </div>
+            <div className="w-full flex flex-col gap-1.5 mt-4">
+              {capitalStackData.map(d => (
+                <div key={d.tipo} className="flex items-center justify-between text-[11px]">
+                  <span className="flex items-center gap-1.5 text-text-4">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: d.color }} />
+                    {d.tipo}
+                  </span>
+                  <span className="font-semibold text-text-1">{d.pct}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
 
       </div>

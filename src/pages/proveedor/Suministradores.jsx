@@ -11,8 +11,8 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
-import { InfoRow, ComplianceItem, IniAvatar } from './provShared';
-import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
+import { InfoRow, ComplianceItem, IniAvatar, useSuministradores } from './provShared';
+import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, semBadge, semColor, scoreColor, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
 
@@ -49,7 +49,7 @@ const initials = (name = '') => {
 export default function ProvSuministradores() {
   const [busqueda, setBusqueda] = useState('');
   const [sumModal, setSumModal] = useState(null);
-  const [lista, setLista] = useState(() => suministradores);
+  const [lista, setLista] = useSuministradores();
   const [agregar, setAgregar] = useState(NUEVO_SUM_EMPTY);
 
   const verde    = lista.filter(p => p.semaforo === 'Verde').length;

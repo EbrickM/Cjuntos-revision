@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCountUp } from "../../hooks/useCountUp";
 import {
   Pencil,
@@ -13,7 +13,6 @@ import {
   ClipboardList,
   Plus,
 } from "lucide-react";
-import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
 import { StatCard } from "../../components/common/StatCard";
 import Badge from "../../components/ui/Badge";
@@ -21,7 +20,7 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import InfoRow from "../../components/ui/InfoRow";
 import FormGroup, { Input, Select } from "../../components/ui/FormGroup";
-import { initialProviders, fmt } from "./epData";
+import { useProviders, fmt } from "./epData";
 import { contratoService } from "../../services/contrato.service";
 import { CST } from "../../lib/contractStates";
 import InfiniteScrollSentinel from "../../components/common/InfiniteScrollSentinel";
@@ -156,17 +155,11 @@ const MODAL_EMPTY = {
 // loader que simula la llamada a backend.
 
 export default function EpMisProveedores() {
-  const [providers, setProviders] = useState(() =>
-    localDb.get("ep_providers", initialProviders, 4),
-  );
+  const [providers, setProviders] = useProviders();
   const [modal, setModal] = useState(MODAL_EMPTY);
   const [detalle, setDetalle] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState({ visible: false, message: "" });
-
-  useEffect(() => {
-    localDb.set("ep_providers", providers);
-  }, [providers]);
 
   const filteredProviders = search.trim()
     ? providers.filter(

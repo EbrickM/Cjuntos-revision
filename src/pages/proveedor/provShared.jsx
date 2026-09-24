@@ -1,7 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { Mail, X } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { RED, ORA, TEXT4, fmt } from './provData';
+import { RED, ORA, TEXT4, fmt, suministradores as suministradoresSeed } from './provData';
+import { localDb } from '../../lib/localDb';
+
+// ── Directorio de Suministradores (persistido) ────────────────────────────────
+// Suministradores.jsx (directorio) y ContratoDetalle.jsx (botón "Agregar
+// Suministrador" dentro de un contrato) comparten el mismo directorio vía
+// localDb, para que un suministrador registrado desde cualquiera de las dos
+// pantallas aparezca en ambas.
+const SUMINISTRADORES_KEY = 'prov_suministradores';
+const SUMINISTRADORES_VERSION = 1;
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSuministradores() {
+  const [lista, setLista] = useState(() => localDb.get(SUMINISTRADORES_KEY, suministradoresSeed, SUMINISTRADORES_VERSION));
+  useEffect(() => { localDb.set(SUMINISTRADORES_KEY, lista); }, [lista]);
+  return [lista, setLista];
+}
 
 // ── Helpers de Perfil (idénticos a Contratante/PYME) ──────────────────────────
 export const HeroBadge = ({ label, value, Icon, bg, color }) => (

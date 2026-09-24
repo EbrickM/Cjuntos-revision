@@ -41,6 +41,7 @@ import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import { contratoService } from "../../services/contrato.service";
+import { useProviders } from "./epData";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 
@@ -129,46 +130,20 @@ const PAGO_MODAL_EMPTY = {
   documento: null,
 };
 
-const initialProviders = [
-  {
-    id: "p1",
-    razonSocial: "SAP",
-    nombreComercial: "SAP",
-    ruc: "GE-2019-00123",
-    sector: "Materiales",
-    email: "ventas@cemex.gq",
-    telefono: "+240 222 111 222",
-    activo: true,
-    kyc: "vigente",
-    scoreCredito: 780,
-  },
-  {
-    id: "p2",
-    razonSocial: "APEX",
-    nombreComercial: "APEX",
-    ruc: "GE-2020-00445",
-    sector: "Transporte",
-    email: "info@transge.gq",
-    telefono: "+240 222 333 444",
-    activo: true,
-    kyc: "vigente",
-    scoreCredito: 690,
-  },
-  {
-    id: "p3",
-    razonSocial: "APEX Tech",
-    nombreComercial: "APEX Tech",
-    ruc: "GE-2022-00112",
-    sector: "Tecnología",
-    email: "soporte@servtec.gq",
-    telefono: "+240 222 777 888",
-    activo: true,
-    kyc: "pendiente",
-    scoreCredito: 510,
-  },
-];
-
 const KYC_BADGE = { vigente: "orange", pendiente: "yellow", vencido: "red" };
+
+// ── Agregar Proveedor directamente desde este contrato ──────────────────────
+// Mismos campos y validación que "Nuevo proveedor" en MisProveedores.jsx; sin
+// selector de contrato, ya que queda ligado automáticamente al contrato que
+// se está viendo. Comparte el mismo directorio persistido (epData.useProviders).
+const PREFIJO_TEL_PROV = "+240";
+const EMAIL_REGEX_PROV = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SECTORES_PROV = [
+  "Energía", "Construcción", "Manufactura", "Transporte", "Tecnología",
+  "Servicios", "Alimentación", "Minería", "Agricultura", "Comercio",
+  "Materiales", "Otro",
+];
+const NUEVO_PROV_EMPTY = { open: false, razonSocial: "", nombreComercial: "", sector: "Materiales", telefono: "", correo: "", esClienteBonafide: false };
 
 const initialInvoices = [
   {
@@ -280,7 +255,7 @@ function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqM
 export default function EpCreditos() {
   const { go } = useApp();
   const contracts = contratoService.listarPorVista("pyme");
-  const providers = initialProviders;
+  const [providers, setProviders]                 = useProviders();
   const [detailId, setDetailId]                   = useState(null);
   const [activeTab, setActiveTab]                 = useState('contrato');
   const [invoices, setInvoices]                   = useState(initialInvoices);
@@ -294,10 +269,59 @@ export default function EpCreditos() {
   const [reqModal, setReqModal] = useState(null);
   const [provDetailModal, setProvDetailModal] = useState(null);
   const [facSubTab, setFacSubTab]             = useState('contratante');
+  const [agregarProv, setAgregarProv]         = useState(NUEVO_PROV_EMPTY);
+  // Proveedores agregados desde el detalle de un contrato (botón "Agregar
+  // Proveedor"): se guardan por contrato porque esta pantalla no se desmonta
+  // al navegar entre contratos (misma ruta siempre), y se muestran arriba de
+  // la tabla "Proveedores" de ese mismo contrato de inmediato.
+  const [provManualesPorContrato, setProvManualesPorContrato] = useState({});
 
   const detailContract = detailId
     ? (contracts.find((c) => c.id === detailId) ?? null)
     : null;
+
+  const emailLimpioProv      = agregarProv.correo.trim();
+  const emailInvalidoProv    = emailLimpioProv !== "" && !EMAIL_REGEX_PROV.test(emailLimpioProv);
+  const telefonoLocalProv    = agregarProv.telefono.replace(/\D/g, "");
+  const telefonoValidoProv   = /^\d{7,9}$/.test(telefonoLocalProv);
+  const telefonoInvalidoProv = telefonoLocalProv !== "" && !telefonoValidoProv;
+  const formOkProv = agregarProv.razonSocial.trim() && !!agregarProv.sector && telefonoValidoProv && emailLimpioProv !== "" && !emailInvalidoProv;
+
+  const handleAgregarProv = () => {
+    if (!formOkProv || !detailContract) return;
+    const newId = `p${Math.max(...providers.map((p) => Number(p.id.replace("p", ""))), 0) + 1}`;
+    setProviders((prev) => [
+      {
+        id: newId,
+        razonSocial: agregarProv.razonSocial.trim(),
+        nombreComercial: agregarProv.nombreComercial.trim(),
+        sector: agregarProv.sector,
+        email: emailLimpioProv,
+        telefono: `${PREFIJO_TEL_PROV} ${telefonoLocalProv}`,
+        contratosActivos: [{ id: detailContract.id, objeto: '', contratante: detailContract.contratante?.razonSocial ?? '', asignado: 0, utilizado: 0 }],
+        esClienteBonafide: agregarProv.esClienteBonafide,
+        kyc: "—",
+        scoreCredito: null,
+      },
+      ...prev,
+    ]);
+    // La refleja de inmediato en la tabla "Proveedores" de este contrato —
+    // mismo shape que las entradas de `detailContract.proveedoresAsignados`.
+    setProvManualesPorContrato((prev) => ({
+      ...prev,
+      [detailContract.id]: [
+        {
+          id: `PROV-MANUAL-${Date.now()}`,
+          nombre: agregarProv.razonSocial.trim(),
+          email: emailLimpioProv,
+          cargaNomina: false,
+          monto: 0,
+        },
+        ...(prev[detailContract.id] ?? []),
+      ],
+    }));
+    setAgregarProv(NUEVO_PROV_EMPTY);
+  };
 
   const totalContratos = contracts.length;
   const montoTotal = contracts.reduce((s, c) => s + c.monto, 0);
@@ -1005,8 +1029,10 @@ export default function EpCreditos() {
               // del BPMN), se muestran sus proveedoresAsignados; si no, se cae
               // a las asignaciones de `distribucion` con un proveedor real
               // vinculado (los conceptos sin proveedor no pertenecen a esta
-              // vista de solo lectura).
-              const asignados = detailContract.proveedoresAsignados ?? [];
+              // vista de solo lectura). Los agregados manualmente desde este
+              // mismo detalle (botón "Agregar Proveedor") van primero.
+              const provManuales = provManualesPorContrato[detailContract.id] ?? [];
+              const asignados = [...provManuales, ...(detailContract.proveedoresAsignados ?? [])];
               const filas = asignados.length > 0
                 ? asignados.map(p => {
                     const dir = providers.find(x => x.razonSocial === p.nombre);
@@ -1025,12 +1051,16 @@ export default function EpCreditos() {
               return (
               <div className="space-y-5">
                 <div className="bg-white rounded-[14px] border border-border p-5">
-                  <SectionHeader icon={Truck} iconBg="#FFF3E0" iconColor="#EF7A2C"
+                  <SectionHeader icon={Truck}
                     title="Proveedores" subtitle="Proveedores de este contrato y el monto que le corresponde a cada uno."
+                    action={
+                      <Button size="sm" onClick={() => setAgregarProv({ ...NUEVO_PROV_EMPTY, open: true })}>
+                        <Plus className="w-3.5 h-3.5" /> Agregar Proveedor
+                      </Button>
+                    }
                   />
 
-                  {/* Móvil: cards */}
-                  <div className="sm:hidden space-y-2">
+                  <div className="space-y-2">
                     {filas.map(({ item, prov }) => (
                       <div key={item.id} className="rounded-[12px] border border-border p-3.5 flex flex-col gap-2.5">
                         <div className="flex items-start justify-between gap-2">
@@ -1655,6 +1685,107 @@ export default function EpCreditos() {
             </Modal>
           );
         })()}
+
+      {/* ── Modal: Agregar Proveedor (ligado a este contrato) ── */}
+      {agregarProv.open && detailContract && (
+        <Modal
+          title="Agregar Proveedor"
+          onClose={() => setAgregarProv(NUEVO_PROV_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setAgregarProv(NUEVO_PROV_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAgregarProv} disabled={!formOkProv}>Guardar proveedor</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">
+              Registra un nuevo proveedor en tu directorio. Quedará ligado al contrato {detailContract.id}.
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormGroup label="Razón Social" required>
+                <Input
+                  value={agregarProv.razonSocial}
+                  onChange={(e) => setAgregarProv((a) => ({ ...a, razonSocial: e.target.value }))}
+                  placeholder="Nombre legal exacto"
+                />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input
+                  value={agregarProv.nombreComercial}
+                  onChange={(e) => setAgregarProv((a) => ({ ...a, nombreComercial: e.target.value }))}
+                  placeholder="Nombre comercial o marca"
+                />
+              </FormGroup>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormGroup label="Sector Productivo" required>
+                <Select
+                  value={agregarProv.sector}
+                  onChange={(e) => setAgregarProv((a) => ({ ...a, sector: e.target.value }))}
+                >
+                  {SECTORES_PROV.map((s) => <option key={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL_PROV}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocalProv.slice(0, 9)}
+                    onChange={(e) => setAgregarProv((a) => ({ ...a, telefono: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}`}
+                  />
+                </div>
+                {telefonoInvalidoProv && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Correo" required>
+                <Input
+                  type="email"
+                  value={agregarProv.correo}
+                  onChange={(e) => setAgregarProv((a) => ({ ...a, correo: e.target.value }))}
+                  placeholder="correo@empresa.gq"
+                  className={emailInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}
+                />
+                {emailInvalidoProv && (
+                  <p className="text-xs mt-1.5 text-red-500">Ingresa un correo electrónico válido.</p>
+                )}
+              </FormGroup>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setAgregarProv((a) => ({ ...a, esClienteBonafide: !a.esClienteBonafide }))}
+              className="flex items-center gap-3 w-full rounded-[10px] border px-4 py-3 transition-all"
+              style={{
+                borderColor: agregarProv.esClienteBonafide ? "rgba(224,32,28,0.35)" : "#ECEAE7",
+                background: agregarProv.esClienteBonafide ? "#FFF3E0" : "#F6F5F3",
+              }}
+            >
+              <div
+                className="w-9 h-5 rounded-full flex items-center transition-all shrink-0 px-0.5"
+                style={{ background: agregarProv.esClienteBonafide ? "#E0201C" : "#A9A6A1" }}
+              >
+                <div
+                  className="w-4 h-4 rounded-full bg-white shadow transition-transform"
+                  style={{ transform: agregarProv.esClienteBonafide ? "translateX(16px)" : "translateX(0)" }}
+                />
+              </div>
+              <div className="text-left">
+                <div className="text-[13px] font-semibold text-text-1">Cliente Bonafide</div>
+                <div className="text-[11px] text-text-4">Este proveedor también opera como cliente dentro del ecosistema Bonafide.</div>
+              </div>
+            </button>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Modal: Ver proveedor ── */}
       {provDetailModal && (

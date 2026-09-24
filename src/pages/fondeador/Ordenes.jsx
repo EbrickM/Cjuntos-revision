@@ -320,13 +320,15 @@ function TabClientes() {
 }
 
 // ── Tab: Contratos (listado consulta, sin borrar) ─────────────────────────────
-function TabContratos() {
+function TabContratos({ filtroCliente }) {
   const [contracts] = useState(() => contratoService.listar());
   const [search, setSearch] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [detalleModal, setDetalleModal] = useState(null);
 
-  const filteredContracts = contracts.filter(c => {
+  const contratosCliente = filtroCliente ? contracts.filter(c => c.contratante?.razonSocial === filtroCliente) : contracts;
+
+  const filteredContracts = contratosCliente.filter(c => {
     const q = search.trim().toLowerCase();
     const matchesSearch = !q ||
       c.id.toLowerCase().includes(q) ||
@@ -342,9 +344,9 @@ function TabContratos() {
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Contratos"
-        sub="Todos los contratos de crédito de la plataforma (consulta)."
+        sub={filtroCliente ? `Contratos de ${filtroCliente} (consulta).` : 'Todos los contratos de crédito de la plataforma (consulta).'}
         Icon={ScrollText}
-        right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contracts.length} registrados</span>}
+        right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contratosCliente.length} registrados</span>}
       />
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
@@ -554,12 +556,13 @@ function TabContratos() {
 }
 
 // ── Tab: Facturas (historial + % de pago completado de las Aprobadas) ─────────
-function TabFacturas() {
+function TabFacturas({ filtroCliente }) {
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
   const [detalle, setDetalle] = useState(null);
 
-  const facturas = facturaService.listar();
+  const todasLasFacturas = facturaService.listar();
+  const facturas = filtroCliente ? todasLasFacturas.filter(f => f.contratante === filtroCliente) : todasLasFacturas;
 
   const q = busqueda.trim().toLowerCase();
   const matchesQ = (f, fields) => !q || fields.some(v => (v ?? '').toLowerCase().includes(q));
@@ -572,7 +575,7 @@ function TabFacturas() {
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Todas las facturas"
-        sub="Historial completo de la cadena de facturación; las aprobadas muestran el % de pago completado."
+        sub={filtroCliente ? `Facturas de ${filtroCliente}; las aprobadas muestran el % de pago completado.` : 'Historial completo de la cadena de facturación; las aprobadas muestran el % de pago completado.'}
         Icon={Receipt}
         right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{facturas.length} registradas</span>}
       />
@@ -769,17 +772,18 @@ function ipisFondeador() {
 }
 
 // ── Tab: IPIs (por contrato de las Empresas Contratantes) ─────────────────────
-function TabIPIs() {
+function TabIPIs({ filtroCliente }) {
   const [detalle, setDetalle] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('Todos');
-  const todosLosIpis = ipisFondeador();
+  const ipisTodosLosClientes = ipisFondeador();
+  const todosLosIpis = filtroCliente ? ipisTodosLosClientes.filter(i => i.contratante === filtroCliente) : ipisTodosLosClientes;
   const ipis = filtroEstado === 'Todos' ? todosLosIpis : todosLosIpis.filter(i => i.estado === filtroEstado);
 
   return (
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Instrucciones de Pago (IPIs)"
-        sub="IPIs por contrato de las Empresas Contratantes; el ojo abre el resumen de operaciones de cada IPI."
+        sub={filtroCliente ? `IPIs de ${filtroCliente}; el ojo abre el resumen de operaciones de cada IPI.` : 'IPIs por contrato de las Empresas Contratantes; el ojo abre el resumen de operaciones de cada IPI.'}
         Icon={Zap}
         right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{ipis.length} IPIs</span>}
       />
@@ -978,7 +982,16 @@ function registrosFondeador() {
 
 export default function FondOrdenes() {
   const [tab, setTab] = useState('clientes');
+  const [filtroCliente, setFiltroCliente] = useState('');
   const registros = useMemo(() => registrosFondeador(), []);
+  const registrosFiltrados = filtroCliente ? registros.filter(r => r.referente === filtroCliente) : registros;
+
+  // Con un cliente seleccionado en el filtro general ya no tiene sentido la
+  // pestaña "Clientes" (solo se está viendo a uno); si estaba activa, se cae
+  // a "Contratos" — derivado en el render, no con un efecto, para no
+  // encadenar un segundo render solo para corregir la pestaña.
+  const tabsVisibles = filtroCliente ? TABS.filter(t => t.id !== 'clientes') : TABS;
+  const tabActiva = filtroCliente && tab === 'clientes' ? 'contratos' : tab;
 
   return (
     <AppShell
@@ -989,29 +1002,45 @@ export default function FondOrdenes() {
     >
       <div className="fade-in space-y-5">
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
-          {TABS.map(({ id, lbl, Icon }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
-                tab === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
-              }`}>
-              <Icon className="w-3.5 h-3.5" />{lbl}
-            </button>
-          ))}
+        {/* Tabs + filtro general por Empresa Contratante (discreto, en la misma fila) */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
+            {tabsVisibles.map(({ id, lbl, Icon }) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
+                  tabActiva === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
+                }`}>
+                <Icon className="w-3.5 h-3.5" />{lbl}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative flex items-center shrink-0">
+            <Building2 className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-text-4" />
+            <select
+              value={filtroCliente}
+              onChange={e => setFiltroCliente(e.target.value)}
+              title="Filtrar por Empresa Contratante"
+              className="h-8 pl-8 pr-7 text-[11px] font-medium rounded-[8px] border border-border bg-white text-text-3 focus:outline-none focus:border-orange transition cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A9A6A1' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+            >
+              <option value="">Todas las empresas</option>
+              {EMPRESAS_CONTRATANTES.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+            </select>
+          </div>
         </div>
 
-        {tab === 'clientes' && <TabClientes />}
-        {tab === 'contratos' && <TabContratos />}
-        {tab === 'facturas' && <TabFacturas />}
-        {tab === 'ipis' && <TabIPIs />}
+        {tabActiva === 'clientes' && !filtroCliente && <TabClientes />}
+        {tabActiva === 'contratos' && <TabContratos filtroCliente={filtroCliente} />}
+        {tabActiva === 'facturas' && <TabFacturas filtroCliente={filtroCliente} />}
+        {tabActiva === 'ipis' && <TabIPIs filtroCliente={filtroCliente} />}
 
-        {tab === 'registros' && (
+        {tabActiva === 'registros' && (
           <RegistrosTabla
             noAnim
-            registros={registros}
+            registros={registrosFiltrados}
             titulo="Registros"
-            sub="Movimientos y actuaciones de las Empresas Contratantes sobre la plataforma."
+            sub={filtroCliente ? `Movimientos y actuaciones de ${filtroCliente} sobre la plataforma.` : 'Movimientos y actuaciones de las Empresas Contratantes sobre la plataforma.'}
           />
         )}
 

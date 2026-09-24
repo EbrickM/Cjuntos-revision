@@ -85,7 +85,7 @@ export default function FondCartera() {
             <table className="w-full min-w-[1000px]">
               <thead className="bg-page-bg">
                 <tr className="border-b border-border">
-                  {['Operación', 'Emp. Contratada', 'Contratante', 'Modalidad', 'Estado', 'Monto fondeado', 'Referencia', 'Fecha'].map((h, i) => (
+                  {['Operación', 'Emp. Contratada', 'Contratante', 'Modalidad', 'Estado', 'Monto fondeado', 'Fecha'].map((h, i) => (
                     <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
                       ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
                     `}>{h}</th>
@@ -111,14 +111,13 @@ export default function FondCartera() {
                       </td>
                       <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={f.estado} /></td>
                       <td className="px-4 py-3 text-right text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(netoFactura(f))} XAF</td>
-                      <td className="px-4 py-3 text-center text-[11px] font-mono text-text-5 whitespace-nowrap">{f.transferencia?.referencia || '—'}</td>
                       <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.fecha ?? '—'}</td>
                     </tr>
                   );
                 })}
                 {filtradas.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-[12px] text-text-4">
+                    <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
                       {cartera.length === 0 ? `Aún no hay operaciones fondeadas por ${BANCO_CORTO}.` : 'No se encontraron operaciones con los filtros aplicados.'}
                     </td>
                   </tr>

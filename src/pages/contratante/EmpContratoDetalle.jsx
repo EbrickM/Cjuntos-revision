@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send, Plus,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -9,18 +9,38 @@ import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import InvoiceCard from '../../components/invoices/InvoiceCard';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import { montoRestanteFactura } from '../../components/invoices/facturaUtils';
-import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
+import { InfoRow, SectionHeader, IpiVerificacionModal, useEmpresasContratadas } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
 import { facturaService } from '../../services/factura.service';
 import { INV, ESTADO_LABEL, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
-import { ORA, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
+import { ORA, TEXT4, fmt, facturas, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
+
+const PREFIJO_TEL = '+240';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SECTORES = [
+  'Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología',
+  'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio',
+  'Materiales', 'Otro',
+];
+const NUEVA_PYME_EMPTY = { open: false, nombre: '', nombreComercial: '', sector: 'Construcción', telefono: '', correo: '' };
+
+const initialesDe = (name = '') => {
+  const words = name
+    .replace(/[^A-Za-zÀ-ÿÑñ0-9 ]/g, '')
+    .split(' ')
+    .filter(Boolean);
+  if (words.length === 0) return '--';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+};
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -209,7 +229,19 @@ export default function EmpContratoDetalle() {
   // haya ninguna, NO se muestra el botón "Generar IPI" junto al filtro.
   const [opsPago, setOpsPago]           = useState([]);
   const [ipiOps, setIpiOps]             = useState(false); // modal resumen de operaciones
-  const pymesDe = (nombre) => pymes.find(p => p.nombre === nombre) ?? null;
+  // ── Agregar Empresa Contratada directamente desde este contrato ───────────
+  // Mismo directorio y validación que EmpPymes.jsx ("Empresas Contratadas"),
+  // solo que aquí no hay selector de contrato: al agregar desde este detalle,
+  // la nueva empresa queda ligada automáticamente al contrato que se está viendo
+  // y aparece de inmediato arriba de la tabla "Emp. Contratada" de este mismo
+  // contrato (además de en el directorio). Guardado por contrato porque esta
+  // pantalla no se desmonta al navegar entre contratos (misma ruta siempre).
+  const [listaPymes, setListaPymes]     = useEmpresasContratadas();
+  const [agregarPyme, setAgregarPyme]   = useState(NUEVA_PYME_EMPTY);
+  const [pymesManualesPorContrato, setPymesManualesPorContrato] = useState({});
+  // Busca también en el directorio persistido (incluye las agregadas desde
+  // este mismo detalle), no solo en la semilla estática.
+  const pymesDe = (nombre) => listaPymes.find(p => p.nombre === nombre) ?? null;
   const c    = contratanteState.selectedContrato
     ?? contratoService.listarPorVista('contratante').filter(x => x.tipo !== 'marco')[0] ?? null;
   const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
@@ -235,8 +267,10 @@ export default function EmpContratoDetalle() {
   // PYMEs de este contrato: si la Contratante ya repartió el marco en el wizard
   // (Subproceso 1 del BPMN), se muestran sus pymesAsignadas; si no, se cae a los
   // hermanos del mismo contrato-marco (o a esta misma asignación como dato
-  // legado sin `marcoId`).
-  const hermanos = c?.pymesAsignadas?.length
+  // legado sin `marcoId`). Las agregadas manualmente desde este mismo detalle
+  // (botón "Agregar Empresa Contratada") van primero.
+  const pymesManuales = c ? (pymesManualesPorContrato[c.id] ?? []) : [];
+  const hermanosBase = c?.pymesAsignadas?.length
     ? c.pymesAsignadas.map(a => ({
         id: a.id ?? a.pymeId ?? c.id,
         pyme: a.pymeNombre,
@@ -248,11 +282,61 @@ export default function EmpContratoDetalle() {
     : c?.marcoId
       ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
       : c ? [c] : [];
+  const hermanos = [...pymesManuales, ...hermanosBase];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
+
+  // Mismos campos y validación que "Agregar Empresa Contratada" en EmpPymes.jsx:
+  // Razón Social, Sector, Teléfono y Correo son obligatorios; Nombre Comercial
+  // es opcional. Sin selector de contrato — queda ligada a `c.id` directamente.
+  const emailLimpioPyme      = agregarPyme.correo.trim();
+  const emailInvalidoPyme    = emailLimpioPyme !== '' && !EMAIL_REGEX.test(emailLimpioPyme);
+  const telefonoLocalPyme    = agregarPyme.telefono.replace(/\D/g, '');
+  const telefonoValidoPyme   = /^\d{7,9}$/.test(telefonoLocalPyme);
+  const telefonoInvalidoPyme = telefonoLocalPyme !== '' && !telefonoValidoPyme;
+  const formOkPyme = agregarPyme.nombre.trim() && !!agregarPyme.sector && telefonoValidoPyme && emailLimpioPyme !== '' && !emailInvalidoPyme;
+
+  const handleAgregarPyme = () => {
+    if (!formOkPyme || !c) return;
+    setListaPymes(prev => [
+      {
+        ini: initialesDe(agregarPyme.nombre),
+        nombre: agregarPyme.nombre.trim(),
+        sector: agregarPyme.sector,
+        contratos: 1,
+        contratoId: c.id,
+        montoTotal: 0,
+        score: null,
+        semaforo: 'En espera',
+        nombreComercial: agregarPyme.nombreComercial.trim(),
+        ruc: '',
+        telefono: `${PREFIJO_TEL} ${telefonoLocalPyme}`,
+        correo: emailLimpioPyme,
+        repNombre: '', repTipoDoc: '', repId: '', repCargo: '', repTel: '', repCorreo: '',
+      },
+      ...prev,
+    ]);
+    // La refleja de inmediato en la tabla "Emp. Contratada" de este contrato.
+    setPymesManualesPorContrato(prev => ({
+      ...prev,
+      [c.id]: [
+        {
+          id: c.id,
+          _key: `${c.id}-manual-${Date.now()}`,
+          pyme: agregarPyme.nombre.trim(),
+          estado: c.estado,
+          asignado: 0,
+          plazoPago: null,
+          documentoNombre: null,
+        },
+        ...(prev[c.id] ?? []),
+      ],
+    }));
+    setAgregarPyme(NUEVA_PYME_EMPTY);
+  };
 
   // Confirmación de pago desde el bloque "Completar pago". Al completo → la
   // factura pasa a su estado terminal; parcial → queda Aprobada (acumulando
@@ -386,9 +470,14 @@ export default function EmpContratoDetalle() {
                 <div className="text-[14px] font-bold text-text-1">Empresas Contratadas de este Contrato-Marco</div>
                 <div className="text-[11px] text-text-4">Empresas Contratadas y monto que la Contratante les asignó</div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Users className="w-4 h-4" style={{ color: ORA }} />
-                <span className="text-[11px] font-bold" style={{ color: ORA }}>{hermanos.length} Empresa{hermanos.length === 1 ? ' Contratada' : 's Contratadas'}</span>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Button size="sm" onClick={() => setAgregarPyme({ ...NUEVA_PYME_EMPTY, open: true })}>
+                  <Plus className="w-3.5 h-3.5" /> Agregar Empresa Contratada
+                </Button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Users className="w-4 h-4" style={{ color: ORA }} />
+                  <span className="text-[11px] font-bold" style={{ color: ORA }}>{hermanos.length} Empresa{hermanos.length === 1 ? ' Contratada' : 's Contratadas'}</span>
+                </div>
               </div>
             </div>
 
@@ -405,7 +494,7 @@ export default function EmpContratoDetalle() {
                 const hPyme = pymesDe(h.pyme);
                 return (
                   <div
-                    key={h.id}
+                    key={h._key ?? h.id}
                     onClick={() => setPymeDetalle(h)}
                     className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1.4fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
@@ -514,6 +603,81 @@ export default function EmpContratoDetalle() {
         )}
 
       </div>
+
+      {/* ── Modal: Agregar Empresa Contratada (ligada a este contrato) ── */}
+      {agregarPyme.open && (
+        <Modal
+          title="Agregar Empresa Contratada"
+          onClose={() => setAgregarPyme(NUEVA_PYME_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setAgregarPyme(NUEVA_PYME_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAgregarPyme} disabled={!formOkPyme}>Guardar Empresa</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">
+              Registra una nueva Empresa Contratada en tu directorio. Quedará ligada al contrato {c.id}.
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <FormGroup label="Razón Social" required>
+                <Input
+                  value={agregarPyme.nombre}
+                  onChange={e => setAgregarPyme(a => ({ ...a, nombre: e.target.value }))}
+                  placeholder="Ej: Constructora del Litoral"
+                />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input
+                  value={agregarPyme.nombreComercial}
+                  onChange={e => setAgregarPyme(a => ({ ...a, nombreComercial: e.target.value }))}
+                  placeholder="Ej: Litogal"
+                />
+              </FormGroup>
+              <FormGroup label="Sector Productivo" required>
+                <Select
+                  value={agregarPyme.sector}
+                  onChange={e => setAgregarPyme(a => ({ ...a, sector: e.target.value }))}
+                >
+                  {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocalPyme.slice(0, 9)}
+                    onChange={e => setAgregarPyme(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalidoPyme ? '!border-red-400 focus:!border-red-500' : ''}`}
+                  />
+                </div>
+                {telefonoInvalidoPyme && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Correo" required>
+                <Input
+                  type="email"
+                  value={agregarPyme.correo}
+                  onChange={e => setAgregarPyme(a => ({ ...a, correo: e.target.value }))}
+                  placeholder="Ej: info@empresa.gq"
+                  className={emailInvalidoPyme ? '!border-red-400 focus:!border-red-500' : ''}
+                />
+                {emailInvalidoPyme && (
+                  <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
+                )}
+              </FormGroup>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Modal: Detalle de PYME (disparado por el ojo en la tabla) ── */}
       {pymeDetalle && (() => {

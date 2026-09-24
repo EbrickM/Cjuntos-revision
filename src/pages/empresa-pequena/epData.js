@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import { localDb } from '../../lib/localDb';
+
 export const fmt = n => new Intl.NumberFormat('de-DE').format(n);
 
 // Contrato que la Empresa Contratante ya configuró y asignó a esta PYME
@@ -56,6 +59,19 @@ export const montoDisponibleProveedores = (item, excluirId = null) =>
 // ── Directorio de proveedores mock de la PYME ──────────────────────────────
 // 15 proveedores — usados para el scroll infinito de MisProveedores (pageSize
 // 10) y para autocompletar correo/teléfono en EpConfigurarContrato.
+const PROVIDERS_KEY = 'ep_providers';
+const PROVIDERS_VERSION = 4;
+
+// MisProveedores.jsx (directorio) y Creditos.jsx (botón "Agregar Proveedor"
+// dentro de un contrato) comparten el mismo directorio vía localDb, para que
+// un proveedor registrado desde cualquiera de las dos pantallas aparezca en
+// ambas.
+export function useProviders() {
+  const [providers, setProviders] = useState(() => localDb.get(PROVIDERS_KEY, initialProviders, PROVIDERS_VERSION));
+  useEffect(() => { localDb.set(PROVIDERS_KEY, providers); }, [providers]);
+  return [providers, setProviders];
+}
+
 export const initialProviders = [
   {
     id: 'p1', razonSocial: 'SAP', nombreComercial: 'SAP',

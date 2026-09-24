@@ -12,8 +12,8 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
-import { InfoRow, ComplianceItem, IniAvatar } from './contratanteShared';
-import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
+import { InfoRow, ComplianceItem, IniAvatar, useEmpresasContratadas } from './contratanteShared';
+import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
 
@@ -51,7 +51,7 @@ const initials = (name = '') => {
 export default function EmpPymes() {
   const [busqueda, setBusqueda] = useState('');
   const [pymeModal, setPymeModal] = useState(null);
-  const [lista, setLista] = useState(() => pymes);
+  const [lista, setLista] = useEmpresasContratadas();
   const [agregar, setAgregar] = useState(NUEVA_PYME_EMPTY);
 
   const verde    = lista.filter(p => p.semaforo === 'Verde').length;
