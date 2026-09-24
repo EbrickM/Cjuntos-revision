@@ -278,24 +278,23 @@ export default function AdminContratos() {
             </div>
 
             {/* Listado de contratos */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
-              <CardHeader
-                title="Contratos"
-                sub="Todos los contratos de crédito, pendientes de autorización y activos"
-                Icon={ScrollText}
-                right={
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contracts.length} registrados</span>
-                    <Button variant="primary" size="sm" onClick={openNewModal}>
-                      <Plus className="w-3.5 h-3.5" />
-                      Nuevo contrato
-                    </Button>
-                  </div>
-                }
-              />
+            <CardHeader
+              title="Contratos"
+              sub="Todos los contratos de crédito, pendientes de autorización y activos"
+              Icon={ScrollText}
+              right={
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contracts.length} registrados</span>
+                  <Button variant="primary" size="sm" onClick={openNewModal}>
+                    <Plus className="w-3.5 h-3.5" />
+                    Nuevo contrato
+                  </Button>
+                </div>
+              }
+            />
 
-              {/* Tabs + Search en la misma fila */}
-              <div className="flex items-center gap-3 mb-4">
+            {/* Tabs + Search en la misma fila */}
+            <div className="flex items-center gap-3 mb-4">
                 <div className="overflow-x-auto min-w-0 flex-1">
                   <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
                     {ESTADOS_FILTRO_TABS.map(({ value, label, Icon }) => (
@@ -320,8 +319,9 @@ export default function AdminContratos() {
                 </div>
               </div>
 
+            <div className="bg-white rounded-[14px] border border-border">
               {/* Móvil: cards */}
-              <div className="sm:hidden space-y-2">
+              <div className="sm:hidden space-y-2 p-4">
                 {sortedContracts.map(c => {
                   const badge  = contractBadge(c.estado);
                   const pctVal = parseFloat(pct(c.asignado, c.monto));

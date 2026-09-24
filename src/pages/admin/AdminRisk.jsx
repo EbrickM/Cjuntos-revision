@@ -95,7 +95,7 @@ const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetal
         />
       </div>
     </div>
-    <div className="overflow-x-auto">
+    <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
       <table className="w-full min-w-[820px]">
         <thead className="bg-page-bg">
           <tr className="border-b border-border">
@@ -195,11 +195,11 @@ export default function AdminRisk() {
         </div>
 
         {/* Selector superior entre las dos tablas */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
+        <div className="flex gap-1 bg-white p-1 rounded-[10px] w-full sm:w-fit border border-border">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 flex-1 sm:flex-initial ${
+                tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
               }`}>
               {t.lbl}
             </button>
@@ -208,7 +208,7 @@ export default function AdminRisk() {
 
         {/* ── Tab: Pagadas por el contratante ── */}
         {tab === 'ct' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             {header(
               'Pagadas por el contratante',
               'Ingresos cobrados por la plataforma — dinero que entra al banco.',
@@ -223,12 +223,12 @@ export default function AdminRisk() {
               onDetalle={setDetalle}
               proveedor={false}
             />
-          </div>
+          </>
         )}
 
         {/* ── Tab: Fondos liberados a proveedores ── */}
         {tab === 'prov' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             {header(
               'Fondos liberados a proveedores',
               'Pagos realizados a proveedores desde el crédito de cada Empresa Contratada.',
@@ -243,7 +243,7 @@ export default function AdminRisk() {
               onDetalle={setDetalle}
               proveedor
             />
-          </div>
+          </>
         )}
 
       </div>

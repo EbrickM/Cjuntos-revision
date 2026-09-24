@@ -139,20 +139,20 @@ export default function FacturasAdmin() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
+        <div className="flex gap-1 bg-white p-1 rounded-[10px] w-fit border border-border">
           {TABS.map(({ id, lbl, Icon }) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
-                tab === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                tab === id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
               }`}>
-              <Icon className="w-3.5 h-3.5" />{lbl}
+              <Icon className="w-3.5 h-3.5 shrink-0" />{lbl}
             </button>
           ))}
         </div>
 
         {/* ── Tab: Facturas (historial) ── */}
         {tab === 'facturas' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Todas las facturas"
               sub="Historial completo de la cadena de facturación."
@@ -169,7 +169,7 @@ export default function FacturasAdmin() {
             />
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
@@ -219,12 +219,12 @@ export default function FacturasAdmin() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </>
         )}
 
         {/* ── Tab: Billeteras Virtuales ── */}
         {tab === 'billeteras' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Billeteras Virtuales"
               sub="Fondos de Bonafide desbloqueados y a la espera de distribución a proveedores."
@@ -240,50 +240,50 @@ export default function FacturasAdmin() {
               placeholder="Buscar Empresa Contratada…"
             />
 
-            {billeterasFiltradas.length === 0 && (
-              <div className="text-[13px] text-text-4 py-10 text-center">
-                {billeteras.length === 0 ? 'Aún no hay Empresas Contratadas con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
-              </div>
-            )}
-
             {/* Tabla */}
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px]">
-                <thead className="bg-page-bg">
-                  <tr className="border-b border-border">
-                    {['Emp. Contratada', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                        ${i === 0 ? 'text-left' : i >= 1 && i <= 3 ? 'text-right' : 'text-center'}
-                      `}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {billeterasFiltradas.map(b => (
-                    <tr key={b.pyme} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                      <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{b.pyme}</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-semibold text-text-1 whitespace-nowrap">{fmt(b.montoPresupuestado ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-orange whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
-                      <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
-                      <td className="px-4 py-3 text-center">
-                        <button onClick={() => setDetalleBilletera(b)} title="Ver detalle"
-                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+              {billeterasFiltradas.length === 0 ? (
+                <div className="text-[13px] text-text-4 py-10 text-center min-w-[760px]">
+                  {billeteras.length === 0 ? 'Aún no hay Empresas Contratadas con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
+                </div>
+              ) : (
+                <table className="w-full min-w-[760px]">
+                  <thead className="bg-page-bg">
+                    <tr className="border-b border-border">
+                      {['Emp. Contratada', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
+                        <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
+                          ${i === 0 ? 'text-left' : i >= 1 && i <= 3 ? 'text-right' : 'text-center'}
+                        `}>{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {billeterasFiltradas.map(b => (
+                      <tr key={b.pyme} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
+                        <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{b.pyme}</td>
+                        <td className="px-4 py-3 text-right text-[12px] font-semibold text-text-1 whitespace-nowrap">{fmt(b.montoPresupuestado ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-right text-[12px] font-bold text-orange whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-right text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
+                        <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
+                        <td className="px-4 py-3 text-center">
+                          <button onClick={() => setDetalleBilletera(b)} title="Ver detalle"
+                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          </div>
+          </>
         )}
 
         {/* ── Tab: Pagos y Cheques ── */}
         {tab === 'pagos' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Pagos a proveedores"
               sub="Core Bancario transfiere a proveedores con cuenta; sin cuenta → Cheque de Venta."
@@ -303,7 +303,7 @@ export default function FacturasAdmin() {
             </div>
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
@@ -348,7 +348,7 @@ export default function FacturasAdmin() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </>
         )}
 
       </div>

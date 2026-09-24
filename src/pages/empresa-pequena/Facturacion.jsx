@@ -475,11 +475,11 @@ export default function EpFacturacion() {
         </div>
 
         {/* Mis facturas: toggle Contratante / Proveedores */}
-        <div className="flex flex-row justify-between h-25px py-0">
-          <div className="flex bg-white rounded-[10px] gap-1 h-25px w-max-[370px]">
+        <div className="flex flex-row justify-between gap-3">
+          <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-max">
             <button
               onClick={() => setVista("contratante")}
-              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
                   ${vista === "contratante" ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1 cursor-pointer"}`}
             >
               <Building2 className="w-3.5 h-3.5 shrink-0" />
@@ -487,7 +487,7 @@ export default function EpFacturacion() {
             </button>
             <button
               onClick={() => setVista("proveedor")}
-              className={`bona-btn w-[185px] font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
                   ${vista === "proveedor" ? "bg-[#EF7A2C] shadow-sm text-white font-semibold" : "text-text-3 hover:text-text-1 cursor-pointer"}`}
             >
               <Truck className="w-3.5 h-3.5 shrink-0" />
@@ -515,7 +515,7 @@ export default function EpFacturacion() {
         {/* Filtros: tabs de estado + búsqueda */}
         <div className="flex items-center gap-3">
           <div className="overflow-x-auto pb-0.5 flex-1">
-            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
               {(vista === "contratante" ? ESTADOS : ESTADOS_PR).map((e) => (
                 <button
                   key={e}

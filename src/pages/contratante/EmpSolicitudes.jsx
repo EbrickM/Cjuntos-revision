@@ -46,7 +46,7 @@ export default function EmpSolicitudes() {
   return (
     <AppShell active="empSolicitudes" role="contratante" title="Solicitudes" sub="Mis solicitudes y oportunidades de Empresas Contratadas" back
       headerRight={
-        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border shrink-0">
           {[
             { id: 'mis',   lbl: 'Mis solicitudes',             Icon: ClipboardList },
             { id: 'pymes', lbl: 'Solicitudes de Emp. Contratadas', Icon: Mail      },

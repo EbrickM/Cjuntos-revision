@@ -147,13 +147,13 @@ export default function AdminInformacionGubernamental() {
 
         {/* Selector de ministerio — mismo patrón de pestañas segmentadas que
             empresa-pequena/Solicitudes.jsx */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-fit max-w-full overflow-x-auto">
+        <div className="flex gap-1 bg-white p-1 rounded-[10px] w-fit max-w-full overflow-x-auto border border-border">
           {MINISTERIOS.map(m => (
             <button
               key={m.id}
               onClick={() => setMinisterio(m.id)}
-              className={`py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                ministerio === m.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                ministerio === m.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
               }`}
             >
               {m.lbl}

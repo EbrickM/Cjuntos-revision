@@ -454,7 +454,7 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
               lateral en pantallas chicas ── */}
-        <div className="flex bg-white rounded-[10px] gap-1 p-1">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border">
           {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
@@ -662,7 +662,7 @@ export default function EmpContratoDetalle() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="overflow-x-auto pb-0.5 flex-1">
-                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-max">
                     {estadosDisponibles.map(e => {
                       const TabIcon = TAB_ICON_FAC[e];
                       return (

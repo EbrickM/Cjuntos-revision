@@ -259,7 +259,7 @@ export default function ProvContratoDetalle() {
         </div>
 
         {/* ── Tabs ── */}
-        <div className="flex bg-white rounded-[10px] gap-1 p-1">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-full sm:w-fit">
           {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
@@ -450,7 +450,7 @@ export default function ProvContratoDetalle() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="overflow-x-auto pb-0.5 flex-1">
-                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-max">
                     {estadosDisponibles.map(e => {
                       const Icon = TAB_ICON_FAC[e] ?? FileText;
                       return (

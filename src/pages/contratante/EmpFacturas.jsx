@@ -255,7 +255,7 @@ export default function EmpFacturas() {
 
         {/* Switch: Facturas | IPIs */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex bg-white rounded-[10px] gap-1">
+          <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border">
             {[
               { id: 'facturas', lbl: 'Facturas', Icon: Receipt },
               { id: 'ipis',     lbl: 'IPIs',      Icon: Zap },
@@ -278,7 +278,7 @@ export default function EmpFacturas() {
           <>
             <div className="flex items-center gap-3">
               <div className="overflow-x-auto pb-0.5 flex-1">
-                <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-max">
                   {ESTADOS.map(e => {
                     const Icon = ESTADO_ICON[e];
                     return (

@@ -110,7 +110,7 @@ export default function AdminDash() {
             <div className="text-[20px] font-bold text-text-1">Bienvenido</div>
             <div className="text-[13px] text-text-4">Panel de control Bonafide</div>
           </div>
-          <div className="flex gap-1 bg-white rounded-[10px] p-1 shrink-0">
+          <div className="flex gap-1 bg-white rounded-[10px] p-1 shrink-0 border border-border">
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
