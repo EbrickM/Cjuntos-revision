@@ -72,7 +72,7 @@ export const solicitudesSuministradores = [
 // Cada estado distinto mapea a una variante distinta (Anexo Digital MIC v1.0).
 export const facturaBadge = e => ({ 'Recibida': 'gray', 'En revisión': 'amber', 'Verificada': 'blue', 'Emitida': 'orange', 'Pagada': 'orange' }[e] ?? 'gray');
 export const solicBadge   = e => ({ 'En revisión': 'amber', 'Aprobada': 'orange', 'Rechazada': 'red' }[e] ?? 'gray');
-export const semBadge     = s => s === 'Verde' ? 'orange' : s === 'Amarillo' ? 'amber' : 'red';
+export const semBadge     = s => s === 'En espera' ? 'gray' : s === 'Verde' ? 'orange' : s === 'Amarillo' ? 'amber' : 'red';
 // Badge de estado de contrato (todas las secciones): cada estado del ciclo de
 // vida de la configuración con su color distinto (misma escala que contractStates).
 export const contratoBadge = e =>
@@ -80,8 +80,8 @@ export const contratoBadge = e =>
   e === 'Con Requerimientos' ? 'red' :
   e === 'En Discusión de Términos' ? 'brand' :
   e === 'Pendiente de Revisión' ? 'amber' : 'amber';
-export const semColor     = s => s === 'Verde' ? ORA : s === 'Amarillo' ? WARN : ERR;
-export const scoreColor   = n => n >= 750 ? ORA : n >= 500 ? WARN : ERR;
+export const semColor     = s => s === 'En espera' ? TEXT4 : s === 'Verde' ? ORA : s === 'Amarillo' ? WARN : ERR;
+export const scoreColor   = n => n == null ? TEXT4 : n >= 750 ? ORA : n >= 500 ? WARN : ERR;
 export const kycBadge     = k => ({ vigente: 'orange', pendiente: 'amber', vencido: 'red' }[k] ?? 'amber');
 
 // ── Contratos pendientes de configuración (Subproceso 3 del BPMN) ─────────────

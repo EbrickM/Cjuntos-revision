@@ -230,17 +230,50 @@ export function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
     const dash = (d.pct / 100) * circ;
     return { segs: [...segs, { ...d, dash, off: -total }], total: total + dash };
   }, { segs: [], total: 0 }).segs;
+
+  const ref = useRef(null);
+  const [tip, setTip] = useState(null);
+
+  const handleHover = (i) => (e) => {
+    const bbox = ref.current ? ref.current.getBoundingClientRect() : null;
+    if (!bbox) return;
+    setTip({ idx: i, mouseX: e.clientX - bbox.left, mouseY: e.clientY - bbox.top });
+  };
+  const handleLeave = () => setTip(null);
+
   return (
-    <svg viewBox="0 0 110 110" style={{ width: size, height: size, flexShrink: 0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F0F0F0" strokeWidth="13" />
-      {segs.map((s, i) => (
-        <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth="13"
-          strokeDasharray={`${s.dash} ${circ - s.dash}`} strokeDashoffset={s.off} strokeLinecap="round"
-          style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }} />
-      ))}
-      {centerLabel && <text x={cx} y={cy - 4} textAnchor="middle" fontSize="14" fontWeight="800" fill="#1a1a1a" fontFamily="Poppins,sans-serif">{centerLabel}</text>}
-      {centerSub && <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif">{centerSub}</text>}
-    </svg>
+    <div ref={ref} className="relative" style={{ width: size, height: size, flexShrink: 0 }}>
+      <svg viewBox="0 0 110 110" style={{ width: size, height: size }}>
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F0F0F0" strokeWidth="13" />
+        {segs.map((s, i) => (
+          <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={tip?.idx === i ? 15 : 13}
+            strokeDasharray={`${s.dash} ${circ - s.dash}`} strokeLinecap="round"
+            style={{
+              transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px`,
+              cursor: 'pointer', transition: 'stroke-width 0.15s ease',
+              '--donut-start': s.off + circ, '--donut-off': s.off,
+              animation: `donutSweep 0.9s ease-out ${i * 150}ms both`,
+            }}
+            onMouseEnter={handleHover(i)} onMouseMove={handleHover(i)} onMouseLeave={handleLeave} />
+        ))}
+        {centerLabel && (
+          <text x={cx} y={cy - 4} textAnchor="middle" fontSize="14" fontWeight="800" fill="#1a1a1a" fontFamily="Poppins,sans-serif"
+            style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'dotFadeIn 0.4s ease 0.9s both' }}>{centerLabel}</text>
+        )}
+        {centerSub && (
+          <text x={cx} y={cy + 11} textAnchor="middle" fontSize="9" fill="#9CA3AF" fontFamily="Poppins,sans-serif"
+            style={{ transformOrigin: `${cx}px ${cy}px`, animation: 'dotFadeIn 0.4s ease 0.95s both' }}>{centerSub}</text>
+        )}
+      </svg>
+      {tip !== null && (
+        <ChartTooltip
+          x={tip.mouseX}
+          y={tip.mouseY}
+          title={segs[tip.idx].tipo ?? segs[tip.idx].label ?? 'Segmento'}
+          lines={[{ label: 'Participación', value: `${segs[tip.idx].pct}%`, color: segs[tip.idx].color }]}
+        />
+      )}
+    </div>
   );
 }
 
@@ -316,22 +349,30 @@ export function VBarChart({ id, data, windowStart = 0, minValue = 0, h = 170, un
 
 export function HBarChart({ data, fmtVal = v => `${v}M`, visible = true }) {
   const maxVal = Math.max(...data.map(d => d.value));
+  const [hovered, setHovered] = useState(null);
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3.5 w-full min-w-0">
       {data.map((d, i) => {
         const pct = (d.value / maxVal) * 100;
+        const isHov = hovered === i;
         return (
-          <div key={i}>
-            <div className="flex justify-between items-center mb-1.5">
-              <span className="text-[12px] font-semibold text-text-2 truncate mr-2">{d.label}</span>
+          <div key={i}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
+            className="cursor-pointer"
+          >
+            <div className="flex justify-between items-center mb-1.5 gap-2">
+              <span className={`flex-1 min-w-0 text-[12px] truncate transition-all ${isHov ? 'font-extrabold text-text-1' : 'font-semibold text-text-2'}`}>{d.label}</span>
               <span className="text-[12px] font-bold shrink-0" style={{ color: d.color ?? '#ef7a2c' }}>{fmtVal(d.value)}</span>
             </div>
-            <div className="h-3 bg-page-bg rounded-full overflow-hidden">
+            <div className={`bg-page-bg rounded-full overflow-hidden transition-all ${isHov ? 'h-4' : 'h-3'}`}>
               <div className="h-full rounded-full"
                 style={{
                   width: visible ? `${pct}%` : '0%',
                   background: d.color ?? '#ef7a2c',
-                  transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 120}ms`,
+                  opacity: isHov ? 1 : 0.88,
+                  transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 120}ms, opacity 0.15s ease`,
+                  boxShadow: isHov ? `0 0 0 2px ${d.color ?? '#ef7a2c'}33` : 'none',
                 }} />
             </div>
           </div>

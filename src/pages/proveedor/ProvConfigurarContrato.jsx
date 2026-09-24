@@ -343,7 +343,7 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
               Siguiente<ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button variant="primary" onClick={handleEnviarClick}>
+            <Button variant="primary" onClick={handleEnviarClick} disabled={!confirmado}>
               Enviar a revisión<CheckCircle2 className="w-4 h-4 ml-1" />
             </Button>
           )}

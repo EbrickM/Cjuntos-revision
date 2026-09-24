@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, FileCheck, Clock, Building2, User, Users,
-  LayoutGrid, Search, Zap, X, Eye, Landmark, History, Send,
+  LayoutGrid, Search, Zap, X, Eye, Landmark, History, Send, Plus,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -10,16 +10,38 @@ import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
+
 import RequerirButton from '../../components/invoices/RequerirButton';
-import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
+import { montoRestanteFactura } from '../../components/invoices/facturaUtils';
+import { InfoRow, SectionHeader, IpiVerificacionModal, useEmpresasContratadas } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
 import { facturaService } from '../../services/factura.service';
 import { INV, ESTADO_LABEL, estadoLabel, estadoBadge } from '../../lib/invoiceStates';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
-import { ORA, TEXT4, fmt, facturas, pymes, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
+import { ORA, TEXT4, fmt, facturas, facturaBadge, scoreColor, contratanteState, contratoBadge } from './contratanteData';
 
 const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
+
+const PREFIJO_TEL = '+240';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SECTORES = [
+  'Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología',
+  'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio',
+  'Materiales', 'Otro',
+];
+const NUEVA_PYME_EMPTY = { open: false, nombre: '', nombreComercial: '', sector: 'Construcción', telefono: '', correo: '' };
+
+const initialesDe = (name = '') => {
+  const words = name
+    .replace(/[^A-Za-zÀ-ÿÑñ0-9 ]/g, '')
+    .split(' ')
+    .filter(Boolean);
+  if (words.length === 0) return '--';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+};
 
 const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   ? 'Cuenta Bonafide existente'
@@ -54,34 +76,51 @@ const esPagoAplicable = (e) =>
 // ── Bloque: Completar pago de la factura (Contratante) ───────────────────────
 // Dos checkboxes: "Pagar al completo" (habilita Aceptar al instante) o "Pagar
 // un % de la factura" (despliega % y monto con validación cruzada: el % no
-// puede ser 0 ni >100, el monto no puede superar el de la factura, y el sistema
-// solo calcula el otro campo). El botón Aceptar queda deshabilitado hasta elegir
-// una modalidad válida; por ahora Aceptar cierra el modal. Si el pago es parcial
-// (no se paga la factura completa), la factura NO cambia de estado.
+// puede ser 0 ni >100, el monto no puede superar el SALDO PENDIENTE, y el
+// sistema solo calcula el otro campo). El botón Aceptar queda deshabilitado
+// hasta elegir una modalidad válida. Si el pago es parcial (no se paga la
+// factura completa), la factura NO cambia de estado.
+//
+// Todos los topes (label, inputs, validación) se calculan contra el SALDO
+// PENDIENTE (montoRestanteFactura), no contra el monto original de la
+// factura: si ya hubo un pago parcial previo, "pagar al completo" solo cobra
+// lo que falta, y "%"/"monto a pagar" tampoco pueden superar ese resto —
+// nunca se puede volver a pedir un monto que ya fue cubierto.
 function PagoFacturaBlock({ factura, onAceptar }) {
   const [opcion, setOpcion]     = useState('');   // '' | 'total' | 'parcial'
   const [pctStr, setPctStr]     = useState('');
   const [montoStr, setMontoStr] = useState('');
+  const [enviando, setEnviando] = useState(false);
   const fmtMonto = (n) => new Intl.NumberFormat('de-DE').format(Number(n) || 0);
-  const total   = Number(factura?.monto) || 0;
+  const total    = Number(factura?.monto) || 0;
+  const yaPago   = Math.min(Number(factura?.pagosAcumulados) || 0, total);
+  const restante = montoRestanteFactura(factura);
   const pctN    = Number(String(pctStr).replace(/[^0-9]/g, '')) || 0;
   const montoN  = Number(String(montoStr).replace(/[^0-9]/g, '')) || 0;
   const pctValido   = pctN > 0 && pctN <= 100;
-  const montoValido = montoN > 0 && montoN <= total;
+  const montoValido = montoN > 0 && montoN <= restante;
   const aceptable   = opcion === 'total' || (opcion === 'parcial' && pctValido && montoValido);
-  const montoEquivalente = Math.round(total * pctN / 100);
+  const montoEquivalente = Math.round(restante * pctN / 100);
   const deshabilitar = pctN === 0 && montoN === 0;
 
   const onPctChange = (raw) => {
     const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
     setPctStr(String(n));
-    setMontoStr(total > 0 ? fmtMonto(Math.round(total * n / 100)) : '');
+    setMontoStr(restante > 0 ? fmtMonto(Math.round(restante * n / 100)) : '');
   };
   const onMontoChange = (raw) => {
     const n = Number(String(raw).replace(/[^0-9]/g, '')) || 0;
     setMontoStr(n > 0 ? fmtMonto(n) : '');
-    setPctStr(total > 0 ? String(Number((n / total) * 100).toFixed(2)) : '');
+    setPctStr(restante > 0 ? String(Number((n / restante) * 100).toFixed(2)) : '');
   };
+
+  if (restante <= 0) {
+    return (
+      <div className="rounded-[12px] border border-border p-4" style={{ background: '#FBFAF8' }}>
+        <p className="text-[12px] text-text-4">Esta factura ya no tiene saldo pendiente de pago.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[12px] border border-border p-4" style={{ background: '#FBFAF8' }}>
@@ -97,9 +136,12 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           onChange={() => setOpcion(opcion === 'total' ? '' : 'total')}
           className="accent-orange w-4 h-4 shrink-0"
         />
-        <span className="text-[13px] font-medium text-text-1">Pagar la factura al completo</span>
-        <span className="ml-auto text-[11px] font-semibold text-text-3">{fmt(total)} XAF</span>
+        <span className="text-[13px] font-medium text-text-1">{yaPago > 0 ? 'Pagar el saldo restante' : 'Pagar la factura al completo'}</span>
+        <span className="ml-auto text-[11px] font-semibold text-text-3">{fmt(restante)} XAF</span>
       </label>
+      {yaPago > 0 && (
+        <p className="text-[10px] text-text-4 mt-1 ml-1">Factura original: {fmt(total)} XAF · Ya pagado: {fmt(yaPago)} XAF</p>
+      )}
 
       <label
         className={`mt-2 flex items-center gap-2.5 rounded-[10px] border px-3 py-2.5 cursor-pointer transition ${opcion === 'parcial' ? 'border-orange bg-orange-tint' : 'border-border bg-white'}`}
@@ -110,7 +152,7 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           onChange={() => setOpcion(opcion === 'parcial' ? '' : 'parcial')}
           className="accent-orange w-4 h-4 shrink-0"
         />
-        <span className="text-[13px] font-medium text-text-1">Pagar un % de la factura</span>
+        <span className="text-[13px] font-medium text-text-1">Pagar un % {yaPago > 0 ? 'del saldo pendiente' : 'de la factura'}</span>
       </label>
 
       {opcion === 'parcial' && (
@@ -141,8 +183,8 @@ function PagoFacturaBlock({ factura, onAceptar }) {
                 onChange={e => onMontoChange(e.target.value)}
                 className="h-10 w-full border-2 border-gray-200 rounded-[8px] bg-white px-3 text-[13px] font-semibold text-text-1 outline-none focus:border-orange transition caret-orange"
               />
-              {montoN > total && (
-                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>No puede superar {fmt(total)} XAF.</div>
+              {montoN > restante && (
+                <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>No puede superar {fmt(restante)} XAF (saldo pendiente).</div>
               )}
               {montoN === 0 && !deshabilitar && (
                 <div className="text-[10px] font-semibold mt-1" style={{ color: '#B8352A' }}>Debe ser mayor a 0.</div>
@@ -151,7 +193,7 @@ function PagoFacturaBlock({ factura, onAceptar }) {
           </div>
           <p className="text-[11px] text-text-4 leading-relaxed">
             {pctValido && montoValido
-              ? <>Pagarás el <b>{pctN}%</b> ({fmt(montoEquivalente)} XAF). La factura quedará <b>Aprobada</b> hasta que se pague al completo.</>
+              ? <>Pagarás el <b>{pctN}%</b>{yaPago > 0 ? ' del saldo pendiente' : ''} ({fmt(montoEquivalente)} XAF). La factura quedará <b>Aprobada</b> hasta que se pague al completo.</>
               : 'Ingresá el % o el monto deseado; el sistema calcula el otro valor automáticamente.'}
           </p>
         </div>
@@ -160,12 +202,16 @@ function PagoFacturaBlock({ factura, onAceptar }) {
       <Button
         full
         className="mt-4 h-[44px] justify-center"
-        disabled={!aceptable}
-        onClick={() => onAceptar({
-          completo: opcion === 'total',
-          pct: opcion === 'parcial' ? pctN : 100,
-          monto: opcion === 'parcial' ? montoN : total,
-        })}
+        disabled={!aceptable || enviando}
+        onClick={() => {
+          if (enviando) return;
+          setEnviando(true);
+          onAceptar({
+            completo: opcion === 'total',
+            pct: opcion === 'parcial' ? pctN : 100,
+            monto: opcion === 'parcial' ? montoN : restante,
+          });
+        }}
       >
         Aceptar
       </Button>
@@ -187,27 +233,34 @@ export default function EmpContratoDetalle() {
   // haya ninguna, NO se muestra el botón "Generar IPI" junto al filtro.
   const [opsPago, setOpsPago]           = useState([]);
   const [ipiOps, setIpiOps]             = useState(false); // modal resumen de operaciones
+  // ── Agregar Empresa Contratada directamente desde este contrato ───────────
+  const [listaPymes, setListaPymes]     = useEmpresasContratadas();
+  const [agregarPyme, setAgregarPyme]   = useState(NUEVA_PYME_EMPTY);
+  const [pymesManualesPorContrato, setPymesManualesPorContrato] = useState({});
+  const pymesDe = (nombre) => listaPymes.find(p => p.nombre === nombre) ?? null;
   const [busquedaFac, setBusquedaFac]   = useState('');
   const [sortPyme, setSortPyme]         = useState({ key: null, dir: 'asc' });
   const [groupByPyme, setGroupByPyme]   = useState(null);
   const [sortFac2, setSortFac2]         = useState({ key: null, dir: 'asc' });
   const [groupByFac2, setGroupByFac2]   = useState(null);
-  const pymesDe = (nombre) => pymes.find(p => p.nombre === nombre) ?? null;
   const c    = contratanteState.selectedContrato
     ?? contratoService.listarPorVista('contratante').filter(x => x.tipo !== 'marco')[0] ?? null;
   const pct  = c && c.asignado > 0 ? Math.round((c.utilizado / c.asignado) * 100) : 0;
   const disp = c ? c.asignado - c.utilizado : 0;
   // Todas las facturas ABIERTAS de este contrato: las del pipeline (la semilla
   // de facturaService en localDb) más las heredadas del mock estático de la
-  // Contratante (FAC-2026-0911/0918 "Recibida", que sostienen el flujo manual
-  // Verificar → Emitir IPI de este portal). Se excluyen los estados terminales
-  // (Pagada / Saldo en Billetera) y se evitan duplicados por id.
+  // Contratante, para las que el pipeline no tiene ningún registro propio (dato
+  // legado que sostiene el flujo manual Verificar → Emitir IPI de este portal).
+  // El id se considera "ya representado por el pipeline" aunque su registro
+  // esté cerrado (Pagada / Saldo en Billetera): si no, una factura que ya se
+  // terminó de pagar volvería a aparecer con su estado legado ("Recibida")
+  // en vez de desaparecer como cualquier otra factura terminal. Se excluyen
+  // los estados terminales y se evitan duplicados por id.
   const facturasContrato = c ? (() => {
-    const abiertas = facturaService
-      .listarPorRol('contratante')
-      .filter(f => f.contrato === c.id && !CERRADAS.has(f.estado));
-    const idsAbiertas = new Set(abiertas.map(f => f.id));
-    return [...abiertas, ...facturas.filter(f => f.contrato === c.id && !idsAbiertas.has(f.id))]
+    const delPipeline = facturaService.listarPorRol('contratante').filter(f => f.contrato === c.id);
+    const idsPipeline = new Set(delPipeline.map(f => f.id));
+    const abiertas = delPipeline.filter(f => !CERRADAS.has(f.estado));
+    return [...abiertas, ...facturas.filter(f => f.contrato === c.id && !idsPipeline.has(f.id))]
       .map(f => ({ ...f, estado: estadoMap[f.id] ?? f.estado }));
   })() : [];
   const modalFac = facturaModal ? (facturasContrato.find(f => f.id === facturaModal.id) ?? facturaModal) : null;
@@ -215,8 +268,10 @@ export default function EmpContratoDetalle() {
   // PYMEs de este contrato: si la Contratante ya repartió el marco en el wizard
   // (Subproceso 1 del BPMN), se muestran sus pymesAsignadas; si no, se cae a los
   // hermanos del mismo contrato-marco (o a esta misma asignación como dato
-  // legado sin `marcoId`).
-  const hermanos = c?.pymesAsignadas?.length
+  // legado sin `marcoId`). Las agregadas manualmente desde este mismo detalle
+  // (botón "Agregar Empresa Contratada") van primero.
+  const pymesManuales = c ? (pymesManualesPorContrato[c.id] ?? []) : [];
+  const hermanosBase = c?.pymesAsignadas?.length
     ? c.pymesAsignadas.map(a => ({
         id: a.id ?? a.pymeId ?? c.id,
         pyme: a.pymeNombre,
@@ -228,6 +283,7 @@ export default function EmpContratoDetalle() {
     : c?.marcoId
       ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
       : c ? [c] : [];
+  const hermanos = [...pymesManuales, ...hermanosBase];
 
   const toggleSortPyme  = (k) => setSortPyme(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
   const toggleGroupPyme = (k) => setGroupByPyme(g => g === k ? null : k);
@@ -257,21 +313,74 @@ export default function EmpContratoDetalle() {
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
 
+  // Mismos campos y validación que "Agregar Empresa Contratada" en EmpPymes.jsx:
+  // Razón Social, Sector, Teléfono y Correo son obligatorios; Nombre Comercial
+  // es opcional. Sin selector de contrato — queda ligada a `c.id` directamente.
+  const emailLimpioPyme      = agregarPyme.correo.trim();
+  const emailInvalidoPyme    = emailLimpioPyme !== '' && !EMAIL_REGEX.test(emailLimpioPyme);
+  const telefonoLocalPyme    = agregarPyme.telefono.replace(/\D/g, '');
+  const telefonoValidoPyme   = /^\d{7,9}$/.test(telefonoLocalPyme);
+  const telefonoInvalidoPyme = telefonoLocalPyme !== '' && !telefonoValidoPyme;
+  const formOkPyme = agregarPyme.nombre.trim() && !!agregarPyme.sector && telefonoValidoPyme && emailLimpioPyme !== '' && !emailInvalidoPyme;
+
+  const handleAgregarPyme = () => {
+    if (!formOkPyme || !c) return;
+    setListaPymes(prev => [
+      {
+        ini: initialesDe(agregarPyme.nombre),
+        nombre: agregarPyme.nombre.trim(),
+        sector: agregarPyme.sector,
+        contratos: 1,
+        contratoId: c.id,
+        montoTotal: 0,
+        score: null,
+        semaforo: 'En espera',
+        nombreComercial: agregarPyme.nombreComercial.trim(),
+        ruc: '',
+        telefono: `${PREFIJO_TEL} ${telefonoLocalPyme}`,
+        correo: emailLimpioPyme,
+        repNombre: '', repTipoDoc: '', repId: '', repCargo: '', repTel: '', repCorreo: '',
+      },
+      ...prev,
+    ]);
+    // La refleja de inmediato en la tabla "Emp. Contratada" de este contrato.
+    setPymesManualesPorContrato(prev => ({
+      ...prev,
+      [c.id]: [
+        {
+          id: c.id,
+          _key: `${c.id}-manual-${Date.now()}`,
+          pyme: agregarPyme.nombre.trim(),
+          estado: c.estado,
+          asignado: 0,
+          plazoPago: null,
+          documentoNombre: null,
+        },
+        ...(prev[c.id] ?? []),
+      ],
+    }));
+    setAgregarPyme(NUEVA_PYME_EMPTY);
+  };
+
   // Confirmación de pago desde el bloque "Completar pago". Al completo → la
   // factura pasa a su estado terminal; parcial → queda Aprobada (acumulando
   // pagos) hasta pagarse al 100%. Cada operación confirmada se acumula para
   // generar el IPI del contrato (botón junto al filtro).
   const handleAceptarPago = (pago) => {
     if (!modalFac) return;
-    facturaService.pagar(modalFac.id, pago);
+    const actualizada = facturaService.pagar(modalFac.id, pago);
+    // Monto realmente aplicado por el servicio (ya recortado contra el saldo
+    // pendiente), no el que tecleó el usuario — así el resumen de "Generar
+    // IPI" siempre coincide con lo que de verdad quedó registrado.
+    const montoAplicado = (Number(actualizada.pagosAcumulados) || 0) - (Number(modalFac.pagosAcumulados) || 0);
     setOpsPago(prev => [...prev, {
       id: `${Date.now()}-${prev.length}`,
       facturaId: modalFac.id,
       pyme: modalFac.pyme,
       concepto: modalFac.concepto,
       tipo: pago.completo ? 'Completo' : 'Parcial',
-      monto: pago.completo ? Number(modalFac.monto) : Number(pago.monto) || 0,
-      pct: pago.completo ? 100 : Number(pago.pct) || 0,
+      monto: montoAplicado,
+      pct: actualizada.pagoParcial ? Number(actualizada.pagoParcial.pct) || 0 : 100,
       fecha: new Date().toLocaleDateString('es-GQ', { day: '2-digit', month: '2-digit', year: 'numeric' }),
     }]);
     closeModal();
@@ -385,9 +494,14 @@ export default function EmpContratoDetalle() {
                 <div className="text-[14px] font-bold text-text-1">Empresas Contratadas de este Contrato-Marco</div>
                 <div className="text-[11px] text-text-4">Empresas Contratadas y monto que la Contratante les asignó</div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Users className="w-4 h-4" style={{ color: ORA }} />
-                <span className="text-[11px] font-bold" style={{ color: ORA }}>{hermanos.length} Empresa{hermanos.length === 1 ? ' Contratada' : 's Contratadas'}</span>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Button size="sm" onClick={() => setAgregarPyme({ ...NUEVA_PYME_EMPTY, open: true })}>
+                  <Plus className="w-3.5 h-3.5" /> Agregar Empresa Contratada
+                </Button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Users className="w-4 h-4" style={{ color: ORA }} />
+                  <span className="text-[11px] font-bold" style={{ color: ORA }}>{hermanos.length} Empresa{hermanos.length === 1 ? ' Contratada' : 's Contratadas'}</span>
+                </div>
               </div>
             </div>
 
@@ -420,7 +534,7 @@ export default function EmpContratoDetalle() {
                 ] : [];
                 const rowDiv = (
                   <div
-                    key={h.id}
+                    key={h._key ?? h.id}
                     onClick={() => setPymeDetalle(h)}
                     className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1.4fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
@@ -616,6 +730,81 @@ export default function EmpContratoDetalle() {
         )}
 
       </div>
+
+      {/* ── Modal: Agregar Empresa Contratada (ligada a este contrato) ── */}
+      {agregarPyme.open && (
+        <Modal
+          title="Agregar Empresa Contratada"
+          onClose={() => setAgregarPyme(NUEVA_PYME_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setAgregarPyme(NUEVA_PYME_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAgregarPyme} disabled={!formOkPyme}>Guardar Empresa</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">
+              Registra una nueva Empresa Contratada en tu directorio. Quedará ligada al contrato {c.id}.
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <FormGroup label="Razón Social" required>
+                <Input
+                  value={agregarPyme.nombre}
+                  onChange={e => setAgregarPyme(a => ({ ...a, nombre: e.target.value }))}
+                  placeholder="Ej: Constructora del Litoral"
+                />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input
+                  value={agregarPyme.nombreComercial}
+                  onChange={e => setAgregarPyme(a => ({ ...a, nombreComercial: e.target.value }))}
+                  placeholder="Ej: Litogal"
+                />
+              </FormGroup>
+              <FormGroup label="Sector Productivo" required>
+                <Select
+                  value={agregarPyme.sector}
+                  onChange={e => setAgregarPyme(a => ({ ...a, sector: e.target.value }))}
+                >
+                  {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocalPyme.slice(0, 9)}
+                    onChange={e => setAgregarPyme(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalidoPyme ? '!border-red-400 focus:!border-red-500' : ''}`}
+                  />
+                </div>
+                {telefonoInvalidoPyme && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Correo" required>
+                <Input
+                  type="email"
+                  value={agregarPyme.correo}
+                  onChange={e => setAgregarPyme(a => ({ ...a, correo: e.target.value }))}
+                  placeholder="Ej: info@empresa.gq"
+                  className={emailInvalidoPyme ? '!border-red-400 focus:!border-red-500' : ''}
+                />
+                {emailInvalidoPyme && (
+                  <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
+                )}
+              </FormGroup>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Modal: Detalle de PYME (disparado por el ojo en la tabla) ── */}
       {pymeDetalle && (() => {

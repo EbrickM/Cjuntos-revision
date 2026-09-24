@@ -1,7 +1,39 @@
 import { useState, useRef, useEffect } from 'react';
 import { Mail, X } from 'lucide-react';
 import Button from '../../components/ui/Button';
-import { RED, ORA, TEXT4, fmt } from './contratanteData';
+import { RED, ORA, TEXT4, fmt, pymes as pymesSeed } from './contratanteData';
+import { localDb } from '../../lib/localDb';
+
+// ── Directorio de Empresas Contratadas (persistido) ───────────────────────────
+// EmpPymes.jsx (directorio) y EmpContratoDetalle.jsx (botón "Agregar Empresa
+// Contratada" dentro de un contrato) comparten el mismo directorio vía localDb,
+// para que una empresa registrada desde cualquiera de las dos pantallas
+// aparezca en ambas.
+const PYMES_KEY = 'emp_pymes';
+const PYMES_VERSION = 1;
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useEmpresasContratadas() {
+  const [lista, setLista] = useState(() => localDb.get(PYMES_KEY, pymesSeed, PYMES_VERSION));
+  useEffect(() => { localDb.set(PYMES_KEY, lista); }, [lista]);
+  return [lista, setLista];
+}
+
+// Toda fecha de la plataforma llega como string 'DD/MM/YYYY' — la parseamos a
+// un entero YYYYMMDD ordenable en vez de comparar los strings directamente
+// (mismo criterio que fondeadorShared.jsx).
+function fechaOrdenable(fecha) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fecha ?? '');
+  if (!m) return -Infinity;
+  const [, d, mo, y] = m;
+  return Number(`${y}${mo}${d}`);
+}
+
+// Más nueva primero, más vieja al final.
+// eslint-disable-next-line react-refresh/only-export-components
+export function porFechaDesc(a, b) {
+  return fechaOrdenable(b.fecha) - fechaOrdenable(a.fecha);
+}
 
 // ── Helpers de Perfil (idénticos al PYME) ─────────────────────────────────────
 export const HeroBadge = ({ label, value, Icon, bg, color }) => (

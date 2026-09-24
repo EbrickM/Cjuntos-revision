@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Search, Eye, Building2, ScrollText, Receipt, History, ListFilter, Mail, Phone, ChevronDown, Zap, Send,
+  Search, Eye, Building2, ScrollText, Receipt, History, ListFilter, Mail, Phone, ChevronDown, Zap,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -16,7 +16,7 @@ import { INV } from '../../lib/invoiceStates';
 import { CST } from '../../lib/contractStates';
 import { nombrePymeContrato } from '../../components/contratos/contratoUtils';
 import { fmt } from '../empresa-pequena/epData';
-import { BANCO } from './fondeadorShared';
+import { BANCO, porFechaDesc } from './fondeadorShared';
 
 // ── CONSULTAS DEL BANCO FONDEADOR (rol `fondeador`) ────────────────────────────
 // El Banco Fondeador es un rol SOLO DE LECTURA: ya no valida IPIs ni pone
@@ -43,6 +43,9 @@ const FILTROS_ESTADO = ['Todos', 'Enviada', 'En Evaluación', 'Emitida', 'Con Re
 const FILTROS_ESTADO_KEY = { 'Enviada': INV.enviada, 'En Evaluación': INV.enEvaluacion, 'Emitida': INV.emitida, 'Con Requerimientos': INV.conRequerimientos, 'OTP Enviada': INV.otpEnviada, 'Pagada': INV.pagada, 'Saldo en Billetera': INV.billetera };
 
 const ESTADOS_FILTRO_CT = ['Todos', 'Pendiente de Configuración', 'Pendiente de Revisión', 'Con Requerimientos', 'En Discusión de Términos', 'Activo'];
+
+const ESTADOS_FILTRO_IPI = ['Todos', 'Recibida', 'Ejecutada'];
+const ipiEstadoBadge = (estado) => (estado === 'Ejecutada' ? 'green' : 'blue');
 
 const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 const fmtRegistro = (n) => `${new Intl.NumberFormat('de-DE').format(Number(n) || 0)} XAF`;
@@ -317,13 +320,15 @@ function TabClientes() {
 }
 
 // ── Tab: Contratos (listado consulta, sin borrar) ─────────────────────────────
-function TabContratos() {
+function TabContratos({ filtroCliente }) {
   const [contracts] = useState(() => contratoService.listar());
   const [search, setSearch] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [detalleModal, setDetalleModal] = useState(null);
 
-  const filteredContracts = contracts.filter(c => {
+  const contratosCliente = filtroCliente ? contracts.filter(c => c.contratante?.razonSocial === filtroCliente) : contracts;
+
+  const filteredContracts = contratosCliente.filter(c => {
     const q = search.trim().toLowerCase();
     const matchesSearch = !q ||
       c.id.toLowerCase().includes(q) ||
@@ -339,9 +344,9 @@ function TabContratos() {
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Contratos"
-        sub="Todos los contratos de crédito de la plataforma (consulta)."
+        sub={filtroCliente ? `Contratos de ${filtroCliente} (consulta).` : 'Todos los contratos de crédito de la plataforma (consulta).'}
         Icon={ScrollText}
-        right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contracts.length} registrados</span>}
+        right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{contratosCliente.length} registrados</span>}
       />
 
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
@@ -551,24 +556,26 @@ function TabContratos() {
 }
 
 // ── Tab: Facturas (historial + % de pago completado de las Aprobadas) ─────────
-function TabFacturas() {
+function TabFacturas({ filtroCliente }) {
   const [filtroEstado, setFiltroEstado] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
   const [detalle, setDetalle] = useState(null);
 
-  const facturas = facturaService.listar();
+  const todasLasFacturas = facturaService.listar();
+  const facturas = filtroCliente ? todasLasFacturas.filter(f => f.contratante === filtroCliente) : todasLasFacturas;
 
   const q = busqueda.trim().toLowerCase();
   const matchesQ = (f, fields) => !q || fields.some(v => (v ?? '').toLowerCase().includes(q));
 
   const facturasFiltradas = (filtroEstado === 'Todos' ? facturas : facturas.filter(f => f.estado === FILTROS_ESTADO_KEY[filtroEstado]))
-    .filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]));
+    .filter(f => matchesQ(f, [f.id, f.pyme, f.contratante, f.concepto, f.contrato]))
+    .sort(porFechaDesc);
 
   return (
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Todas las facturas"
-        sub="Historial completo de la cadena de facturación; las aprobadas muestran el % de pago completado."
+        sub={filtroCliente ? `Facturas de ${filtroCliente}; las aprobadas muestran el % de pago completado.` : 'Historial completo de la cadena de facturación; las aprobadas muestran el % de pago completado.'}
         Icon={Receipt}
         right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{facturas.length} registradas</span>}
       />
@@ -753,32 +760,47 @@ function ipisFondeador() {
       contrato: c.id,
       fecha: ops.reduce((a, o) => (o.fecha > a ? o.fecha : a), ops[0].fecha),
       monto: ops.reduce((a, o) => a + (Number(o.monto) || 0), 0),
+      // Recibida: el IPI llegó al banco pero aún tiene operaciones con pago
+      // parcial en curso. Ejecutada: todas sus operaciones ya se liquidaron
+      // por completo.
+      estado: ops.every(o => o.tipo === 'Completo') ? 'Ejecutada' : 'Recibida',
       ops,
     });
   });
 
-  return ipis.sort((a, b) => (b.fecha ?? '').localeCompare(a.fecha ?? ''));
+  return ipis.sort(porFechaDesc);
 }
 
 // ── Tab: IPIs (por contrato de las Empresas Contratantes) ─────────────────────
-function TabIPIs() {
+function TabIPIs({ filtroCliente }) {
   const [detalle, setDetalle] = useState(null);
-  const ipis = ipisFondeador();
-
-  const handleEnviarIpi = () => {
-    if (!detalle) return;
-    facturaService.enviarIpiDeContrato(detalle.ops);
-    setDetalle(null);
-  };
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const ipisTodosLosClientes = ipisFondeador();
+  const todosLosIpis = filtroCliente ? ipisTodosLosClientes.filter(i => i.contratante === filtroCliente) : ipisTodosLosClientes;
+  const ipis = filtroEstado === 'Todos' ? todosLosIpis : todosLosIpis.filter(i => i.estado === filtroEstado);
 
   return (
     <div className="bg-white rounded-[14px] border border-border p-5">
       <Header
         title="Instrucciones de Pago (IPIs)"
-        sub="IPIs por contrato de las Empresas Contratantes; el ojo abre el resumen de operaciones de cada IPI."
+        sub={filtroCliente ? `IPIs de ${filtroCliente}; el ojo abre el resumen de operaciones de cada IPI.` : 'IPIs por contrato de las Empresas Contratantes; el ojo abre el resumen de operaciones de cada IPI.'}
         Icon={Zap}
         right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{ipis.length} IPIs</span>}
       />
+
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="relative flex items-center shrink-0">
+          <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
+          <select
+            value={filtroEstado}
+            onChange={e => setFiltroEstado(e.target.value)}
+            className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+          >
+            {ESTADOS_FILTRO_IPI.map(e => <option key={e}>{e}</option>)}
+          </select>
+        </div>
+      </div>
 
       {/* Móvil: cards sin scroll lateral */}
       <div className="sm:hidden space-y-2">
@@ -790,14 +812,19 @@ function TabIPIs() {
               <span className="text-[12px] font-bold text-text-1 truncate">{i.contratante}</span>
               <span className="text-[11px] font-mono text-text-5 ml-auto shrink-0">{i.contrato}</span>
             </div>
-            <div className="text-[11px] text-text-4 truncate mt-0.5">
+            <div className="flex items-center gap-1.5 mt-1">
+              <Badge variant={ipiEstadoBadge(i.estado)}>{i.estado}</Badge>
+            </div>
+            <div className="text-[11px] text-text-4 truncate mt-1">
               {i.fecha} · {i.ops.length} operación{i.ops.length === 1 ? '' : 'es'}
             </div>
             <div className="text-[12px] font-bold text-text-1 mt-0.5">{fmt(i.monto)} XAF</div>
           </div>
         ))}
         {ipis.length === 0 && (
-          <div className="text-[12px] text-text-4 text-center py-8">No hay IPIs registrados.</div>
+          <div className="text-[12px] text-text-4 text-center py-8">
+            {todosLosIpis.length === 0 ? 'No hay IPIs registrados.' : 'No se encontraron IPIs con el filtro aplicado.'}
+          </div>
         )}
       </div>
 
@@ -806,9 +833,9 @@ function TabIPIs() {
         <table className="w-full">
           <thead className="bg-page-bg">
             <tr className="border-b border-border">
-              {['Empresa Contratante', 'Contrato', 'Operaciones', 'Fecha', 'Monto', 'Detalle'].map((h, i) => (
+              {['Empresa Contratante', 'Contrato', 'Operaciones', 'Estado', 'Fecha', 'Monto', 'Detalle'].map((h, i) => (
                 <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-2.5 py-3 whitespace-nowrap
-                  ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
+                  ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
                 `}>{h}</th>
               ))}
             </tr>
@@ -829,6 +856,9 @@ function TabIPIs() {
                 <td className="px-2.5 py-3 text-center">
                   <span className="text-[11px] font-semibold text-text-3 whitespace-nowrap">{i.ops.length}</span>
                 </td>
+                <td className="px-2.5 py-3 text-center">
+                  <Badge variant={ipiEstadoBadge(i.estado)}>{i.estado}</Badge>
+                </td>
                 <td className="px-2.5 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{i.fecha}</td>
                 <td className="px-2.5 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(i.monto)} XAF</td>
                 <td className="px-2.5 py-3 text-center">
@@ -843,7 +873,9 @@ function TabIPIs() {
             ))}
             {ipis.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[12px] text-text-4">No hay IPIs registrados.</td>
+                <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
+                  {todosLosIpis.length === 0 ? 'No hay IPIs registrados.' : 'No se encontraron IPIs con el filtro aplicado.'}
+                </td>
               </tr>
             )}
           </tbody>
@@ -855,12 +887,7 @@ function TabIPIs() {
           title={`IPI · Resumen de operaciones (${detalle.ops.length})`}
           onClose={() => setDetalle(null)}
           footer={
-            <>
-              <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
-              <Button size="sm" onClick={handleEnviarIpi}>
-                <Send className="w-3.5 h-3.5 mr-1" /> Enviar IPI
-              </Button>
-            </>
+            <Button variant="ghost" size="sm" onClick={() => setDetalle(null)}>Cerrar</Button>
           }
         >
           <div className="space-y-4">
@@ -950,12 +977,21 @@ function registrosFondeador() {
     push(f.contratante, f.fecha, 'facturas', `Emitió la factura ${f.id} por ${fmtRegistro(f.monto)} (${f.pyme ?? '—'}).`);
   });
 
-  return ev.sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''));
+  return ev.sort(porFechaDesc);
 }
 
 export default function FondOrdenes() {
   const [tab, setTab] = useState('clientes');
+  const [filtroCliente, setFiltroCliente] = useState('');
   const registros = useMemo(() => registrosFondeador(), []);
+  const registrosFiltrados = filtroCliente ? registros.filter(r => r.referente === filtroCliente) : registros;
+
+  // Con un cliente seleccionado en el filtro general ya no tiene sentido la
+  // pestaña "Clientes" (solo se está viendo a uno); si estaba activa, se cae
+  // a "Contratos" — derivado en el render, no con un efecto, para no
+  // encadenar un segundo render solo para corregir la pestaña.
+  const tabsVisibles = filtroCliente ? TABS.filter(t => t.id !== 'clientes') : TABS;
+  const tabActiva = filtroCliente && tab === 'clientes' ? 'contratos' : tab;
 
   return (
     <AppShell
@@ -966,29 +1002,45 @@ export default function FondOrdenes() {
     >
       <div className="fade-in space-y-5">
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
-          {TABS.map(({ id, lbl, Icon }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
-                tab === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
-              }`}>
-              <Icon className="w-3.5 h-3.5" />{lbl}
-            </button>
-          ))}
+        {/* Tabs + filtro general por Empresa Contratante (discreto, en la misma fila) */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
+            {tabsVisibles.map(({ id, lbl, Icon }) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
+                  tabActiva === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
+                }`}>
+                <Icon className="w-3.5 h-3.5" />{lbl}
+              </button>
+            ))}
+          </div>
+
+          <div className="relative flex items-center shrink-0">
+            <Building2 className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-text-4" />
+            <select
+              value={filtroCliente}
+              onChange={e => setFiltroCliente(e.target.value)}
+              title="Filtrar por Empresa Contratante"
+              className="h-8 pl-8 pr-7 text-[11px] font-medium rounded-[8px] border border-border bg-white text-text-3 focus:outline-none focus:border-orange transition cursor-pointer appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A9A6A1' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+            >
+              <option value="">Todos los clientes</option>
+              {EMPRESAS_CONTRATANTES.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
+            </select>
+          </div>
         </div>
 
-        {tab === 'clientes' && <TabClientes />}
-        {tab === 'contratos' && <TabContratos />}
-        {tab === 'facturas' && <TabFacturas />}
-        {tab === 'ipis' && <TabIPIs />}
+        {tabActiva === 'clientes' && !filtroCliente && <TabClientes />}
+        {tabActiva === 'contratos' && <TabContratos filtroCliente={filtroCliente} />}
+        {tabActiva === 'facturas' && <TabFacturas filtroCliente={filtroCliente} />}
+        {tabActiva === 'ipis' && <TabIPIs filtroCliente={filtroCliente} />}
 
-        {tab === 'registros' && (
+        {tabActiva === 'registros' && (
           <RegistrosTabla
             noAnim
-            registros={registros}
+            registros={registrosFiltrados}
             titulo="Registros"
-            sub="Movimientos y actuaciones de las Empresas Contratantes sobre la plataforma."
+            sub={filtroCliente ? `Movimientos y actuaciones de ${filtroCliente} sobre la plataforma.` : 'Movimientos y actuaciones de las Empresas Contratantes sobre la plataforma.'}
           />
         )}
 

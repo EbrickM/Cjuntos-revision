@@ -7,6 +7,7 @@ import { localDb } from '../lib/localDb';
 import { INV, MODALIDAD, TRANSICIONES, estadoLabel } from '../lib/invoiceStates';
 import { SEED_VERSION, seedFacturas, seedPagos, seedBilleteras } from '../lib/invoiceSeeds';
 import { contratoService } from './contrato.service';
+import { montoRestanteFactura } from '../components/invoices/facturaUtils';
 
 const KEY_FACTURAS  = 'facturas';
 const KEY_PAGOS     = 'factura_pagos';
@@ -86,6 +87,24 @@ export const facturaService = {
         if (f?.estado !== INV.aprobada || Number(f?.pagosAcumulados || 0) > 0) return f;
         const pago = Math.round((Number(f.monto) || 0) * 0.2);
         return { ...f, pagosAcumulados: pago, pagoParcial: { pct: 20, monto: pago, fecha: f.fecha } };
+      });
+      localDb.set(KEY_FACTURAS, lista);
+    }
+    // Invariante: toda factura cuyo acumulado ya cubre el monto total debe
+    // quedar en su estado terminal (Pagada / Saldo en Billetera) — nunca debe
+    // quedarse mostrando un estado previo del pipeline una vez completamente
+    // pagada, sin importar qué la llevó a estar pagada al 100%.
+    const sinTerminar = lista.some(f => {
+      const total = Number(f?.monto) || 0;
+      return total > 0 && Number(f?.pagosAcumulados || 0) >= total && f?.estado !== INV.pagada && f?.estado !== INV.billetera;
+    });
+    if (sinTerminar) {
+      lista = lista.map(f => {
+        const total = Number(f?.monto) || 0;
+        const completa = total > 0 && Number(f?.pagosAcumulados || 0) >= total;
+        if (!completa || f?.estado === INV.pagada || f?.estado === INV.billetera) return f;
+        const terminal = (f.modalidadPago || MODALIDAD.retiroTotal) === MODALIDAD.billeteraVirtual ? INV.billetera : INV.pagada;
+        return { ...f, estado: terminal, pagoParcial: null };
       });
       localDb.set(KEY_FACTURAS, lista);
     }
@@ -332,12 +351,22 @@ export const facturaService = {
   // cambia al estado terminal.
   pagar(id, { completo = false, pct = 0, monto = 0 } = {}) {
     return mutarFactura(id, (f) => {
+      // Nada que aplicar: un pago parcial de 0 (o negativo) no debe generar un
+      // evento de "pago parcial" fantasma ni tocar pagoParcial/historia.
+      if (!completo && Number(pct) < 100 && (Number(monto) || 0) <= 0) return f;
+
       const total = Number(f.monto) || 0;
       const yaPago = Math.min(Number(f.pagosAcumulados) || 0, total);
-      const propuesto = Math.min(Math.max(Number(monto) || 0, 0), total - yaPago);
+      // Recortado contra el saldo real (montoRestanteFactura), nunca contra el
+      // monto original: así un segundo pago parcial no puede re-cobrar lo que
+      // ya se pagó antes.
+      const propuesto = Math.min(Math.max(Number(monto) || 0, 0), montoRestanteFactura(f));
       const completoAhora = completo || Number(pct) >= 100 || (yaPago + propuesto) >= total;
       const acumulado = completoAhora ? total : yaPago + propuesto;
-      const pctFinal = Math.min(Math.max(Number(pct) || 0, 0), 100);
+      // Derivado del monto realmente aplicado (ya recortado), no del `pct`
+      // crudo que mandó el caller — así pagoParcial.pct y pagoParcial.monto
+      // nunca quedan inconsistentes entre sí.
+      const pctFinal = total > 0 ? Math.round((propuesto / total) * 100) : 0;
       const terminal = (f.modalidadPago || MODALIDAD.retiroTotal) === MODALIDAD.billeteraVirtual ? INV.billetera : INV.pagada;
       const base = { ...f, pagosAcumulados: acumulado };
       if (completoAhora) {

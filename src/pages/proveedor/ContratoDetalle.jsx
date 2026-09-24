@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Truck,
-  Zap, X, Eye, Landmark, History, Search, LayoutGrid, Send, FileCheck,
+  Zap, X, Eye, Landmark, History, Search, LayoutGrid, Send, FileCheck, Plus,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
@@ -9,12 +9,13 @@ import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
-import { InfoRow, SectionHeader, IpiVerificacionModal, IniAvatar } from './provShared';
+import { InfoRow, SectionHeader, IpiVerificacionModal, IniAvatar, useSuministradores } from './provShared';
 import { StatCard } from '../../components/common/StatCard';
-import { ORA, GREEN, TEXT4, fmt, facturas, suministradores, facturaBadge, scoreColor, kycBadge, provState } from './provData';
+import { ORA, GREEN, TEXT4, fmt, facturas, facturaBadge, scoreColor, kycBadge, provState } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
@@ -35,6 +36,25 @@ const cuentaLabel = (c) => c.cuentaBancaria?.tipo === 'bonafide'
   : `Cuenta en mi Banco · ${c.cuentaBancaria?.numero || '—'}`;
 
 const INIT_FAC_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
+
+const PREFIJO_TEL = '+240';
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SECTORES = [
+  'Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología',
+  'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio',
+  'Materiales', 'Otro',
+];
+const NUEVO_SUM_EMPTY = { open: false, nombre: '', nombreComercial: '', sector: 'Construcción', telefono: '', correo: '' };
+
+const initialesDe = (name = '') => {
+  const words = name
+    .replace(/[^A-Za-zÀ-ÿÑñ0-9 ]/g, '')
+    .split(' ')
+    .filter(Boolean);
+  if (words.length === 0) return '--';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return words.slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+};
 
 // ── DETALLE DE CONTRATO ───────────────────────────────────────────────────────
 const TABS_DETALLE = [
@@ -58,6 +78,15 @@ export default function ProvContratoDetalle() {
   const [groupByFac, setGroupByFac]     = useState(null);
   const [sumDetalle, setSumDetalle]     = useState(null);
   const [facCtModal, setFacCtModal]     = useState(INIT_FAC_EMPTY);
+  // ── Agregar Suministrador directamente desde este contrato ────────────────
+  // Mismo directorio y validación que Suministradores.jsx; sin selector de
+  // contrato, ya que queda ligado automáticamente al contrato que se está viendo,
+  // y aparece de inmediato en la tabla de este mismo contrato (además de en el
+  // directorio). Guardado por contrato porque esta pantalla no se desmonta al
+  // navegar entre contratos (misma ruta siempre).
+  const [listaSuministradores, setListaSuministradores] = useSuministradores();
+  const [agregarSum, setAgregarSum]     = useState(NUEVO_SUM_EMPTY);
+  const [sumManualesPorContrato, setSumManualesPorContrato] = useState({});
   const [, setTick] = useState(0);
   const bump = () => setTick(t => t + 1);
 
@@ -83,13 +112,62 @@ export default function ProvContratoDetalle() {
 
   // Suministradores que este Proveedor registró bajo este contrato
   // (Subproceso 3 del BPMN: el Proveedor reparte el monto que la PYME le
-  // asignó entre sus propios Suministradores).
-  const misSuministradores = c?.suministradores ?? c?.suministradoresAsignados ?? [];
+  // asignó entre sus propios Suministradores). Los agregados manualmente desde
+  // este mismo detalle (botón "Agregar Suministrador") van primero.
+  const sumManuales = c ? (sumManualesPorContrato[c.id] ?? []) : [];
+  const misSuministradores = [...sumManuales, ...(c?.suministradores ?? c?.suministradoresAsignados ?? [])];
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
+
+  // Mismos campos y validación que "Agregar Suministrador" en Suministradores.jsx:
+  // Razón Social, Sector, Teléfono y Correo son obligatorios; Nombre Comercial
+  // es opcional. Sin selector de contrato — queda ligado a `c.id` directamente.
+  const emailLimpioSum      = agregarSum.correo.trim();
+  const emailInvalidoSum    = emailLimpioSum !== '' && !EMAIL_REGEX.test(emailLimpioSum);
+  const telefonoLocalSum    = agregarSum.telefono.replace(/\D/g, '');
+  const telefonoValidoSum   = /^\d{7,9}$/.test(telefonoLocalSum);
+  const telefonoInvalidoSum = telefonoLocalSum !== '' && !telefonoValidoSum;
+  const formOkSum = agregarSum.nombre.trim() && !!agregarSum.sector && telefonoValidoSum && emailLimpioSum !== '' && !emailInvalidoSum;
+
+  const handleAgregarSum = () => {
+    if (!formOkSum || !c) return;
+    setListaSuministradores(prev => [
+      {
+        ini: initialesDe(agregarSum.nombre),
+        nombre: agregarSum.nombre.trim(),
+        sector: agregarSum.sector,
+        contratos: 1,
+        contratoId: c.id,
+        montoTotal: 0,
+        score: null,
+        semaforo: 'En espera',
+        nombreComercial: agregarSum.nombreComercial.trim(),
+        ruc: '',
+        telefono: `${PREFIJO_TEL} ${telefonoLocalSum}`,
+        correo: emailLimpioSum,
+        repNombre: '', repTipoDoc: '', repId: '', repCargo: '', repTel: '', repCorreo: '',
+      },
+      ...prev,
+    ]);
+    // La refleja de inmediato en la tabla "Suministradores" de este contrato.
+    setSumManualesPorContrato(prev => ({
+      ...prev,
+      [c.id]: [
+        {
+          id: `SUM-MANUAL-${Date.now()}`,
+          nombre: agregarSum.nombre.trim(),
+          kyc: undefined,
+          scoreCredito: null,
+          monto: 0,
+        },
+        ...(prev[c.id] ?? []),
+      ],
+    }));
+    setAgregarSum(NUEVO_SUM_EMPTY);
+  };
 
   // Nueva factura al Contratante con este contrato fijo (mismos validadores que
   // el resto de secciones: monto/concepto obligatorios y tope = saldo disponible).
@@ -222,9 +300,14 @@ export default function ProvContratoDetalle() {
                 <div className="text-[14px] font-bold text-text-1">Suministradores de este Contrato</div>
                 <div className="text-[11px] text-text-4">Suministradores registrados y el monto que se les asignó</div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Truck className="w-4 h-4" style={{ color: ORA }} />
-                <span className="text-[11px] font-bold" style={{ color: ORA }}>{misSuministradores.length} Suministrador{misSuministradores.length === 1 ? '' : 'es'}</span>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Button size="sm" onClick={() => setAgregarSum({ ...NUEVO_SUM_EMPTY, open: true })}>
+                  <Plus className="w-3.5 h-3.5" /> Agregar Suministrador
+                </Button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Truck className="w-4 h-4" style={{ color: ORA }} />
+                  <span className="text-[11px] font-bold" style={{ color: ORA }}>{misSuministradores.length} Suministrador{misSuministradores.length === 1 ? '' : 'es'}</span>
+                </div>
               </div>
             </div>
 
@@ -452,9 +535,84 @@ export default function ProvContratoDetalle() {
         />
       )}
 
+      {/* ── Modal: Agregar Suministrador (ligado a este contrato) ── */}
+      {agregarSum.open && (
+        <Modal
+          title="Agregar Suministrador"
+          onClose={() => setAgregarSum(NUEVO_SUM_EMPTY)}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setAgregarSum(NUEVO_SUM_EMPTY)}>Cancelar</Button>
+              <Button variant="primary" onClick={handleAgregarSum} disabled={!formOkSum}>Guardar Suministrador</Button>
+            </>
+          }
+          wide
+        >
+          <div className="space-y-4">
+            <div className="text-[12px] text-text-4">
+              Registra un nuevo Suministrador en tu directorio. Quedará ligado al contrato {c.id}.
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <FormGroup label="Razón Social" required>
+                <Input
+                  value={agregarSum.nombre}
+                  onChange={e => setAgregarSum(a => ({ ...a, nombre: e.target.value }))}
+                  placeholder="Ej: Distribuidora del Golfo"
+                />
+              </FormGroup>
+              <FormGroup label="Nombre Comercial">
+                <Input
+                  value={agregarSum.nombreComercial}
+                  onChange={e => setAgregarSum(a => ({ ...a, nombreComercial: e.target.value }))}
+                  placeholder="Ej: Digolf"
+                />
+              </FormGroup>
+              <FormGroup label="Sector Productivo" required>
+                <Select
+                  value={agregarSum.sector}
+                  onChange={e => setAgregarSum(a => ({ ...a, sector: e.target.value }))}
+                >
+                  {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </FormGroup>
+              <FormGroup label="Teléfono" required>
+                <div className="flex">
+                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                    {PREFIJO_TEL}
+                  </span>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    value={telefonoLocalSum.slice(0, 9)}
+                    onChange={e => setAgregarSum(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                    placeholder="222 XXX XXX"
+                    className={`!rounded-l-none ${telefonoInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}`}
+                  />
+                </div>
+                {telefonoInvalidoSum && (
+                  <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
+                )}
+              </FormGroup>
+              <FormGroup label="Correo" required>
+                <Input
+                  type="email"
+                  value={agregarSum.correo}
+                  onChange={e => setAgregarSum(a => ({ ...a, correo: e.target.value }))}
+                  placeholder="Ej: contacto@suministrador.gq"
+                  className={emailInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}
+                />
+                {emailInvalidoSum && (
+                  <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
+                )}
+              </FormGroup>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {/* ── Modal: Detalle de Suministrador (disparado por el ojo en la tabla) ── */}
       {sumDetalle && (() => {
-        const p = suministradores.find(x => x.nombre === sumDetalle.nombre);
+        const p = listaSuministradores.find(x => x.nombre === sumDetalle.nombre);
         if (!p) return null;
         return (
           <Modal title={`${p.nombre} · ${c.id}`} onClose={() => setSumDetalle(null)} wide>
