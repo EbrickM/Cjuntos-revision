@@ -19,6 +19,22 @@ export function useEmpresasContratadas() {
   return [lista, setLista];
 }
 
+// Toda fecha de la plataforma llega como string 'DD/MM/YYYY' — la parseamos a
+// un entero YYYYMMDD ordenable en vez de comparar los strings directamente
+// (mismo criterio que fondeadorShared.jsx).
+function fechaOrdenable(fecha) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fecha ?? '');
+  if (!m) return -Infinity;
+  const [, d, mo, y] = m;
+  return Number(`${y}${mo}${d}`);
+}
+
+// Más nueva primero, más vieja al final.
+// eslint-disable-next-line react-refresh/only-export-components
+export function porFechaDesc(a, b) {
+  return fechaOrdenable(b.fecha) - fechaOrdenable(a.fecha);
+}
+
 // ── Helpers de Perfil (idénticos al PYME) ─────────────────────────────────────
 export const HeroBadge = ({ label, value, Icon, bg, color }) => (
   <div className="flex items-center gap-3 px-4 py-3 rounded-[12px]" style={{ background: bg }}>
