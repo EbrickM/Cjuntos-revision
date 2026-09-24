@@ -88,10 +88,10 @@ export default function AdminEmpresas() {
 
   return (
     <AppShell active="adminEmpresas" role="admin" title="Empresas Contratantes" sub="Directorio de empresas contratantes">
-      <div className="fade-in">
+      <div className="fade-in space-y-5">
 
         {/* Resumen */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { value: totalCount,        label: 'Total de empresas' },
             { value: conContratosCount, label: 'Asociadas a contratos activos' },
@@ -103,37 +103,37 @@ export default function AdminEmpresas() {
           ))}
         </div>
 
+        {/* Header */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="text-[14px] font-bold text-text-1">Directorio de Empresas Contratantes</div>
+              <div className="text-[11px] text-text-4">Todas las empresas contratantes registradas en la plataforma.</div>
+            </div>
+          </div>
+          <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{empresas.length} registrados</span>
+        </div>
+
+        {/* Buscador alineado a la derecha */}
+        <div className="flex justify-end">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar empresa, RUC o sector…"
+              className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-56"
+            />
+          </div>
+        </div>
+
         {/* Directorio */}
-        <div className="bg-white rounded-[14px] border border-border p-5">
-          {/* Header */}
-          <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-            <div className="flex items-center gap-3">
-              <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="text-[14px] font-bold text-text-1">Directorio de Empresas Contratantes</div>
-                <div className="text-[11px] text-text-4">Todas las empresas contratantes registradas en la plataforma.</div>
-              </div>
-            </div>
-            <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{empresas.length} registrados</span>
-          </div>
-
-          {/* Buscador alineado a la derecha */}
-          <div className="flex justify-end mb-4">
-            <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Buscar empresa, RUC o sector…"
-                className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-56"
-              />
-            </div>
-          </div>
-
+        <div className="bg-white rounded-[14px] border border-border">
           {/* Móvil: cards */}
-          <div className="sm:hidden space-y-2">
+          <div className="sm:hidden space-y-2 p-4">
             {filtered.map(emp => (
               <div key={emp.id} className="rounded-[12px] border border-border px-3 py-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
