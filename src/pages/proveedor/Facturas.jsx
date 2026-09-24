@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
-  Eye, FileText, Banknote, Search, ListFilter, Receipt,
+  Eye, FileText, Banknote, Search,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
@@ -16,7 +16,6 @@ import RequerimientoBadge from '../../components/invoices/RequerimientoBadge';
 import FacturaContratanteModal from '../../components/invoices/FacturaContratanteModal';
 import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
-import { SELECT_ARROW } from '../../components/ui/selectArrow';
 import { contratoService } from '../../services/contrato.service';
 import { INV, estadoLabel } from '../../lib/invoiceStates';
 
@@ -38,23 +37,6 @@ const ESTADO_LABEL = {
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
 
 const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
-
-const SectionHeader = ({ icon: Icon, iconBg, iconColor, title, subtitle, action }) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-    <div className="flex items-center gap-3">
-      {Icon && (
-        <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0" style={{ background: iconBg }}>
-          <Icon className="w-4 h-4" style={{ color: iconColor }} />
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-bold text-text-1">{title}</div>
-        {subtitle && <div className="text-[12px] text-text-4">{subtitle}</div>}
-      </div>
-    </div>
-    {action && <div>{action}</div>}
-  </div>
-);
 
 // ── MIS FACTURAS (portal Proveedor) ───────────────────────────────────────────
 // Fase 2 del BPMN: el Proveedor recibe facturas de sus suministradores; el
@@ -194,38 +176,38 @@ export default function ProvFacturas() {
         </div>
 
         {/* Título + buscador + estado */}
-        <SectionHeader
-            icon={Receipt} iconBg="#FFF3E0" iconColor="#EF7A2C"
-            title="Facturas de Suministradores"
-            action={
-              <Button variant="primary" className="w-full sm:w-auto"
-                onClick={() => setFacModal({ ...INIT_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
-                Nueva Factura
-              </Button>
-            }
-          />
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="relative flex-1 sm:max-w-xs">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-              <input
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar factura, suministrador, contrato…"
-                className="h-8 w-full pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
-              />
-            </div>
-            <div className="relative flex items-center shrink-0">
-              <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-              <select
-                value={filtroEstado}
-                onChange={e => setFiltroEstado(e.target.value)}
-                className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                style={{ backgroundImage: SELECT_ARROW, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-              >
-                {ESTADOS.map(e => <option key={e}>{e}</option>)}
-              </select>
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-[14px] font-bold text-text-1">Facturas de Suministradores</div>
+          <Button variant="primary" className="shrink-0"
+            onClick={() => setFacModal({ ...INIT_CT_EMPTY, open: true, fechaVencimiento: defaultVencimiento() })}>
+            Nueva Factura
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="overflow-x-auto pb-0.5 flex-1">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              {ESTADOS.map(e => (
+                <button
+                  key={e}
+                  onClick={() => setFiltroEstado(e)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
+                    ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                >
+                  {e}
+                </button>
+              ))}
             </div>
           </div>
+          <div className="relative shrink-0">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+            <input
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar factura, suministrador…"
+              className="h-8 w-56 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none focus:border-orange transition"
+            />
+          </div>
+        </div>
 
           {/* Tabla de facturas */}
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
