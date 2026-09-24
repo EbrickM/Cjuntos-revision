@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
   ShieldCheck, ClipboardList, Leaf, Building2,
-  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Eye, Plus,
+  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Eye, Plus, Trash2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
@@ -53,6 +54,7 @@ export default function EmpPymes() {
   const [pymeModal, setPymeModal] = useState(null);
   const [lista, setLista] = useEmpresasContratadas();
   const [agregar, setAgregar] = useState(NUEVA_PYME_EMPTY);
+  const [eliminar, setEliminar] = useState(null);
 
   const verde    = lista.filter(p => p.semaforo === 'Verde').length;
   const amarillo = lista.filter(p => p.semaforo === 'Amarillo').length;
@@ -109,6 +111,12 @@ export default function EmpPymes() {
       ...prev,
     ]);
     setAgregar(NUEVA_PYME_EMPTY);
+  };
+
+  const handleEliminar = () => {
+    if (!eliminar) return;
+    setLista(prev => prev.filter(p => p.nombre !== eliminar.nombre));
+    setEliminar(null);
   };
 
   return (
@@ -210,12 +218,19 @@ export default function EmpPymes() {
                 </div>
 
                 {/* Acciones */}
-                <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-center gap-0.5" onClick={e => e.stopPropagation()}>
                   <button
                     onClick={e => { e.stopPropagation(); setPymeModal(p); }}
                     className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                   >
                     <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); setEliminar(p); }}
+                    title="Eliminar"
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -457,6 +472,17 @@ export default function EmpPymes() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* ── Modal: Confirmar eliminación ── */}
+      {eliminar && (
+        <ConfirmarEliminarModal
+          nombre={eliminar.nombre}
+          tipoEntidad="Empresa Contratada"
+          contratoVinculado={eliminar.contratoId || null}
+          onConfirm={handleEliminar}
+          onClose={() => setEliminar(null)}
+        />
       )}
     </AppShell>
   );

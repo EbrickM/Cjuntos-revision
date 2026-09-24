@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AppShell from "../../components/layout/AppShell";
 import { StatCard } from "../../components/common/StatCard";
+import ConfirmarEliminarModal from "../../components/common/ConfirmarEliminarModal";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -160,6 +161,7 @@ export default function EpMisProveedores() {
   const [detalle, setDetalle] = useState(null);
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState({ visible: false, message: "" });
+  const [eliminar, setEliminar] = useState(null);
 
   const filteredProviders = search.trim()
     ? providers.filter(
@@ -294,10 +296,11 @@ export default function EpMisProveedores() {
     handleClose();
   };
 
-  const handleDelete = (id) => {
-    const p = providers.find((pr) => pr.id === id);
-    setProviders((prev) => prev.filter((pr) => pr.id !== id));
-    showToast(`${p?.razonSocial} ha sido eliminado del directorio.`);
+  const handleDelete = () => {
+    if (!eliminar) return;
+    setProviders((prev) => prev.filter((pr) => pr.id !== eliminar.id));
+    showToast(`${eliminar.razonSocial} ha sido eliminado del directorio.`);
+    setEliminar(null);
   };
 
   return (
@@ -420,8 +423,9 @@ export default function EpMisProveedores() {
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}
-                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); setEliminar(p); }}
+                    title="Eliminar"
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -894,6 +898,17 @@ export default function EpMisProveedores() {
           </div>
         </div>
       </div>
+
+      {/* ── Modal: Confirmar eliminación ── */}
+      {eliminar && (
+        <ConfirmarEliminarModal
+          nombre={eliminar.razonSocial}
+          tipoEntidad="Proveedor"
+          contratoVinculado={eliminar.contratosActivos?.[0]?.id || null}
+          onConfirm={handleDelete}
+          onClose={() => setEliminar(null)}
+        />
+      )}
     </AppShell>
   );
 }

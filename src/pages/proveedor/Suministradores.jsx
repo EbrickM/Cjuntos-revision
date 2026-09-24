@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import {
   Eye, ShieldCheck, ClipboardList, Leaf, Building2,
-  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Plus,
+  User, FileCheck, CheckCircle2, Shield, Star, Clock, Search, Plus, Trash2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import InfiniteScrollSentinel from '../../components/common/InfiniteScrollSentinel';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
@@ -51,6 +52,7 @@ export default function ProvSuministradores() {
   const [sumModal, setSumModal] = useState(null);
   const [lista, setLista] = useSuministradores();
   const [agregar, setAgregar] = useState(NUEVO_SUM_EMPTY);
+  const [eliminar, setEliminar] = useState(null);
 
   const verde    = lista.filter(p => p.semaforo === 'Verde').length;
   const amarillo = lista.filter(p => p.semaforo === 'Amarillo').length;
@@ -105,6 +107,12 @@ export default function ProvSuministradores() {
       ...prev,
     ]);
     setAgregar(NUEVO_SUM_EMPTY);
+  };
+
+  const handleEliminar = () => {
+    if (!eliminar) return;
+    setLista(prev => prev.filter(p => p.nombre !== eliminar.nombre));
+    setEliminar(null);
   };
 
   return (
@@ -199,12 +207,19 @@ export default function ProvSuministradores() {
               </div>
 
               {/* Acciones */}
-              <div className="flex justify-center">
+              <div className="flex items-center justify-center gap-0.5">
                 <button
                   onClick={e => { e.stopPropagation(); setSumModal(p); }}
                   className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                 >
                   <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); setEliminar(p); }}
+                  title="Eliminar"
+                  className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -449,6 +464,17 @@ export default function ProvSuministradores() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* ── Modal: Confirmar eliminación ── */}
+      {eliminar && (
+        <ConfirmarEliminarModal
+          nombre={eliminar.nombre}
+          tipoEntidad="Suministrador"
+          contratoVinculado={eliminar.contratoId || null}
+          onConfirm={handleEliminar}
+          onClose={() => setEliminar(null)}
+        />
       )}
     </AppShell>
   );
