@@ -126,7 +126,7 @@ export default function AdminEmpresas() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por empresa, RUC, sector o contrato…"
-              className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
+              className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none"
             />
           </div>
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StatCard } from '../../components/common/StatCard';
 import { useCountUp } from '../../hooks/useCountUp';
-import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, ListFilter, Eye, AlertTriangle, Send, X } from 'lucide-react';
+import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, LayoutList, Settings2, MessageSquare, AlertCircle, Eye, AlertTriangle, Send, X } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
@@ -48,7 +48,14 @@ const contractBadge = (estado) => ({
   'Activo':                     { variant: 'orange', label: 'Activo' },
 }[estado] ?? { variant: 'amber', label: estado || 'Pendiente' });
 
-const ESTADOS_FILTRO = ['Todos', 'Pendiente de Configuración', 'Pendiente de Revisión', 'Con Requerimientos', 'En Discusión de Términos', 'Activo'];
+const ESTADOS_FILTRO_TABS = [
+  { value: 'Todos',                       label: 'Todos',              Icon: LayoutList    },
+  { value: 'Pendiente de Configuración',  label: 'Pend. Config.',      Icon: Settings2     },
+  { value: 'Pendiente de Revisión',       label: 'Pend. Revisión',     Icon: Eye           },
+  { value: 'Con Requerimientos',          label: 'Con Req.',           Icon: AlertCircle   },
+  { value: 'En Discusión de Términos',    label: 'En Discusión',       Icon: MessageSquare },
+  { value: 'Activo',                      label: 'Activo',             Icon: CheckCircle2  },
+];
 
 const ENTIDADES_REQUERIMIENTO = ['Empresa Contratante', 'Empresa Contratada', 'Proveedor'];
 const REQ_MODAL_EMPTY = { open: false, contractId: null, entidades: [], pymes: [], proveedores: [], mensaje: '' };
@@ -287,28 +294,30 @@ export default function AdminContratos() {
                 }
               />
 
-              {/* Buscador + filtro de estado */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-                <div className="relative w-full max-w-[300px]">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-                  <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Buscar contrato…"
-                    className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange"
-                  />
+              {/* Filtro de estado — tabs */}
+              <div className="overflow-x-auto mb-3">
+                <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+                  {ESTADOS_FILTRO_TABS.map(({ value, label, Icon }) => (
+                    <button key={value} onClick={() => setFiltroEstado(value)}
+                      className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                        filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                      }`}>
+                      <Icon className="w-3 h-3 shrink-0" />
+                      {label}
+                    </button>
+                  ))}
                 </div>
-                <div className="relative flex items-center shrink-0">
-                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-                  <select
-                    value={filtroEstado}
-                    onChange={e => setFiltroEstado(e.target.value)}
-                    className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-                  >
-                    {ESTADOS_FILTRO.map(e => <option key={e}>{e}</option>)}
-                  </select>
-                </div>
+              </div>
+
+              {/* Buscador */}
+              <div className="relative w-full max-w-[300px] mb-4">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Buscar contrato…"
+                  className="w-full pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none"
+                />
               </div>
 
               {/* Móvil: cards */}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
-  Receipt, Wallet, Banknote, Search, ListFilter, Eye,
+  Receipt, Wallet, Banknote, Search, Eye,
+  LayoutList, Send, ScanSearch, FileCheck2, AlertCircle, KeyRound, CheckCircle2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -28,8 +29,18 @@ const TABS = [
   { id: 'pagos',    lbl: 'Pagos y Cheques', Icon: Banknote },
 ];
 
-const FILTROS_ESTADO = ['Todos', 'Enviada', 'En Evaluación', 'Emitida', 'Con Requerimientos', 'OTP Enviada', 'Pagada', 'Saldo en Billetera'];
 const FILTROS_ESTADO_KEY = { 'Enviada': INV.enviada, 'En Evaluación': INV.enEvaluacion, 'Emitida': INV.emitida, 'Con Requerimientos': INV.conRequerimientos, 'OTP Enviada': INV.otpEnviada, 'Pagada': INV.pagada, 'Saldo en Billetera': INV.billetera };
+
+const ESTADO_TABS = [
+  { value: 'Todos',              label: 'Todos',          Icon: LayoutList   },
+  { value: 'Enviada',            label: 'Enviada',        Icon: Send         },
+  { value: 'En Evaluación',      label: 'En Evaluación',  Icon: ScanSearch   },
+  { value: 'Emitida',            label: 'Emitida',        Icon: FileCheck2   },
+  { value: 'Con Requerimientos', label: 'Con Req.',       Icon: AlertCircle  },
+  { value: 'OTP Enviada',        label: 'OTP Enviada',    Icon: KeyRound     },
+  { value: 'Pagada',             label: 'Pagada',         Icon: CheckCircle2 },
+  { value: 'Saldo en Billetera', label: 'En Billetera',   Icon: Wallet       },
+];
 
 const Header = ({ title, sub, Icon, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
@@ -46,7 +57,7 @@ const Header = ({ title, sub, Icon, right }) => (
   </div>
 );
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, compact = false }) => (
+const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
     <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
@@ -54,22 +65,9 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
+        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
       />
     </div>
-    {withEstado && (
-      <div className="relative flex items-center shrink-0">
-        <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-        <select
-          value={estado}
-          onChange={e => onEstado(e.target.value)}
-          className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-        >
-          {estados.map(e => <option key={e}>{e}</option>)}
-        </select>
-      </div>
-    )}
   </div>
 );
 
@@ -148,15 +146,24 @@ export default function FacturasAdmin() {
               Icon={Receipt}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{facturas.length} registradas</span>}
             />
+            <div className="overflow-x-auto mb-3">
+              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+                {ESTADO_TABS.map(({ value, label, Icon }) => (
+                  <button key={value} onClick={() => setFiltroEstado(value)}
+                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                      filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                    }`}>
+                    <Icon className="w-3 h-3 shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <SearchBar
               value={busqueda}
               onChange={setBusqueda}
               placeholder="Buscar por Nº, Emp. Contratada, contratante, contrato o concepto…"
               compact
-              withEstado
-              estado={filtroEstado}
-              onEstado={setFiltroEstado}
-              estados={FILTROS_ESTADO}
             />
 
             {/* Tabla */}
@@ -222,15 +229,24 @@ export default function FacturasAdmin() {
               Icon={Wallet}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} Emp. Contratadas</span>}
             />
+            <div className="overflow-x-auto mb-3">
+              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+                {ESTADO_TABS.map(({ value, label, Icon }) => (
+                  <button key={value} onClick={() => setFiltroBilletera(value)}
+                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                      filtroBilletera === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                    }`}>
+                    <Icon className="w-3 h-3 shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <SearchBar
               value={busqueda}
               onChange={setBusqueda}
               placeholder="Buscar por Empresa Contratada…"
               compact
-              withEstado
-              estado={filtroBilletera}
-              onEstado={setFiltroBilletera}
-              estados={FILTROS_ESTADO}
             />
 
             {billeterasFiltradas.length === 0 && (
