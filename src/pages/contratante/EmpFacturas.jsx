@@ -301,7 +301,7 @@ export default function EmpFacturas() {
                   <tr key={i.numero} onClick={() => setIpiDetalle(i)}
                     className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40">
                     <td className="px-4 py-3 text-[12px] font-mono font-bold text-text-1 whitespace-nowrap">{i.numero}</td>
-                    <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{i.pyme}</td>
+                    <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">{i.pyme}</td>
                     <td className="px-4 py-3 text-center text-[11px] font-mono text-text-4 whitespace-nowrap">{i.contrato}</td>
                     <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-3">{i.ops.length}</td>
                     <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{i.fecha}</td>
