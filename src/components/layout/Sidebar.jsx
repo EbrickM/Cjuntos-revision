@@ -1,7 +1,7 @@
 import {
   Home, Building2,
   ClipboardList, Users, Receipt,
-  User, LogOut, Leaf, X, Clock, Landmark, Truck, Network,
+  User, LogOut, Leaf, X, Clock, Landmark, Truck, Zap, History, Wallet,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { logout } from '../../stores/authStore';
@@ -36,9 +36,13 @@ const NAV = {
     { id: 'empPerfil',      Icon: User,          lbl: 'Mi Perfil' },
   ],
   fondeador: [
-    { id: 'fondDash',    Icon: Home,          lbl: 'Inicio' },
-    { id: 'fondOrdenes', Icon: Network,       lbl: 'Sistema' },
-    { id: 'fondCartera', Icon: ClipboardList, lbl: 'Cartera' },
+    { id: 'fondDash',      Icon: Home,          lbl: 'Inicio' },
+    { id: 'fondClientes',  Icon: Building2,     lbl: 'Clientes' },
+    { id: 'fondContratos', Icon: ClipboardList, lbl: 'Contratos' },
+    { id: 'fondFacturas',  Icon: Receipt,       lbl: 'Facturas' },
+    { id: 'fondIpis',      Icon: Zap,           lbl: 'IPIs' },
+    { id: 'fondRegistros', Icon: History,       lbl: 'Registros' },
+    { id: 'fondCartera',   Icon: Wallet,        lbl: 'Cartera' },
   ],
   proveedor: [
     { id: 'provDash',           Icon: Home,          lbl: 'Inicio' },

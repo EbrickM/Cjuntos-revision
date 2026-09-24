@@ -40,6 +40,7 @@ import InvoiceStatusBadge from "../../components/invoices/InvoiceStatusBadge";
 import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import { SELECT_ARROW } from "../../components/ui/selectArrow";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
+import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import { contratoService } from "../../services/contrato.service";
 import { useProviders } from "./epData";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
@@ -275,6 +276,11 @@ export default function EpCreditos() {
   // al navegar entre contratos (misma ruta siempre), y se muestran arriba de
   // la tabla "Proveedores" de ese mismo contrato de inmediato.
   const [provManualesPorContrato, setProvManualesPorContrato] = useState({});
+  // Proveedores de un contrato que se "eliminaron" desde esa misma tabla (los
+  // que venían de la asignación del contrato, no del directorio — esos se
+  // sacan directo del directorio con setProviders).
+  const [provOcultosPorContrato, setProvOcultosPorContrato] = useState({});
+  const [eliminarProv, setEliminarProv] = useState(null);
 
   const detailContract = detailId
     ? (contracts.find((c) => c.id === detailId) ?? null)
@@ -321,6 +327,24 @@ export default function EpCreditos() {
       ],
     }));
     setAgregarProv(NUEVO_PROV_EMPTY);
+  };
+
+  const handleEliminarProv = () => {
+    if (!eliminarProv || !detailContract) return;
+    const provManuales = provManualesPorContrato[detailContract.id] ?? [];
+    if (provManuales.some((p) => p.id === eliminarProv.item.id)) {
+      setProvManualesPorContrato((prev) => ({
+        ...prev,
+        [detailContract.id]: (prev[detailContract.id] ?? []).filter((p) => p.id !== eliminarProv.item.id),
+      }));
+      setProviders((prev) => prev.filter((p) => p.razonSocial !== eliminarProv.item.providerName));
+    } else {
+      setProvOcultosPorContrato((prev) => ({
+        ...prev,
+        [detailContract.id]: [...(prev[detailContract.id] ?? []), eliminarProv.item.providerName],
+      }));
+    }
+    setEliminarProv(null);
   };
 
   const totalContratos = contracts.length;
@@ -1032,8 +1056,9 @@ export default function EpCreditos() {
               // vista de solo lectura). Los agregados manualmente desde este
               // mismo detalle (botón "Agregar Proveedor") van primero.
               const provManuales = provManualesPorContrato[detailContract.id] ?? [];
+              const ocultosProv = provOcultosPorContrato[detailContract.id] ?? [];
               const asignados = [...provManuales, ...(detailContract.proveedoresAsignados ?? [])];
-              const filas = asignados.length > 0
+              const filas = (asignados.length > 0
                 ? asignados.map(p => {
                     const dir = providers.find(x => x.razonSocial === p.nombre);
                     return {
@@ -1047,7 +1072,8 @@ export default function EpCreditos() {
                   })
                 : detailContract.distribucion
                     .map(item => ({ item, prov: providers.find(p => p.id === item.providerId) }))
-                    .filter(({ prov }) => prov);
+                    .filter(({ prov }) => prov)
+              ).filter(({ item }) => !ocultosProv.includes(item.providerName));
               return (
               <div className="space-y-5">
                 <div className="bg-white rounded-[14px] border border-border p-5">
@@ -1073,12 +1099,18 @@ export default function EpCreditos() {
                             <Badge variant={KYC_BADGE[prov.kyc] ?? "yellow"}>{prov.kyc}</Badge>
                           </div>
                           <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
-                          <div className="flex justify-center">
+                          <div className="flex items-center justify-center gap-0.5">
                             <button
                               onClick={(e) => { e.stopPropagation(); setProvDetailModal(prov); }}
                               className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                             >
                               <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setEliminarProv({ item, prov }); }}
+                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </div>
@@ -1834,6 +1866,16 @@ export default function EpCreditos() {
             </div>
           </div>
         </Modal>
+      )}
+
+      {eliminarProv && detailContract && (
+        <ConfirmarEliminarModal
+          nombre={eliminarProv.item.providerName}
+          tipoEntidad="Proveedor"
+          contratoVinculado={detailContract.id}
+          onConfirm={handleEliminarProv}
+          onClose={() => setEliminarProv(null)}
+        />
       )}
 
       {/* ── Modal: Requerimiento de Bonafide ── */}

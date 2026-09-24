@@ -78,7 +78,9 @@ export default function ProvConfigurarContrato() {
     if (!contrato) go('provContratos');
   }, [contrato, go]);
 
-  const [step, setStep]                 = useState(borrador?.paso ?? 0);
+  // Siempre arranca en el paso 1, incluso si hay un borrador guardado en un
+  // paso más avanzado — solo se restauran los datos ya cargados, no el paso.
+  const [step, setStep]                 = useState(0);
 const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? contrato?.cuentaBancaria?.tipo ?? 'bonafide');
   const [suministradores, setSuministradores] = useState(borrador?.datos?.suministradores ?? contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);
@@ -97,6 +99,9 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
   const montoInvalido       = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
 
   const suministradorNombreResuelto = modal.sumSel === '__nueva__' ? modal.suministradorLibre.trim() : modal.sumSel;
+  // Email/teléfono ya vienen del perfil del suministrador existente — no
+  // editables; solo se capturan a mano cuando se está dando de alta uno nuevo.
+  const sumExistente = modal.sumSel !== '__nueva__';
 
   const emailLimpio        = modal.email.trim();
   const emailValido        = EMAIL_REGEX.test(emailLimpio);
@@ -387,9 +392,11 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <FormGroup label="Email" required className="mb-0">
-                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@suministrador.gq" className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@suministrador.gq" disabled={sumExistente} className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
                 </FormGroup>
-                {emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
+                {sumExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
               </div>
               <div>
                 <FormGroup label="Teléfono" required className="mb-0">
@@ -402,11 +409,14 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
                       value={telefonoLocal.slice(0, 9)}
                       onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
                       placeholder="222 XXX XXX"
+                      disabled={sumExistente}
                       className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
                     />
                   </div>
                 </FormGroup>
-                {telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
+                {sumExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
               </div>
             </div>
 

@@ -54,9 +54,13 @@ const EmpContratoDetalle = lazy(() => import('./pages/contratante/EmpContratoDet
 const EmpConfigurarContrato = lazy(() => import('./pages/contratante/EmpConfigurarContrato'));
 
 // Banco Fondeador
-const FondDash    = lazy(() => import('./pages/fondeador/Dashboard'));
-const FondOrdenes = lazy(() => import('./pages/fondeador/Ordenes'));
-const FondCartera = lazy(() => import('./pages/fondeador/Cartera'));
+const FondDash      = lazy(() => import('./pages/fondeador/Dashboard'));
+const FondClientes  = lazy(() => import('./pages/fondeador/Clientes'));
+const FondContratos = lazy(() => import('./pages/fondeador/Contratos'));
+const FondFacturas  = lazy(() => import('./pages/fondeador/Facturas'));
+const FondIpis      = lazy(() => import('./pages/fondeador/Ipis'));
+const FondRegistros = lazy(() => import('./pages/fondeador/Registros'));
+const FondCartera   = lazy(() => import('./pages/fondeador/Cartera'));
 
 // Proveedor
 const ProvDash            = lazy(() => import('./pages/proveedor/Dashboard'));
@@ -145,9 +149,13 @@ export default function App() {
           <Route path={R.empSettings}   element={<EmpSettings />} />
 
           {/* Banco Fondeador */}
-          <Route path={R.fondDash}    element={<FondDash />} />
-          <Route path={R.fondOrdenes} element={<FondOrdenes />} />
-          <Route path={R.fondCartera} element={<FondCartera />} />
+          <Route path={R.fondDash}      element={<FondDash />} />
+          <Route path={R.fondClientes}  element={<FondClientes />} />
+          <Route path={R.fondContratos} element={<FondContratos />} />
+          <Route path={R.fondFacturas}  element={<FondFacturas />} />
+          <Route path={R.fondIpis}      element={<FondIpis />} />
+          <Route path={R.fondRegistros} element={<FondRegistros />} />
+          <Route path={R.fondCartera}   element={<FondCartera />} />
 
           {/* Proveedor */}
           <Route path={R.provDash}            element={<ProvDash />} />

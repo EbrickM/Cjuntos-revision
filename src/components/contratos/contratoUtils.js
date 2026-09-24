@@ -98,6 +98,18 @@ export const aContratoMarco = (c) => ({
 // Fondeador o "administración").
 const fmtRegistro = (n) => `${new Intl.NumberFormat('de-DE').format(Number(n) || 0)} XAF`;
 
+// Convierte una fecha del registro ('DD/MM/YYYY', o 'YYYY-MM-DD' cuando viene
+// sin normalizar desde `contratante.fechaInicio`) a un entero YYYYMMDD
+// ordenable — nunca comparar los strings directamente.
+const fechaOrdenable = (fecha) => {
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha ?? '');
+  if (iso) return Number(`${iso[1]}${iso[2]}${iso[3]}`);
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(fecha ?? '');
+  if (!m) return -Infinity;
+  const [, d, mo, y] = m;
+  return Number(`${y}${mo}${d}`);
+};
+
 export const registrosContrato = (c = {}, facturas = [], referentes = {}) => {
   const admin     = 'administración';
   const empresa   = c.contratante?.razonSocial ?? c.contratanteNombre ?? null;
@@ -143,7 +155,9 @@ export const registrosContrato = (c = {}, facturas = [], referentes = {}) => {
     }
   });
 
-  return ev;
+  // Más reciente primero, más lejana al final — mismo orden que el resto de
+  // las tablas de la plataforma.
+  return ev.sort((a, b) => fechaOrdenable(b.fecha) - fechaOrdenable(a.fecha));
 };
 
 // Proyección hacia el wizard del Proveedor.

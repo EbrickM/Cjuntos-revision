@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send, Plus,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send, Plus, Trash2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
+import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -239,6 +240,11 @@ export default function EmpContratoDetalle() {
   const [listaPymes, setListaPymes]     = useEmpresasContratadas();
   const [agregarPyme, setAgregarPyme]   = useState(NUEVA_PYME_EMPTY);
   const [pymesManualesPorContrato, setPymesManualesPorContrato] = useState({});
+  // Empresas Contratadas de este contrato que se "eliminaron" desde esta misma
+  // tabla (las que venían de la asignación del contrato, no del directorio —
+  // esas se sacan directo del directorio con setListaPymes).
+  const [hermanosOcultosPorContrato, setHermanosOcultosPorContrato] = useState({});
+  const [eliminarHermano, setEliminarHermano] = useState(null);
   // Busca también en el directorio persistido (incluye las agregadas desde
   // este mismo detalle), no solo en la semilla estática.
   const pymesDe = (nombre) => listaPymes.find(p => p.nombre === nombre) ?? null;
@@ -270,7 +276,8 @@ export default function EmpContratoDetalle() {
   // legado sin `marcoId`). Las agregadas manualmente desde este mismo detalle
   // (botón "Agregar Empresa Contratada") van primero.
   const pymesManuales = c ? (pymesManualesPorContrato[c.id] ?? []) : [];
-  const hermanosBase = c?.pymesAsignadas?.length
+  const ocultosHermanos = c ? (hermanosOcultosPorContrato[c.id] ?? []) : [];
+  const hermanosBase = (c?.pymesAsignadas?.length
     ? c.pymesAsignadas.map(a => ({
         id: a.id ?? a.pymeId ?? c.id,
         pyme: a.pymeNombre,
@@ -281,8 +288,30 @@ export default function EmpContratoDetalle() {
       }))
     : c?.marcoId
       ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
-      : c ? [c] : [];
+      : c ? [c] : []
+  ).filter(h => !ocultosHermanos.includes(h.pyme));
   const hermanos = [...pymesManuales, ...hermanosBase];
+
+  // Elimina una Empresa Contratada de la tabla de este contrato — igual que en
+  // el directorio (EmpPymes.jsx): si venía del directorio persistido, también
+  // se quita de allí; si era una fila propia de la asignación del contrato, se
+  // oculta localmente (no hay forma de "borrar" un dato de asignación mock).
+  const handleEliminarHermano = () => {
+    if (!eliminarHermano || !c) return;
+    if (eliminarHermano._key) {
+      setPymesManualesPorContrato(prev => ({
+        ...prev,
+        [c.id]: (prev[c.id] ?? []).filter(h => h._key !== eliminarHermano._key),
+      }));
+      setListaPymes(prev => prev.filter(p => p.nombre !== eliminarHermano.pyme));
+    } else {
+      setHermanosOcultosPorContrato(prev => ({
+        ...prev,
+        [c.id]: [...(prev[c.id] ?? []), eliminarHermano.pyme],
+      }));
+    }
+    setEliminarHermano(null);
+  };
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -518,12 +547,19 @@ export default function EmpContratoDetalle() {
                       </div>
                     </div>
                     <span className="text-[13px] font-extrabold text-text-1 text-center">{fmt(h.asignado)} XAF</span>
-                    <div className="flex justify-center">
+                    <div className="flex items-center justify-center gap-0.5">
                       <button
                         onClick={e => { e.stopPropagation(); setPymeDetalle(h); }}
                         className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                       >
                         <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={e => { e.stopPropagation(); setEliminarHermano(h); }}
+                        title="Eliminar"
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -914,6 +950,17 @@ export default function EmpContratoDetalle() {
           factura={modalFac}
           onClose={() => setIpiStep(null)}
           onConfirm={handleConfirmarIPI}
+        />
+      )}
+
+      {/* ── Modal: Confirmar eliminación de Empresa Contratada ── */}
+      {eliminarHermano && c && (
+        <ConfirmarEliminarModal
+          nombre={eliminarHermano.pyme}
+          tipoEntidad="Empresa Contratada"
+          contratoVinculado={c.id}
+          onConfirm={handleEliminarHermano}
+          onClose={() => setEliminarHermano(null)}
         />
       )}
     </AppShell>

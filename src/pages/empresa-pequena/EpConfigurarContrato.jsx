@@ -77,7 +77,9 @@ export default function EpConfigurarContrato() {
   }, [contrato, go]);
 
   const [modo, setModo]                 = useState('wizard'); // 'wizard' | 'rechazado' | 'enviado'
-  const [step, setStep]                 = useState(borrador?.paso ?? 0);
+  // Siempre arranca en el paso 1 (Términos), incluso si hay un borrador
+  // guardado en un paso más avanzado — solo se restauran los datos ya cargados.
+  const [step, setStep]                 = useState(0);
   const [mostrarRechazo, setMostrarRechazo] = useState(false);
   const [comentarioRechazo, setComentarioRechazo] = useState('');
   const [gestionFondos, setGestionFondos] = useState(borrador?.datos?.gestionFondos ?? contrato?.gestionFondos ?? null);
@@ -96,6 +98,11 @@ export default function EpConfigurarContrato() {
   const disponibleParaModal = montoDisponibleProveedores({ ...contrato, proveedoresAsignados: proveedores }, modal.editId);
   const montoInvalido       = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
   const proveedorNombreResuelto = modal.provSel === '__nueva__' ? modal.proveedorNombreLibre.trim() : modal.provSel;
+  // Proveedor ya conocido (elegido del directorio, o el nombre libre coincide
+  // con uno existente) — su email/teléfono vienen de su perfil y no se editan aquí.
+  const provExistente = modal.provSel !== '__nueva__' || initialProviders.some(x =>
+    x.razonSocial.toLowerCase() === modal.proveedorNombreLibre.trim().toLowerCase() ||
+    (x.nombreComercial || '').toLowerCase() === modal.proveedorNombreLibre.trim().toLowerCase());
   const puedeGuardar        = !!proveedorNombreResuelto && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
 
   const retencionCalc = contrato.montoAsignado * (contrato.porcentajeRetencion / 100);
@@ -487,12 +494,18 @@ export default function EpConfigurarContrato() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <FormGroup label="Email" required className="mb-0">
-                <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@proveedor.gq" />
-              </FormGroup>
-              <FormGroup label="Teléfono" required className="mb-0">
-                <Input value={modal.telefono} onChange={e => setModal(m => ({ ...m, telefono: e.target.value }))} placeholder="+240 222 XXX XXX" />
-              </FormGroup>
+              <div>
+                <FormGroup label="Email" required className="mb-0">
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@proveedor.gq" disabled={provExistente} />
+                </FormGroup>
+                {provExistente && <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>}
+              </div>
+              <div>
+                <FormGroup label="Teléfono" required className="mb-0">
+                  <Input value={modal.telefono} onChange={e => setModal(m => ({ ...m, telefono: e.target.value }))} placeholder="+240 222 XXX XXX" disabled={provExistente} />
+                </FormGroup>
+                {provExistente && <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>}
+              </div>
             </div>
 
             <FormGroup label="Presupuesto / Factura (XAF)" required>

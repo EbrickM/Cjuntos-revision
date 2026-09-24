@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Truck,
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Plus,
+  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Plus, Trash2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
+import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -69,6 +70,11 @@ export default function ProvContratoDetalle() {
   const [listaSuministradores, setListaSuministradores] = useSuministradores();
   const [agregarSum, setAgregarSum]     = useState(NUEVO_SUM_EMPTY);
   const [sumManualesPorContrato, setSumManualesPorContrato] = useState({});
+  // Suministradores de este contrato que se "eliminaron" desde esta misma
+  // tabla (los que venían de la asignación del contrato, no del directorio —
+  // esos se sacan directo del directorio con setListaSuministradores).
+  const [sumOcultosPorContrato, setSumOcultosPorContrato] = useState({});
+  const [eliminarSum, setEliminarSum] = useState(null);
   const [, setTick] = useState(0);
   const bump = () => setTick(t => t + 1);
   const c    = provState.selectedContrato
@@ -87,7 +93,30 @@ export default function ProvContratoDetalle() {
   // asignó entre sus propios Suministradores). Los agregados manualmente desde
   // este mismo detalle (botón "Agregar Suministrador") van primero.
   const sumManuales = c ? (sumManualesPorContrato[c.id] ?? []) : [];
-  const misSuministradores = [...sumManuales, ...(c?.suministradores ?? c?.suministradoresAsignados ?? [])];
+  const ocultosSum = c ? (sumOcultosPorContrato[c.id] ?? []) : [];
+  const sumBase = (c?.suministradores ?? c?.suministradoresAsignados ?? []).filter(s => !ocultosSum.includes(s.nombre));
+  const misSuministradores = [...sumManuales, ...sumBase];
+
+  // Elimina un Suministrador de la tabla de este contrato — igual que en el
+  // directorio (Suministradores.jsx): si venía del directorio persistido,
+  // también se quita de allí; si era una fila propia de la asignación del
+  // contrato, se oculta localmente.
+  const handleEliminarSum = () => {
+    if (!eliminarSum || !c) return;
+    if (sumManuales.some(s => s.id === eliminarSum.id)) {
+      setSumManualesPorContrato(prev => ({
+        ...prev,
+        [c.id]: (prev[c.id] ?? []).filter(s => s.id !== eliminarSum.id),
+      }));
+      setListaSuministradores(prev => prev.filter(p => p.nombre !== eliminarSum.nombre));
+    } else {
+      setSumOcultosPorContrato(prev => ({
+        ...prev,
+        [c.id]: [...(prev[c.id] ?? []), eliminarSum.nombre],
+      }));
+    }
+    setEliminarSum(null);
+  };
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -328,12 +357,19 @@ export default function ProvContratoDetalle() {
                     </div>
                   </div>
                   <span className="text-[13px] font-extrabold text-text-1 text-center">{fmt(s.monto)} XAF</span>
-                  <div className="flex justify-center">
+                  <div className="flex items-center justify-center gap-0.5">
                     <button
                       onClick={e => { e.stopPropagation(); setSumDetalle(s); }}
                       className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); setEliminarSum(s); }}
+                      title="Eliminar"
+                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -691,6 +727,17 @@ export default function ProvContratoDetalle() {
           factura={modalFac}
           onClose={() => setIpiStep(null)}
           onConfirm={handleConfirmarIPI}
+        />
+      )}
+
+      {/* ── Modal: Confirmar eliminación de Suministrador ── */}
+      {eliminarSum && c && (
+        <ConfirmarEliminarModal
+          nombre={eliminarSum.nombre}
+          tipoEntidad="Suministrador"
+          contratoVinculado={c.id}
+          onConfirm={handleEliminarSum}
+          onClose={() => setEliminarSum(null)}
         />
       )}
     </AppShell>

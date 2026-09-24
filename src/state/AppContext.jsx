@@ -59,7 +59,11 @@ export const ROUTES = {
 
   // Banco Fondeador
   fondDash:           '/fondeador',
-  fondOrdenes:        '/fondeador/ordenes',
+  fondClientes:       '/fondeador/clientes',
+  fondContratos:      '/fondeador/contratos',
+  fondFacturas:       '/fondeador/facturas',
+  fondIpis:           '/fondeador/ipis',
+  fondRegistros:      '/fondeador/registros',
   fondCartera:        '/fondeador/cartera',
 
   // Proveedor

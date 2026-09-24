@@ -80,7 +80,9 @@ export default function EmpConfigurarContrato() {
     if (!marco) go('empContratos');
   }, [marco, go]);
 
-  const [step, setStep]               = useState(borrador?.paso ?? 0);
+  // Siempre arranca en el paso 1, incluso si hay un borrador guardado en un
+  // paso más avanzado — solo se restauran los datos ya cargados, no el paso.
+  const [step, setStep]               = useState(0);
   const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? marco?.cuentaBancaria?.tipo ?? 'bonafide');
   const [asignaciones, setAsignaciones] = useState(borrador?.datos?.asignaciones ?? marco?.pymesAsignadas ?? []);
   const [modal, setModal]             = useState(ASIGNACION_EMPTY);
@@ -95,6 +97,9 @@ export default function EmpConfigurarContrato() {
   const disponibleGlobal = marco.montoBase - totalAsignado;
 
   const pymeNombreResuelto = modal.pymeSel === '__nueva__' ? modal.pymeNombreLibre.trim() : modal.pymeSel;
+  // Email/teléfono ya vienen del perfil de la Empresa Contratada existente —
+  // no editables; solo se capturan a mano cuando se está dando de alta una nueva.
+  const pymeExistente      = modal.pymeSel !== '__nueva__';
   const montoNumLive       = parseMonto(modal.monto);
   const disponibleParaModal = montoDisponibleMarco({ ...marco, pymesAsignadas: asignaciones }, modal.editId);
   const montoInvalido      = modal.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleParaModal);
@@ -410,6 +415,37 @@ export default function EmpConfigurarContrato() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
+              <div>
+                <FormGroup label="Email" required className="mb-0">
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@pyme.gq" disabled={pymeExistente} className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
+                </FormGroup>
+                {pymeExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil de la Empresa Contratada; no se puede modificar aquí.</p>
+                ) : emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
+              </div>
+              <div>
+                <FormGroup label="Teléfono" required className="mb-0">
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel" inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={pymeExistente}
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {pymeExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil de la Empresa Contratada; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormGroup label="Plazo de pago" required className="mb-0">
                 <Select value={modal.plazoPago} onChange={e => setModal(m => ({ ...m, plazoPago: Number(e.target.value) }))}>
                   {PLAZOS.map(p => <option key={p} value={p}>{p} días</option>)}
@@ -430,32 +466,6 @@ export default function EmpConfigurarContrato() {
                 {montoNumLive <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleParaModal)} XAF).`}
               </p>
             )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <FormGroup label="Email" required className="mb-0">
-                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@pyme.gq" className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
-                </FormGroup>
-                {emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
-              </div>
-              <div>
-                <FormGroup label="Teléfono" required className="mb-0">
-                  <div className="flex">
-                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                      {PREFIJO_TEL}
-                    </span>
-                    <Input
-                      type="tel" inputMode="numeric"
-                      value={telefonoLocal.slice(0, 9)}
-                      onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
-                      placeholder="222 XXX XXX"
-                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
-                    />
-                  </div>
-                </FormGroup>
-                {telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
-              </div>
-            </div>
 
             <FormGroup label="Contrato Comercial (documentación adjunta)" required className="mb-0">
               {modal.documentoNombre ? (
