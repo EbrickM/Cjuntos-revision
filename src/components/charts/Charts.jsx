@@ -2,7 +2,7 @@
 // Extraídos del Dashboard de admin para reutilizarlos en el portal del Banco
 // Fondeador sin duplicar el código.
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 // ── ChartTooltip — DOM tooltip absolutamente posicionado ─────────────────────
 export function ChartTooltip({ x, y, title, lines }) {
@@ -247,11 +247,12 @@ export function DonutChart({ data, centerLabel, centerSub, size = 130 }) {
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="#F0F0F0" strokeWidth="13" />
         {segs.map((s, i) => (
           <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={s.color} strokeWidth={tip?.idx === i ? 15 : 13}
-            strokeDasharray={`${s.dash} ${circ - s.dash}`} strokeLinecap="round"
+            strokeLinecap="round"
             style={{
               transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px`,
               cursor: 'pointer', transition: 'stroke-width 0.15s ease',
-              '--donut-start': s.off + circ, '--donut-off': s.off,
+              strokeDashoffset: s.off,
+              '--donut-dash': s.dash, '--donut-gap': circ - s.dash,
               animation: `donutSweep 0.9s ease-out ${i * 150}ms both`,
             }}
             onMouseEnter={handleHover(i)} onMouseMove={handleHover(i)} onMouseLeave={handleLeave} />
@@ -347,9 +348,21 @@ export function VBarChart({ id, data, windowStart = 0, minValue = 0, h = 170, un
   );
 }
 
-export function HBarChart({ data, fmtVal = v => `${v}M`, visible = true }) {
+export function HBarChart({ data, fmtVal = v => `${v}M`, visible }) {
   const maxVal = Math.max(...data.map(d => d.value));
+  const [autoLive, setAutoLive] = useState(false);
   const [hovered, setHovered] = useState(null);
+
+  // When `visible` is not passed by the caller, self-animate on mount
+  // so the bars sweep in whenever the component appears (e.g. on tab switch).
+  useEffect(() => {
+    if (visible !== undefined) return;
+    const t = setTimeout(() => setAutoLive(true), 30);
+    return () => clearTimeout(t);
+  }, [visible]);
+
+  const showBars = visible !== undefined ? visible : autoLive;
+
   return (
     <div className="space-y-3.5 w-full min-w-0">
       {data.map((d, i) => {
@@ -368,7 +381,7 @@ export function HBarChart({ data, fmtVal = v => `${v}M`, visible = true }) {
             <div className={`bg-page-bg rounded-full overflow-hidden transition-all ${isHov ? 'h-4' : 'h-3'}`}>
               <div className="h-full rounded-full"
                 style={{
-                  width: visible ? `${pct}%` : '0%',
+                  width: showBars ? `${pct}%` : '0%',
                   background: d.color ?? '#ef7a2c',
                   opacity: isHov ? 1 : 0.88,
                   transition: `width 1.2s cubic-bezier(0.22, 1, 0.36, 1) ${i * 120}ms, opacity 0.15s ease`,

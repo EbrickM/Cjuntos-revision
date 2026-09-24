@@ -1,6 +1,8 @@
+import { useCountUp } from '../../hooks/useCountUp';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import { StatCard } from '../../components/common/StatCard';
 
 /* ─── Admin Confirming ─── */
 const confRows = [
@@ -10,16 +12,28 @@ const confRows = [
   ['CONF-04818','Chevron','Conexxia Agro','5,700,000','5,586,000','blue','En revisión','09/05/26'],
 ];
 
+const fmtXaf = n => `${new Intl.NumberFormat('de-DE').format(Math.round(n))} XAF`;
+
 export default function AdminConf() {
+  const animOps    = useCountUp(24,          1200,   0);
+  const animMonto  = useCountUp(847_000_000, 1500,  60);
+  const animPend   = useCountUp(5,           1200, 120);
+  const animVence  = useCountUp(124_000_000, 1500, 180);
+
+  const kpis = [
+    { label: 'Operaciones activas',   value: String(animOps)     },
+    { label: 'Desembolsado total',    value: fmtXaf(animMonto)   },
+    { label: 'Pendientes aprobación', value: String(animPend)    },
+    { label: 'Vence este mes',        value: fmtXaf(animVence)   },
+  ];
+
   return (
     <AppShell active="adminConf" role="admin" title="Confirming" sub="Todas las operaciones">
       <div className="fade-in">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[['✅','24','Operaciones activas','text-text-1'],['💰','XAF 847M','Desembolsado total','text-green-text'],['⏳','5','Pendientes aprobación','text-orange'],['📅','XAF 124M','Vence este mes','text-yellow-text']].map(([ico,v,l,c]) => (
-            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
-              <div className="text-[22px] mb-2">{ico}</div>
-              <div className={`text-[20px] font-extrabold ${c} mb-1`}>{v}</div>
-              <div className="text-[12px] text-text-4">{l}</div>
+          {kpis.map(({ label, value }, idx) => (
+            <div key={label} className="card-enter" style={{ animationDelay: `${idx * 60}ms` }}>
+              <StatCard label={label} value={value} tone="gradient" />
             </div>
           ))}
         </div>

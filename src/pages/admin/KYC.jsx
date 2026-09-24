@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import Toast from '../../components/ui/Toast';
+import { StatCard } from '../../components/common/StatCard';
 import { adminService } from '../../services';
 import { localDb } from '../../lib/localDb';
 
@@ -142,11 +143,14 @@ export default function AdminKYC() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[['👁',animTotal,'Total KYC','text-text-1'],['⏳',animPend,'Pendientes revisión','text-yellow-text'],['✅',animAprobados,'Aprobados','text-green-text'],['❌',animIncompl,'Incompletos','text-red-text']].map(([ico,v,l,c]) => (
-            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
-              <div className="text-[24px] mb-2">{ico}</div>
-              <div className={`text-[22px] font-extrabold ${c} mb-1`}>{v}</div>
-              <div className="text-[12px] text-text-4">{l}</div>
+          {[
+            { label: 'Total KYC',           value: animTotal     },
+            { label: 'Pendientes revisión', value: animPend      },
+            { label: 'Aprobados',           value: animAprobados },
+            { label: 'Incompletos',         value: animIncompl   },
+          ].map((card, i) => (
+            <div key={card.label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+              <StatCard tone="gradient" label={card.label} value={card.value} />
             </div>
           ))}
         </div>

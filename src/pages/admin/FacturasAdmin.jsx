@@ -9,6 +9,8 @@ import InfoRow from '../../components/ui/InfoRow';
 import Badge from '../../components/ui/Badge';
 import InvoiceStatusBadge from '../../components/invoices/InvoiceStatusBadge';
 import InvoiceDetailModal from '../../components/invoices/InvoiceDetailModal';
+import { StatCard } from '../../components/common/StatCard';
+import { useCountUp } from '../../hooks/useCountUp';
 import { facturaService } from '../../services/factura.service';
 import { INV } from '../../lib/invoiceStates';
 import { fmt } from '../../pages/empresa-pequena/epData';
@@ -98,11 +100,18 @@ export default function FacturasAdmin() {
     .filter(b => matchesQ(b, [b.pyme]));
   const pagosFiltrados = pagos.filter(p => matchesQ(p, [p.id, p.proveedor, p.facturaId]));
 
+  const totalSaldoRaw = billeteras.reduce((a, b) => a + (b.saldoDisponible ?? 0), 0);
+
+  const animOrdenes  = useCountUp(facturas.filter(f => f.estado === INV.ordenFondeador).length);
+  const animEnProceso = useCountUp(facturas.filter(f => ![INV.pagada, INV.billetera].includes(f.estado)).length);
+  const animPagadas  = useCountUp(facturas.filter(f => f.estado === INV.pagada).length);
+  const animSaldo    = useCountUp(totalSaldoRaw);
+
   const kpis = [
-    { value: facturas.filter(f => f.estado === INV.ordenFondeador).length, label: 'Órdenes al Fondeador', numCls: 'text-orange' },
-    { value: facturas.filter(f => ![INV.pagada, INV.billetera].includes(f.estado)).length, label: 'En proceso', numCls: 'text-blue-text' },
-    { value: facturas.filter(f => f.estado === INV.pagada).length, label: 'Pagadas', numCls: 'text-orange' },
-    { value: fmt(billeteras.reduce((a, b) => a + (b.saldoDisponible ?? 0), 0)) + ' XAF', label: 'Saldo en Billetera', numCls: 'text-yellow-text' },
+    { value: animOrdenes,                    label: 'Órdenes al Fondeador' },
+    { value: animEnProceso,                  label: 'En proceso'           },
+    { value: animPagadas,                    label: 'Pagadas'              },
+    { value: `${fmt(animSaldo)} XAF`,        label: 'Saldo en Billetera'   },
   ];
 
   return (
@@ -111,10 +120,9 @@ export default function FacturasAdmin() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {kpis.map(({ value, label, numCls }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-              <div className={`text-[26px] font-extrabold leading-none mb-2 truncate ${numCls}`}>{value}</div>
-              <div className="text-[12px] text-text-4 leading-snug">{label}</div>
+          {kpis.map(({ value, label }, i) => (
+            <div key={label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+              <StatCard tone="gradient" label={label} value={value} />
             </div>
           ))}
         </div>

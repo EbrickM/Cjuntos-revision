@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useCountUp } from '../../hooks/useCountUp';
 import {
-  Coins, Percent, Building2, Users, FileCheck2, Receipt,
   FileBarChart, Send, CheckCircle2, Eye,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
@@ -82,23 +81,27 @@ export default function AdminInformacionGubernamental() {
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [detalleInf, setDetalleInf] = useState(null);
 
-  // Animated values for numeric-only KPI fields
-  const animHcPymes      = useCountUp(18, 900, 100);
-  const animHcContratos  = useCountUp(27, 900, 200);
-  const animHaEmpresas   = useCountUp(46, 900, 100);
+  const animHcPymes      = useCountUp(18,          900,   100);
+  const animHcContratos  = useCountUp(27,          900,   200);
+  const animCnPct        = useCountUp(62,          900,     0);
+  const animEmpleo       = useCountUp(340,         900,   300);
+  const animHaEmpresas   = useCountUp(46,          900,   100);
+  const animRecaudacion  = useCountUp(210_000_000, 1500,    0);
+  const animDigit        = useCountUp(78,          900,   100);
+  const animRetenciones  = useCountUp(12_500_000,  1500,  200);
 
   const KPIS_HIDROCARBUROS = [
-    { label: '% Contenido Nacional Promedio',               value: '62%',                      Icon: Percent },
-    { label: 'PYMEs Locales Certificadas',                   value: String(animHcPymes),         Icon: Building2 },
-    { label: 'Empleo Local Generado',                        value: '340 personas',              Icon: Users },
-    { label: 'Contratos con Cláusula de Contenido Nacional', value: String(animHcContratos),     Icon: FileCheck2 },
+    { label: '% Contenido Nacional Promedio',               value: `${animCnPct}%` },
+    { label: 'PYMEs Locales Certificadas',                   value: String(animHcPymes) },
+    { label: 'Empleo Local Generado',                        value: `${animEmpleo} personas` },
+    { label: 'Contratos con Cláusula CN',                    value: String(animHcContratos) },
   ];
 
   const KPIS_HACIENDA = [
-    { label: 'Recaudación Fiscal Facilitada',         value: `${fmt(210_000_000)} XAF`, Icon: Coins },
-    { label: '% Transacciones Digitalizadas',         value: '78%',                     Icon: Percent },
-    { label: 'Retenciones Reportadas',                value: `${fmt(12_500_000)} XAF`,  Icon: Receipt },
-    { label: 'Empresas Bancarizadas vía Plataforma',  value: String(animHaEmpresas),     Icon: Building2 },
+    { label: 'Recaudación Fiscal Facilitada',         value: `${fmt(animRecaudacion)} XAF` },
+    { label: '% Transacciones Digitalizadas',         value: `${animDigit}%` },
+    { label: 'Retenciones Reportadas',                value: `${fmt(animRetenciones)} XAF` },
+    { label: 'Empresas Bancarizadas vía Plataforma',  value: String(animHaEmpresas) },
   ];
 
   const showToast = (message) => {
@@ -160,8 +163,10 @@ export default function AdminInformacionGubernamental() {
 
         {/* KPIs del ministerio activo */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map(({ label, value, Icon }) => (
-            <StatCard key={label} label={label} value={value} Icon={Icon} />
+          {kpis.map(({ label, value }, idx) => (
+            <div key={label} className="card-enter" style={{ animationDelay: `${idx * 60}ms` }}>
+              <StatCard label={label} value={value} tone="gradient" />
+            </div>
           ))}
         </div>
 
