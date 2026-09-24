@@ -157,8 +157,8 @@ export default function ProvContratoDetalle() {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-[8px] text-[12px] sm:text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer
-                  ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'}`}
+                className={`bona-btn flex-1 py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+                  ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {id === 'facturas' ? `${lbl} (${facturasContrato.length})` : lbl}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
-  ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send,
+  ChevronRight, CheckCircle, FileText, FileCheck, Clock, Building2, User, Users,
+  LayoutGrid, Search, Zap, X, Eye, Landmark, History, Send,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -9,7 +10,6 @@ import { StatCard } from '../../components/common/StatCard';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import InvoiceCard from '../../components/invoices/InvoiceCard';
 import RequerirButton from '../../components/invoices/RequerirButton';
 import { InfoRow, SectionHeader, IpiVerificacionModal } from './contratanteShared';
 import { contratoService } from '../../services/contrato.service';
@@ -37,9 +37,12 @@ const badgeDe = (e) => (ESTADO_LABEL[e] ? estadoBadge(e) : facturaBadge(e));
 const TABS_DETALLE = [
   { id: 'contrato', lbl: 'Contrato', Icon: FileText,    iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'pyme',     lbl: 'Emp. Contratada', Icon: Users, iconBg: '#FFF3E0', iconColor: ORA },
-  { id: 'facturas', lbl: 'Facturas', Icon: Receipt,     iconBg: '#FFF3E0', iconColor: ORA },
+  { id: 'facturas', lbl: 'Facturas', Icon: FileCheck,   iconBg: '#FFF3E0', iconColor: ORA },
   { id: 'registros', lbl: 'Registros', Icon: History,   iconBg: '#FFF3E0', iconColor: ORA },
 ];
+
+const parseDate = d => { if (!d) return ''; const [dd, mm, yyyy] = d.split('/'); return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`; };
+const TAB_ICON_FAC = { 'Todos': LayoutGrid, 'Recibida': Send, 'Verificada': CheckCircle, 'Emitida': FileCheck };
 
 // Estados en los que el bloque de pago no aplica: facturas con requerimientos
 // (no se paga una factura con deficiencias) o ya terminales de pago.
@@ -184,6 +187,11 @@ export default function EmpContratoDetalle() {
   // haya ninguna, NO se muestra el botón "Generar IPI" junto al filtro.
   const [opsPago, setOpsPago]           = useState([]);
   const [ipiOps, setIpiOps]             = useState(false); // modal resumen de operaciones
+  const [busquedaFac, setBusquedaFac]   = useState('');
+  const [sortPyme, setSortPyme]         = useState({ key: null, dir: 'asc' });
+  const [groupByPyme, setGroupByPyme]   = useState(null);
+  const [sortFac2, setSortFac2]         = useState({ key: null, dir: 'asc' });
+  const [groupByFac2, setGroupByFac2]   = useState(null);
   const pymesDe = (nombre) => pymes.find(p => p.nombre === nombre) ?? null;
   const c    = contratanteState.selectedContrato
     ?? contratoService.listarPorVista('contratante').filter(x => x.tipo !== 'marco')[0] ?? null;
@@ -220,6 +228,29 @@ export default function EmpContratoDetalle() {
     : c?.marcoId
       ? contratoService.listarPorVista('contratante').filter(x => x.marcoId === c.marcoId).map(aViewContrato)
       : c ? [c] : [];
+
+  const toggleSortPyme  = (k) => setSortPyme(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupPyme = (k) => setGroupByPyme(g => g === k ? null : k);
+  const sortIconPyme    = (k) => sortPyme.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortPyme.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconPyme   = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByPyme === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const toggleSortFac2  = (k) => setSortFac2(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
+  const toggleGroupFac2 = (k) => setGroupByFac2(g => g === k ? null : k);
+  const sortIconFac2    = (k) => sortFac2.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortFac2.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconFac2   = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByFac2 === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const sortedHermanos = (() => {
+    const ek = groupByPyme || sortPyme.key;
+    if (!ek) return hermanos;
+    const dir = groupByPyme ? 1 : (sortPyme.dir === 'asc' ? 1 : -1);
+    return [...hermanos].sort((a, b) => {
+      if (ek === 'nombre') return dir * (a.pyme ?? '').localeCompare(b.pyme ?? '');
+      if (ek === 'score') { const pa = pymesDe(a.pyme); const pb = pymesDe(b.pyme); return dir * ((pa?.score ?? 0) - (pb?.score ?? 0)); }
+      if (ek === 'monto') return dir * (a.asignado - b.asignado);
+      if (ek === 'estado') return dir * (a.estado ?? '').localeCompare(b.estado ?? '');
+      return 0;
+    });
+  })();
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };
@@ -283,12 +314,12 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tabs con iconos (como en PYME) — en grid para que quepan sin scroll
               lateral en pantallas chicas ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-page-bg p-1 rounded-[10px]">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1">
           {TABS_DETALLE.map(({ id, lbl, Icon }) => {
             const active = tab === id;
             return (
               <button key={id} onClick={() => setTab(id)}
-                className={`bona-btn py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+                className={`bona-btn flex-1 py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
                   ${active ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -361,17 +392,33 @@ export default function EmpContratoDetalle() {
             </div>
 
             <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-              <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1.4fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Emp. Contratada</span>
+              <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1.4fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                <button onClick={() => toggleSortPyme('nombre')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                  Emp. Contratada {sortIconPyme('nombre')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contrato</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Estado</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto asignado</span>
+                <button onClick={() => toggleGroupPyme('estado')} className={`text-[11px] font-semibold uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 ${groupByPyme === 'estado' ? 'text-orange' : 'text-text-4'}`}>
+                  Estado {groupIconPyme('estado')}
+                </button>
+                <button onClick={() => toggleSortPyme('score')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                  Score {sortIconPyme('score')}
+                </button>
+                <button onClick={() => toggleSortPyme('monto')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                  Monto asignado {sortIconPyme('monto')}
+                </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
               </div>
-              {hermanos.map(h => {
+              {sortedHermanos.flatMap((h, i) => {
+                const gVal = groupByPyme === 'estado' ? (h.estado || '—') : null;
+                const prevGVal = i === 0 ? null : groupByPyme === 'estado' ? (sortedHermanos[i-1].estado || '—') : null;
+                const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
                 const hPyme = pymesDe(h.pyme);
-                return (
+                const groupSep = isNewGroup ? [
+                  <div key={`grp-${i}`} className="min-w-[640px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                    <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                  </div>
+                ] : [];
+                const rowDiv = (
                   <div
                     key={h.id}
                     onClick={() => setPymeDetalle(h)}
@@ -407,6 +454,7 @@ export default function EmpContratoDetalle() {
                     </div>
                   </div>
                 );
+                return [...groupSep, rowDiv];
               })}
               {hermanos.length === 0 && (
                 <div className="min-w-[640px] px-4 py-10 text-center text-[13px] text-text-4">
@@ -419,59 +467,145 @@ export default function EmpContratoDetalle() {
 
         {/* ── Tab: Facturas ── */}
         {tab === 'facturas' && (() => {
-          const estadosDisponibles = ['Todos', ...Array.from(new Set(facturasContrato.map(f => f.estado)))];
-          const visibles = filtroFac === 'Todos' ? facturasContrato : facturasContrato.filter(f => f.estado === filtroFac);
+          const labelFac = (f) => estadoLabel(f.estado) || f.estado;
+          const estadosDisponibles = ['Todos', ...Array.from(new Set(facturasContrato.map(labelFac)))];
+          const filteredFac = facturasContrato.filter(f =>
+            (filtroFac === 'Todos' || labelFac(f) === filtroFac) &&
+            (!busquedaFac.trim() ||
+              f.id.toLowerCase().includes(busquedaFac.toLowerCase()) ||
+              (f.pyme || '').toLowerCase().includes(busquedaFac.toLowerCase()) ||
+              (f.concepto || '').toLowerCase().includes(busquedaFac.toLowerCase()))
+          );
+          const sortedFac = (() => {
+            const ek = groupByFac2 || sortFac2.key;
+            if (!ek) return filteredFac;
+            const dir = groupByFac2 ? 1 : (sortFac2.dir === 'asc' ? 1 : -1);
+            return [...filteredFac].sort((a, b) => {
+              if (ek === 'fecha') return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+              if (ek === 'monto') return dir * (a.monto - b.monto);
+              if (ek === 'estado') return dir * labelFac(a).localeCompare(labelFac(b));
+              if (ek === 'pyme') return dir * (a.pyme || '').localeCompare(b.pyme || '');
+              if (ek === 'pagado') return dir * ((a.pagosAcumulados ?? 0) - (b.pagosAcumulados ?? 0));
+              return 0;
+            });
+          })();
           return (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-3 flex-1">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-                    <Receipt className="w-5 h-5 text-white" />
+                    <FileCheck className="w-5 h-5 text-white" />
                   </div>
                   <div>
                     <div className="text-[14px] font-bold text-text-1">Facturas ({facturasContrato.length})</div>
                     <div className="text-[12px] text-text-4">Emitidas por la Empresa Contratada en este contrato</div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
                 {opsPago.length > 0 && (
                   <Button size="sm" onClick={() => setIpiOps(true)} className="shrink-0">
                     <Zap className="w-3.5 h-3.5 mr-1" /> Generar IPI
                     <span className="ml-1.5 px-1.5 py-px rounded-full text-[10px] font-bold bg-white/25">{opsPago.length}</span>
                   </Button>
                 )}
-                <div className="relative flex items-center self-center sm:self-auto">
-                  <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0" style={{ color: ORA }} />
-                  <select
-                    value={filtroFac}
-                    onChange={e => setFiltroFac(e.target.value)}
-                    className="h-8 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-                  >
-                    {estadosDisponibles.map(e => <option key={e}>{e}</option>)}
-                  </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="overflow-x-auto pb-0.5 flex-1">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                    {estadosDisponibles.map(e => {
+                      const TabIcon = TAB_ICON_FAC[e];
+                      return (
+                        <button key={e} onClick={() => setFiltroFac(e)}
+                          className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                            ${filtroFac === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}>
+                          {TabIcon && <TabIcon className="w-3 h-3 shrink-0" />}
+                          {e}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="relative shrink-0">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                  <input
+                    value={busquedaFac}
+                    onChange={e => setBusquedaFac(e.target.value)}
+                    placeholder="Buscar factura, empresa…"
+                    className="h-8 w-48 pl-8 pr-3 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none transition"
+                  />
                 </div>
               </div>
-              {visibles.length === 0 ? (
-              <div className="py-10 flex flex-col items-center gap-2" style={{ color: TEXT4 }}>
-                <Receipt className="w-8 h-8" />
-                <p className="text-[13px] font-semibold">Sin facturas con estado "{filtroFac}"</p>
+              <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+                <div className="min-w-[780px] grid [grid-template-columns:1.4fr_0.8fr_1.4fr_1.4fr_1.1fr_0.8fr_1.1fr_0.8fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
+                  <button onClick={() => toggleSortFac2('fecha')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                    Fecha {sortIconFac2('fecha')}
+                  </button>
+                  <button onClick={() => toggleGroupFac2('pyme')} className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByFac2 === 'pyme' ? 'text-orange' : 'text-text-4'}`}>
+                    Emp. Contratada {groupIconFac2('pyme')}
+                  </button>
+                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Concepto</span>
+                  <button onClick={() => toggleSortFac2('monto')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-end gap-1 cursor-pointer hover:text-text-1">
+                    Monto {sortIconFac2('monto')}
+                  </button>
+                  <button onClick={() => toggleSortFac2('pagado')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                    Pagado {sortIconFac2('pagado')}
+                  </button>
+                  <button onClick={() => toggleSortFac2('estado')} className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center justify-center gap-1 cursor-pointer hover:text-text-1">
+                    Estado {sortIconFac2('estado')}
+                  </button>
+                  <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
+                </div>
+                {sortedFac.flatMap((f, i) => {
+                  const gVal = groupByFac2 === 'pyme' ? (f.pyme || '—') : null;
+                  const prevGVal = i === 0 ? null : groupByFac2 === 'pyme' ? (sortedFac[i-1].pyme || '—') : null;
+                  const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+                  const groupSep = isNewGroup ? [
+                    <div key={`grp-${i}`} className="min-w-[780px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                      <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                    </div>
+                  ] : [];
+                  const rowDiv = (
+                    <div key={f.id}
+                      onClick={() => { setFacturaModal(f); setIpiStep(null); }}
+                      className="min-w-[780px] grid [grid-template-columns:1.4fr_0.8fr_1.4fr_1.4fr_1.1fr_0.8fr_1.1fr_0.8fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                    >
+                      <div className="text-[12px] font-mono font-bold text-text-2">{f.id}</div>
+                      <div className="text-[11px] text-text-4">{f.fecha || '—'}</div>
+                      <div className="text-[12px] font-semibold text-text-2 truncate">{f.pyme || '—'}</div>
+                      <div className="text-[11px] text-text-4 truncate">{f.concepto || '—'}</div>
+                      <div className="text-[13px] font-extrabold text-text-1 text-right whitespace-nowrap">{fmt(f.monto)} XAF</div>
+                      {(() => {
+                        const total = Number(f.monto) || 0;
+                        const pagado = Number(f.pagosAcumulados) || 0;
+                        const isPaid = f.estado === INV.pagada || f.estado === INV.billetera;
+                        if (isPaid || pagado > 0) {
+                          const amount = isPaid ? total : pagado;
+                          const pct = total > 0 ? Math.round((amount / total) * 100) : 100;
+                          return <span className="text-[12px] font-bold text-center block" style={{ color: '#EF7A2C' }}>{pct}%</span>;
+                        }
+                        return <span className="text-[12px] text-text-4 text-center block">—</span>;
+                      })()}
+                      <div className="flex justify-center">
+                        <Badge variant={badgeDe(f.estado)}>{estadoLabel(f.estado)}</Badge>
+                      </div>
+                      <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setFacturaModal(f); setIpiStep(null); }}
+                          className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                  return [...groupSep, rowDiv];
+                })}
+                {sortedFac.length === 0 && (
+                  <div className="min-w-[780px] px-4 py-10 text-center text-[13px] text-text-4">
+                    Sin facturas{filtroFac !== 'Todos' ? ` con estado "${filtroFac}"` : ''}.
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {visibles.map((f) => (
-                  <InvoiceCard
-                    key={f.id}
-                    factura={f}
-                    onClick={() => { setFacturaModal(f); setIpiStep(null); }}
-                    entidad={f.pyme}
-                    concepto={f.concepto}
-                    badge={<Badge variant={badgeDe(f.estado)}>{estadoLabel(f.estado)}</Badge>}
-                  />
-                ))}
-              </div>
-          )}
             </div>
           );
         })()}
