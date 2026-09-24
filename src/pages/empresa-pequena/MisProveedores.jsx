@@ -11,6 +11,9 @@ import {
   ShieldCheck,
   Star,
   ClipboardList,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
@@ -151,6 +154,17 @@ export default function EpMisProveedores() {
   const [modal, setModal] = useState(MODAL_EMPTY);
   const [detalle, setDetalle] = useState(null);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: null, dir: 'asc' });
+  const toggleSort = (key) => setSort(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const sortIcon = (k) => sort.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sort.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
   const [toast, setToast] = useState({ visible: false, message: "" });
 
   useEffect(() => {
@@ -169,6 +183,19 @@ export default function EpMisProveedores() {
       )
     : providers;
 
+  const KYC_ORDER = { vigente: 0, pendiente: 1, vencido: 2 };
+  const sortedProviders = (() => {
+    if (!sort.key) return filteredProviders;
+    const dir = sort.dir === 'asc' ? 1 : -1;
+    return [...filteredProviders].sort((a, b) => {
+      if (sort.key === 'nombre')    return dir * a.razonSocial.localeCompare(b.razonSocial);
+      if (sort.key === 'kyc')       return dir * ((KYC_ORDER[a.kyc] ?? 1) - (KYC_ORDER[b.kyc] ?? 1));
+      if (sort.key === 'score')     return dir * ((a.scoreCredito ?? -1) - (b.scoreCredito ?? -1));
+      if (sort.key === 'contratos') return dir * (numContratos(a) - numContratos(b));
+      return 0;
+    });
+  })();
+
   // Delay solo de prueba, para ver el loader funcionando con estos 15 mocks —
   // en el resto de pantallas (y cuando esto se conecte a un backend real) el
   // delay se deja en 0 para no meter una espera artificial desde el frontend.
@@ -177,10 +204,10 @@ export default function EpMisProveedores() {
     hasMore,
     loading,
     sentinelRef,
-  } = useInfiniteScroll(filteredProviders, {
+  } = useInfiniteScroll(sortedProviders, {
     pageSize: 10,
     delay: 900,
-    resetKey: search,
+    resetKey: `${search}|${sort.key}|${sort.dir}`,
   });
 
   const showToast = (msg) => {
@@ -313,11 +340,23 @@ export default function EpMisProveedores() {
         <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
           {/* Header */}
           <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_0.8fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Proveedor</span>
+            <button onClick={() => toggleSort('nombre')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+              Proveedor {sortIcon('nombre')}
+            </button>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">RUC</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
-            <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contratos</span>
+            <button onClick={() => toggleSort('kyc')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              KYC {sortIcon('kyc')}
+            </button>
+            <button onClick={() => toggleSort('score')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Score {sortIcon('score')}
+            </button>
+            <button onClick={() => toggleSort('contratos')}
+              className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+              Contratos {sortIcon('contratos')}
+            </button>
             <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
           </div>
 
