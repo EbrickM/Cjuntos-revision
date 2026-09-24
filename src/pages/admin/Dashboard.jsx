@@ -140,7 +140,7 @@ export default function AdminDash() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
               {/* LineChart 3/5 */}
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 flex flex-col transition-transform duration-200 hover:scale-[1.02]">
                 <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
                   <div>
                     <div className="text-[14px] font-bold text-text-1">Evolución de financiación</div>
@@ -157,7 +157,7 @@ export default function AdminDash() {
               </div>
 
               {/* DonutChart 2/5 */}
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col transition-transform duration-200 hover:scale-[1.02]">
                 <div className="mb-3">
                   <div className="text-[14px] font-bold text-text-1">Distribución del financiado</div>
                   <div className="text-[11px] text-text-4">¿Dónde está el negocio?</div>
@@ -181,7 +181,7 @@ export default function AdminDash() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
               {/* VBarChart 2/5 */}
-              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col">
+              <div className="lg:col-span-2 bg-white rounded-[14px] border border-border p-5 flex flex-col transition-transform duration-200 hover:scale-[1.02]">
                 <div className="mb-4">
                   <div className="text-[14px] font-bold text-text-1">Estado de operaciones</div>
                   <div className="text-[11px] text-text-4">¿Hay cuellos de botella?</div>
@@ -192,7 +192,7 @@ export default function AdminDash() {
               </div>
 
               {/* Table 3/5 */}
-              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5">
+              <div className="lg:col-span-3 bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.02]">
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <div className="text-[14px] font-bold text-text-1">Operaciones recientes</div>
@@ -248,7 +248,7 @@ export default function AdminDash() {
             </div>
 
             {/* Riesgo de cartera + Exposición por empresa */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.02]">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
                 {/* Exposición por empresa — 2/3 */}
@@ -274,7 +274,7 @@ export default function AdminDash() {
             </div>
 
             {/* Alertas table */}
-            <div className="bg-white rounded-[14px] border border-border p-5">
+            <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.02]">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-[14px] font-bold text-text-1">Alertas abiertas</div>

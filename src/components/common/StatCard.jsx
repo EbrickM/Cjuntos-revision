@@ -22,7 +22,7 @@ export function StatCard({ label, value, Icon, tone = 'gradient' }) {
         )}
         <div className="p-4">
           <div className="text-[10px] font-semibold uppercase tracking-wide mb-1.5 leading-tight text-text-4">{label}</div>
-          <div className="text-[22px] font-extrabold leading-tight truncate text-text-1">{value}</div>
+          <div className="text-[16px] font-extrabold leading-snug break-words text-text-1">{value}</div>
         </div>
         <div className="h-[4px] rounded-b-[14px]" style={{ background: 'var(--bonafide-gradient)' }} />
       </div>
