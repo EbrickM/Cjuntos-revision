@@ -558,7 +558,7 @@ export default function EpFacturacion() {
           {vista === 'contratante' ? (
             <>
               {/* Header CT */}
-              <div className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+              <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <button onClick={() => toggleGroupCT('contrato')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByCT === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
                   Contrato
@@ -605,7 +605,7 @@ export default function EpFacturacion() {
                   <div
                     key={f.id}
                     onClick={() => setDetalle(f)}
-                    className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                    className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
                     {/* 1. Contrato */}
                     <div className="text-[13px] font-bold text-text-1">{f.contrato || '—'}</div>
@@ -625,18 +625,11 @@ export default function EpFacturacion() {
                     {(() => {
                       const total  = Number(f.monto) || 0;
                       const pagado = Number(f.pagosAcumulados) || 0;
-                      const fmtN = v => new Intl.NumberFormat('de-DE').format(v);
-                      if (pagado > 0 && pagado < total) {
-                        const pct = Math.round((pagado / total) * 100);
-                        return (
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
-                            <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
-                          </div>
-                        );
-                      }
-                      if (f.estado === INV.pagada || f.estado === INV.billetera) {
-                        return <span className="text-[11px] font-semibold text-green-text text-center block">100%</span>;
+                      const isPaid = f.estado === INV.pagada || f.estado === INV.billetera;
+                      if (isPaid || pagado > 0) {
+                        const amount = isPaid ? total : pagado;
+                        const pct = total > 0 ? Math.round((amount / total) * 100) : 100;
+                        return <span className="text-[12px] font-bold text-center block" style={{ color: '#EF7A2C' }}>{pct}%</span>;
                       }
                       return <span className="text-[12px] text-text-4 text-center block">—</span>;
                     })()}
@@ -670,7 +663,7 @@ export default function EpFacturacion() {
           ) : (
             <>
               {/* Header PR */}
-              <div className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
+              <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <button onClick={() => toggleGroupPR('contrato')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByPR === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
                   Contrato
@@ -717,7 +710,7 @@ export default function EpFacturacion() {
                   <div
                     key={inv.id}
                     onClick={() => setPrDetalle(inv)}
-                    className="min-w-[1020px] grid [grid-template-columns:1fr_1.2fr_0.9fr_1.2fr_1.4fr_1.1fr_1.2fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                    className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
                   >
                     {/* 1. Contrato */}
                     <div className="text-[13px] font-bold text-text-1">{inv.contrato || '—'}</div>
@@ -737,18 +730,11 @@ export default function EpFacturacion() {
                     {(() => {
                       const total  = Number(inv.monto) || 0;
                       const pagado = Number(inv.pagosAcumulados) || 0;
-                      const fmtN = v => new Intl.NumberFormat('de-DE').format(v);
-                      if (pagado > 0 && pagado < total) {
-                        const pct = Math.round((pagado / total) * 100);
-                        return (
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[10px] text-text-4 truncate">{fmtN(pagado)} XAF</span>
-                            <span className="text-[10px] font-bold shrink-0" style={{ color: '#EF7A2C' }}>{pct}%</span>
-                          </div>
-                        );
-                      }
-                      if (inv.estado === 'Pagada' || inv.estado === 'Aprobada') {
-                        return <span className="text-[11px] font-semibold text-green-text text-center block">100%</span>;
+                      const isPaid = inv.estado === 'Pagada' || inv.estado === 'Aprobada';
+                      if (isPaid || pagado > 0) {
+                        const amount = isPaid ? total : pagado;
+                        const pct = total > 0 ? Math.round((amount / total) * 100) : 100;
+                        return <span className="text-[12px] font-bold text-center block" style={{ color: '#EF7A2C' }}>{pct}%</span>;
                       }
                       return <span className="text-[12px] text-text-4 text-center block">—</span>;
                     })()}
