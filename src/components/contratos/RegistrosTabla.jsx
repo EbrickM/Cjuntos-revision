@@ -1,8 +1,7 @@
+import { useState } from 'react';
+import { ArrowUpDown, ArrowUp, ArrowDown, Layers2 } from 'lucide-react';
 import Badge from '../ui/Badge';
 
-// Asunto → variante de Badge. Cada asunto con su propio color: 'contrato'
-// (slate, neutro frío), 'facturas' (orange, CTA), 'administración' (blue,
-// gestión), 'cliente' (gold, onboarding) e 'indicación' (red, alerta).
 const ASUNTO_BADGE = {
   contrato: 'slate',
   facturas: 'orange',
@@ -13,12 +12,43 @@ const ASUNTO_BADGE = {
 
 const asuntoBadge = (a) => ASUNTO_BADGE[a] ?? 'slate';
 
+const parseDate = (d) => {
+  if (!d) return '';
+  const [dd, mm, yyyy] = (d || '').split('/');
+  return `${yyyy ?? ''}-${mm ?? ''}-${dd ?? ''}`;
+};
+
 // Tabla compartida de la pestaña "Registros" de los detalles de contrato
-// (Contratante / PYME / Proveedor / Fondeador): Referente · Fecha · Asunto ·
-// Registro, con el mismo patrón móvil (cards) + desktop (tabla) que el resto de
-// la app. `noAnim` quita la animación de entrada (la usa el portal del Fondeador
-// para que el tab Registros se vea igual que las demás tablas).
+// (Contratante / PYME / Proveedor / Fondeador).
 export default function RegistrosTabla({ registros = [], titulo = 'Registros', sub = 'Todos los movimientos y actuaciones de las partes sobre este contrato', noAnim = false }) {
+  const [sort, setSort]     = useState({ key: null, dir: 'asc' });
+  const [groupBy, setGroupBy] = useState(null);
+
+  const toggleSort  = (key) => setSort(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroup = (key) => setGroupBy(g => g === key ? null : key);
+  const sortIcon    = (k) => sort.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sort.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon   = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const sorted = (() => {
+    const ek = groupBy || sort.key;
+    if (!ek) return registros;
+    const dir = groupBy ? 1 : (sort.dir === 'asc' ? 1 : -1);
+    return [...registros].sort((a, b) => {
+      if (ek === 'referente') return dir * (a.referente ?? '').localeCompare(b.referente ?? '');
+      if (ek === 'fecha')     return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+      if (ek === 'asunto')    return dir * (a.asunto ?? '').localeCompare(b.asunto ?? '');
+      return 0;
+    });
+  })();
+
   return (
     <div className={`bg-white rounded-[14px] border border-border p-5 ${noAnim ? '' : 'card-enter'}`}>
       <div className="flex items-center justify-between gap-2 mb-4">
@@ -55,27 +85,50 @@ export default function RegistrosTabla({ registros = [], titulo = 'Registros', s
             ))}
           </div>
 
-          {/* Desktop: tabla */}
+          {/* Desktop: tabla con sort/group */}
           <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full min-w-[720px]">
-              <thead className="bg-page-bg">
-                <tr className="border-b border-border">
-                  {['Referente', 'Fecha', 'Asunto', 'Registro'].map(h => (
-                    <th key={h} className="text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 text-left">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {registros.map((r, i) => (
-                  <tr key={i} className="border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors align-top">
-                    <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{r.referente}</td>
-                    <td className="px-4 py-3 text-[12px] font-mono whitespace-nowrap" style={{ color: '#A9A6A1' }}>{r.fecha}</td>
-                    <td className="px-4 py-3"><Badge variant={asuntoBadge(r.asunto)} className="capitalize">{r.asunto}</Badge></td>
-                    <td className="px-4 py-3 text-[12px] text-text-2 leading-relaxed">{r.registro}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="min-w-[720px] grid [grid-template-columns:1.4fr_0.9fr_1fr_2.5fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+              <button onClick={() => toggleGroup('referente')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupBy === 'referente' ? 'text-orange' : 'text-text-4'}`}>
+                Referente {groupIcon('referente')}
+              </button>
+              <button onClick={() => toggleSort('fecha')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                Fecha {sortIcon('fecha')}
+              </button>
+              <button onClick={() => toggleGroup('asunto')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupBy === 'asunto' ? 'text-orange' : 'text-text-4'}`}>
+                Asunto {groupIcon('asunto')}
+              </button>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Registro</span>
+            </div>
+            {sorted.flatMap((r, i) => {
+              const gVal = groupBy === 'referente' ? (r.referente || '—')
+                         : groupBy === 'asunto'    ? (r.asunto    || '—')
+                         : null;
+              const prevGVal = i === 0 ? null
+                : groupBy === 'referente' ? (sorted[i - 1].referente || '—')
+                : groupBy === 'asunto'    ? (sorted[i - 1].asunto    || '—')
+                : null;
+              const isNewGroup = gVal !== null && (i === 0 || gVal !== prevGVal);
+              const groupSep = isNewGroup ? [
+                <div key={`grp-${i}`} className="min-w-[720px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                  <span className="text-[11px] font-bold text-orange capitalize">{gVal}</span>
+                </div>,
+              ] : [];
+              const rowDiv = (
+                <div
+                  key={i}
+                  className="min-w-[720px] grid [grid-template-columns:1.4fr_0.9fr_1fr_2.5fr] px-4 py-3 border-b border-border last:border-0 hover:bg-orange-tint/40 transition-colors items-start gap-3"
+                >
+                  <div className="text-[12px] font-semibold text-text-1">{r.referente}</div>
+                  <div className="text-[12px] font-mono whitespace-nowrap" style={{ color: '#A9A6A1' }}>{r.fecha}</div>
+                  <div><Badge variant={asuntoBadge(r.asunto)} className="capitalize">{r.asunto}</Badge></div>
+                  <div className="text-[12px] text-text-2 leading-relaxed">{r.registro}</div>
+                </div>
+              );
+              return [...groupSep, rowDiv];
+            })}
           </div>
         </>
       )}
