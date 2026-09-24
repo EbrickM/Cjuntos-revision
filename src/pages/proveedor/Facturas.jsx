@@ -3,6 +3,8 @@ import { useCountUp } from '../../hooks/useCountUp';
 import {
   Eye, FileText, Banknote, Search,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2,
+  LayoutGrid, Send, Clock, AlertCircle, CheckCircle, FileCheck,
+  Landmark, ShieldCheck, CheckCircle2, Wallet,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -35,6 +37,23 @@ const ESTADO_LABEL = {
   [INV.billetera]: 'Billetera',
 };
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
+
+const TAB_ICON = {
+  'Todos':               LayoutGrid,
+  'Creada':              FileText,
+  'Enviada':             Send,
+  'En evaluación':       Clock,
+  'Con correcciones':    AlertCircle,
+  'Aprobada':            CheckCircle,
+  'Emitida':             FileCheck,
+  'Con Requerimientos':  AlertCircle,
+  'Orden al Fondeador':  Banknote,
+  'Fondeado':            Landmark,
+  'OTP enviada':         ShieldCheck,
+  'Verificada':          ShieldCheck,
+  'Pagada':              CheckCircle2,
+  'Billetera':           Wallet,
+};
 
 const INIT_CT_EMPTY = { open: false, editId: null, contratoId: '', monto: '', concepto: '', fechaVencimiento: '', documento: null };
 
@@ -186,16 +205,20 @@ export default function ProvFacturas() {
         <div className="flex items-center gap-3">
           <div className="overflow-x-auto pb-0.5 flex-1">
             <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
-              {ESTADOS.map(e => (
-                <button
-                  key={e}
-                  onClick={() => setFiltroEstado(e)}
-                  className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
-                    ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
-                >
-                  {e}
-                </button>
-              ))}
+              {ESTADOS.map(e => {
+                const Icon = TAB_ICON[e] ?? LayoutGrid;
+                return (
+                  <button
+                    key={e}
+                    onClick={() => setFiltroEstado(e)}
+                    className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                      ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    {e}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="relative shrink-0">
