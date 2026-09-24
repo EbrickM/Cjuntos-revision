@@ -15,6 +15,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Layers2,
 } from "lucide-react";
 import { localDb } from "../../lib/localDb";
 import AppShell from "../../components/layout/AppShell";
@@ -156,6 +157,8 @@ export default function EpFacturacion() {
     : sortPR.dir === 'asc'
       ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
       : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconCT = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByCT === k ? 'text-orange' : 'opacity-30'}`} />;
+  const groupIconPR = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByPR === k ? 'text-orange' : 'opacity-30'}`} />;
 
   const bump = () =>
     setFacturas(facturaService.listarPorRol("empresa-pequena"));
@@ -550,7 +553,7 @@ export default function EpFacturacion() {
               <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <button onClick={() => toggleGroupCT('contrato')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByCT === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
-                  Contrato
+                  Contrato {groupIconCT('contrato')}
                 </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
                 <button onClick={() => toggleSortCT('fecha')}
@@ -559,7 +562,7 @@ export default function EpFacturacion() {
                 </button>
                 <button onClick={() => toggleGroupCT('empresa')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupByCT === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
-                  Contratante
+                  Contratante {groupIconCT('empresa')}
                 </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
                 <button onClick={() => toggleSortCT('monto')}
@@ -655,7 +658,7 @@ export default function EpFacturacion() {
               <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
                 <button onClick={() => toggleGroupPR('contrato')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupByPR === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
-                  Contrato
+                  Contrato {groupIconPR('contrato')}
                 </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
                 <button onClick={() => toggleSortPR('fecha')}
@@ -664,7 +667,7 @@ export default function EpFacturacion() {
                 </button>
                 <button onClick={() => toggleGroupPR('empresa')}
                   className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupByPR === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
-                  Proveedor
+                  Proveedor {groupIconPR('empresa')}
                 </button>
                 <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
                 <button onClick={() => toggleSortPR('monto')}

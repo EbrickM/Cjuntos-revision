@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   CheckCircle, Banknote, Send, ShieldCheck, Check, X, Eye, Search, ListFilter,
-  ArrowUpDown, ArrowUp, ArrowDown,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -62,6 +62,7 @@ export default function EmpFacturas() {
     : sort.dir === 'asc'
       ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
       : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
 
   const facturas = facturaService.listarPorRol('contratante');
   const facturasVivas = facturas.map(f => ({ ...f }));
@@ -195,7 +196,7 @@ export default function EmpFacturas() {
             <div className="min-w-[1020px] grid [grid-template-columns:1.2fr_1.4fr_0.9fr_1fr_1.4fr_1.1fr_0.9fr_1.4fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
               <button onClick={() => toggleGroup('contrato')}
                 className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 ${groupBy === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
-                Contrato
+                Contrato {groupIcon('contrato')}
               </button>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Cod. Factura</span>
               <button onClick={() => toggleSort('fecha')}
@@ -204,7 +205,7 @@ export default function EmpFacturas() {
               </button>
               <button onClick={() => toggleGroup('empresa')}
                 className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 text-center justify-center ${groupBy === 'empresa' ? 'text-orange' : 'text-text-4'}`}>
-                Emp. Contratada
+                Emp. Contratada {groupIcon('empresa')}
               </button>
               <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Concepto</span>
               <button onClick={() => toggleSort('monto')}
