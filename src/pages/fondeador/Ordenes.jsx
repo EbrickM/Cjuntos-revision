@@ -1024,7 +1024,7 @@ export default function FondOrdenes() {
               className="h-8 pl-8 pr-7 text-[11px] font-medium rounded-[8px] border border-border bg-white text-text-3 focus:outline-none focus:border-orange transition cursor-pointer appearance-none"
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A9A6A1' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
             >
-              <option value="">Todas las empresas</option>
+              <option value="">Todos los clientes</option>
               {EMPRESAS_CONTRATANTES.map(e => <option key={e.id} value={e.nombre}>{e.nombre}</option>)}
             </select>
           </div>
