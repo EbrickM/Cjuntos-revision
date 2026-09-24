@@ -77,9 +77,10 @@ export default function EpConfigurarContrato() {
   }, [contrato, go]);
 
   const [modo, setModo]                 = useState('wizard'); // 'wizard' | 'rechazado' | 'enviado'
-  // Siempre arranca en el paso 1 (Términos), incluso si hay un borrador
-  // guardado en un paso más avanzado — solo se restauran los datos ya cargados.
-  const [step, setStep]                 = useState(0);
+  // Solo se retoma el paso del borrador cuando se entra explícitamente desde
+  // "Continuar" en la pestaña Borradores; cualquier otra entrada siempre
+  // arranca en el paso 1 (Términos).
+  const [step, setStep]                 = useState(opts?.desdeBorrador ? (borrador?.paso ?? 0) : 0);
   const [mostrarRechazo, setMostrarRechazo] = useState(false);
   const [comentarioRechazo, setComentarioRechazo] = useState('');
   const [gestionFondos, setGestionFondos] = useState(borrador?.datos?.gestionFondos ?? contrato?.gestionFondos ?? null);

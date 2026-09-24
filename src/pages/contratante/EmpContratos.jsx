@@ -196,7 +196,7 @@ export default function EmpContratos() {
         {tab === 'Borradores' ? (
           <BorradoresSeccion
             rol="contratante"
-            onContinuar={b => go('empConfigurarContrato', { marcoId: b.contratoId })}
+            onContinuar={b => go('empConfigurarContrato', { marcoId: b.contratoId, desdeBorrador: true })}
           />
         ) : (
 

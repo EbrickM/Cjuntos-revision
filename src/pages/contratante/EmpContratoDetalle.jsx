@@ -1,13 +1,8 @@
 import { useState } from 'react';
 import {
-<<<<<<< HEAD
-  ChevronRight, CheckCircle, FileText, Clock, Building2, User, Users,
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Send, Plus, Trash2,
-=======
   ChevronRight, CheckCircle, FileText, FileCheck, Clock, Building2, User, Users,
-  LayoutGrid, Search, Zap, X, Eye, Landmark, History, Send, Plus,
-  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
+  LayoutGrid, Search, Zap, X, Eye, Landmark, History, Send,
+  Plus, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -243,7 +238,6 @@ export default function EmpContratoDetalle() {
   const [listaPymes, setListaPymes]     = useEmpresasContratadas();
   const [agregarPyme, setAgregarPyme]   = useState(NUEVA_PYME_EMPTY);
   const [pymesManualesPorContrato, setPymesManualesPorContrato] = useState({});
-<<<<<<< HEAD
   // Empresas Contratadas de este contrato que se "eliminaron" desde esta misma
   // tabla (las que venían de la asignación del contrato, no del directorio —
   // esas se sacan directo del directorio con setListaPymes).
@@ -251,8 +245,6 @@ export default function EmpContratoDetalle() {
   const [eliminarHermano, setEliminarHermano] = useState(null);
   // Busca también en el directorio persistido (incluye las agregadas desde
   // este mismo detalle), no solo en la semilla estática.
-=======
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
   const pymesDe = (nombre) => listaPymes.find(p => p.nombre === nombre) ?? null;
   const [busquedaFac, setBusquedaFac]   = useState('');
   const [sortPyme, setSortPyme]         = useState({ key: null, dir: 'asc' });
@@ -303,7 +295,6 @@ export default function EmpContratoDetalle() {
   ).filter(h => !ocultosHermanos.includes(h.pyme));
   const hermanos = [...pymesManuales, ...hermanosBase];
 
-<<<<<<< HEAD
   // Elimina una Empresa Contratada de la tabla de este contrato — igual que en
   // el directorio (EmpPymes.jsx): si venía del directorio persistido, también
   // se quita de allí; si era una fila propia de la asignación del contrato, se
@@ -324,7 +315,7 @@ export default function EmpContratoDetalle() {
     }
     setEliminarHermano(null);
   };
-=======
+
   const toggleSortPyme  = (k) => setSortPyme(s => s.key !== k ? { key: k, dir: 'asc' } : s.dir === 'asc' ? { key: k, dir: 'desc' } : { key: null, dir: 'asc' });
   const toggleGroupPyme = (k) => setGroupByPyme(g => g === k ? null : k);
   const sortIconPyme    = (k) => sortPyme.key !== k ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" /> : sortPyme.dir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
@@ -347,7 +338,6 @@ export default function EmpContratoDetalle() {
       return 0;
     });
   })();
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
 
   const closeModal        = () => { setFacturaModal(null); setIpiStep(null); };
   const handleVerificar   = () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Verificada' })); closeModal(); };

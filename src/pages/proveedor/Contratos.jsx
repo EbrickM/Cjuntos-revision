@@ -191,7 +191,7 @@ export default function ProvContratos() {
         {tab === 'Borradores' ? (
           <BorradoresSeccion
             rol="proveedor"
-            onContinuar={b => go('provConfigurarContrato', { contratoId: b.contratoId })}
+            onContinuar={b => go('provConfigurarContrato', { contratoId: b.contratoId, desdeBorrador: true })}
           />
         ) : (
 

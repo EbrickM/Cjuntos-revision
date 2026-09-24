@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import {
   ChevronRight, CheckCircle, FileText, Clock, Building2, User, Truck,
-<<<<<<< HEAD
-  Receipt, ListFilter, Zap, X, Eye, Landmark, History, Plus, Trash2,
-=======
-  Zap, X, Eye, Landmark, History, Search, LayoutGrid, Send, FileCheck, Plus,
-  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
+  Zap, X, Eye, Landmark, History, Search, LayoutGrid,
+  Send, FileCheck, Plus, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
@@ -344,57 +340,6 @@ export default function ProvContratoDetalle() {
               </div>
             </div>
 
-<<<<<<< HEAD
-            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-              <div className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3">
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide">Suministrador</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Contrato</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">KYC</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Score</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Monto asignado</span>
-                <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
-              </div>
-              {misSuministradores.map(s => (
-                <div
-                  key={s.id}
-                  onClick={() => setSumDetalle(s)}
-                  className="min-w-[640px] grid [grid-template-columns:3fr_1.5fr_1fr_1fr_1.2fr_1fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
-                >
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-bold text-text-1 truncate">{s.nombre}</div>
-                  </div>
-                  <span className="text-[12px] font-mono text-center" style={{ color: TEXT4 }}>{c.id}</span>
-                  <div className="flex justify-center">
-<Badge variant={kycBadge(s.kyc ?? 'sin kyc')}>{s.kyc ?? 'sin KYC'}</Badge>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="text-center">
-                      {s.scoreCredito != null ? (
-                        <>
-                          <div className="text-[12px] font-semibold" style={{ color: scoreColor(s.scoreCredito) }}>{s.scoreCredito}/1000</div>
-                          <div className="h-1.5 w-16 rounded-full mt-1" style={{ background: '#ECEAE7' }}>
-                            <div className="h-full rounded-full" style={{ width: `${s.scoreCredito / 10}%`, background: scoreColor(s.scoreCredito) }} />
-                          </div>
-                        </>
-                      ) : <span className="text-[12px] text-text-4">—</span>}
-                    </div>
-                  </div>
-                  <span className="text-[13px] font-extrabold text-text-1 text-center">{fmt(s.monto)} XAF</span>
-                  <div className="flex items-center justify-center gap-0.5">
-                    <button
-                      onClick={e => { e.stopPropagation(); setSumDetalle(s); }}
-                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={e => { e.stopPropagation(); setEliminarSum(s); }}
-                      title="Eliminar"
-                      className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-=======
             {(() => {
               const effectiveSum = groupBySum || sortSum.key;
               const sortedSum = !effectiveSum ? misSuministradores : [...misSuministradores].sort((a, b) => {
@@ -426,7 +371,6 @@ export default function ProvContratoDetalle() {
                       Monto asignado {sortIconSum('monto')}
                     </button>
                     <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Acciones</span>
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
                   </div>
                   {sortedSum.flatMap((s, i) => {
                     const isNewGroup = groupBySum === 'kyc' && (i === 0 || (sortedSum[i - 1].kyc ?? 'sin KYC') !== (s.kyc ?? 'sin KYC'));
@@ -459,10 +403,15 @@ export default function ProvContratoDetalle() {
                           ) : <span className="text-[12px] text-text-4">—</span>}
                         </div>
                         <span className="text-[13px] font-extrabold text-text-1 text-center">{fmt(s.monto)} XAF</span>
-                        <div className="flex justify-center">
+                        <div className="flex items-center justify-center gap-0.5">
                           <button onClick={e => { e.stopPropagation(); setSumDetalle(s); }}
                             className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
                             <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={e => { e.stopPropagation(); setEliminarSum(s); }}
+                            title="Eliminar"
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer">
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>

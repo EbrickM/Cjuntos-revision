@@ -78,9 +78,10 @@ export default function ProvConfigurarContrato() {
     if (!contrato) go('provContratos');
   }, [contrato, go]);
 
-  // Siempre arranca en el paso 1, incluso si hay un borrador guardado en un
-  // paso más avanzado — solo se restauran los datos ya cargados, no el paso.
-  const [step, setStep]                 = useState(0);
+  // Solo se retoma el paso del borrador cuando se entra explícitamente desde
+  // "Continuar" en la pestaña Borradores; cualquier otra entrada siempre
+  // arranca en el paso 1.
+  const [step, setStep]                 = useState(opts?.desdeBorrador ? (borrador?.paso ?? 0) : 0);
 const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? contrato?.cuentaBancaria?.tipo ?? 'bonafide');
   const [suministradores, setSuministradores] = useState(borrador?.datos?.suministradores ?? contrato?.suministradoresAsignados ?? []);
   const [modal, setModal]               = useState(SUMINISTRADOR_EMPTY);

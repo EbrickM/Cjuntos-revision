@@ -283,20 +283,17 @@ export default function EpCreditos() {
   const [facSubTab, setFacSubTab]             = useState('contratante');
   const [agregarProv, setAgregarProv]         = useState(NUEVO_PROV_EMPTY);
   const [provManualesPorContrato, setProvManualesPorContrato] = useState({});
-<<<<<<< HEAD
   // Proveedores de un contrato que se "eliminaron" desde esa misma tabla (los
   // que venían de la asignación del contrato, no del directorio — esos se
   // sacan directo del directorio con setProviders).
   const [provOcultosPorContrato, setProvOcultosPorContrato] = useState({});
   const [eliminarProv, setEliminarProv] = useState(null);
-=======
   const [sortFacCT, setSortFacCT]     = useState({ key: null, dir: 'asc' });
   const [groupByFacCT, setGroupByFacCT] = useState(null);
   const [sortFacPR, setSortFacPR]     = useState({ key: null, dir: 'asc' });
   const [groupByFacPR, setGroupByFacPR] = useState(null);
   const [sortProv, setSortProv]       = useState({ key: null, dir: 'asc' });
   const [groupByProv, setGroupByProv] = useState(null);
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
 
   const detailContract = detailId
     ? (contracts.find((c) => c.id === detailId) ?? null)
@@ -715,7 +712,7 @@ export default function EpCreditos() {
             {filtroEstado === 'Borradores' ? (
               <BorradoresSeccion
                 rol="pyme"
-                onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId })}
+                onContinuar={b => go('epConfigurarContrato', { contratoId: b.contratoId, desdeBorrador: true })}
               />
             ) : (
             /* Grid de tarjetas */
@@ -1177,10 +1174,14 @@ export default function EpCreditos() {
                                   ) : <span className="text-[12px] text-text-4">—</span>}
                                 </div>
                                 <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
-                                <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center justify-center gap-0.5" onClick={e => e.stopPropagation()}>
                                   <button onClick={e => { e.stopPropagation(); setProvDetailModal(prov); }}
                                     className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
                                     <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={e => { e.stopPropagation(); setEliminarProv({ item, prov }); }}
+                                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer">
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                               </div>
@@ -1205,30 +1206,17 @@ export default function EpCreditos() {
                           <div className="flex justify-center">
                             <Badge variant={KYC_BADGE[prov.kyc] ?? "yellow"}>{prov.kyc}</Badge>
                           </div>
-<<<<<<< HEAD
-                          <span className="text-[13px] font-extrabold text-text-1 text-center">{formatXaf(item.monto)}</span>
-                          <div className="flex items-center justify-center gap-0.5">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setProvDetailModal(prov); }}
-                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setEliminarProv({ item, prov }); }}
-                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-=======
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t border-border">
                           <span className="text-[13px] font-extrabold text-text-1">{formatXaf(item.monto)}</span>
-                          <button onClick={() => setProvDetailModal(prov)} className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
-                            <Eye className="w-4 h-4" />
-                          </button>
->>>>>>> 182e0fa43752600a0d250fe2e54a77d26cc5db98
+                          <div className="flex items-center gap-0.5">
+                            <button onClick={() => setProvDetailModal(prov)} className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => setEliminarProv({ item, prov })} className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}

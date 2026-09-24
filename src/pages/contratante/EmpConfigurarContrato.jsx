@@ -80,9 +80,10 @@ export default function EmpConfigurarContrato() {
     if (!marco) go('empContratos');
   }, [marco, go]);
 
-  // Siempre arranca en el paso 1, incluso si hay un borrador guardado en un
-  // paso más avanzado — solo se restauran los datos ya cargados, no el paso.
-  const [step, setStep]               = useState(0);
+  // Solo se retoma el paso del borrador cuando se entra explícitamente desde
+  // "Continuar" en la pestaña Borradores; cualquier otra entrada (p. ej.
+  // "Reconfigurar Contrato") siempre arranca en el paso 1.
+  const [step, setStep]               = useState(opts?.desdeBorrador ? (borrador?.paso ?? 0) : 0);
   const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? marco?.cuentaBancaria?.tipo ?? 'bonafide');
   const [asignaciones, setAsignaciones] = useState(borrador?.datos?.asignaciones ?? marco?.pymesAsignadas ?? []);
   const [modal, setModal]             = useState(ASIGNACION_EMPTY);
