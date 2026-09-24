@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   CheckCircle, Banknote, Send, ShieldCheck, Check, X, Eye, Search,
   ArrowUpDown, ArrowUp, ArrowDown, Layers2, Receipt, Zap,
+  LayoutList, FilePlus, AlertCircle, FileCheck, AlertTriangle, Wallet,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
@@ -37,6 +38,22 @@ const ESTADO_LABEL = {
   [INV.billetera]: 'Billetera',
 };
 const labelDe = (f) => ESTADO_LABEL[f.estado] ?? f.estado ?? 'Emitida';
+const ESTADO_ICON = {
+  'Todos':              LayoutList,
+  'Creada':             FilePlus,
+  'Enviada':            Send,
+  'En evaluación':      Eye,
+  'Con correcciones':   AlertCircle,
+  'Aprobada':           CheckCircle,
+  'Emitida':            FileCheck,
+  'Con Requerimientos': AlertTriangle,
+  'Orden al Fondeador': Banknote,
+  'Fondeado':           Banknote,
+  'OTP enviada':        ShieldCheck,
+  'Verificada':         ShieldCheck,
+  'Pagada':             Check,
+  'Billetera':          Wallet,
+};
 
 // ── IPIs generados por la Contratante ──────────────────────────────────────────
 // A diferencia del Banco Fondeador (que infiere IPIs a partir del estado de
@@ -104,6 +121,20 @@ export default function EmpFacturas() {
       ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
       : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
   const groupIcon = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
+  const [sortIpi, setSortIpi] = useState({ key: null, dir: 'asc' });
+  const [groupByIpi, setGroupByIpi] = useState(null);
+  const toggleSortIpi = (key) => setSortIpi(s =>
+    s.key !== key ? { key, dir: 'asc' }
+    : s.dir === 'asc' ? { key, dir: 'desc' }
+    : { key: null, dir: 'asc' }
+  );
+  const toggleGroupIpi = (key) => setGroupByIpi(g => g === key ? null : key);
+  const sortIconIpi = (k) => sortIpi.key !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortIpi.dir === 'asc'
+      ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" />
+      : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIconIpi = (k) => <Layers2 className={`w-3 h-3 shrink-0 ${groupByIpi === k ? 'text-orange' : 'opacity-30'}`} />;
 
   const facturas = facturaService.listarPorRol('contratante');
   const facturasVivas = facturas.map(f => ({ ...f }));
@@ -141,6 +172,21 @@ export default function EmpFacturas() {
       if (effectiveKey === 'monto') return dir * (a.monto - b.monto);
       if (effectiveKey === 'pagado') return dir * ((a.pagosAcumulados ?? 0) - (b.pagosAcumulados ?? 0));
       if (effectiveKey === 'estado') return dir * estadoLabel(a.estado).localeCompare(estadoLabel(b.estado));
+      return 0;
+    });
+  })();
+
+  const sortedIpis = (() => {
+    const effectiveKey = groupByIpi || sortIpi.key;
+    if (!effectiveKey) return ipis;
+    const dir = groupByIpi ? 1 : (sortIpi.dir === 'asc' ? 1 : -1);
+    return [...ipis].sort((a, b) => {
+      if (effectiveKey === 'pyme')     return dir * (a.pyme ?? '').localeCompare(b.pyme ?? '');
+      if (effectiveKey === 'contrato') return dir * (a.contrato ?? '').localeCompare(b.contrato ?? '');
+      if (effectiveKey === 'fecha')    return dir * parseDate(a.fecha).localeCompare(parseDate(b.fecha));
+      if (effectiveKey === 'monto')    return dir * (a.monto - b.monto);
+      if (effectiveKey === 'ops')      return dir * (a.ops.length - b.ops.length);
+      if (effectiveKey === 'numero')   return dir * (a.numero ?? '').localeCompare(b.numero ?? '');
       return 0;
     });
   })();
@@ -233,16 +279,20 @@ export default function EmpFacturas() {
             <div className="flex items-center gap-3">
               <div className="overflow-x-auto pb-0.5 flex-1">
                 <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
-                  {ESTADOS.map(e => (
-                    <button
-                      key={e}
-                      onClick={() => setFiltroEstado(e)}
-                      className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center px-3 py-1.5
-                        ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
-                    >
-                      {e}
-                    </button>
-                  ))}
+                  {ESTADOS.map(e => {
+                    const Icon = ESTADO_ICON[e];
+                    return (
+                      <button
+                        key={e}
+                        onClick={() => setFiltroEstado(e)}
+                        className={`bona-btn font-medium rounded-[8px] text-[12px] text-center transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5
+                          ${filtroEstado === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}
+                      >
+                        {Icon && <Icon className="w-3 h-3 shrink-0" />}
+                        {e}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="relative shrink-0">
@@ -367,43 +417,73 @@ export default function EmpFacturas() {
 
         {vista === 'ipis' && (
           <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
-            <table className="w-full min-w-[720px]">
-              <thead className="bg-page-bg">
-                <tr className="border-b border-border">
-                  {['IPI', 'Emp. Contratada', 'Contrato', 'Operaciones', 'Fecha', 'Monto', 'Detalle'].map((h, i) => (
-                    <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 whitespace-nowrap
-                      ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
-                    `}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {ipis.map(i => (
-                  <tr key={i.numero} onClick={() => setIpiDetalle(i)}
-                    className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40">
-                    <td className="px-4 py-3 text-[12px] font-mono font-bold text-text-1 whitespace-nowrap">{i.numero}</td>
-                    <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">{i.pyme}</td>
-                    <td className="px-4 py-3 text-center text-[11px] font-mono text-text-4 whitespace-nowrap">{i.contrato}</td>
-                    <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-3">{i.ops.length}</td>
-                    <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{i.fecha}</td>
-                    <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{new Intl.NumberFormat('de-DE').format(i.monto)} XAF</td>
-                    <td className="px-4 py-3 text-center">
-                      <div onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setIpiDetalle(i)} title="Ver resumen de operaciones"
-                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {ipis.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">Aún no se ha generado ningún IPI.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            {/* Header */}
+            <div className="min-w-[760px] grid [grid-template-columns:1.5fr_1.6fr_1.4fr_0.8fr_1fr_1.3fr_0.7fr] bg-page-bg px-4 py-2.5 border-b border-border gap-3 items-center">
+              <button onClick={() => toggleSortIpi('numero')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1">
+                IPI {sortIconIpi('numero')}
+              </button>
+              <button onClick={() => toggleGroupIpi('pyme')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center ${groupByIpi === 'pyme' ? 'text-orange' : 'text-text-4'}`}>
+                Emp. Contratada {groupIconIpi('pyme')}
+              </button>
+              <button onClick={() => toggleGroupIpi('contrato')}
+                className={`text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center ${groupByIpi === 'contrato' ? 'text-orange' : 'text-text-4'}`}>
+                Contrato {groupIconIpi('contrato')}
+              </button>
+              <button onClick={() => toggleSortIpi('ops')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                Ops. {sortIconIpi('ops')}
+              </button>
+              <button onClick={() => toggleSortIpi('fecha')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-center">
+                Fecha {sortIconIpi('fecha')}
+              </button>
+              <button onClick={() => toggleSortIpi('monto')}
+                className="text-[11px] font-semibold text-text-4 uppercase tracking-wide flex items-center gap-1 cursor-pointer hover:text-text-1 justify-end">
+                Monto {sortIconIpi('monto')}
+              </button>
+              <span className="text-[11px] font-semibold text-text-4 uppercase tracking-wide text-center">Detalle</span>
+            </div>
+            {sortedIpis.flatMap((ipi, idx) => {
+              const gVal = groupByIpi === 'pyme'     ? (ipi.pyme || '—')
+                         : groupByIpi === 'contrato' ? (ipi.contrato || '—')
+                         : null;
+              const prevGVal = idx === 0 ? null
+                : groupByIpi === 'pyme'     ? (sortedIpis[idx - 1].pyme || '—')
+                : groupByIpi === 'contrato' ? (sortedIpis[idx - 1].contrato || '—')
+                : null;
+              const isNewGroup = gVal !== null && (idx === 0 || gVal !== prevGVal);
+              const groupSep = isNewGroup ? [
+                <div key={`grp-${idx}`} className="min-w-[760px] px-4 py-1.5 bg-orange-tint/20 border-b border-orange/20">
+                  <span className="text-[11px] font-bold text-orange">{gVal}</span>
+                </div>,
+              ] : [];
+              const rowDiv = (
+                <div
+                  key={ipi.numero}
+                  onClick={() => setIpiDetalle(ipi)}
+                  className="min-w-[760px] grid [grid-template-columns:1.5fr_1.6fr_1.4fr_0.8fr_1fr_1.3fr_0.7fr] px-4 py-3 border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] hover:z-10 relative bg-white items-center gap-3"
+                >
+                  <div className="text-[12px] font-mono font-bold text-text-1">{ipi.numero}</div>
+                  <div className="text-[12px] font-semibold text-text-1 text-center">{ipi.pyme}</div>
+                  <div className="text-[11px] font-mono text-text-4 text-center">{ipi.contrato}</div>
+                  <div className="text-[12px] font-semibold text-text-3 text-center">{ipi.ops.length}</div>
+                  <div className="text-[11px] text-text-4 text-center whitespace-nowrap">{ipi.fecha}</div>
+                  <div className="text-[12px] font-bold text-text-1 text-right whitespace-nowrap">{new Intl.NumberFormat('de-DE').format(ipi.monto)} XAF</div>
+                  <div className="flex justify-center" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setIpiDetalle(ipi)} title="Ver resumen de operaciones"
+                      className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+              return [...groupSep, rowDiv];
+            })}
+            {ipis.length === 0 && (
+              <div className="min-w-[760px] px-4 py-10 text-center text-[13px] text-text-4">Aún no se ha generado ningún IPI.</div>
+            )}
           </div>
         )}
 
