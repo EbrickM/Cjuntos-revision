@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Receipt, Eye, Search, ListFilter } from 'lucide-react';
+import { Receipt, Eye, Search, LayoutList, CheckCircle2, Send, Clock } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
 import { useCountUp } from '../../hooks/useCountUp';
@@ -11,6 +11,13 @@ import InfoRow from '../../components/ui/InfoRow';
 const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
 
 const FILTROS_ESTADO = ['Todos', 'Pagada', 'Enviada', 'Pendiente'];
+
+const ESTADO_ICON = {
+  'Todos':     LayoutList,
+  'Pagada':    CheckCircle2,
+  'Enviada':   Send,
+  'Pendiente': Clock,
+};
 
 /* ─── Admin Facturas ─── */
 const contratos = {
@@ -57,7 +64,7 @@ const pesquisa = (rows, q, filtro) => {
   );
 };
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = false, estado, onEstado, estados, compact = false }) => (
+const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
     <div className={`relative ${compact ? 'w-full max-w-[380px]' : 'flex-1'}`}>
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
@@ -65,37 +72,37 @@ const SearchBar = ({ value, onChange, placeholder = 'Buscar…', withEstado = fa
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border border-border bg-white placeholder-text-4 focus:outline-none focus:border-orange ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
+        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
       />
     </div>
-    {withEstado && (
-      <div className="relative flex items-center shrink-0">
-        <ListFilter className="absolute left-2.5 w-3.5 h-3.5 pointer-events-none shrink-0 text-orange" />
-        <select
-          value={estado}
-          onChange={e => onEstado(e.target.value)}
-          className="h-9 pl-8 pr-7 text-[12px] font-medium rounded-[8px] border-2 border-orange bg-white text-text-1 focus:outline-none transition cursor-pointer appearance-none w-full sm:w-auto"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23EF7A2C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
-        >
-          {estados.map(e => <option key={e}>{e}</option>)}
-        </select>
-      </div>
-    )}
   </div>
 );
 
 // ── Tabla estilo Admin (igual que Contratos/FacturasAdmin) ────────────────────
 const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetalle, proveedor }) => (
   <>
+    {/* Estado tabs */}
+    <div className="overflow-x-auto mb-3">
+      <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+        {FILTROS_ESTADO.map(e => {
+          const Icon = ESTADO_ICON[e];
+          return (
+            <button key={e} onClick={() => setFiltro(e)}
+              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                filtro === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+              }`}>
+              {Icon && <Icon className="w-3 h-3 shrink-0" />}
+              {e}
+            </button>
+          );
+        })}
+      </div>
+    </div>
     <SearchBar
       value={busqueda}
       onChange={setBusqueda}
       placeholder={proveedor ? 'Buscar por Nº, proveedor, Emp. Contratada o concepto…' : 'Buscar por Nº, contratante, Emp. Contratada o concepto…'}
       compact
-      withEstado
-      estado={filtro}
-      onEstado={setFiltro}
-      estados={FILTROS_ESTADO}
     />
     <div className="overflow-x-auto">
       <table className="w-full min-w-[820px]">
