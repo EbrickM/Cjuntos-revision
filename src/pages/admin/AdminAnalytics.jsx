@@ -1,16 +1,28 @@
+import { useCountUp } from '../../hooks/useCountUp';
 import AppShell from '../../components/layout/AppShell';
+import { StatCard } from '../../components/common/StatCard';
 
 /* ─── Admin Analytics ─── */
 export default function AdminAnalytics() {
+  const animVolumen     = useCountUp(2,  1500,   0);
+  const animPrestamos   = useCountUp(47,  900,  60);
+  const animReembolso   = useCountUp(98,  900, 120);
+  const animCrecimiento = useCountUp(23,  900, 180);
+
+  const kpiCards = [
+    { label: 'Volumen acumulado',  value: `XAF ${animVolumen}B`  },
+    { label: 'Préstamos activos',  value: String(animPrestamos)  },
+    { label: 'Tasa de reembolso',  value: `${animReembolso}%`    },
+    { label: 'Crecimiento mensual',value: `+${animCrecimiento}%` },
+  ];
+
   return (
     <AppShell active="adminAnalytics" role="admin" title="Analytics" sub="Métricas y tendencias">
       <div className="fade-in">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[['📈','XAF 2.4B','Volumen acumulado','text-text-1'],['💼','47','Préstamos activos','text-orange'],['⏱','98.2%','Tasa reembolso','text-green-text'],['🚀','+23%','Crecimiento mensual','text-blue-text']].map(([ico,v,l,c]) => (
-            <div key={l} className="bg-white rounded-[14px] p-5 border border-border">
-              <div className="text-[24px] mb-2">{ico}</div>
-              <div className={`text-[20px] font-extrabold ${c} mb-1`}>{v}</div>
-              <div className="text-[12px] text-text-4">{l}</div>
+          {kpiCards.map((card, i) => (
+            <div key={card.label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+              <StatCard tone="gradient" label={card.label} value={card.value} />
             </div>
           ))}
         </div>

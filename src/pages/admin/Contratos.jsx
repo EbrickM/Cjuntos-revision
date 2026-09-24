@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { StatCard } from '../../components/common/StatCard';
+import { useCountUp } from '../../hooks/useCountUp';
 import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, ListFilter, Eye, AlertTriangle, Send, X } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
@@ -228,6 +230,12 @@ export default function AdminContratos() {
   const pendientesRevision = contracts.filter(c => c.estado === 'Pendiente de Revisión').length;
   const requierenAtencion  = contracts.filter(c => c.estado === 'Con Requerimientos' || c.estado === 'En Discusión de Términos').length;
 
+  const countTotal     = useCountUp(totalContratos);
+  const countActivos   = useCountUp(activosContratos);
+  const countConfig    = useCountUp(pendientesConfig);
+  const countRevision  = useCountUp(pendientesRevision);
+  const countAtencion  = useCountUp(requierenAtencion);
+
   const filteredContracts = contracts.filter(c => {
     const q = search.trim().toLowerCase();
     const matchesSearch = !q ||
@@ -250,15 +258,14 @@ export default function AdminContratos() {
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
               {[
-                { value: totalContratos,     label: 'Contratos totales',           numCls: 'text-text-1'      },
-                { value: activosContratos,   label: 'Contratos activos',           numCls: 'text-green-text'  },
-                { value: pendientesConfig,   label: 'Pendientes de Configuración', numCls: 'text-yellow-text' },
-                { value: pendientesRevision, label: 'Pendientes de Revisión',      numCls: 'text-blue-text'   },
-                { value: requierenAtencion,  label: 'Requieren Atención',          numCls: 'text-red-text'    },
-              ].map(({ value, label, numCls }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-                  <div className={`text-[36px] font-extrabold leading-none mb-2 ${numCls}`}>{value}</div>
-                  <div className="text-[12px] text-text-4 leading-snug">{label}</div>
+                { count: countTotal,    label: 'Contratos totales'           },
+                { count: countActivos,  label: 'Contratos activos'           },
+                { count: countConfig,   label: 'Pendientes de Configuración' },
+                { count: countRevision, label: 'Pendientes de Revisión'      },
+                { count: countAtencion, label: 'Requieren Atención'          },
+              ].map(({ count, label }, i) => (
+                <div key={label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+                  <StatCard tone="gradient" label={label} value={count} />
                 </div>
               ))}
             </div>

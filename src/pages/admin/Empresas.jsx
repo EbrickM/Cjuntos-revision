@@ -4,6 +4,8 @@ import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InfoRow from '../../components/ui/InfoRow';
+import { StatCard } from '../../components/common/StatCard';
+import { useCountUp } from '../../hooks/useCountUp';
 
 const empresas = [
   {
@@ -66,6 +68,10 @@ export default function AdminEmpresas() {
   const conContratosActivos = empresas.filter(e => e.contratos.length > 0).length;
   const sinContratosActivos = empresas.filter(e => e.contratos.length === 0).length;
 
+  const totalCount = useCountUp(empresas.length);
+  const conContratosCount = useCountUp(conContratosActivos);
+  const sinContratosCount = useCountUp(sinContratosActivos);
+
   const filtered = empresas.filter(e => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -87,13 +93,12 @@ export default function AdminEmpresas() {
         {/* Resumen */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
-            { value: empresas.length,  label: 'Total de empresas',                   cls: 'text-text-1' },
-            { value: conContratosActivos, label: 'Asociadas a contratos activos',    cls: 'text-orange' },
-            { value: sinContratosActivos, label: 'No asociadas a contratos activos', cls: 'text-text-4' },
-          ].map(({ value, label, cls }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-              <div className={`text-[32px] font-extrabold leading-none mb-1 ${cls}`}>{value}</div>
-              <div className="text-[12px] text-text-4">{label}</div>
+            { value: totalCount,        label: 'Total de empresas' },
+            { value: conContratosCount, label: 'Asociadas a contratos activos' },
+            { value: sinContratosCount, label: 'No asociadas a contratos activos' },
+          ].map(({ value, label }, i) => (
+            <div key={label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+              <StatCard tone="gradient" label={label} value={value} />
             </div>
           ))}
         </div>

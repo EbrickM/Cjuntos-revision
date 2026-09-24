@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Receipt, Eye, Search, ListFilter } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
+import { StatCard } from '../../components/common/StatCard';
+import { useCountUp } from '../../hooks/useCountUp';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -169,20 +171,25 @@ export default function AdminRisk() {
   const ctFiltradas   = pesquisa(ctFacturas, busquedaCt, filtroCt);
   const provFiltradas = pesquisa(provFacturas, busquedaProv, filtroProv);
 
+  const animCount    = useCountUp(ctFacturas.length,                       900,   0);
+  const animPagado   = useCountUp(Math.round(totalPagadoCt / 1_000_000), 1400,  60);
+  const animLiberado = useCountUp(Math.round(totalLiberado / 1_000_000), 1400, 120);
+
+  const kpiCards = [
+    { label: 'Facturas al contratante',           value: String(animCount)    },
+    { label: 'Pagado por contratantes (cobrado)',  value: `XAF ${animPagado}M` },
+    { label: 'Fondos liberados a proveedores',     value: `XAF ${animLiberado}M` },
+  ];
+
   return (
     <AppShell active="adminRisk" role="admin" title="Riesgo" sub="Seguimiento de pagos de la contratante y liberación de fondos a proveedores">
       <div className="fade-in space-y-5">
 
         {/* Resumen */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { value: ctFacturas.length,       label: 'Facturas al contratante',          cls: 'text-blue-text' },
-            { value: formatXaf(totalPagadoCt), label: 'Pagado por contratantes (cobrado)',cls: 'text-orange',     small: true },
-            { value: formatXaf(totalLiberado), label: 'Fondos liberados a proveedores',  cls: 'text-orange',     small: true },
-          ].map(({ value, label, cls, small }) => (
-            <div key={label} className="bg-white rounded-[14px] border border-border p-4">
-              <div className={`font-extrabold leading-none mb-1 ${cls} ${small ? 'text-[18px] mt-1' : 'text-[32px]'}`}>{value}</div>
-              <div className="text-[12px] text-text-4">{label}</div>
+          {kpiCards.map(({ label, value }, i) => (
+            <div key={label} className="card-enter" style={{ animationDelay: `${i * 60}ms` }}>
+              <StatCard label={label} value={value} tone="gradient" />
             </div>
           ))}
         </div>

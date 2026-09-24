@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { TrendingUp, AlertTriangle } from 'lucide-react';
+import { TrendingUp, AlertTriangle, LayoutDashboard, ShieldAlert } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import AppShell from '../../components/layout/AppShell';
 import Badge from '../../components/ui/Badge';
+import { StatCard } from '../../components/common/StatCard';
 import { LineChart, DonutChart, VBarChart, HBarChart } from '../../components/charts/Charts';
 import { useCountUp } from '../../hooks/useCountUp';
 
@@ -10,8 +11,8 @@ const fmt = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}
 
 // ── Tab config ────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'general', lbl: 'Dashboard General' },
-  { id: 'riesgo',  lbl: 'Dashboard de Riesgo' },
+  { id: 'general', lbl: 'Dashboard General',   Icon: LayoutDashboard },
+  { id: 'riesgo',  lbl: 'Dashboard de Riesgo', Icon: ShieldAlert },
 ];
 
 // ── General tab data ──────────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ const opsBarData = [
   { label: 'Solicitadas', value: 3, color: '#9CA3AF' },
   { label: 'En revisión', value: 1, color: '#ef7a2c' },
   { label: 'Aprobadas',  value: 1, color: '#3B82F6' },
-  { label: 'Activas',    value: 1, color: '#059669' },
+  { label: 'Activas',    value: 1, color: '#ef7a2c' },
   { label: 'Rechazadas', value: 1, color: '#e0201c' },
 ];
 
@@ -44,16 +45,16 @@ const ultimasOps = [
 // ── Riesgo tab data ───────────────────────────────────────────────────────────
 
 const riesgoDona = [
-  { tipo: 'Bajo riesgo', pct: 100, color: '#059669' },
+  { tipo: 'Bajo riesgo', pct: 100, color: '#ef7a2c' },
 ];
 
 const exposicionBars = [
-  { label: 'Tradex',   value: 48, color: '#059669' },
-  { label: 'APEX',        value: 32, color: '#059669' },
-  { label: 'APEX Tech',          value: 25, color: '#059669' },
-  { label: 'GEOMS',     value: 18, color: '#059669' },
-  { label: 'Conexxia Log',        value: 14, color: '#059669' },
-  { label: 'MH Pinturas',    value: 9,  color: '#059669' },
+  { label: 'Tradex',        value: 48, color: '#e0201c' },
+  { label: 'APEX',          value: 32, color: '#e0201c' },
+  { label: 'APEX Tech',     value: 25, color: '#e0201c' },
+  { label: 'GEOMS',         value: 18, color: '#e0201c' },
+  { label: 'Conexxia Log',  value: 14, color: '#e0201c' },
+  { label: 'MH Pinturas',   value: 9,  color: '#e0201c' },
 ];
 
 const alertasAbiertas = [];
@@ -63,56 +64,61 @@ export default function AdminDash() {
   const { go } = useApp();
   const [tab, setTab] = useState('general');
 
-  // General KPI animated values (numeric only; formatted strings stay as-is)
-  const animOpsActivas    = useCountUp(1, 900, 100);
-  const animContratantes  = useCountUp(1, 900, 200);
-  const animPymes         = useCountUp(1, 900, 300);
+  // General KPI animated values
+  const animFinanciado   = useCountUp(180,  1500, 100);
+  const animOpsActivas   = useCountUp(1,     900, 200);
+  const animContratantes = useCountUp(1,     900, 300);
+  const animPymes        = useCountUp(1,     900, 400);
+  const animFactDirecto  = useCountUp(47,   1500, 500);
+  const animScore        = useCountUp(870,  1500, 600);
 
-  // Riesgo KPI animated values (all are 0 currently)
-  const animAltoRiesgo    = useCountUp(0, 900, 100);
-  const animOpsRiesgo     = useCountUp(0, 900, 200);
-  const animDocsVencidos  = useCountUp(0, 900, 300);
-  const animKycPend       = useCountUp(0, 900, 400);
-  const animAlertas       = useCountUp(0, 900, 500);
+  // Riesgo KPI animated values
+  const animAltoRiesgo   = useCountUp(0, 900, 100);
+  const animOpsRiesgo    = useCountUp(0, 900, 200);
+  const animDocsVencidos = useCountUp(0, 900, 300);
+  const animKycPend      = useCountUp(0, 900, 400);
+  const animAlertas      = useCountUp(0, 900, 500);
+  const animExposicion   = useCountUp(0, 900, 600);
 
   const generalKpis = [
-    { value: 'XAF 180M',             label: 'Monto total financiado', sub: 'Total acumulado 2026',     cls: 'text-orange-dark', trend: 'Activo',  tUp: null },
-    { value: String(animOpsActivas),  label: 'Operaciones activas',    sub: 'Operaciones vigentes',     cls: 'text-orange-dark', trend: 'Estable', tUp: null },
-    { value: String(animContratantes),label: 'Empresas contratantes',  sub: 'Contratantes activos',     cls: 'text-blue-text',   trend: 'Estable', tUp: null },
-    { value: String(animPymes),       label: 'PYMEs activas',          sub: 'PYMEs con financiación',   cls: 'text-orange-dark', trend: 'Estable', tUp: null },
-    { value: 'XAF 47.5M',            label: 'Fondos Fact. Directo',   sub: 'Capital en factoring dir.', cls: 'text-orange-dark', trend: 'Estable', tUp: null },
-    { value: '870/1000',             label: 'Riesgo promedio',         sub: 'Score global cartera',     cls: 'text-orange-dark', trend: 'Bajo',    tUp: null },
+    { value: `XAF ${animFinanciado}M`,   label: 'Monto total financiado' },
+    { value: String(animOpsActivas),      label: 'Operaciones activas' },
+    { value: String(animContratantes),    label: 'Empresas contratantes' },
+    { value: String(animPymes),           label: 'PYMEs activas' },
+    { value: `XAF ${animFactDirecto}M`,  label: 'Fondos Fact. Directo' },
+    { value: `${animScore}/1000`,         label: 'Riesgo promedio' },
   ];
 
   const riesgoKpis = [
-    { value: String(animAltoRiesgo),  label: 'Empresas alto riesgo',  sub: 'Requieren atención',    cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
-    { value: String(animOpsRiesgo),   label: 'Operaciones en riesgo', sub: 'Bajo vigilancia',        cls: 'text-red-text',    trend: 'Ninguna', tUp: null },
-    { value: String(animDocsVencidos),label: 'Documentos vencidos',   sub: 'Necesitan renovación',   cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
-    { value: String(animKycPend),     label: 'KYC pendientes',        sub: 'Verificación requerida', cls: 'text-yellow-text', trend: 'Ninguna', tUp: null },
-    { value: String(animAlertas),     label: 'Alertas abiertas',      sub: 'Sin resolver',           cls: 'text-orange-dark', trend: 'Ninguna', tUp: null },
-    { value: 'XAF 0',                label: 'Exposición total',       sub: 'Capital en riesgo',      cls: 'text-orange-dark', trend: 'Bajo',    tUp: null },
+    { value: String(animAltoRiesgo),   label: 'Empresas alto riesgo' },
+    { value: String(animOpsRiesgo),    label: 'Operaciones en riesgo' },
+    { value: String(animDocsVencidos), label: 'Documentos vencidos' },
+    { value: String(animKycPend),      label: 'KYC pendientes' },
+    { value: String(animAlertas),      label: 'Alertas abiertas' },
+    { value: `XAF ${animExposicion}`,  label: 'Exposición total' },
   ];
 
   return (
     <AppShell active="adminDash" role="admin">
       <div className="fade-in space-y-5">
 
-        {/* Header */}
-        <div>
-          <div className="text-[20px] font-bold text-text-1">Bienvenida, Ana</div>
-          <div className="text-[13px] text-text-4">Panel de dirección Bonafide Microbank · Agosto 2026</div>
-        </div>
-
-        {/* Tab nav */}
-        <div className="flex gap-1 bg-white rounded-[10px] w-full sm:w-fit">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`bona-btn flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white' : 'text-text-3 hover:text-text-1'
-              }`}>
-              {t.lbl}
-            </button>
-          ))}
+        {/* Header + Tabs en la misma fila */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <div className="text-[20px] font-bold text-text-1">Bienvenido</div>
+            <div className="text-[13px] text-text-4">Panel de control Bonafide</div>
+          </div>
+          <div className="flex gap-1 bg-white rounded-[10px] p-1 shrink-0">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 ${
+                  tab === t.id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1'
+                }`}>
+                <t.Icon className="w-3.5 h-3.5 shrink-0" />
+                {t.lbl}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── GENERAL TAB ─────────────────────────────────────────────────── */}
@@ -121,16 +127,9 @@ export default function AdminDash() {
 
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-              {generalKpis.map(({ value, label, sub, cls, trend, tUp }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
-                  <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
-                  <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
-                  <div className="text-[10px] text-text-5 leading-snug">{sub}</div>
-                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    tUp === true ? 'bg-orange-tint text-orange-dark' :
-                    tUp === false ? 'bg-red-bg text-red-text' :
-                    'bg-orange-tint text-orange-dark'
-                  }`}>{trend}</span>
+              {generalKpis.map(({ value, label }, idx) => (
+                <div key={label} className="card-enter" style={{ animationDelay: `${idx * 60}ms` }}>
+                  <StatCard label={label} value={value} tone="gradient" />
                 </div>
               ))}
             </div>
@@ -239,21 +238,14 @@ export default function AdminDash() {
 
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-              {riesgoKpis.map(({ value, label, sub, cls, trend, tUp }) => (
-                <div key={label} className="bg-white rounded-[14px] border border-border p-4 flex flex-col gap-1.5">
-                  <div className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</div>
-                  <div className={`text-[17px] font-extrabold leading-none ${cls}`}>{value}</div>
-                  <div className="text-[10px] text-text-5 leading-snug">{sub}</div>
-                  <span className={`self-start text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    tUp === true ? 'bg-orange-tint text-orange-dark' :
-                    tUp === false ? 'bg-red-bg text-red-text' :
-                    'bg-orange-tint text-orange-dark'
-                  }`}>{trend}</span>
+              {riesgoKpis.map(({ value, label }, idx) => (
+                <div key={label} className="card-enter" style={{ animationDelay: `${idx * 60}ms` }}>
+                  <StatCard label={label} value={value} tone="gradient" />
                 </div>
               ))}
             </div>
 
-            {/* Riesgo de cartera + Exposición por empresa, en una sola card */}
+            {/* Riesgo de cartera + Exposición por empresa */}
             <div className="bg-white rounded-[14px] border border-border p-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
@@ -268,7 +260,7 @@ export default function AdminDash() {
                   </div>
                 </div>
 
-                {/* Riesgo de cartera — 1/3, en texto plano igual que Score Crediticio en /pyme */}
+                {/* Riesgo de cartera — 1/3 */}
                 <div className="md:border-l md:border-border md:pl-5 pt-4 md:pt-0 border-t md:border-t-0 border-border flex flex-col items-center justify-center text-center gap-2">
                   <p className="text-[12px] font-bold uppercase tracking-widest text-text-4">Riesgo de cartera</p>
                   <p className="text-[64px] sm:text-[72px] font-extrabold leading-none" style={{ color: riesgoDona[0].color }}>89</p>
@@ -279,15 +271,17 @@ export default function AdminDash() {
               </div>
             </div>
 
-            {/* Row 2: Alerts table full width */}
+            {/* Alertas table */}
             <div className="bg-white rounded-[14px] border border-border p-5">
               <div className="flex justify-between items-center mb-4">
                 <div>
                   <div className="text-[14px] font-bold text-text-1">Alertas abiertas</div>
                   <div className="text-[11px] text-text-4">Requieren acción inmediata</div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-orange-dark" />
+                <div className="flex items-center gap-2">
+                  <div className="bona-gradient-bg w-8 h-8 rounded-[9px] flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-4 h-4 text-white" />
+                  </div>
                   <span className="text-[11px] font-bold text-orange-dark">Sin alertas abiertas</span>
                 </div>
               </div>
