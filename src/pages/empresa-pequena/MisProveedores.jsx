@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useCountUp } from "../../hooks/useCountUp";
 import {
-  Pencil,
   Trash2,
   Building2,
   FileText,
@@ -139,7 +138,6 @@ const ComplianceItem = ({ label, value, sub, Icon, iconColor }) => (
 
 const MODAL_EMPTY = {
   open: false,
-  editId: null,
   razonSocial: "",
   nombreComercial: "",
   sector: "Materiales",
@@ -222,18 +220,6 @@ export default function EpMisProveedores() {
   const animKyc            = useCountUp(kycVigentes,      900, 300);
   const animConContratos   = useCountUp(conContratos,     900, 400);
 
-  const handleOpenEdit = (p) =>
-    setModal({
-      open: true,
-      editId: p.id,
-      razonSocial: p.razonSocial,
-      nombreComercial: p.nombreComercial,
-      sector: p.sector,
-      telefono: (p.telefono ?? "").replace(/\D/g, "").slice(0, 9),
-      correo: p.email,
-      esClienteBonafide: p.esClienteBonafide ?? false,
-      contratoId: p.contratosActivos?.[0]?.id ?? "",
-    });
   const handleClose = () => setModal(MODAL_EMPTY);
 
   const emailLimpio = modal.correo.trim();
@@ -250,49 +236,25 @@ export default function EpMisProveedores() {
   const handleSave = () => {
     if (!formOk) return;
     const nuevoContrato = contratoActivoMapeado(modal.contratoId);
-    if (modal.editId) {
-      setProviders((prev) =>
-        prev.map((p) =>
-          p.id === modal.editId
-            ? {
-                ...p,
-                razonSocial: modal.razonSocial,
-                nombreComercial: modal.nombreComercial,
-                sector: modal.sector,
-                telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
-                email: emailLimpio,
-                esClienteBonafide: modal.esClienteBonafide,
-                contratosActivos:
-                  nuevoContrato &&
-                  !(p.contratosActivos ?? []).some((x) => x.id === nuevoContrato.id)
-                    ? [...(p.contratosActivos ?? []), nuevoContrato]
-                    : p.contratosActivos,
-              }
-            : p,
-        ),
-      );
-      showToast(`${modal.razonSocial} ha sido actualizado correctamente.`);
-    } else {
-      const newId = `p${Math.max(...providers.map((p) => Number(p.id.replace("p", ""))), 0) + 1}`;
-      setProviders((prev) => [
-        {
-          id: newId,
-          razonSocial: modal.razonSocial,
-          nombreComercial: modal.nombreComercial,
-          sector: modal.sector,
-          email: emailLimpio,
-          telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
-          contratosActivos: nuevoContrato ? [nuevoContrato] : [],
-          esClienteBonafide: modal.esClienteBonafide,
-          kyc: "—",
-          scoreCredito: null,
-        },
-        ...prev,
-      ]);
-      showToast(
-        `${modal.razonSocial} ha sido añadido al directorio de proveedores.`,
-      );
-    }
+    const newId = `p${Math.max(...providers.map((p) => Number(p.id.replace("p", ""))), 0) + 1}`;
+    setProviders((prev) => [
+      {
+        id: newId,
+        razonSocial: modal.razonSocial,
+        nombreComercial: modal.nombreComercial,
+        sector: modal.sector,
+        email: emailLimpio,
+        telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+        contratosActivos: nuevoContrato ? [nuevoContrato] : [],
+        esClienteBonafide: modal.esClienteBonafide,
+        kyc: "—",
+        scoreCredito: null,
+      },
+      ...prev,
+    ]);
+    showToast(
+      `${modal.razonSocial} ha sido añadido al directorio de proveedores.`,
+    );
     handleClose();
   };
 
@@ -417,12 +379,6 @@ export default function EpMisProveedores() {
                 {/* Acciones */}
                 <div className="flex items-center justify-center gap-0.5">
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(p); }}
-                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button
                     onClick={(e) => { e.stopPropagation(); setEliminar(p); }}
                     title="Eliminar"
                     className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
@@ -456,10 +412,10 @@ export default function EpMisProveedores() {
         </div>
       </div>
 
-      {/* Modal nuevo / editar proveedor */}
+      {/* Modal nuevo proveedor */}
       {modal.open && (
         <Modal
-          title={modal.editId ? "Editar proveedor" : "Nuevo proveedor"}
+          title="Nuevo proveedor"
           onClose={handleClose}
           footer={
             <>
@@ -467,7 +423,7 @@ export default function EpMisProveedores() {
                 Cancelar
               </Button>
               <Button variant="primary" onClick={handleSave} disabled={!formOk}>
-                {modal.editId ? "Guardar cambios" : "Guardar proveedor"}
+                Guardar proveedor
               </Button>
             </>
           }
@@ -475,9 +431,7 @@ export default function EpMisProveedores() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              {modal.editId
-                ? "Modifica los datos del proveedor."
-                : "Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento."}
+              Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento.
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -628,26 +582,14 @@ export default function EpMisProveedores() {
               title={p.razonSocial}
               onClose={() => setDetalle(null)}
               footer={
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="ml-auto"
-                    onClick={() => setDetalle(null)}
-                  >
-                    Cerrar
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      setDetalle(null);
-                      handleOpenEdit(p);
-                    }}
-                  >
-                    Editar proveedor
-                  </Button>
-                </>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => setDetalle(null)}
+                >
+                  Cerrar
+                </Button>
               }
             >
               <div className="space-y-6">
