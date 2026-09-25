@@ -144,7 +144,7 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
       telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       monto: montoNumLive, cargaNomina: !!modal.nominaDoc, nominaDoc: modal.nominaDoc || null,
     };
-    setSuministradores(prev => modal.editId ? prev.map(s => s.id === modal.editId ? nuevo : s) : [...prev, nuevo]);
+    setSuministradores(prev => modal.editId ? prev.map(s => s.id === modal.editId ? nuevo : s) : [nuevo, ...prev]);
     setModal(SUMINISTRADOR_EMPTY);
   };
 

@@ -150,7 +150,7 @@ export default function EpConfigurarContrato() {
       nombre: proveedorNombreResuelto, email: emailLimpio, telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       monto: montoNumLive,
     };
-    setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
+    setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [nuevo, ...prev]);
     setModal(PROVEEDOR_EMPTY);
   };
 

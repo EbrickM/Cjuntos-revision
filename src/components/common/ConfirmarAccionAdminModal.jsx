@@ -15,16 +15,10 @@ export default function ConfirmarAccionAdminModal({ tipo, notif, onConfirm, onCl
             : <XCircle className="w-8 h-8 text-red-text" />}
         </div>
 
-        <h3 className="text-xl font-bold text-text-1 mb-2">
-          {esAprobar ? '¿Aprobar esta alta?' : '¿Rechazar esta alta?'}
+        <h3 className="text-xl font-bold text-text-1 mb-8">
+          {esAprobar ? '¿Aceptar ' : '¿Rechazar '}
+          <span className="font-extrabold">{notif.nombreEntidad}</span> como {notif.tipoEntidad}?
         </h3>
-        <p className="text-text-3 text-sm leading-relaxed mb-8">
-          {esAprobar ? (
-            <>Confirmas que <span className="font-semibold text-text-1">{notif.nombreEntidad}</span> queda aprobado como {notif.tipoEntidad.toLowerCase()} de {notif.rolLabel.toLowerCase()}.</>
-          ) : (
-            <>Se eliminará a <span className="font-semibold text-text-1">{notif.nombreEntidad}</span> del directorio. Esta acción no se puede deshacer.</>
-          )}
-        </p>
 
         <div className="flex flex-col gap-3">
           <button

@@ -149,7 +149,7 @@ export default function EmpConfigurarContrato() {
       telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       documentoNombre: modal.documentoNombre || null,
     };
-    setAsignaciones(prev => modal.editId ? prev.map(a => a.id === modal.editId ? nueva : a) : [...prev, nueva]);
+    setAsignaciones(prev => modal.editId ? prev.map(a => a.id === modal.editId ? nueva : a) : [nueva, ...prev]);
     setModal(ASIGNACION_EMPTY);
   };
 
