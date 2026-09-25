@@ -20,6 +20,8 @@ import { ORA, GREEN, TEXT4, fmt, facturas, facturaBadge, scoreColor, kycBadge, p
 import { contratoService } from '../../services/contrato.service';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
+import { useAuthStore } from '../../stores/authStore';
+import { registrarNotifEntidad } from '../../lib/adminNotifs';
 
 const iniFor    = n => (n || '').split(/\s+/).slice(0, 2).map(w => w[0] ?? '').join('').toUpperCase().slice(0, 2) || '??';
 const KYC_ORDER = { vigente: 0, pendiente: 1, vencido: 2 };
@@ -76,6 +78,7 @@ const TABS_DETALLE = [
 
 export default function ProvContratoDetalle() {
   const { go } = useApp();
+  const fullName = useAuthStore(s => s.session?.user?.fullName) ?? '';
   const [tab, setTab] = useState('contrato');
   const [facturaModal, setFacturaModal] = useState(null);
   const [ipiStep, setIpiStep]           = useState(null);
@@ -222,6 +225,20 @@ export default function ProvContratoDetalle() {
         ...(prev[c.id] ?? []),
       ],
     }));
+    registrarNotifEntidad({
+      rolLabel: 'Proveedor',
+      quien: fullName,
+      tipoEntidad: 'Suministrador',
+      nombreEntidad: nombreResueltoSum,
+      detalle: {
+        nombreComercial: agregarSum.nombreComercial.trim(),
+        sector: agregarSum.sector,
+        telefono: `${PREFIJO_TEL} ${telefonoLocalSum}`,
+        correo: emailLimpioSum,
+        contratoId: c.id,
+        monto: montoNumLiveSum,
+      },
+    });
     setAgregarSum(NUEVO_SUM_EMPTY);
   };
 

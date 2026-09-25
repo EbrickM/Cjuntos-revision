@@ -22,6 +22,8 @@ import { INV, ESTADO_LABEL, estadoLabel, estadoBadge } from '../../lib/invoiceSt
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 import { ORA, TEXT4, fmt, facturas, facturaBadge, scoreColor, contratanteState, contratoBadge, pymes } from './contratanteData';
+import { useAuthStore } from '../../stores/authStore';
+import { registrarNotifEntidad } from '../../lib/adminNotifs';
 
 const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
 
@@ -231,6 +233,7 @@ function PagoFacturaBlock({ factura, onAceptar }) {
 
 export default function EmpContratoDetalle() {
   const { go } = useApp();
+  const fullName = useAuthStore(s => s.session?.user?.fullName) ?? '';
   const [tab, setTab] = useState('contrato');
   const [facturaModal, setFacturaModal] = useState(null);
   const [ipiStep, setIpiStep]           = useState(null);
@@ -417,6 +420,20 @@ export default function EmpContratoDetalle() {
         ...(prev[c.id] ?? []),
       ],
     }));
+    registrarNotifEntidad({
+      rolLabel: 'Empresa Contratante',
+      quien: fullName,
+      tipoEntidad: 'Empresa Contratada',
+      nombreEntidad: nombreResueltoPyme,
+      detalle: {
+        nombreComercial: agregarPyme.nombreComercial.trim(),
+        sector: agregarPyme.sector,
+        telefono: `${PREFIJO_TEL} ${telefonoLocalPyme}`,
+        correo: emailLimpioPyme,
+        contratoId: c.id,
+        monto: montoNumLivePyme,
+      },
+    });
     setAgregarPyme(NUEVA_PYME_EMPTY);
   };
 

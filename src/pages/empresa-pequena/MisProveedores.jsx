@@ -28,6 +28,8 @@ import { contratoService } from "../../services/contrato.service";
 import { CST } from "../../lib/contractStates";
 import InfiniteScrollSentinel from "../../components/common/InfiniteScrollSentinel";
 import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { useAuthStore } from "../../stores/authStore";
+import { registrarNotifEntidad } from "../../lib/adminNotifs";
 
 const SECTORES = [
   "Energía",
@@ -177,6 +179,7 @@ const montoDisponibleContrato = (c) => c?.disponible ?? 0;
 // loader que simula la llamada a backend.
 
 export default function EpMisProveedores() {
+  const fullName = useAuthStore((s) => s.session?.user?.fullName) ?? "";
   const [providers, setProviders] = useProviders();
   const [modal, setModal] = useState(MODAL_EMPTY);
   const [detalle, setDetalle] = useState(null);
@@ -318,6 +321,20 @@ export default function EpMisProveedores() {
       },
       ...prev,
     ]);
+    registrarNotifEntidad({
+      rolLabel: 'Empresa Contratada',
+      quien: fullName,
+      tipoEntidad: 'Proveedor',
+      nombreEntidad: nombreResuelto,
+      detalle: {
+        nombreComercial: modal.nombreComercial,
+        sector: modal.sector,
+        telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+        correo: emailLimpio,
+        contratoId: modal.contratoId || null,
+        monto: nuevoContrato ? montoNumLive : 0,
+      },
+    });
     showToast(
       `${nombreResuelto} ha sido añadido al directorio de proveedores.`,
     );

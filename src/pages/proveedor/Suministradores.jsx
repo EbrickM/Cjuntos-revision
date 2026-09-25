@@ -17,6 +17,8 @@ import { InfoRow, ComplianceItem, IniAvatar, useSuministradores } from './provSh
 import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores as directorioSuministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
+import { useAuthStore } from '../../stores/authStore';
+import { registrarNotifEntidad } from '../../lib/adminNotifs';
 
 const SECTORES = [
   'Energía', 'Construcción', 'Manufactura', 'Transporte', 'Tecnología',
@@ -72,6 +74,7 @@ const SEM_ORDER  = { Verde: 0, Amarillo: 1, Rojo: 2 };
 
 // ── SUMINISTRADORES ───────────────────────────────────────────────────────────
 export default function ProvSuministradores() {
+  const fullName = useAuthStore(s => s.session?.user?.fullName) ?? '';
   const [busqueda, setBusqueda] = useState('');
   const [sumModal, setSumModal] = useState(null);
   const [lista, setLista] = useSuministradores();
@@ -176,6 +179,20 @@ export default function ProvSuministradores() {
       },
       ...prev,
     ]);
+    registrarNotifEntidad({
+      rolLabel: 'Proveedor',
+      quien: fullName,
+      tipoEntidad: 'Suministrador',
+      nombreEntidad: nombreResuelto,
+      detalle: {
+        nombreComercial: agregar.nombreComercial.trim(),
+        sector: agregar.sector,
+        telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+        correo: emailLimpio,
+        contratoId: contratoId || null,
+        monto: contratoId ? montoNumLive : 0,
+      },
+    });
     setAgregar(NUEVO_SUM_EMPTY);
   };
 

@@ -45,6 +45,8 @@ import { contratoService } from "../../services/contrato.service";
 import { useProviders, initialProviders, fmt } from "./epData";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
+import { useAuthStore } from '../../stores/authStore';
+import { registrarNotifEntidad } from '../../lib/adminNotifs';
 
 const TAB_ICON = {
   'Todos':                       LayoutGrid,
@@ -276,6 +278,7 @@ function CreditoContractCard({ contract, idx, setDetailId, setActiveTab, setReqM
 
 export default function EpCreditos() {
   const { go } = useApp();
+  const fullName = useAuthStore((s) => s.session?.user?.fullName) ?? "";
   const contracts = contratoService.listarPorVista("pyme");
   const [providers, setProviders]                 = useProviders();
   const [detailId, setDetailId]                   = useState(null);
@@ -370,6 +373,20 @@ export default function EpCreditos() {
         ...(prev[detailContract.id] ?? []),
       ],
     }));
+    registrarNotifEntidad({
+      rolLabel: 'Empresa Contratada',
+      quien: fullName,
+      tipoEntidad: 'Proveedor',
+      nombreEntidad: nombreResueltoProv,
+      detalle: {
+        nombreComercial: agregarProv.nombreComercial.trim(),
+        sector: agregarProv.sector,
+        telefono: `${PREFIJO_TEL_PROV} ${telefonoLocalProv}`,
+        correo: emailLimpioProv,
+        contratoId: detailContract.id,
+        monto: montoNumLiveProv,
+      },
+    });
     setAgregarProv(NUEVO_PROV_EMPTY);
   };
 

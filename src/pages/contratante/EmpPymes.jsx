@@ -18,6 +18,8 @@ import { InfoRow, ComplianceItem, IniAvatar, useEmpresasContratadas } from './co
 import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
+import { useAuthStore } from '../../stores/authStore';
+import { registrarNotifEntidad } from '../../lib/adminNotifs';
 
 const scoreLabel = (score) => score >= 750 ? 'Bajo' : score >= 500 ? 'Medio' : 'Alto';
 
@@ -71,6 +73,7 @@ const initials = (name = '') => {
 };
 
 export default function EmpPymes() {
+  const fullName = useAuthStore(s => s.session?.user?.fullName) ?? '';
   const [busqueda, setBusqueda] = useState('');
   const [pymeModal, setPymeModal] = useState(null);
   const [lista, setLista] = useEmpresasContratadas();
@@ -173,6 +176,20 @@ export default function EmpPymes() {
       },
       ...prev,
     ]);
+    registrarNotifEntidad({
+      rolLabel: 'Empresa Contratante',
+      quien: fullName,
+      tipoEntidad: 'Empresa Contratada',
+      nombreEntidad: nombreResuelto,
+      detalle: {
+        nombreComercial: agregar.nombreComercial.trim(),
+        sector: agregar.sector,
+        telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
+        correo: emailLimpio,
+        contratoId: contratoId || null,
+        monto: contratoId ? montoNumLive : 0,
+      },
+    });
     setAgregar(NUEVA_PYME_EMPTY);
   };
 

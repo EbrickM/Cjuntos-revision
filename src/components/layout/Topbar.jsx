@@ -1,13 +1,19 @@
 import { useState } from 'react';
-import { Bell, LogOut, X, Menu, CheckCheck, Trash2, ArrowRight } from 'lucide-react';
+import { Bell, LogOut, X, Menu, CheckCheck, Trash2, ArrowRight, CheckCircle2, XCircle, Eye } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useAuthStore, logout } from '../../stores/authStore';
 import { fmt } from '../../pages/contratante/contratanteData';
 import { contratoService } from '../../services/contrato.service';
 import { facturaService } from '../../services/factura.service';
 import { BANCO } from '../../pages/fondeador/fondeadorShared';
+import { listarNotifsEntidad, resolverNotifEntidad, eliminarEntidadDeDirectorio } from '../../lib/adminNotifs';
 import Logo from './Logo';
 import LogoutConfirmModal from '../common/LogoutConfirmModal';
+import ConfirmarAccionAdminModal from '../common/ConfirmarAccionAdminModal';
+import DetalleEntidadAdminModal from '../common/DetalleEntidadAdminModal';
+
+// Cómo referirse a cada tipo de entidad en el título de la notificación.
+const ARTICULO_ENTIDAD = { 'Empresa Contratada': 'a la', 'Proveedor': 'al', 'Suministrador': 'al' };
 
 const ROLE_META = {
   'empresa-pequena': { roleLabel: 'Empresa Contratada'     },
@@ -97,12 +103,32 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
     }
     return [];
   })();
-  const allNotifs = [...contratoNotifs, ...notifs];
 
   const [notifOpen, setNotifOpen] = useState(false);
-  const [leidas,    setLeidas]    = useState(new Set(allNotifs.filter(n => n.leida).map(n => n.id)));
   const [ocultas,   setOcultas]   = useState(new Set());
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [confirmAccion, setConfirmAccion] = useState(null); // { tipo: 'aprobar'|'rechazar', notif }
+  const [detalleNotif,  setDetalleNotif]  = useState(null); // notif de entidad, para el modal de detalle
+
+  // Cada vez que un portal agrega una Empresa Contratada / Proveedor /
+  // Suministrador, se notifica aquí a Bonafide (Admin) para que la
+  // apruebe, la rechace (la quita del directorio) o vea el detalle. Se
+  // recalcula en cada render — aprobar/rechazar siempre cambia algún estado
+  // (cierra el modal correspondiente), así que la lista queda al día sola.
+  const entityNotifs = role === 'admin'
+    ? listarNotifsEntidad().map(n => ({
+        id: n.id,
+        titulo: `${n.rolLabel} añadió ${ARTICULO_ENTIDAD[n.tipoEntidad] ?? 'a'} ${n.tipoEntidad.toLowerCase()} ${n.nombreEntidad}`,
+        cuerpo: `Agregado por ${n.quien || 'un usuario del portal'}${n.detalle?.sector ? ` · ${n.detalle.sector}` : ''}${n.detalle?.contratoId ? ` · Contrato ${n.detalle.contratoId}` : ''}. Pendiente de revisión.`,
+        dt: n.fecha,
+        leida: false,
+        esEntidad: true,
+        entidadRaw: n,
+      }))
+    : [];
+
+  const allNotifs = [...entityNotifs, ...contratoNotifs, ...notifs];
+  const [leidas, setLeidas] = useState(new Set(allNotifs.filter(n => n.leida).map(n => n.id)));
 
   const fullName    = session?.user?.fullName ?? adminSession?.admin?.fullName ?? '';
   const meta        = ROLE_META[role] ?? { roleLabel: 'Bonafide', pill: null };
@@ -112,6 +138,18 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
   const handleProceder = (accion) => {
     setNotifOpen(false);
     go(accion.screenId, accion.opts);
+  };
+
+  // Aprobar deja la entidad en su directorio (solo se resuelve la
+  // notificación); rechazar además la quita del directorio compartido del
+  // portal que la agregó.
+  const ejecutarAccionEntidad = (tipo, notif) => {
+    if (tipo === 'rechazar') {
+      eliminarEntidadDeDirectorio(notif.tipoEntidad, notif.nombreEntidad);
+    }
+    resolverNotifEntidad(notif.id);
+    setConfirmAccion(null);
+    setDetalleNotif(null);
   };
 
   return (
@@ -236,6 +274,31 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
                                 </button>
                               )}
                             </div>
+                            {n.esEntidad && (
+                              <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/70">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setConfirmAccion({ tipo: 'aprobar', notif: n.entidadRaw }); }}
+                                  title="Aprobar"
+                                  className="p-2 rounded-full bg-green-bg text-green-text hover:opacity-80 transition cursor-pointer shrink-0"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setConfirmAccion({ tipo: 'rechazar', notif: n.entidadRaw }); }}
+                                  title="Rechazar"
+                                  className="p-2 rounded-full bg-red-bg text-red-text hover:opacity-80 transition cursor-pointer shrink-0"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setDetalleNotif(n.entidadRaw); }}
+                                  title="Detalles"
+                                  className="p-2 rounded-full bg-page-bg text-text-3 hover:bg-orange-tint hover:text-orange-dark transition cursor-pointer shrink-0"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
                           </div>
                           <button
                             onClick={(e) => { e.stopPropagation(); setOcultas(prev => new Set(prev).add(n.id)); }}
@@ -258,6 +321,24 @@ export default function Topbar({ role, onMenuClick, hideNotifications = false })
             </div>
           </div>
         </>
+      )}
+
+      {confirmAccion && (
+        <ConfirmarAccionAdminModal
+          tipo={confirmAccion.tipo}
+          notif={confirmAccion.notif}
+          onConfirm={() => ejecutarAccionEntidad(confirmAccion.tipo, confirmAccion.notif)}
+          onClose={() => setConfirmAccion(null)}
+        />
+      )}
+
+      {detalleNotif && (
+        <DetalleEntidadAdminModal
+          notif={detalleNotif}
+          onAprobar={() => ejecutarAccionEntidad('aprobar', detalleNotif)}
+          onRechazar={() => ejecutarAccionEntidad('rechazar', detalleNotif)}
+          onClose={() => setDetalleNotif(null)}
+        />
       )}
     </>
   );
