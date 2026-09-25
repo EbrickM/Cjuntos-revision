@@ -10,7 +10,7 @@ import { localDb } from '../../lib/localDb';
 // localDb, para que un suministrador registrado desde cualquiera de las dos
 // pantallas aparezca en ambas.
 const SUMINISTRADORES_KEY = 'prov_suministradores';
-const SUMINISTRADORES_VERSION = 1;
+const SUMINISTRADORES_VERSION = 2;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSuministradores() {

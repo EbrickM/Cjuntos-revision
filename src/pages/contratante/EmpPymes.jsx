@@ -15,7 +15,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow, ComplianceItem, IniAvatar, useEmpresasContratadas } from './contratanteShared';
-import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
+import { ORA, GREEN, WARN, ERR, TEXT4, BORDER, fmt, contratos, pymes, semBadge, semColor, scoreColor, contratoBadge } from './contratanteData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
 
@@ -32,12 +32,32 @@ const SECTORES = [
 
 const NUEVA_PYME_EMPTY = {
   open: false,
+  pymeSel: '',
   nombre: '',
   nombreComercial: '',
   sector: 'Construcción',
   telefono: '',
   correo: '',
   contratoId: '',
+  monto: '',
+};
+
+const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Monto disponible del contrato activo elegido — cubre tanto los contratos-marco
+// (pymesAsignadas/montoBase) como los ya repartidos hacia un lado específico
+// (proveedoresAsignados/suministradoresAsignados/montoAsignado) o, si no calza
+// ninguno, el `disponible` plano que ya trae el registro.
+// El campo `disponible` ya viene calculado y siempre presente en todo contrato
+// canónico (lo resuelve `normalizar()` en contrato.service.js) — se usa
+// directamente en vez de recalcularlo aquí para no divergir de esa fuente única.
+const montoDisponibleContrato = (c) => c?.disponible ?? 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (20.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
 };
 
 const initials = (name = '') => {
@@ -105,27 +125,44 @@ export default function EmpPymes() {
     .listarPorVista('contratante')
     .filter(c => c.estado === CST.activo);
 
+  // Empresa Contratada ya conocida por el sistema (elegida del directorio
+  // `pymes`), en vez de una nueva — su email/teléfono no se pueden modificar.
+  const pymeExistente    = agregar.pymeSel !== '' && agregar.pymeSel !== '__nueva__';
+  const nombreResuelto   = pymeExistente ? agregar.pymeSel : agregar.nombre.trim();
   const emailLimpio      = agregar.correo.trim();
   const emailInvalido    = emailLimpio !== '' && !EMAIL_REGEX.test(emailLimpio);
   const telefonoLocal    = agregar.telefono.replace(/\D/g, '');
   const telefonoValido   = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido = telefonoLocal !== '' && !telefonoValido;
+
+  // Si se le asigna un contrato activo, el monto pasa a ser obligatorio y no
+  // puede superar lo disponible en ese contrato; sin contrato, no aplica (la
+  // tabla muestra 0, como hoy).
+  const contratoSeleccionado = agregar.contratoId ? contratosActivos.find(c => c.id === agregar.contratoId) : null;
+  const disponibleContrato   = montoDisponibleContrato(contratoSeleccionado);
+  const montoNumLive         = parseMonto(agregar.monto);
+  // El error solo se muestra una vez que el usuario escribió algo — un campo
+  // vacío bloquea "Guardar" (montoFaltante) pero no se marca en rojo todavía.
+  const montoFaltante        = !!agregar.contratoId && agregar.monto === '';
+  const montoInvalido        = !!agregar.contratoId && agregar.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleContrato);
+
   // Todos los campos obligatorios (los marcados con *) deben estar completos
   // antes de habilitar "Guardar": Razón Social, Sector, Teléfono y Correo. El
-  // Nombre Comercial y el contrato son explícitamente opcionales.
-  const formOk = agregar.nombre.trim() && !!agregar.sector && telefonoValido && emailLimpio !== '' && !emailInvalido;
+  // Nombre Comercial es explícitamente opcional; el contrato es opcional, pero
+  // si se elige uno, el monto pasa a ser obligatorio y válido.
+  const formOk = !!nombreResuelto && !!agregar.sector && telefonoValido && emailLimpio !== '' && !emailInvalido && !montoFaltante && !montoInvalido;
 
   const handleAgregar = () => {
     if (!formOk) return;
     const contratoId = agregar.contratoId;
     setLista((prev) => [
       {
-        ini: initials(agregar.nombre),
-        nombre: agregar.nombre.trim(),
+        ini: initials(nombreResuelto),
+        nombre: nombreResuelto,
         sector: agregar.sector,
         contratos: contratoId ? 1 : 0,
         contratoId: contratoId || null,
-        montoTotal: 0,
+        montoTotal: contratoId ? montoNumLive : 0,
         score: null,
         semaforo: 'En espera',
         nombreComercial: agregar.nombreComercial.trim(),
@@ -169,7 +206,17 @@ export default function EmpPymes() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <Button
               size="sm"
-              onClick={() => setAgregar({ ...NUEVA_PYME_EMPTY, open: true })}
+              onClick={() => {
+                const primera = pymes[0] ?? null;
+                setAgregar({
+                  ...NUEVA_PYME_EMPTY, open: true,
+                  pymeSel: primera?.nombre ?? '__nueva__',
+                  nombreComercial: primera?.nombreComercial ?? '',
+                  sector: primera?.sector ?? 'Construcción',
+                  correo: primera?.correo ?? '',
+                  telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                });
+              }}
             >
               <Plus className="w-3.5 h-3.5" /> Agregar Empresa Contratada
             </Button>
@@ -443,17 +490,36 @@ export default function EmpPymes() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              Registra una nueva Empresa Contratada en tu directorio. Quedará
-              disponible para asignar contratos.
+              Selecciona una Empresa Contratada ya conocida por el sistema, o
+              registra una nueva en tu directorio.
             </div>
+            <FormGroup label="Empresa Contratada" required>
+              <Select value={agregar.pymeSel} onChange={e => {
+                const v = e.target.value;
+                const p = pymes.find(x => x.nombre === v);
+                setAgregar(a => ({
+                  ...a, pymeSel: v,
+                  nombreComercial: p?.nombreComercial ?? '',
+                  sector: p?.sector ?? 'Construcción',
+                  correo: p?.correo ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                }));
+              }}>
+                <option value="__nueva__">Otra (nueva)…</option>
+                {pymes.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
+              </Select>
+            </FormGroup>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-              <FormGroup label="Razón Social" required>
-                <Input
-                  value={agregar.nombre}
-                  onChange={e => setAgregar(a => ({ ...a, nombre: e.target.value }))}
-                  placeholder="Ej: Constructora del Litoral"
-                />
-              </FormGroup>
+              {!pymeExistente && (
+                <FormGroup label="Razón Social" required>
+                  <Input
+                    value={agregar.nombre}
+                    onChange={e => setAgregar(a => ({ ...a, nombre: e.target.value }))}
+                    placeholder="Ej: Constructora del Litoral"
+                  />
+                </FormGroup>
+              )}
               <FormGroup label="Nombre Comercial">
                 <Input
                   value={agregar.nombreComercial}
@@ -461,6 +527,9 @@ export default function EmpPymes() {
                   placeholder="Ej: Litogal"
                 />
               </FormGroup>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
               <FormGroup label="Sector Productivo" required>
                 <Select
                   value={agregar.sector}
@@ -469,40 +538,53 @@ export default function EmpPymes() {
                   {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono" required>
-                <div className="flex">
-                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                    {PREFIJO_TEL}
-                  </span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={telefonoLocal.slice(0, 9)}
-                    onChange={e => setAgregar(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
-                    placeholder="222 XXX XXX"
-                    className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
-                  />
-                </div>
-                {telefonoInvalido && (
+              <div>
+                <FormGroup label="Teléfono" required className={pymeExistente ? 'mb-0' : ''}>
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setAgregar(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={pymeExistente}
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {pymeExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil de la empresa; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && (
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input
-                  type="email"
-                  value={agregar.correo}
-                  onChange={e => setAgregar(a => ({ ...a, correo: e.target.value }))}
-                  placeholder="Ej: info@empresa.gq"
-                  className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''}
-                />
-                {emailInvalido && (
+              </div>
+              <div>
+                <FormGroup label="Correo" required className={pymeExistente ? 'mb-0' : ''}>
+                  <Input
+                    type="email"
+                    value={agregar.correo}
+                    onChange={e => setAgregar(a => ({ ...a, correo: e.target.value }))}
+                    placeholder="Ej: info@empresa.gq"
+                    disabled={pymeExistente}
+                    className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''}
+                  />
+                </FormGroup>
+                {pymeExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil de la empresa; no se puede modificar aquí.</p>
+                ) : emailInvalido && (
                   <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
                 )}
-              </FormGroup>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
               <FormGroup label="Añadir a contrato activo (opcional)">
                 <Select
                   value={agregar.contratoId}
-                  onChange={e => setAgregar(a => ({ ...a, contratoId: e.target.value }))}
+                  onChange={e => setAgregar(a => ({ ...a, contratoId: e.target.value, monto: '' }))}
                 >
                   <option value="">Ninguno</option>
                   {contratosActivos.map(c => (
@@ -510,6 +592,22 @@ export default function EmpPymes() {
                   ))}
                 </Select>
               </FormGroup>
+              {agregar.contratoId && (
+                <FormGroup label="Monto asignado (XAF)" required>
+                  <Input
+                    inputMode="numeric"
+                    value={fmtMonto(agregar.monto)}
+                    onChange={e => setAgregar(a => ({ ...a, monto: e.target.value.replace(/\D/g, '') }))}
+                    placeholder="Ej. 20.000.000"
+                    className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
+                  />
+                  {montoInvalido && (
+                    <p className="text-xs text-red-500 mt-1.5">
+                      {montoNumLive <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleContrato)} XAF).`}
+                    </p>
+                  )}
+                </FormGroup>
+              )}
             </div>
           </div>
         </Modal>

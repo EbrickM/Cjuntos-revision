@@ -304,9 +304,7 @@ export default function EpSolicitudes() {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() =>
-                        go("epSolicitarContrato", { returnTo: "epSolicitudes" })
-                      }
+                      onClick={() => go("epConfigurarContrato")}
                     >
                       <Building2 className="w-3.5 h-3.5 mr-1" />
                       Participar

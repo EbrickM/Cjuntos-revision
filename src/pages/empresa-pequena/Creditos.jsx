@@ -42,7 +42,7 @@ import { defaultVencimiento } from "../../components/invoices/facturaUtils";
 import BorradoresSeccion from '../../components/contratos/BorradoresSeccion';
 import ConfirmarEliminarModal from '../../components/common/ConfirmarEliminarModal';
 import { contratoService } from "../../services/contrato.service";
-import { useProviders } from "./epData";
+import { useProviders, initialProviders, fmt } from "./epData";
 import { registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
 
@@ -154,7 +154,16 @@ const SECTORES_PROV = [
   "Servicios", "Alimentación", "Minería", "Agricultura", "Comercio",
   "Materiales", "Otro",
 ];
-const NUEVO_PROV_EMPTY = { open: false, razonSocial: "", nombreComercial: "", sector: "Materiales", telefono: "", correo: "", esClienteBonafide: false };
+const NUEVO_PROV_EMPTY = { open: false, provSel: "", razonSocial: "", nombreComercial: "", sector: "Materiales", telefono: "", correo: "", esClienteBonafide: false, monto: "" };
+
+const parseMontoProv = (str) => Number(String(str).replace(/[^\d]/g, "")) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (5.000.000) mientras se escribe.
+const fmtMontoProv = (digits) => {
+  const n = Number(String(digits ?? "").replace(/\D/g, ""));
+  return n ? fmt(n) : "";
+};
 
 const initialInvoices = [
   {
@@ -299,12 +308,34 @@ export default function EpCreditos() {
     ? (contracts.find((c) => c.id === detailId) ?? null)
     : null;
 
+  // Mismos campos, validación y lógica que "Nuevo Proveedor" en
+  // MisProveedores.jsx: se puede elegir un Proveedor ya conocido por el
+  // sistema (su email/teléfono quedan bloqueados) o registrar uno nuevo. La
+  // única diferencia es que aquí el contrato ya viene implícito
+  // (`detailContract`), así que el monto asignado es siempre obligatorio.
+  const provExistenteProv   = agregarProv.provSel !== "" && agregarProv.provSel !== "__nueva__";
+  const nombreResueltoProv  = provExistenteProv ? agregarProv.provSel : agregarProv.razonSocial.trim();
   const emailLimpioProv      = agregarProv.correo.trim();
   const emailInvalidoProv    = emailLimpioProv !== "" && !EMAIL_REGEX_PROV.test(emailLimpioProv);
   const telefonoLocalProv    = agregarProv.telefono.replace(/\D/g, "");
   const telefonoValidoProv   = /^\d{7,9}$/.test(telefonoLocalProv);
   const telefonoInvalidoProv = telefonoLocalProv !== "" && !telefonoValidoProv;
-  const formOkProv = agregarProv.razonSocial.trim() && !!agregarProv.sector && telefonoValidoProv && emailLimpioProv !== "" && !emailInvalidoProv;
+
+  // Monto disponible de ESTE contrato: lo ya asignado (proveedoresAsignados)
+  // menos lo ya agregado manualmente en este mismo detalle (no vive en
+  // `detailContract.proveedoresAsignados` todavía).
+  const provManualesActuales = detailContract ? (provManualesPorContrato[detailContract.id] ?? []) : [];
+  // `detailContract.disponible` ya viene calculado por `normalizar()` en
+  // contrato.service.js (fuente única de verdad) — solo se resta lo agregado
+  // manualmente en este mismo detalle, que todavía no vive en el contrato canónico.
+  const disponibleParaAgregarProv = detailContract
+    ? (detailContract.disponible ?? 0) - provManualesActuales.reduce((s, m) => s + (Number(m.monto) || 0), 0)
+    : 0;
+  const montoNumLiveProv  = parseMontoProv(agregarProv.monto);
+  const montoFaltanteProv = agregarProv.monto === "";
+  const montoInvalidoProv = agregarProv.monto !== "" && (montoNumLiveProv <= 0 || montoNumLiveProv > disponibleParaAgregarProv);
+
+  const formOkProv = !!nombreResueltoProv && !!agregarProv.sector && telefonoValidoProv && emailLimpioProv !== "" && !emailInvalidoProv && !montoFaltanteProv && !montoInvalidoProv;
 
   const handleAgregarProv = () => {
     if (!formOkProv || !detailContract) return;
@@ -312,12 +343,12 @@ export default function EpCreditos() {
     setProviders((prev) => [
       {
         id: newId,
-        razonSocial: agregarProv.razonSocial.trim(),
+        razonSocial: nombreResueltoProv,
         nombreComercial: agregarProv.nombreComercial.trim(),
         sector: agregarProv.sector,
         email: emailLimpioProv,
         telefono: `${PREFIJO_TEL_PROV} ${telefonoLocalProv}`,
-        contratosActivos: [{ id: detailContract.id, objeto: '', contratante: detailContract.contratante?.razonSocial ?? '', asignado: 0, utilizado: 0 }],
+        contratosActivos: [{ id: detailContract.id, objeto: '', contratante: detailContract.contratante?.razonSocial ?? '', asignado: montoNumLiveProv, utilizado: 0 }],
         esClienteBonafide: agregarProv.esClienteBonafide,
         kyc: "—",
         scoreCredito: null,
@@ -331,10 +362,10 @@ export default function EpCreditos() {
       [detailContract.id]: [
         {
           id: `PROV-MANUAL-${Date.now()}`,
-          nombre: agregarProv.razonSocial.trim(),
+          nombre: nombreResueltoProv,
           email: emailLimpioProv,
           cargaNomina: false,
-          monto: 0,
+          monto: montoNumLiveProv,
         },
         ...(prev[detailContract.id] ?? []),
       ],
@@ -1104,7 +1135,17 @@ export default function EpCreditos() {
                   <SectionHeader icon={Truck}
                     title="Proveedores" subtitle="Proveedores de este contrato y el monto que le corresponde a cada uno."
                     action={
-                      <Button size="sm" onClick={() => setAgregarProv({ ...NUEVO_PROV_EMPTY, open: true })}>
+                      <Button size="sm" onClick={() => {
+                        const primera = initialProviders[0] ?? null;
+                        setAgregarProv({
+                          ...NUEVO_PROV_EMPTY, open: true,
+                          provSel: primera?.razonSocial ?? "__nueva__",
+                          nombreComercial: primera?.nombreComercial ?? "",
+                          sector: primera?.sector ?? "Materiales",
+                          correo: primera?.email ?? "",
+                          telefono: (primera?.telefono ?? "").replace(/\D/g, "").slice(0, 9),
+                        });
+                      }}>
                         <Plus className="w-3.5 h-3.5" /> Agregar Proveedor
                       </Button>
                     }
@@ -1884,16 +1925,36 @@ export default function EpCreditos() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              Registra un nuevo proveedor en tu directorio. Quedará ligado al contrato {detailContract.id}.
+              Selecciona un proveedor ya conocido por el sistema, o registra
+              uno nuevo. Quedará ligado al contrato {detailContract.id}.
             </div>
+            <FormGroup label="Proveedor" required>
+              <Select value={agregarProv.provSel} onChange={(e) => {
+                const v = e.target.value;
+                const p = initialProviders.find((x) => x.razonSocial === v);
+                setAgregarProv((a) => ({
+                  ...a, provSel: v,
+                  nombreComercial: p?.nombreComercial ?? "",
+                  sector: p?.sector ?? "Materiales",
+                  correo: p?.email ?? "",
+                  telefono: (p?.telefono ?? "").replace(/\D/g, "").slice(0, 9),
+                }));
+              }}>
+                <option value="__nueva__">Otro (nuevo)…</option>
+                {initialProviders.map((p) => <option key={p.razonSocial} value={p.razonSocial}>{p.razonSocial}</option>)}
+              </Select>
+            </FormGroup>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Razón Social" required>
-                <Input
-                  value={agregarProv.razonSocial}
-                  onChange={(e) => setAgregarProv((a) => ({ ...a, razonSocial: e.target.value }))}
-                  placeholder="Nombre legal exacto"
-                />
-              </FormGroup>
+              {!provExistenteProv && (
+                <FormGroup label="Razón Social" required>
+                  <Input
+                    value={agregarProv.razonSocial}
+                    onChange={(e) => setAgregarProv((a) => ({ ...a, razonSocial: e.target.value }))}
+                    placeholder="Nombre legal exacto"
+                  />
+                </FormGroup>
+              )}
               <FormGroup label="Nombre Comercial">
                 <Input
                   value={agregarProv.nombreComercial}
@@ -1911,37 +1972,62 @@ export default function EpCreditos() {
                   {SECTORES_PROV.map((s) => <option key={s}>{s}</option>)}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono" required>
-                <div className="flex">
-                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                    {PREFIJO_TEL_PROV}
-                  </span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={telefonoLocalProv.slice(0, 9)}
-                    onChange={(e) => setAgregarProv((a) => ({ ...a, telefono: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
-                    placeholder="222 XXX XXX"
-                    className={`!rounded-l-none ${telefonoInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}`}
-                  />
-                </div>
-                {telefonoInvalidoProv && (
+              <div>
+                <FormGroup label="Teléfono" required className={provExistenteProv ? "mb-0" : ""}>
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL_PROV}
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      value={telefonoLocalProv.slice(0, 9)}
+                      onChange={(e) => setAgregarProv((a) => ({ ...a, telefono: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={provExistenteProv}
+                      className={`!rounded-l-none ${telefonoInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}`}
+                    />
+                  </div>
+                </FormGroup>
+                {provExistenteProv ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : telefonoInvalidoProv && (
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input
-                  type="email"
-                  value={agregarProv.correo}
-                  onChange={(e) => setAgregarProv((a) => ({ ...a, correo: e.target.value }))}
-                  placeholder="correo@empresa.gq"
-                  className={emailInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}
-                />
-                {emailInvalidoProv && (
+              </div>
+              <div>
+                <FormGroup label="Correo" required className={provExistenteProv ? "mb-0" : ""}>
+                  <Input
+                    type="email"
+                    value={agregarProv.correo}
+                    onChange={(e) => setAgregarProv((a) => ({ ...a, correo: e.target.value }))}
+                    placeholder="correo@empresa.gq"
+                    disabled={provExistenteProv}
+                    className={emailInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}
+                  />
+                </FormGroup>
+                {provExistenteProv ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : emailInvalidoProv && (
                   <p className="text-xs mt-1.5 text-red-500">Ingresa un correo electrónico válido.</p>
                 )}
-              </FormGroup>
+              </div>
             </div>
+
+            <FormGroup label="Monto asignado (XAF)" required>
+              <Input
+                inputMode="numeric"
+                value={fmtMontoProv(agregarProv.monto)}
+                onChange={(e) => setAgregarProv((a) => ({ ...a, monto: e.target.value.replace(/\D/g, "") }))}
+                placeholder="Ej. 5.000.000"
+                className={montoInvalidoProv ? "!border-red-400 focus:!border-red-500" : ""}
+              />
+              {montoInvalidoProv && (
+                <p className="text-xs text-red-500 mt-1.5">
+                  {montoNumLiveProv <= 0 ? "Ingresa un monto válido." : `El monto supera el disponible (${fmt(disponibleParaAgregarProv)} XAF).`}
+                </p>
+              )}
+            </FormGroup>
 
             <button
               type="button"

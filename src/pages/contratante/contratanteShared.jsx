@@ -10,7 +10,7 @@ import { localDb } from '../../lib/localDb';
 // para que una empresa registrada desde cualquiera de las dos pantallas
 // aparezca en ambas.
 const PYMES_KEY = 'emp_pymes';
-const PYMES_VERSION = 1;
+const PYMES_VERSION = 2;
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function useEmpresasContratadas() {

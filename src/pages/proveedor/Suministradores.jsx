@@ -14,7 +14,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import FormGroup, { Input, Select } from '../../components/ui/FormGroup';
 import { InfoRow, ComplianceItem, IniAvatar, useSuministradores } from './provShared';
-import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, semBadge, semColor, scoreColor, contratoBadge } from './provData';
+import { ORA, GREEN, TEXT4, BORDER, fmt, contratos, suministradores as directorioSuministradores, semBadge, semColor, scoreColor, contratoBadge } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { CST } from '../../lib/contractStates';
 
@@ -29,12 +29,32 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const NUEVO_SUM_EMPTY = {
   open: false,
+  sumSel: '',
   nombre: '',
   nombreComercial: '',
   sector: 'Construcción',
   telefono: '',
   correo: '',
   contratoId: '',
+  monto: '',
+};
+
+const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Monto disponible del contrato activo elegido — cubre tanto los contratos-marco
+// (pymesAsignadas/montoBase) como los ya repartidos hacia un lado específico
+// (proveedoresAsignados/suministradoresAsignados/montoAsignado) o, si no calza
+// ninguno, el `disponible` plano que ya trae el registro.
+// El campo `disponible` ya viene calculado y siempre presente en todo contrato
+// canónico (lo resuelve `normalizar()` en contrato.service.js) — se usa
+// directamente en vez de recalcularlo aquí para no divergir de esa fuente única.
+const montoDisponibleContrato = (c) => c?.disponible ?? 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (20.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
 };
 
 const initials = (name = '') => {
@@ -108,27 +128,44 @@ export default function ProvSuministradores() {
     .listarPorVista('proveedor')
     .filter(c => c.estado === CST.activo);
 
+  // Suministrador ya conocido por el sistema (elegido del directorio), en vez
+  // de uno nuevo — su email/teléfono no se pueden modificar.
+  const sumExistente     = agregar.sumSel !== '' && agregar.sumSel !== '__nueva__';
+  const nombreResuelto   = sumExistente ? agregar.sumSel : agregar.nombre.trim();
   const emailLimpio      = agregar.correo.trim();
   const emailInvalido    = emailLimpio !== '' && !EMAIL_REGEX.test(emailLimpio);
   const telefonoLocal    = agregar.telefono.replace(/\D/g, '');
   const telefonoValido   = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido = telefonoLocal !== '' && !telefonoValido;
+
+  // Si se le asigna un contrato activo, el monto pasa a ser obligatorio y no
+  // puede superar lo disponible en ese contrato; sin contrato, no aplica (la
+  // tabla muestra 0, como hoy).
+  const contratoSeleccionado = agregar.contratoId ? contratosActivos.find(c => c.id === agregar.contratoId) : null;
+  const disponibleContrato   = montoDisponibleContrato(contratoSeleccionado);
+  const montoNumLive         = parseMonto(agregar.monto);
+  // El error solo se muestra una vez que el usuario escribió algo — un campo
+  // vacío bloquea "Guardar" (montoFaltante) pero no se marca en rojo todavía.
+  const montoFaltante        = !!agregar.contratoId && agregar.monto === '';
+  const montoInvalido        = !!agregar.contratoId && agregar.monto !== '' && (montoNumLive <= 0 || montoNumLive > disponibleContrato);
+
   // Todos los campos obligatorios (los marcados con *) deben estar completos
   // antes de habilitar "Guardar": Razón Social, Sector, Teléfono y Correo. El
-  // Nombre Comercial y el contrato son explícitamente opcionales.
-  const formOk = agregar.nombre.trim() && !!agregar.sector && telefonoValido && emailLimpio !== '' && !emailInvalido;
+  // Nombre Comercial es explícitamente opcional; el contrato es opcional, pero
+  // si se elige uno, el monto pasa a ser obligatorio y válido.
+  const formOk = !!nombreResuelto && !!agregar.sector && telefonoValido && emailLimpio !== '' && !emailInvalido && !montoFaltante && !montoInvalido;
 
   const handleAgregar = () => {
     if (!formOk) return;
     const contratoId = agregar.contratoId;
     setLista((prev) => [
       {
-        ini: initials(agregar.nombre),
-        nombre: agregar.nombre.trim(),
+        ini: initials(nombreResuelto),
+        nombre: nombreResuelto,
         sector: agregar.sector,
         contratos: contratoId ? 1 : 0,
         contratoId: contratoId || null,
-        montoTotal: 0,
+        montoTotal: contratoId ? montoNumLive : 0,
         score: null,
         semaforo: 'En espera',
         nombreComercial: agregar.nombreComercial.trim(),
@@ -172,7 +209,17 @@ export default function ProvSuministradores() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
             <Button
               size="sm"
-              onClick={() => setAgregar({ ...NUEVO_SUM_EMPTY, open: true })}
+              onClick={() => {
+                const primera = directorioSuministradores[0] ?? null;
+                setAgregar({
+                  ...NUEVO_SUM_EMPTY, open: true,
+                  sumSel: primera?.nombre ?? '__nueva__',
+                  nombreComercial: primera?.nombreComercial ?? '',
+                  sector: primera?.sector ?? 'Construcción',
+                  correo: primera?.correo ?? '',
+                  telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                });
+              }}
             >
               <Plus className="w-3.5 h-3.5" /> Agregar Suministrador
             </Button>
@@ -448,17 +495,36 @@ export default function ProvSuministradores() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              Registra un nuevo Suministrador en tu directorio. Quedará
-              disponible para asignar el monto de tus contratos.
+              Selecciona un Suministrador ya conocido por el sistema, o
+              registra uno nuevo en tu directorio.
             </div>
+            <FormGroup label="Suministrador" required>
+              <Select value={agregar.sumSel} onChange={e => {
+                const v = e.target.value;
+                const p = directorioSuministradores.find(x => x.nombre === v);
+                setAgregar(a => ({
+                  ...a, sumSel: v,
+                  nombreComercial: p?.nombreComercial ?? '',
+                  sector: p?.sector ?? 'Construcción',
+                  correo: p?.correo ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                }));
+              }}>
+                <option value="__nueva__">Otro (nuevo)…</option>
+                {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
+              </Select>
+            </FormGroup>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-              <FormGroup label="Razón Social" required>
-                <Input
-                  value={agregar.nombre}
-                  onChange={e => setAgregar(a => ({ ...a, nombre: e.target.value }))}
-                  placeholder="Ej: Distribuidora del Golfo"
-                />
-              </FormGroup>
+              {!sumExistente && (
+                <FormGroup label="Razón Social" required>
+                  <Input
+                    value={agregar.nombre}
+                    onChange={e => setAgregar(a => ({ ...a, nombre: e.target.value }))}
+                    placeholder="Ej: Distribuidora del Golfo"
+                  />
+                </FormGroup>
+              )}
               <FormGroup label="Nombre Comercial">
                 <Input
                   value={agregar.nombreComercial}
@@ -466,6 +532,9 @@ export default function ProvSuministradores() {
                   placeholder="Ej: Digolf"
                 />
               </FormGroup>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
               <FormGroup label="Sector Productivo" required>
                 <Select
                   value={agregar.sector}
@@ -474,40 +543,53 @@ export default function ProvSuministradores() {
                   {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono" required>
-                <div className="flex">
-                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                    {PREFIJO_TEL}
-                  </span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={telefonoLocal.slice(0, 9)}
-                    onChange={e => setAgregar(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
-                    placeholder="222 XXX XXX"
-                    className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
-                  />
-                </div>
-                {telefonoInvalido && (
+              <div>
+                <FormGroup label="Teléfono" required className={sumExistente ? 'mb-0' : ''}>
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setAgregar(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={sumExistente}
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {sumExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && (
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input
-                  type="email"
-                  value={agregar.correo}
-                  onChange={e => setAgregar(a => ({ ...a, correo: e.target.value }))}
-                  placeholder="Ej: contacto@suministrador.gq"
-                  className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''}
-                />
-                {emailInvalido && (
+              </div>
+              <div>
+                <FormGroup label="Correo" required className={sumExistente ? 'mb-0' : ''}>
+                  <Input
+                    type="email"
+                    value={agregar.correo}
+                    onChange={e => setAgregar(a => ({ ...a, correo: e.target.value }))}
+                    placeholder="Ej: contacto@suministrador.gq"
+                    disabled={sumExistente}
+                    className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''}
+                  />
+                </FormGroup>
+                {sumExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : emailInvalido && (
                   <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
                 )}
-              </FormGroup>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
               <FormGroup label="Añadir a contrato activo (opcional)">
                 <Select
                   value={agregar.contratoId}
-                  onChange={e => setAgregar(a => ({ ...a, contratoId: e.target.value }))}
+                  onChange={e => setAgregar(a => ({ ...a, contratoId: e.target.value, monto: '' }))}
                 >
                   <option value="">Ninguno</option>
                   {contratosActivos.map(c => (
@@ -515,6 +597,22 @@ export default function ProvSuministradores() {
                   ))}
                 </Select>
               </FormGroup>
+              {agregar.contratoId && (
+                <FormGroup label="Monto asignado (XAF)" required>
+                  <Input
+                    inputMode="numeric"
+                    value={fmtMonto(agregar.monto)}
+                    onChange={e => setAgregar(a => ({ ...a, monto: e.target.value.replace(/\D/g, '') }))}
+                    placeholder="Ej. 5.000.000"
+                    className={montoInvalido ? '!border-red-400 focus:!border-red-500' : ''}
+                  />
+                  {montoInvalido && (
+                    <p className="text-xs text-red-500 mt-1.5">
+                      {montoNumLive <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleContrato)} XAF).`}
+                    </p>
+                  )}
+                </FormGroup>
+              )}
             </div>
           </div>
         </Modal>

@@ -8,6 +8,7 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import { useApp } from '../../state/AppContext';
 import { IniAvatar, InfoRow } from './provShared';
 import { RED, ORA, GREEN, ERR, BLUE, BORDER, TEXT4, fmt, misSolicitudes, solicitudesSuministradores, solicBadge } from './provData';
 
@@ -19,6 +20,7 @@ const solicIconCfg = {
 };
 
 export default function ProvSolicitudes() {
+  const { go } = useApp();
   const [tab, setTab]         = useState('mis');
   const [solModal, setSolModal] = useState(null);
 
@@ -119,7 +121,7 @@ export default function ProvSolicitudes() {
                       <p className="text-[18px] font-extrabold text-text-1 leading-none">{fmt(s.monto)}</p>
                       <p className="text-[10px] mt-0.5" style={{ color: TEXT4 }}>XAF solicitados</p>
                     </div>
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" onClick={() => go('provConfigurarContrato')}>
                       <TrendingUp className="w-3.5 h-3.5 mr-1" />Participar
                     </Button>
                   </div>

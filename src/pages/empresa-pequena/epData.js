@@ -60,7 +60,7 @@ export const montoDisponibleProveedores = (item, excluirId = null) =>
 // 15 proveedores — usados para el scroll infinito de MisProveedores (pageSize
 // 10) y para autocompletar correo/teléfono en EpConfigurarContrato.
 const PROVIDERS_KEY = 'ep_providers';
-const PROVIDERS_VERSION = 4;
+const PROVIDERS_VERSION = 5;
 
 // MisProveedores.jsx (directorio) y Creditos.jsx (botón "Agregar Proveedor"
 // dentro de un contrato) comparten el mismo directorio vía localDb, para que

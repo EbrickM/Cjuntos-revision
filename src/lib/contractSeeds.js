@@ -7,7 +7,7 @@
 // (campo `portales`); cada portal / admin lo ve desde su propia vista.
 import { CST } from './contractStates';
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 5;
 
 const H = (titulo, detalle, fecha) => ({ titulo, detalle, fecha: fecha ?? '01/07/2026', actor: 'Sistema' });
 

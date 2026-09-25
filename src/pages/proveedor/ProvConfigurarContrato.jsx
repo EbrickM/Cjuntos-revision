@@ -379,8 +379,8 @@ const [cuentaTipo, setCuentaTipo]   = useState(borrador?.datos?.cuentaTipo ?? co
                   telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
                 }));
               }}>
-                {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
                 <option value="__nueva__">Otro (nuevo)…</option>
+                {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
               </Select>
             </FormGroup>
 

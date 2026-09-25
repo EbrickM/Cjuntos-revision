@@ -16,7 +16,7 @@ import { defaultVencimiento } from '../../components/invoices/facturaUtils';
 import { facturaService } from '../../services/factura.service';
 import { InfoRow, SectionHeader, IpiVerificacionModal, IniAvatar, useSuministradores } from './provShared';
 import { StatCard } from '../../components/common/StatCard';
-import { ORA, GREEN, TEXT4, fmt, facturas, facturaBadge, scoreColor, kycBadge, provState } from './provData';
+import { ORA, GREEN, TEXT4, fmt, facturas, facturaBadge, scoreColor, kycBadge, provState, suministradores as directorioSuministradores } from './provData';
 import { contratoService } from '../../services/contrato.service';
 import { aViewContrato, registrosContrato } from '../../components/contratos/contratoUtils';
 import RegistrosTabla from '../../components/contratos/RegistrosTabla';
@@ -45,7 +45,16 @@ const SECTORES = [
   'Servicios', 'Alimentación', 'Minería', 'Agricultura', 'Comercio',
   'Materiales', 'Otro',
 ];
-const NUEVO_SUM_EMPTY = { open: false, nombre: '', nombreComercial: '', sector: 'Construcción', telefono: '', correo: '' };
+const NUEVO_SUM_EMPTY = { open: false, sumSel: '', nombre: '', nombreComercial: '', sector: 'Construcción', telefono: '', correo: '', monto: '' };
+
+const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (5.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? '').replace(/\D/g, ''));
+  return n ? fmt(n) : '';
+};
 
 const initialesDe = (name = '') => {
   const words = name
@@ -151,26 +160,44 @@ export default function ProvContratoDetalle() {
   const handleEnviarCodigo= () => setIpiStep('codigo');
   const handleConfirmarIPI= () => { setEstadoMap(p => ({ ...p, [modalFac.id]: 'Emitida' })); closeModal(); };
 
-  // Mismos campos y validación que "Agregar Suministrador" en Suministradores.jsx:
-  // Razón Social, Sector, Teléfono y Correo son obligatorios; Nombre Comercial
-  // es opcional. Sin selector de contrato — queda ligado a `c.id` directamente.
+  // Mismos campos, validación y lógica que "Agregar Suministrador" en
+  // Suministradores.jsx: se puede elegir un Suministrador ya conocido por el
+  // sistema (su email/teléfono quedan bloqueados) o registrar uno nuevo. La
+  // única diferencia es que aquí el contrato ya viene implícito (`c`), así que
+  // el monto asignado es siempre obligatorio (no depende de elegir un contrato).
+  const sumExistenteSum    = agregarSum.sumSel !== '' && agregarSum.sumSel !== '__nueva__';
+  const nombreResueltoSum  = sumExistenteSum ? agregarSum.sumSel : agregarSum.nombre.trim();
   const emailLimpioSum      = agregarSum.correo.trim();
   const emailInvalidoSum    = emailLimpioSum !== '' && !EMAIL_REGEX.test(emailLimpioSum);
   const telefonoLocalSum    = agregarSum.telefono.replace(/\D/g, '');
   const telefonoValidoSum   = /^\d{7,9}$/.test(telefonoLocalSum);
   const telefonoInvalidoSum = telefonoLocalSum !== '' && !telefonoValidoSum;
-  const formOkSum = agregarSum.nombre.trim() && !!agregarSum.sector && telefonoValidoSum && emailLimpioSum !== '' && !emailInvalidoSum;
+
+  // Monto disponible de ESTE contrato: lo ya asignado en el contrato (semilla
+  // o configuración) menos lo ya agregado manualmente en este mismo detalle
+  // (no vive en `c.suministradores`/`suministradoresAsignados` todavía).
+  // `c.disponible` ya viene calculado por `normalizar()` en contrato.service.js
+  // (fuente única de verdad) — solo se resta lo agregado manualmente en este
+  // mismo detalle, que todavía no vive en el contrato canónico.
+  const disponibleParaAgregarSum = c
+    ? (c.disponible ?? 0) - sumManuales.reduce((s, m) => s + (Number(m.monto) || 0), 0)
+    : 0;
+  const montoNumLiveSum   = parseMonto(agregarSum.monto);
+  const montoFaltanteSum  = agregarSum.monto === '';
+  const montoInvalidoSum  = agregarSum.monto !== '' && (montoNumLiveSum <= 0 || montoNumLiveSum > disponibleParaAgregarSum);
+
+  const formOkSum = !!nombreResueltoSum && !!agregarSum.sector && telefonoValidoSum && emailLimpioSum !== '' && !emailInvalidoSum && !montoFaltanteSum && !montoInvalidoSum;
 
   const handleAgregarSum = () => {
     if (!formOkSum || !c) return;
     setListaSuministradores(prev => [
       {
-        ini: initialesDe(agregarSum.nombre),
-        nombre: agregarSum.nombre.trim(),
+        ini: initialesDe(nombreResueltoSum),
+        nombre: nombreResueltoSum,
         sector: agregarSum.sector,
         contratos: 1,
         contratoId: c.id,
-        montoTotal: 0,
+        montoTotal: montoNumLiveSum,
         score: null,
         semaforo: 'En espera',
         nombreComercial: agregarSum.nombreComercial.trim(),
@@ -187,10 +214,10 @@ export default function ProvContratoDetalle() {
       [c.id]: [
         {
           id: `SUM-MANUAL-${Date.now()}`,
-          nombre: agregarSum.nombre.trim(),
+          nombre: nombreResueltoSum,
           kyc: undefined,
           scoreCredito: null,
-          monto: 0,
+          monto: montoNumLiveSum,
         },
         ...(prev[c.id] ?? []),
       ],
@@ -330,7 +357,17 @@ export default function ProvContratoDetalle() {
                 <div className="text-[11px] text-text-4">Suministradores registrados y el monto que se les asignó</div>
               </div>
               <div className="flex items-center gap-2.5 shrink-0">
-                <Button size="sm" onClick={() => setAgregarSum({ ...NUEVO_SUM_EMPTY, open: true })}>
+                <Button size="sm" onClick={() => {
+                  const primera = directorioSuministradores[0] ?? null;
+                  setAgregarSum({
+                    ...NUEVO_SUM_EMPTY, open: true,
+                    sumSel: primera?.nombre ?? '__nueva__',
+                    nombreComercial: primera?.nombreComercial ?? '',
+                    sector: primera?.sector ?? 'Construcción',
+                    correo: primera?.correo ?? '',
+                    telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                  });
+                }}>
                   <Plus className="w-3.5 h-3.5" /> Agregar Suministrador
                 </Button>
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -584,16 +621,36 @@ export default function ProvContratoDetalle() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              Registra un nuevo Suministrador en tu directorio. Quedará ligado al contrato {c.id}.
+              Selecciona un Suministrador ya conocido por el sistema, o
+              registra uno nuevo. Quedará ligado al contrato {c.id}.
             </div>
+            <FormGroup label="Suministrador" required>
+              <Select value={agregarSum.sumSel} onChange={e => {
+                const v = e.target.value;
+                const p = directorioSuministradores.find(x => x.nombre === v);
+                setAgregarSum(a => ({
+                  ...a, sumSel: v,
+                  nombreComercial: p?.nombreComercial ?? '',
+                  sector: p?.sector ?? 'Construcción',
+                  correo: p?.correo ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
+                }));
+              }}>
+                <option value="__nueva__">Otro (nuevo)…</option>
+                {directorioSuministradores.map(p => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
+              </Select>
+            </FormGroup>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
-              <FormGroup label="Razón Social" required>
-                <Input
-                  value={agregarSum.nombre}
-                  onChange={e => setAgregarSum(a => ({ ...a, nombre: e.target.value }))}
-                  placeholder="Ej: Distribuidora del Golfo"
-                />
-              </FormGroup>
+              {!sumExistenteSum && (
+                <FormGroup label="Razón Social" required>
+                  <Input
+                    value={agregarSum.nombre}
+                    onChange={e => setAgregarSum(a => ({ ...a, nombre: e.target.value }))}
+                    placeholder="Ej: Distribuidora del Golfo"
+                  />
+                </FormGroup>
+              )}
               <FormGroup label="Nombre Comercial">
                 <Input
                   value={agregarSum.nombreComercial}
@@ -601,6 +658,9 @@ export default function ProvContratoDetalle() {
                   placeholder="Ej: Digolf"
                 />
               </FormGroup>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-4">
               <FormGroup label="Sector Productivo" required>
                 <Select
                   value={agregarSum.sector}
@@ -609,37 +669,62 @@ export default function ProvContratoDetalle() {
                   {SECTORES.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono" required>
-                <div className="flex">
-                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                    {PREFIJO_TEL}
-                  </span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={telefonoLocalSum.slice(0, 9)}
-                    onChange={e => setAgregarSum(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
-                    placeholder="222 XXX XXX"
-                    className={`!rounded-l-none ${telefonoInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}`}
-                  />
-                </div>
-                {telefonoInvalidoSum && (
+              <div>
+                <FormGroup label="Teléfono" required className={sumExistenteSum ? 'mb-0' : ''}>
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      value={telefonoLocalSum.slice(0, 9)}
+                      onChange={e => setAgregarSum(a => ({ ...a, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={sumExistenteSum}
+                      className={`!rounded-l-none ${telefonoInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
+                </FormGroup>
+                {sumExistenteSum ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : telefonoInvalidoSum && (
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input
-                  type="email"
-                  value={agregarSum.correo}
-                  onChange={e => setAgregarSum(a => ({ ...a, correo: e.target.value }))}
-                  placeholder="Ej: contacto@suministrador.gq"
-                  className={emailInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}
-                />
-                {emailInvalidoSum && (
+              </div>
+              <div>
+                <FormGroup label="Correo" required className={sumExistenteSum ? 'mb-0' : ''}>
+                  <Input
+                    type="email"
+                    value={agregarSum.correo}
+                    onChange={e => setAgregarSum(a => ({ ...a, correo: e.target.value }))}
+                    placeholder="Ej: contacto@suministrador.gq"
+                    disabled={sumExistenteSum}
+                    className={emailInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}
+                  />
+                </FormGroup>
+                {sumExistenteSum ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del suministrador; no se puede modificar aquí.</p>
+                ) : emailInvalidoSum && (
                   <p className="text-xs text-red-500 mt-1.5">Ingresa un correo electrónico válido.</p>
                 )}
-              </FormGroup>
+              </div>
             </div>
+
+            <FormGroup label="Monto asignado (XAF)" required>
+              <Input
+                inputMode="numeric"
+                value={fmtMonto(agregarSum.monto)}
+                onChange={e => setAgregarSum(a => ({ ...a, monto: e.target.value.replace(/\D/g, '') }))}
+                placeholder="Ej. 5.000.000"
+                className={montoInvalidoSum ? '!border-red-400 focus:!border-red-500' : ''}
+              />
+              {montoInvalidoSum && (
+                <p className="text-xs text-red-500 mt-1.5">
+                  {montoNumLiveSum <= 0 ? 'Ingresa un monto válido.' : `El monto supera el disponible (${fmt(disponibleParaAgregarSum)} XAF).`}
+                </p>
+              )}
+            </FormGroup>
           </div>
         </Modal>
       )}

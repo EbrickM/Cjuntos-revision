@@ -24,6 +24,9 @@ const PROVEEDOR_EMPTY = {
   email: '', telefono: '', monto: '',
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PREFIJO_TEL = '+240';
+
 const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, '')) || 0;
 
 // Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
@@ -104,7 +107,16 @@ export default function EpConfigurarContrato() {
   const provExistente = modal.provSel !== '__nueva__' || initialProviders.some(x =>
     x.razonSocial.toLowerCase() === modal.proveedorNombreLibre.trim().toLowerCase() ||
     (x.nombreComercial || '').toLowerCase() === modal.proveedorNombreLibre.trim().toLowerCase());
-  const puedeGuardar        = !!proveedorNombreResuelto && modal.email.trim() && modal.telefono.trim() && montoNumLive > 0 && !montoInvalido;
+
+  const emailLimpio      = modal.email.trim();
+  const emailValido      = EMAIL_REGEX.test(emailLimpio);
+  const emailInvalido    = emailLimpio !== '' && !emailValido;
+
+  const telefonoLocal    = modal.telefono.replace(/\D/g, '');
+  const telefonoValido   = /^\d{7,9}$/.test(telefonoLocal);
+  const telefonoInvalido = telefonoLocal !== '' && !telefonoValido;
+
+  const puedeGuardar        = !!proveedorNombreResuelto && emailValido && telefonoValido && montoNumLive > 0 && !montoInvalido;
 
   const retencionCalc = contrato.montoAsignado * (contrato.porcentajeRetencion / 100);
   const gestionCalc   = contrato.montoAsignado * (contrato.porcentajeGestionCobranza / 100);
@@ -115,7 +127,7 @@ export default function EpConfigurarContrato() {
       ...PROVEEDOR_EMPTY, open: true,
       provSel: primera?.razonSocial ?? '__nueva__',
       email: primera?.email ?? '',
-      telefono: primera?.telefono ?? '',
+      telefono: (primera?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
     });
   };
   const openEdit = (p) => {
@@ -124,7 +136,7 @@ export default function EpConfigurarContrato() {
       open: true, editId: p.id,
       provSel: enDirectorio ? p.nombre : '__nueva__',
       proveedorNombreLibre: enDirectorio ? '' : p.nombre,
-      email: p.email, telefono: p.telefono,
+      email: p.email, telefono: (p.telefono ?? '').replace(/^\+?\s*240\s*/, ''),
       monto: String(p.monto),
     });
   };
@@ -135,7 +147,7 @@ export default function EpConfigurarContrato() {
     if (!puedeGuardar) return;
     const nuevo = {
       id: modal.editId ?? `PROV-${Date.now()}`,
-      nombre: proveedorNombreResuelto, email: modal.email.trim(), telefono: modal.telefono.trim(),
+      nombre: proveedorNombreResuelto, email: emailLimpio, telefono: `${PREFIJO_TEL} ${telefonoLocal}`,
       monto: montoNumLive,
     };
     setProveedores(prev => modal.editId ? prev.map(p => p.id === modal.editId ? nuevo : p) : [...prev, nuevo]);
@@ -467,12 +479,12 @@ export default function EpConfigurarContrato() {
                 setModal(m => ({
                   ...m, provSel: v,
                   email: p?.email ?? '',
-                  telefono: p?.telefono ?? '',
+                  telefono: (p?.telefono ?? '').replace(/\D/g, '').slice(0, 9),
                   proveedorNombreLibre: '',
                 }));
               }}>
-                {initialProviders.map(p => <option key={p.razonSocial} value={p.razonSocial}>{p.razonSocial}</option>)}
                 <option value="__nueva__">Otro (nuevo)…</option>
+                {initialProviders.map(p => <option key={p.razonSocial} value={p.razonSocial}>{p.razonSocial}</option>)}
               </Select>
             </FormGroup>
 
@@ -486,7 +498,7 @@ export default function EpConfigurarContrato() {
                       x.razonSocial.toLowerCase() === v.trim().toLowerCase() ||
                       (x.nombreComercial || '').toLowerCase() === v.trim().toLowerCase());
                     setModal(m => match
-                      ? { ...m, proveedorNombreLibre: v, email: match.email, telefono: match.telefono }
+                      ? { ...m, proveedorNombreLibre: v, email: match.email, telefono: (match.telefono ?? '').replace(/\D/g, '').slice(0, 9) }
                       : { ...m, proveedorNombreLibre: v });
                   }}
                   placeholder="Nombre o razón social"
@@ -497,15 +509,31 @@ export default function EpConfigurarContrato() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <FormGroup label="Email" required className="mb-0">
-                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@proveedor.gq" disabled={provExistente} />
+                  <Input type="email" value={modal.email} onChange={e => setModal(m => ({ ...m, email: e.target.value }))} placeholder="contacto@proveedor.gq" disabled={provExistente} className={emailInvalido ? '!border-red-400 focus:!border-red-500' : ''} />
                 </FormGroup>
-                {provExistente && <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>}
+                {provExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : emailInvalido && <p className="text-xs text-red-500 -mt-2">Ingresa un correo electrónico válido.</p>}
               </div>
               <div>
                 <FormGroup label="Teléfono" required className="mb-0">
-                  <Input value={modal.telefono} onChange={e => setModal(m => ({ ...m, telefono: e.target.value }))} placeholder="+240 222 XXX XXX" disabled={provExistente} />
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel" inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={e => setModal(m => ({ ...m, telefono: e.target.value.replace(/\D/g, '').slice(0, 9) }))}
+                      placeholder="222 XXX XXX"
+                      disabled={provExistente}
+                      className={`!rounded-l-none ${telefonoInvalido ? '!border-red-400 focus:!border-red-500' : ''}`}
+                    />
+                  </div>
                 </FormGroup>
-                {provExistente && <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>}
+                {provExistente ? (
+                  <p className="text-xs text-text-4 -mt-2">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && <p className="text-xs text-red-500 -mt-2">El teléfono debe tener entre 7 y 9 dígitos.</p>}
               </div>
             </div>
 

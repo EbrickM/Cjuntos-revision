@@ -23,7 +23,7 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import InfoRow from "../../components/ui/InfoRow";
 import FormGroup, { Input, Select } from "../../components/ui/FormGroup";
-import { useProviders, fmt } from "./epData";
+import { useProviders, initialProviders, fmt } from "./epData";
 import { contratoService } from "../../services/contrato.service";
 import { CST } from "../../lib/contractStates";
 import InfiniteScrollSentinel from "../../components/common/InfiniteScrollSentinel";
@@ -141,6 +141,7 @@ const ComplianceItem = ({ label, value, sub, Icon, iconColor }) => (
 
 const MODAL_EMPTY = {
   open: false,
+  provSel: "",
   razonSocial: "",
   nombreComercial: "",
   sector: "Materiales",
@@ -148,7 +149,26 @@ const MODAL_EMPTY = {
   correo: "",
   esClienteBonafide: false,
   contratoId: "",
+  monto: "",
 };
+
+const parseMonto = (str) => Number(String(str).replace(/[^\d]/g, "")) || 0;
+
+// Vista en vivo en el input: el estado guarda solo dígitos, el campo muestra
+// el monto agrupado con puntos (5.000.000) mientras se escribe.
+const fmtMonto = (digits) => {
+  const n = Number(String(digits ?? "").replace(/\D/g, ""));
+  return n ? fmt(n) : "";
+};
+
+// Monto disponible del contrato activo elegido — cubre tanto los contratos-marco
+// (pymesAsignadas/montoBase) como los ya repartidos hacia un lado específico
+// (proveedoresAsignados/suministradoresAsignados/montoAsignado) o, si no calza
+// ninguno, el `disponible` plano que ya trae el registro.
+// El campo `disponible` ya viene calculado y siempre presente en todo contrato
+// canónico (lo resuelve `normalizar()` en contrato.service.js) — se usa
+// directamente en vez de recalcularlo aquí para no divergir de esa fuente única.
+const montoDisponibleContrato = (c) => c?.disponible ?? 0;
 
 // Los 15 proveedores mock del directorio viven en `epData.initialProviders`
 // (compartido con EpConfigurarContrato para autocompletar correo/teléfono) — se
@@ -224,16 +244,18 @@ export default function EpMisProveedores() {
     .listarPorVista("pyme")
     .filter((c) => c.estado === CST.activo);
 
-  // Normaliza el contrato seleccionado al shape que lee el detalle del proveedor.
-  const contratoActivoMapeado = (id) => {
+  // Normaliza el contrato seleccionado al shape que lee el detalle del proveedor
+  // — `asignado` es el monto que se le está asignando A ESTE proveedor en ese
+  // contrato (no el total del contrato), recién capturado en el modal.
+  const contratoActivoMapeado = (id, monto) => {
     const c = contratosActivos.find((x) => x.id === id);
     return c
       ? {
           id: c.id,
           objeto: c.objeto ?? "",
           contratante: c.contratanteNombre ?? c.pymeNombre ?? "",
-          asignado: c.asignado ?? 0,
-          utilizado: c.utilizado ?? 0,
+          asignado: monto ?? 0,
+          utilizado: 0,
         }
       : null;
   };
@@ -249,25 +271,42 @@ export default function EpMisProveedores() {
 
   const handleClose = () => setModal(MODAL_EMPTY);
 
+  // Proveedor ya conocido por el sistema (elegido del directorio), en vez de
+  // uno nuevo — su email/teléfono no se pueden modificar.
+  const provExistente = modal.provSel !== "" && modal.provSel !== "__nueva__";
+  const nombreResuelto = provExistente ? modal.provSel : modal.razonSocial.trim();
   const emailLimpio = modal.correo.trim();
   const emailInvalido = emailLimpio !== "" && !EMAIL_REGEX.test(emailLimpio);
   const telefonoLocal = modal.telefono.replace(/\D/g, "");
   const telefonoValido = /^\d{7,9}$/.test(telefonoLocal);
   const telefonoInvalido = telefonoLocal !== "" && !telefonoValido;
+
+  // Si se le asigna un contrato activo, el monto pasa a ser obligatorio y no
+  // puede superar lo disponible en ese contrato; sin contrato, no aplica (no
+  // se muestra ningún contrato en el detalle del proveedor).
+  const contratoSeleccionado = modal.contratoId ? contratosActivos.find((c) => c.id === modal.contratoId) : null;
+  const disponibleContrato = montoDisponibleContrato(contratoSeleccionado);
+  const montoNumLive = parseMonto(modal.monto);
+  // El error solo se muestra una vez que el usuario escribió algo — un campo
+  // vacío bloquea "Guardar" (montoFaltante) pero no se marca en rojo todavía.
+  const montoFaltante = !!modal.contratoId && modal.monto === "";
+  const montoInvalido = !!modal.contratoId && modal.monto !== "" && (montoNumLive <= 0 || montoNumLive > disponibleContrato);
+
   // Todos los campos obligatorios (los marcados con *) deben estar completos
   // antes de habilitar "Guardar": Razón Social, Sector, Teléfono y Correo. El
-  // Nombre Comercial y el contrato son explícitamente opcionales.
+  // Nombre Comercial es explícitamente opcional; el contrato es opcional, pero
+  // si se elige uno, el monto pasa a ser obligatorio y válido.
   const formOk =
-    modal.razonSocial.trim() && !!modal.sector && telefonoValido && emailLimpio && !emailInvalido;
+    !!nombreResuelto && !!modal.sector && telefonoValido && emailLimpio && !emailInvalido && !montoFaltante && !montoInvalido;
 
   const handleSave = () => {
     if (!formOk) return;
-    const nuevoContrato = contratoActivoMapeado(modal.contratoId);
+    const nuevoContrato = contratoActivoMapeado(modal.contratoId, montoNumLive);
     const newId = `p${Math.max(...providers.map((p) => Number(p.id.replace("p", ""))), 0) + 1}`;
     setProviders((prev) => [
       {
         id: newId,
-        razonSocial: modal.razonSocial,
+        razonSocial: nombreResuelto,
         nombreComercial: modal.nombreComercial,
         sector: modal.sector,
         email: emailLimpio,
@@ -280,7 +319,7 @@ export default function EpMisProveedores() {
       ...prev,
     ]);
     showToast(
-      `${modal.razonSocial} ha sido añadido al directorio de proveedores.`,
+      `${nombreResuelto} ha sido añadido al directorio de proveedores.`,
     );
     handleClose();
   };
@@ -322,7 +361,17 @@ export default function EpMisProveedores() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <Button size="sm" onClick={() => setModal({ ...MODAL_EMPTY, open: true })}>
+            <Button size="sm" onClick={() => {
+              const primera = initialProviders[0] ?? null;
+              setModal({
+                ...MODAL_EMPTY, open: true,
+                provSel: primera?.razonSocial ?? "__nueva__",
+                nombreComercial: primera?.nombreComercial ?? "",
+                sector: primera?.sector ?? "Materiales",
+                correo: primera?.email ?? "",
+                telefono: (primera?.telefono ?? "").replace(/\D/g, "").slice(0, 9),
+              });
+            }}>
               <Plus className="w-3.5 h-3.5" /> Nuevo Proveedor
             </Button>
             <div className="relative flex-1 sm:flex-none sm:w-56">
@@ -470,19 +519,39 @@ export default function EpMisProveedores() {
         >
           <div className="space-y-4">
             <div className="text-[12px] text-text-4">
-              Registra un nuevo proveedor en tu directorio. Podrás asignarlo a distribuciones de crédito en cualquier momento.
+              Selecciona un proveedor ya conocido por el sistema, o registra
+              uno nuevo en tu directorio.
             </div>
 
+            <FormGroup label="Proveedor" required>
+              <Select value={modal.provSel} onChange={(e) => {
+                const v = e.target.value;
+                const p = initialProviders.find((x) => x.razonSocial === v);
+                setModal((m) => ({
+                  ...m, provSel: v,
+                  nombreComercial: p?.nombreComercial ?? "",
+                  sector: p?.sector ?? "Materiales",
+                  correo: p?.email ?? "",
+                  telefono: (p?.telefono ?? "").replace(/\D/g, "").slice(0, 9),
+                }));
+              }}>
+                <option value="__nueva__">Otro (nuevo)…</option>
+                {initialProviders.map((p) => <option key={p.razonSocial} value={p.razonSocial}>{p.razonSocial}</option>)}
+              </Select>
+            </FormGroup>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormGroup label="Razón Social" required>
-                <Input
-                  value={modal.razonSocial}
-                  onChange={(e) =>
-                    setModal({ ...modal, razonSocial: e.target.value })
-                  }
-                  placeholder="Nombre legal exacto"
-                />
-              </FormGroup>
+              {!provExistente && (
+                <FormGroup label="Razón Social" required>
+                  <Input
+                    value={modal.razonSocial}
+                    onChange={(e) =>
+                      setModal({ ...modal, razonSocial: e.target.value })
+                    }
+                    placeholder="Nombre legal exacto"
+                  />
+                </FormGroup>
+              )}
               <FormGroup label="Nombre Comercial">
                 <Input
                   value={modal.nombreComercial}
@@ -508,60 +577,88 @@ export default function EpMisProveedores() {
                   ))}
                 </Select>
               </FormGroup>
-              <FormGroup label="Teléfono" required>
-                <div className="flex">
-                  <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
-                    {PREFIJO_TEL}
-                  </span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    value={telefonoLocal.slice(0, 9)}
-                    onChange={(e) =>
-                      setModal({
-                        ...modal,
-                        telefono: e.target.value.replace(/\D/g, "").slice(0, 9),
-                      })
-                    }
-                    placeholder="222 XXX XXX"
-                    className={`!rounded-l-none ${telefonoInvalido ? "!border-red-400 focus:!border-red-500" : ""}`}
-                  />
-                </div>
-                {telefonoInvalido && (
+              <div>
+                <FormGroup label="Teléfono" required className={provExistente ? "mb-0" : ""}>
+                  <div className="flex">
+                    <span className="flex items-center h-12 px-3 border-2 border-r-0 border-gray-200 rounded-l-[8px] bg-[#fafafa] text-[14px] font-semibold text-text-2">
+                      {PREFIJO_TEL}
+                    </span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      value={telefonoLocal.slice(0, 9)}
+                      onChange={(e) =>
+                        setModal({
+                          ...modal,
+                          telefono: e.target.value.replace(/\D/g, "").slice(0, 9),
+                        })
+                      }
+                      placeholder="222 XXX XXX"
+                      disabled={provExistente}
+                      className={`!rounded-l-none ${telefonoInvalido ? "!border-red-400 focus:!border-red-500" : ""}`}
+                    />
+                  </div>
+                </FormGroup>
+                {provExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : telefonoInvalido && (
                   <p className="text-xs text-red-500 mt-1.5">El teléfono debe tener entre 7 y 9 dígitos.</p>
                 )}
-              </FormGroup>
-              <FormGroup label="Correo" required>
-                <Input
-                  type="email"
-                  value={modal.correo}
-                  onChange={(e) =>
-                    setModal({ ...modal, correo: e.target.value })
-                  }
-                  placeholder="correo@empresa.gq"
-                  className={emailInvalido ? "!border-red-400 focus:!border-red-500" : ""}
-                />
-                {emailInvalido && (
+              </div>
+              <div>
+                <FormGroup label="Correo" required className={provExistente ? "mb-0" : ""}>
+                  <Input
+                    type="email"
+                    value={modal.correo}
+                    onChange={(e) =>
+                      setModal({ ...modal, correo: e.target.value })
+                    }
+                    placeholder="correo@empresa.gq"
+                    disabled={provExistente}
+                    className={emailInvalido ? "!border-red-400 focus:!border-red-500" : ""}
+                  />
+                </FormGroup>
+                {provExistente ? (
+                  <p className="text-xs text-text-4 mt-1.5">Dato del perfil del proveedor; no se puede modificar aquí.</p>
+                ) : emailInvalido && (
                   <p className="text-xs mt-1.5 text-red-500">
                     Ingresa un correo electrónico válido.
                   </p>
                 )}
-              </FormGroup>
+              </div>
             </div>
 
-            <FormGroup label="Añadir a contrato activo (opcional)">
-              <Select
-                value={modal.contratoId}
-                onChange={(e) => setModal({ ...modal, contratoId: e.target.value })}
-              >
-                <option value="">Ninguno</option>
-                {contratosActivos.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.id} · {c.pymeNombre || c.pyme || c.objeto || "Activo"}
-                  </option>
-                ))}
-              </Select>
-            </FormGroup>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormGroup label="Añadir a contrato activo (opcional)" className="mb-0">
+                <Select
+                  value={modal.contratoId}
+                  onChange={(e) => setModal({ ...modal, contratoId: e.target.value, monto: "" })}
+                >
+                  <option value="">Ninguno</option>
+                  {contratosActivos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.id} · {c.pymeNombre || c.pyme || c.objeto || "Activo"}
+                    </option>
+                  ))}
+                </Select>
+              </FormGroup>
+              {modal.contratoId && (
+                <FormGroup label="Monto asignado (XAF)" required className="mb-0">
+                  <Input
+                    inputMode="numeric"
+                    value={fmtMonto(modal.monto)}
+                    onChange={(e) => setModal({ ...modal, monto: e.target.value.replace(/\D/g, "") })}
+                    placeholder="Ej. 5.000.000"
+                    className={montoInvalido ? "!border-red-400 focus:!border-red-500" : ""}
+                  />
+                  {montoInvalido && (
+                    <p className="text-xs text-red-500 mt-1.5">
+                      {montoNumLive <= 0 ? "Ingresa un monto válido." : `El monto supera el disponible (${fmt(disponibleContrato)} XAF).`}
+                    </p>
+                  )}
+                </FormGroup>
+              )}
+            </div>
 
             {/* Toggle Cliente Bonafide */}
             <button
