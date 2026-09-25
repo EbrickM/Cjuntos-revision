@@ -485,7 +485,7 @@ export default function EmpDash() {
                 { value: String(animEmpleos),                    label: 'Empleos generados'  },
                 { value: fmtXAF(animInvSocial),                  label: 'Inversión social'   },
               ].map(({ value, label }) => (
-                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-transform duration-200 hover:scale-[1.02] cursor-default">
+                <div key={label} className="card-enter bg-white rounded-[14px] shadow-sm overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] cursor-default">
                   <div className="p-4 flex flex-col gap-1">
                     <span className="text-[10px] font-semibold text-text-4 uppercase tracking-wide leading-tight">{label}</span>
                     <span className="text-[17px] font-extrabold leading-none text-text-1">{value}</span>
@@ -498,7 +498,7 @@ export default function EmpDash() {
             {/* Cards de estado: Ambiental + Social */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Ambiental */}
-              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] cursor-default">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
                     <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
@@ -536,7 +536,7 @@ export default function EmpDash() {
               </div>
 
               {/* Social */}
-              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+              <div className="bg-white rounded-[14px] border border-border p-5 flex flex-col gap-4 transition-all duration-200 hover:scale-[1.015] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] cursor-default">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2.5">
                     <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
@@ -578,7 +578,7 @@ export default function EmpDash() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
               {/* Proyectos Ambientales */}
-              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-all duration-200 hover:scale-[1.015] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] cursor-default">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-[13px] font-bold text-text-1">Proyectos Ambientales</div>
@@ -611,7 +611,7 @@ export default function EmpDash() {
               </div>
 
               {/* Iniciativas Sociales */}
-              <div className="bg-white rounded-[14px] border border-border p-5 transition-transform duration-200 hover:scale-[1.015] cursor-default">
+              <div className="bg-white rounded-[14px] border border-border p-5 transition-all duration-200 hover:scale-[1.015] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)] cursor-default">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <div className="text-[13px] font-bold text-text-1">Iniciativas Sociales</div>

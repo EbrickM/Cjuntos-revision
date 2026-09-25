@@ -30,7 +30,7 @@ export function StatCard({ label, value, Icon, tone = 'gradient' }) {
   }
 
   return (
-    <div className="rounded-[14px] shadow-sm p-4 bg-white border border-border transition-transform duration-200 hover:scale-[1.02]">
+    <div className="rounded-[14px] shadow-sm p-4 bg-white border border-border transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_10px_32px_rgba(224,32,28,0.18),0_4px_14px_rgba(239,122,44,0.12)]">
       {Icon && (
         <div className="w-10 h-10 rounded-[12px] flex items-center justify-center shrink-0 mb-3"
           style={{ background: t.bg }}>

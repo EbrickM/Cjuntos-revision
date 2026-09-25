@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StatCard } from '../../components/common/StatCard';
 import { useCountUp } from '../../hooks/useCountUp';
-import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, LayoutList, Settings2, MessageSquare, AlertCircle, Eye, AlertTriangle, Send, X } from 'lucide-react';
+import { CheckCircle2, Trash2, Building2, Plus, ScrollText, Search, LayoutList, Settings2, MessageSquare, AlertCircle, Eye, AlertTriangle, Send, X, ArrowUpDown, ArrowUp, ArrowDown, Layers2 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import BackButton from '../../components/common/BackButton';
 import Badge from '../../components/ui/Badge';
@@ -30,7 +30,7 @@ const formatDateAddDays = (days) => {
   return formatDateDDMMYYYY(d);
 };
 
-const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
+const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
 const pct = (part, total) => total > 0 ? ((part / total) * 100).toFixed(1) : '0.0';
 
 // Estados válidos según el flujo BPMN de configuración de contrato: Bonafide
@@ -70,21 +70,16 @@ const ReadField = ({ label, value, multiline = false }) => (
   <div>
     <div className="text-[11px] font-semibold text-text-5 uppercase tracking-[0.5px] mb-1">{label}</div>
     <div className={`text-[13px] text-text-2 bg-page-bg rounded-[8px] px-3 py-2 min-h-[36px] ${multiline ? 'leading-relaxed whitespace-pre-wrap' : 'flex items-center'}`}>
-      {value || <span className="text-text-5 italic">Sin datos</span>}
+      {value || <span className="text-text-5">—</span>}
     </div>
   </div>
 );
 
-const CardHeader = ({ title, sub, Icon, right }) => (
+const CardHeader = ({ title, sub, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-    <div className="flex items-center gap-3">
-      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-        <Icon className="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <div className="text-[14px] font-bold text-text-1">{title}</div>
-        {sub && <div className="text-[11px] text-text-4">{sub}</div>}
-      </div>
+    <div>
+      <div className="text-[14px] font-bold text-text-1">{title}</div>
+      {sub && <div className="text-[11px] text-text-4">{sub}</div>}
     </div>
     {right}
   </div>
@@ -99,6 +94,23 @@ export default function AdminContratos() {
   const [toast, setToast] = useState({ visible: false, message: '' });
   const [search, setSearch]             = useState('');
   const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [sortKey, setSortKey]           = useState(null);
+  const [sortDir, setSortDir]           = useState('asc');
+
+  const [groupBy, setGroupBy]           = useState(null);
+
+  const toggleSort = key => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+  const toggleGroup = key => setGroupBy(g => g === key ? null : key);
+  const sortIcon  = k => sortKey !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortDir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon  = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
+  const getGroupVal = c => groupBy === 'contratante'
+    ? (c.contratante?.razonSocial ?? '')
+    : String(c[groupBy] ?? '');
   const [reviewModal, setReviewModal]   = useState(null);
   const [detalleModal, setDetalleModal] = useState(null);
   const [reqModal, setReqModal]         = useState(REQ_MODAL_EMPTY);
@@ -253,7 +265,20 @@ export default function AdminContratos() {
     return matchesSearch && matchesEstado;
   });
 
-  const sortedContracts = [...filteredContracts].sort((a, b) => (b.estado === 'Pendiente de Revisión') - (a.estado === 'Pendiente de Revisión'));
+  const sortedContracts = [...filteredContracts].sort((a, b) => {
+    if (sortKey) {
+      const getV = c => sortKey === 'monto' ? Number(c[sortKey]) || 0 : (c[sortKey] ?? '').toString().toLowerCase();
+      const cmp = getV(a) < getV(b) ? -1 : getV(a) > getV(b) ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    }
+    if (!groupBy) return (b.estado === 'Pendiente de Revisión') - (a.estado === 'Pendiente de Revisión');
+    return 0;
+  }).sort((a, b) => {
+    if (!groupBy) return 0;
+    const ga = getGroupVal(a).toLowerCase();
+    const gb = getGroupVal(b).toLowerCase();
+    return ga < gb ? -1 : ga > gb ? 1 : 0;
+  });
 
   return (
     <AppShell active="adminConf" role="admin" title="Contratos" sub="Todos los contratos de crédito">
@@ -354,14 +379,14 @@ export default function AdminContratos() {
                           <button
                             onClick={() => setDetalleModal(c)}
                             title="Ver detalles del contrato"
-                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteModal({ open: true, id: c.id })}
                             title="Eliminar contrato"
-                            className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -381,35 +406,60 @@ export default function AdminContratos() {
                 <table className="w-full min-w-[820px]">
                   <thead className="bg-page-bg">
                     <tr className="border-b border-border">
-                      {['Contrato', 'Emp. Contratada', 'Contratante', 'Estado', 'Monto', 'Acciones'].map((h, i) => (
-                        <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                          ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
-                        `}>{h}</th>
+                      {[
+                        { label: 'Contrato',        sort:  'id'          },
+                        { label: 'Emp. Contratada', group: 'pymeNombre'  },
+                        { label: 'Contratante',     group: 'contratante' },
+                        { label: 'Estado',          group: 'estado'      },
+                        { label: 'Monto',           sort:  'monto'       },
+                        { label: 'Acciones'                               },
+                      ].map(({ label, sort, group }) => (
+                        <th key={label} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
+                          {sort ? (
+                            <button onClick={() => toggleSort(sort)}
+                              className="inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full">
+                              {label} {sortIcon(sort)}
+                            </button>
+                          ) : group ? (
+                            <button onClick={() => toggleGroup(group)}
+                              className={`inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full ${groupBy === group ? 'text-orange' : ''}`}>
+                              {label} {groupIcon(group)}
+                            </button>
+                          ) : label}
+                        </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedContracts.map(c => {
-                      const badge  = contractBadge(c.estado);
-                      return (
+                    {sortedContracts.flatMap((c, i, arr) => {
+                      const badge = contractBadge(c.estado);
+                      const rows = [];
+                      if (groupBy) {
+                        const cur  = getGroupVal(c);
+                        const prev = i > 0 ? getGroupVal(arr[i - 1]) : null;
+                        if (i === 0 || cur !== prev) {
+                          rows.push(
+                            <tr key={`gh-${cur}-${i}`} className="bg-orange-tint/10 border-b border-border">
+                              <td colSpan={6} className="px-4 py-1.5 text-[11px] font-semibold text-orange-dark">{cur || '—'}</td>
+                            </tr>
+                          );
+                        }
+                      }
+                      rows.push(
                         <tr
                           key={c.id}
                           onClick={() => openDetail(c.id)}
-                          className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40 ${c.estado === 'Pendiente de Revisión' ? 'bg-orange-tint/30' : ''}`}
+                          className={`border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] ${c.estado === 'Pendiente de Revisión' ? 'bg-orange-tint/30' : ''}`}
                         >
-                          <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{c.id}</td>
-                          <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{nombrePymeContrato(c)}</td>
-                          <td className="px-4 py-3 text-[12px] text-text-4 max-w-[240px]">
-                            {c.contratante?.razonSocial ? (
-                              <span className="block truncate">{c.contratante.razonSocial}</span>
-                            ) : (
-                              <span className="text-text-5 italic">Sin datos</span>
-                            )}
+                          <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1 whitespace-nowrap">{c.id}</td>
+                          <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">{nombrePymeContrato(c)}</td>
+                          <td className="px-4 py-3 text-center text-[12px] text-text-4">
+                            {c.contratante?.razonSocial || '—'}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <Badge variant={badge.variant}>{badge.label}</Badge>
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-center">
                             <div className="text-[12px] font-bold text-text-1 whitespace-nowrap">{formatXaf(c.monto)}</div>
                             {c.estado === 'Activo' && (
                               <div className="text-[10px] text-text-5 whitespace-nowrap">Disp: {formatXaf(c.disponible)}</div>
@@ -420,14 +470,14 @@ export default function AdminContratos() {
                               <button
                                 onClick={() => setDetalleModal(c)}
                                 title="Ver detalles del contrato"
-                                className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer"
+                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => setDeleteModal({ open: true, id: c.id })}
                                 title="Eliminar contrato"
-                                className="p-1.5 rounded-[8px] hover:bg-red-bg transition text-text-4 hover:text-red-text cursor-pointer"
+                                className="p-1.5 rounded-[8px] transition text-text-4 hover:text-red-text cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -435,6 +485,7 @@ export default function AdminContratos() {
                           </td>
                         </tr>
                       );
+                      return rows;
                     })}
                     {sortedContracts.length === 0 && (
                       <tr>

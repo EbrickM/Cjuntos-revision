@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, Building2, Mail, Phone, ChevronDown, Eye } from 'lucide-react';
+import { Search, Mail, Phone, ChevronDown, Eye } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
@@ -104,29 +104,22 @@ export default function AdminEmpresas() {
         </div>
 
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <div className="text-[14px] font-bold text-text-1">Directorio de Empresas Contratantes</div>
-              <div className="text-[11px] text-text-4">Todas las empresas contratantes registradas en la plataforma.</div>
-            </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[14px] font-bold text-text-1">Directorio de Empresas Contratantes</div>
+            <div className="text-[11px] text-text-4">Todas las empresas contratantes registradas en la plataforma.</div>
           </div>
-          <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{empresas.length} registrados</span>
-        </div>
-
-        {/* Buscador alineado a la derecha */}
-        <div className="flex justify-end">
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar empresa, RUC o sector…"
-              className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-56"
-            />
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{empresas.length} registrados</span>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Buscar empresa, RUC o sector…"
+                className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-56"
+              />
+            </div>
           </div>
         </div>
 
@@ -144,7 +137,7 @@ export default function AdminEmpresas() {
                     )}
                   </div>
                   <button onClick={() => setDetalle(emp)} title="Ver detalle"
-                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer shrink-0">
+                    className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer shrink-0">
                     <Eye className="w-4 h-4" />
                   </button>
                 </div>
@@ -191,8 +184,8 @@ export default function AdminEmpresas() {
             <table className="w-full min-w-[820px]">
               <thead className="bg-page-bg">
                 <tr className="border-b border-border">
-                  {['Empresa', 'RUC', 'Sector', 'Contacto', 'Contratos', 'Detalle'].map((h, i) => (
-                    <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3 ${i === 0 ? 'text-left' : 'text-center'}`}>
+                  {['Empresa', 'RUC', 'Sector', 'Contacto', 'Contratos', 'Detalle'].map(h => (
+                    <th key={h} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
                       {h}
                     </th>
                   ))}
@@ -200,8 +193,8 @@ export default function AdminEmpresas() {
               </thead>
               <tbody>
                 {filtered.map(emp => (
-                  <tr key={emp.id} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                    <td className="px-4 py-3">
+                  <tr key={emp.id} className="border-b border-border last:border-0 transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+                    <td className="px-4 py-3 text-center">
                       <div className="text-[12px] font-bold text-text-1 whitespace-nowrap">{emp.nombre}</div>
                       {emp.nombreComercial && emp.nombreComercial !== emp.nombre && (
                         <div className="text-[11px] text-text-5 whitespace-nowrap">{emp.nombreComercial}</div>
@@ -246,7 +239,7 @@ export default function AdminEmpresas() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button onClick={() => setDetalle(emp)} title="Ver detalle"
-                        className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
                         <Eye className="w-4 h-4" />
                       </button>
                     </td>
