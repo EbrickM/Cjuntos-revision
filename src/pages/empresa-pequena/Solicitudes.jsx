@@ -172,7 +172,7 @@ export default function EpSolicitudes() {
       sub="Mis solicitudes e invitaciones de empresas contratantes"
       back
       headerRight={
-        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border shrink-0">
           {[
             { id: "mis",          lbl: "Mis solicitudes", Icon: ClipboardList },
             { id: "invitaciones", lbl: "Invitaciones",    Icon: Mail          },
@@ -180,7 +180,7 @@ export default function EpSolicitudes() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`bona-btn py-1.5 px-4 rounded-[8px] text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
+              className={`bona-btn py-1.5 px-3 rounded-[8px] text-[12px] font-medium transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 ${
                 tab === t.id
                   ? "bg-[#EF7A2C] shadow-sm text-white font-semibold"
                   : "text-text-3 hover:text-text-1"

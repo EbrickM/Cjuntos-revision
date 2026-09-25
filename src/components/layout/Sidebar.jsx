@@ -10,7 +10,7 @@ const NAV = {
   admin: [
     { id: 'adminDash',     Icon: Home,          lbl: 'Inicio' },
     { id: 'adminConf',     Icon: ClipboardList, lbl: 'Contratos' },
-    { id: 'adminEmpresas', Icon: Building2,     lbl: 'Empresas Contratantes' },
+    { id: 'adminEmpresas', Icon: Building2,     lbl: 'Emp. Contratantes' },
     { id: 'adminFacturas', Icon: Receipt,       lbl: 'Facturas' },
     { id: 'adminRisk',     Icon: ClipboardList, lbl: 'Riesgo' },
     { id: 'adminGobierno', Icon: Landmark,      lbl: 'Información Gubernamental' },

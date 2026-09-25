@@ -159,7 +159,7 @@ export default function ProvContratos() {
           </div>
           <div className="flex items-center gap-3">
             <div className="overflow-x-auto pb-0.5 flex-1">
-              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+              <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border w-max">
                 {TABS.map(t => {
                   const Icon = TAB_ICON[t] ?? LayoutGrid;
                   return (

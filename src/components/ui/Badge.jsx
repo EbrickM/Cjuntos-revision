@@ -19,7 +19,7 @@ const variants = {
   slate:  'bg-slate-bg text-slate-text before:bg-slate-text',         // Neutro frío    #55606E
 };
 
-export default function Badge({ variant = 'green', children, className = '', noDot = false }) {
+export default function Badge({ variant = 'green', children, className = '', noDot = true }) {
   const cls = variants[variant] || variants.green;
   const dot = noDot ? '' : "before:content-[''] before:w-[6px] before:h-[6px] before:rounded-full before:shrink-0";
   return (

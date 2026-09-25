@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Receipt, Wallet, Banknote, Search, Eye,
   LayoutList, Send, ScanSearch, FileCheck2, AlertCircle, KeyRound, CheckCircle2,
+  ArrowUpDown, ArrowUp, ArrowDown, Layers2,
 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import Button from '../../components/ui/Button';
@@ -42,30 +43,38 @@ const ESTADO_TABS = [
   { value: 'Saldo en Billetera', label: 'En Billetera',   Icon: Wallet       },
 ];
 
-const Header = ({ title, sub, Icon, right }) => (
+const Header = ({ title, sub, right }) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-    <div className="flex items-center gap-3">
-      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-        <Icon className="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <div className="text-[14px] font-bold text-text-1">{title}</div>
-        {sub && <div className="text-[11px] text-text-4">{sub}</div>}
-      </div>
+    <div>
+      <div className="text-[14px] font-bold text-text-1">{title}</div>
+      {sub && <div className="text-[11px] text-text-4">{sub}</div>}
     </div>
     {right}
   </div>
 );
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className={`relative ${compact ? 'w-full max-w-[300px]' : 'flex-1'}`}>
+const EstadoTabsConSearch = ({ tabs, filtro, setFiltro, busqueda, setBusqueda, placeholder }) => (
+  <div className="flex items-center gap-3 mb-4">
+    <div className="overflow-x-auto min-w-0 flex-1">
+      <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+        {tabs.map(({ value, label, Icon }) => (
+          <button key={value} onClick={() => setFiltro(value)}
+            className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+              filtro === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+            }`}>
+            <Icon className="w-3 h-3 shrink-0" />
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+    <div className="relative shrink-0">
       <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
       <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
+        value={busqueda}
+        onChange={e => setBusqueda(e.target.value)}
         placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
+        className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-48"
       />
     </div>
   </div>
@@ -79,6 +88,47 @@ export default function FacturasAdmin() {
   const [detalle, setDetalle]         = useState(null);
   const [detalleBilletera, setDetalleBilletera] = useState(null);
   const [detallePago, setDetallePago] = useState(null);
+  const [sortKey, setSortKey]         = useState(null);
+  const [sortDir, setSortDir]         = useState('asc');
+
+  const [groupBy, setGroupBy]         = useState(null);
+
+  const toggleSort = key => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+  const toggleGroup = key => setGroupBy(g => g === key ? null : key);
+  const sortIcon  = k => sortKey !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortDir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const applySort = (arr, gKey = groupBy) => {
+    const sorted = sortKey ? [...arr].sort((a, b) => {
+      const va = sortKey === 'monto' ? Number(a[sortKey]) : (a[sortKey] ?? '').toString().toLowerCase();
+      const vb = sortKey === 'monto' ? Number(b[sortKey]) : (b[sortKey] ?? '').toString().toLowerCase();
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    }) : [...arr];
+    if (gKey) sorted.sort((a, b) => {
+      const ga = (a[gKey] ?? '').toString().toLowerCase();
+      const gb = (b[gKey] ?? '').toString().toLowerCase();
+      return ga < gb ? -1 : ga > gb ? 1 : 0;
+    });
+    return sorted;
+  };
+  const sortHeader = (label, field) => !field ? label : (
+    <button onClick={() => toggleSort(field)}
+      className="inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full">
+      {label} {sortIcon(field)}
+    </button>
+  );
+  const groupHeader = (label, field) => !field ? label : (
+    <button onClick={() => toggleGroup(field)}
+      className={`inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full ${groupBy === field ? 'text-orange' : ''}`}>
+      {label} {groupIcon(field)}
+    </button>
+  );
 
   const facturas = facturaService.listar();
 
@@ -126,89 +176,100 @@ export default function FacturasAdmin() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-[10px] w-fit">
-          {TABS.map(({ id, lbl, Icon }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-[8px] text-[13px] font-medium transition-all whitespace-nowrap cursor-pointer ${
-                tab === id ? 'bg-white shadow-sm text-text-1 font-semibold' : 'text-text-3 hover:text-text-1'
-              }`}>
-              <Icon className="w-3.5 h-3.5" />{lbl}
-            </button>
-          ))}
+        <div className="flex justify-center">
+          <div className="flex gap-1.5 bg-white p-1.5 rounded-[14px] border border-border shadow-sm">
+            {TABS.map(({ id, lbl, Icon }) => (
+              <button key={id} onClick={() => { setTab(id); setSortKey(null); setSortDir('asc'); setGroupBy(null); }}
+                className={`bona-btn font-medium rounded-[10px] text-[13px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2 px-5 py-2.5 ${
+                  tab === id ? 'bg-[#EF7A2C] shadow text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                }`}>
+                <Icon className="w-4 h-4 shrink-0" />{lbl}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Tab: Facturas (historial) ── */}
         {tab === 'facturas' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Todas las facturas"
               sub="Historial completo de la cadena de facturación."
               Icon={Receipt}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{facturas.length} registradas</span>}
             />
-            <div className="overflow-x-auto mb-3">
-              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-                {ESTADO_TABS.map(({ value, label, Icon }) => (
-                  <button key={value} onClick={() => setFiltroEstado(value)}
-                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                      filtroEstado === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-                    }`}>
-                    <Icon className="w-3 h-3 shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <SearchBar
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder="Buscar por Nº, Emp. Contratada, contratante, contrato o concepto…"
-              compact
+            <EstadoTabsConSearch
+              tabs={ESTADO_TABS}
+              filtro={filtroEstado}
+              setFiltro={setFiltroEstado}
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              placeholder="Buscar Nº, contratante, contrato…"
             />
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
               <table className="w-full min-w-[900px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['Nº Factura', 'Emp. Contratada', 'Contratante', 'Contrato', 'Estado', 'Monto', 'Fecha', 'Detalle'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                        ${i === 0 ? 'text-left' : i === 5 ? 'text-right' : 'text-center'}
-                      `}>{h}</th>
+                    {[
+                      { label: 'Nº Factura',      sort:  'id'          },
+                      { label: 'Emp. Contratada', group: 'pyme'        },
+                      { label: 'Contratante',     group: 'contratante' },
+                      { label: 'Contrato'                               },
+                      { label: 'Estado',          group: 'estado'      },
+                      { label: 'Monto',           sort:  'monto'       },
+                      { label: 'Fecha',           sort:  'fecha'       },
+                      { label: 'Detalle'                                },
+                    ].map(({ label, sort, group }) => (
+                      <th key={label} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
+                        {sort ? sortHeader(label, sort) : group ? groupHeader(label, group) : label}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {facturasFiltradas.map((f) => (
-                    <tr key={f.id} onClick={() => setDetalle(f)}
-                      className={`border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40 ${f.estado === INV.emitida ? 'bg-orange-tint/10' : ''}`}
-                    >
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5">
+                  {applySort(facturasFiltradas).flatMap((f, i, arr) => {
+                    const rows = [];
+                    if (groupBy) {
+                      const cur  = String(f[groupBy] ?? '—');
+                      const prev = i > 0 ? String(arr[i - 1][groupBy] ?? '—') : null;
+                      if (i === 0 || cur !== prev) {
+                        rows.push(
+                          <tr key={`gh-${cur}-${i}`} className="bg-orange-tint/10 border-b border-border">
+                            <td colSpan={8} className="px-4 py-1.5 text-[11px] font-semibold text-orange-dark">{cur}</td>
+                          </tr>
+                        );
+                      }
+                    }
+                    rows.push(
+                      <tr key={f.id} onClick={() => setDetalle(f)}
+                        className={`border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] ${f.estado === INV.emitida ? 'bg-orange-tint/10' : ''}`}
+                      >
+                        <td className="px-4 py-3 text-center whitespace-nowrap">
                           <span className="text-[12px] font-bold text-text-1">{f.id}</span>
-                        </div>
-                        <div className="text-[10px] text-text-5">{f.concepto?.length > 36 ? `${f.concepto.slice(0, 36)}…` : f.concepto}</div>
-                      </td>
-                      <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme}</td>
-                      <td className="px-4 py-3 text-[12px] text-text-4 max-w-[220px]">
-                        <span className="block truncate">{f.contratante}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="text-[11px] font-mono text-text-5 whitespace-nowrap">{f.contrato}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={f.estado} /></td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
-                      <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.fecha}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div onClick={e => e.stopPropagation()}>
-                          <button onClick={() => setDetalle(f)} title="Ver detalle"
-                            className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          <div className="text-[10px] text-text-5">{f.concepto?.length > 36 ? `${f.concepto.slice(0, 36)}…` : f.concepto}</div>
+                        </td>
+                        <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">{f.pyme || '—'}</td>
+                        <td className="px-4 py-3 text-center text-[12px] text-text-4">{f.contratante || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-[11px] font-mono text-text-5 whitespace-nowrap">{f.contrato || '—'}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={f.estado} /></td>
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1 whitespace-nowrap">{fmt(f.monto)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{f.fecha || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setDetalle(f)} title="Ver detalle"
+                              className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                    return rows;
+                  })}
                   {facturasFiltradas.length === 0 && (
                     <tr>
                       <td colSpan={8} className="px-4 py-8 text-center text-[12px] text-text-4">No se encontraron facturas con los filtros aplicados.</td>
@@ -217,128 +278,158 @@ export default function FacturasAdmin() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </>
         )}
 
         {/* ── Tab: Billeteras Virtuales ── */}
         {tab === 'billeteras' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Billeteras Virtuales"
               sub="Fondos de Bonafide desbloqueados y a la espera de distribución a proveedores."
               Icon={Wallet}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{billeteras.length} Emp. Contratadas</span>}
             />
-            <div className="overflow-x-auto mb-3">
-              <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-                {ESTADO_TABS.map(({ value, label, Icon }) => (
-                  <button key={value} onClick={() => setFiltroBilletera(value)}
-                    className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                      filtroBilletera === value ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-                    }`}>
-                    <Icon className="w-3 h-3 shrink-0" />
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <SearchBar
-              value={busqueda}
-              onChange={setBusqueda}
-              placeholder="Buscar por Empresa Contratada…"
-              compact
+            <EstadoTabsConSearch
+              tabs={ESTADO_TABS}
+              filtro={filtroBilletera}
+              setFiltro={setFiltroBilletera}
+              busqueda={busqueda}
+              setBusqueda={setBusqueda}
+              placeholder="Buscar Empresa Contratada…"
             />
 
-            {billeterasFiltradas.length === 0 && (
-              <div className="text-[13px] text-text-4 py-10 text-center">
-                {billeteras.length === 0 ? 'Aún no hay Empresas Contratadas con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
-              </div>
-            )}
-
             {/* Tabla */}
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[760px]">
-                <thead className="bg-page-bg">
-                  <tr className="border-b border-border">
-                    {['Emp. Contratada', 'Monto presupuestado', 'Saldo disponible', 'Total distribuido', 'Facturas', 'Estado', 'Detalle'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                        ${i === 0 ? 'text-left' : i >= 1 && i <= 3 ? 'text-right' : 'text-center'}
-                      `}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {billeterasFiltradas.map(b => (
-                    <tr key={b.pyme} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                      <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{b.pyme}</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-semibold text-text-1 whitespace-nowrap">{fmt(b.montoPresupuestado ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-bold text-orange whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-right text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
-                      <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
-                      <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
-                      <td className="px-4 py-3 text-center">
-                        <button onClick={() => setDetalleBilletera(b)} title="Ver detalle"
-                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+              {billeterasFiltradas.length === 0 ? (
+                <div className="text-[13px] text-text-4 py-10 text-center min-w-[760px]">
+                  {billeteras.length === 0 ? 'Aún no hay Empresas Contratadas con modalidad Billetera Virtual desbloqueada.' : 'No se encontraron billeteras con el filtro aplicado.'}
+                </div>
+              ) : (
+                <table className="w-full min-w-[760px]">
+                  <thead className="bg-page-bg">
+                    <tr className="border-b border-border">
+                      {[
+                        { label: 'Emp. Contratada',      sort: 'pyme'               },
+                        { label: 'Monto presupuestado',  sort: 'montoPresupuestado' },
+                        { label: 'Saldo disponible',     sort: 'saldoDisponible'    },
+                        { label: 'Total distribuido',    sort: 'totalDistribuido'   },
+                        { label: 'Facturas'                                          },
+                        { label: 'Estado'                                            },
+                        { label: 'Detalle'                                           },
+                      ].map(({ label, sort }) => (
+                        <th key={label} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
+                          {sort ? sortHeader(label, sort) : label}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {applySort(billeterasFiltradas).map(b => (
+                      <tr key={b.pyme} className="border-b border-border last:border-0 transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1 whitespace-nowrap">{b.pyme}</td>
+                        <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">{fmt(b.montoPresupuestado ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-orange whitespace-nowrap">{fmt(b.saldoDisponible ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[12px] font-semibold text-orange whitespace-nowrap">{fmt(b.totalDistribuido ?? 0)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1">{b.facturas?.length ?? 0}</td>
+                        <td className="px-4 py-3 text-center"><InvoiceStatusBadge estado={INV.billetera} /></td>
+                        <td className="px-4 py-3 text-center">
+                          <button onClick={() => setDetalleBilletera(b)} title="Ver detalle"
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
-          </div>
+          </>
         )}
 
         {/* ── Tab: Pagos y Cheques ── */}
         {tab === 'pagos' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             <Header
               title="Pagos a proveedores"
               sub="Core Bancario transfiere a proveedores con cuenta; sin cuenta → Cheque de Venta."
               Icon={Banknote}
               right={<span className="text-[11px] font-bold text-orange-dark whitespace-nowrap">{pagos.length} pagos</span>}
             />
-            <SearchBar value={busqueda} onChange={setBusqueda} placeholder="Buscar por proveedor, Nº de pago o factura…" compact />
+            <div className="flex justify-end mb-4">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+                <input
+                  value={busqueda}
+                  onChange={e => setBusqueda(e.target.value)}
+                  placeholder="Buscar proveedor, Nº de pago…"
+                  className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-52"
+                />
+              </div>
+            </div>
 
             {/* Tabla */}
-            <div className="overflow-x-auto">
+            <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead className="bg-page-bg">
                   <tr className="border-b border-border">
-                    {['Proveedor', 'Nº Pago', 'Factura', 'Método', 'Monto', 'Fecha', 'Detalle'].map((h, i) => (
-                      <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                        ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
-                      `}>{h}</th>
+                    {[
+                      { label: 'Proveedor', group: 'proveedor' },
+                      { label: 'Nº Pago',  sort:  'id'        },
+                      { label: 'Factura'                        },
+                      { label: 'Método',   group: 'metodo'    },
+                      { label: 'Monto',    sort:  'monto'     },
+                      { label: 'Fecha',    sort:  'fechaPago' },
+                      { label: 'Detalle'                        },
+                    ].map(({ label, sort, group }) => (
+                      <th key={label} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
+                        {sort ? sortHeader(label, sort) : group ? groupHeader(label, group) : label}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {pagosFiltrados.map(pago => (
-                    <tr key={pago.id} className="border-b border-border last:border-0 transition-colors hover:bg-orange-tint/40">
-                      <td className="px-4 py-3 text-[12px] font-bold text-text-1 whitespace-nowrap">{pago.proveedor}</td>
-                      <td className="px-4 py-3 text-center text-[11px] font-mono text-text-4 whitespace-nowrap">{pago.id}</td>
-                      <td className="px-4 py-3 text-center text-[11px] font-mono text-text-5 whitespace-nowrap">{pago.facturaId}</td>
-                      <td className="px-4 py-3 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'orange'}>
-                            {pago.metodo === 'cheque' ? pago.cheque : 'Transferencia'}
-                          </Badge>
-                          {pago.estado === 'Pendiente de Cobro' && (
-                            <span className="text-[10px] text-warn">Pendiente</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-right text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(pago.monto)} XAF</td>
-                      <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{pago.fechaPago}</td>
-                      <td className="px-4 py-3 text-center">
-                        <button onClick={() => setDetallePago(pago)} title="Ver detalle"
-                          className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {applySort(pagosFiltrados).flatMap((pago, i, arr) => {
+                    const rows = [];
+                    if (groupBy) {
+                      const cur  = String(pago[groupBy] ?? '—');
+                      const prev = i > 0 ? String(arr[i - 1][groupBy] ?? '—') : null;
+                      if (i === 0 || cur !== prev) {
+                        rows.push(
+                          <tr key={`gh-${cur}-${i}`} className="bg-orange-tint/10 border-b border-border">
+                            <td colSpan={7} className="px-4 py-1.5 text-[11px] font-semibold text-orange-dark">{cur}</td>
+                          </tr>
+                        );
+                      }
+                    }
+                    rows.push(
+                      <tr key={pago.id} className="border-b border-border last:border-0 transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+                        <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1 whitespace-nowrap">{pago.proveedor || '—'}</td>
+                        <td className="px-4 py-3 text-center text-[11px] font-mono text-text-4 whitespace-nowrap">{pago.id}</td>
+                        <td className="px-4 py-3 text-center text-[11px] font-mono text-text-5 whitespace-nowrap">{pago.facturaId || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Badge variant={pago.metodo === 'cheque' ? 'yellow' : 'orange'}>
+                              {pago.metodo === 'cheque' ? pago.cheque : 'Transferencia'}
+                            </Badge>
+                            {pago.estado === 'Pendiente de Cobro' && (
+                              <span className="text-[10px] text-warn">Pendiente</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center text-[12px] font-extrabold text-text-1 whitespace-nowrap">{fmt(pago.monto)} XAF</td>
+                        <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{pago.fechaPago || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <button onClick={() => setDetallePago(pago)} title="Ver detalle"
+                            className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                    return rows;
+                  })}
                   {pagosFiltrados.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">No hay pagos que coincidan.</td>
@@ -347,7 +438,7 @@ export default function FacturasAdmin() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </>
         )}
 
       </div>

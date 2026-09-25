@@ -711,7 +711,7 @@ export default function EpCreditos() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="overflow-x-auto pb-0.5 flex-1">
-                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max">
+                  <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
                     {ESTADO_TABS.map(t => {
                       const Icon = TAB_ICON[t] ?? LayoutGrid;
                       return (
@@ -817,7 +817,7 @@ export default function EpCreditos() {
             </div>
 
             {/* Tabs */}
-            <div className="flex bg-white rounded-[10px] gap-1 p-1 mb-5">
+            <div className="flex bg-white rounded-[10px] gap-1 p-1 mb-5 border border-border">
               {TABS.map(({ id, label, Icon }) => {
                 const isActive = activeTab === id;
                 return (
@@ -1286,7 +1286,7 @@ export default function EpCreditos() {
                   <div className="space-y-4">
                     {/* Sub-tabs */}
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex bg-white rounded-[10px] gap-1 p-1">
+                      <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border">
                         {[
                           { id: "contratante", lbl: `Al Contratante (${contratanteInvoices.length})`, Icon: Building2 },
                           { id: "proveedor",   lbl: `De Proveedores (${proveedorInvoices.length})`,  Icon: Truck },
@@ -1294,7 +1294,7 @@ export default function EpCreditos() {
                           <button
                             key={id}
                             onClick={() => setFacSubTab(id)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] text-[12px] font-medium transition-all whitespace-nowrap cursor-pointer
+                            className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 cursor-pointer
                               ${facSubTab === id ? "bg-[#EF7A2C] text-white font-semibold shadow-sm" : "text-text-3 hover:text-text-1"}`}
                           >
                             <Icon className="w-3.5 h-3.5" />

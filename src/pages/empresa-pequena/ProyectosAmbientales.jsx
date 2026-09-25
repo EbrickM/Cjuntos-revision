@@ -143,13 +143,13 @@ export default function EpProyectosAmbientales() {
   return (
     <AppShell active="epESG" role="empresa-pequena" title="Impacto" sub="Impacto Ambiental y Social de tu empresa" back
       headerRight={
-        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border shrink-0">
           {[
             { id: 'ambiental', lbl: 'Ambiental', Icon: Leaf  },
             { id: 'social',    lbl: 'Social',    Icon: Users },
           ].map(({ id, lbl, Icon }) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`bona-btn py-1.5 px-4 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
+              className={`bona-btn py-1.5 px-3 font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5
                 ${tab === id ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'}`}>
               <Icon className="w-3.5 h-3.5 shrink-0" />
               {lbl}

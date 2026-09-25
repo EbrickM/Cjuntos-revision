@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Receipt, Eye, Search, LayoutList, CheckCircle2, Send, Clock } from 'lucide-react';
+import { Eye, Search, LayoutList, CheckCircle2, Send, Clock, ArrowUpDown, ArrowUp, ArrowDown, Layers2 } from 'lucide-react';
 import AppShell from '../../components/layout/AppShell';
 import { StatCard } from '../../components/common/StatCard';
 import { useCountUp } from '../../hooks/useCountUp';
@@ -8,7 +8,7 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import InfoRow from '../../components/ui/InfoRow';
 
-const formatXaf = (v) => `XAF ${new Intl.NumberFormat('en-US').format(Number(v) || 0)}`;
+const formatXaf = (v) => `${new Intl.NumberFormat('de-DE').format(Number(v) || 0)} XAF`;
 
 const FILTROS_ESTADO = ['Todos', 'Pagada', 'Enviada', 'Pendiente'];
 
@@ -39,14 +39,9 @@ const allInvoices = [
 
 const header = (title, sub, right) => (
   <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-    <div className="flex items-center gap-3">
-      <div className="bona-gradient-bg w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0">
-        <Receipt className="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <div className="text-[14px] font-bold text-text-1">{title}</div>
-        <div className="text-[11px] text-text-4">{sub}</div>
-      </div>
+    <div>
+      <div className="text-[14px] font-bold text-text-1">{title}</div>
+      <div className="text-[11px] text-text-4">{sub}</div>
     </div>
     {right}
   </div>
@@ -64,98 +59,157 @@ const pesquisa = (rows, q, filtro) => {
   );
 };
 
-const SearchBar = ({ value, onChange, placeholder = 'Buscar…', compact = false }) => (
-  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
-    <div className={`relative ${compact ? 'w-full max-w-[380px]' : 'flex-1'}`}>
-      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
-      <input
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full pl-8 pr-3 rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none ${compact ? 'py-1.5 text-[12px]' : 'py-2 text-[12px]'}`}
-      />
-    </div>
-  </div>
-);
-
 // ── Tabla estilo Admin (igual que Contratos/FacturasAdmin) ────────────────────
-const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetalle, proveedor }) => (
-  <>
-    {/* Estado tabs */}
-    <div className="overflow-x-auto mb-3">
-      <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
-        {FILTROS_ESTADO.map(e => {
-          const Icon = ESTADO_ICON[e];
-          return (
-            <button key={e} onClick={() => setFiltro(e)}
-              className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
-                filtro === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
-              }`}>
-              {Icon && <Icon className="w-3 h-3 shrink-0" />}
-              {e}
-            </button>
-          );
-        })}
+const TablaFacturas = ({ invs, busqueda, setBusqueda, filtro, setFiltro, onDetalle, proveedor }) => {
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState('asc');
+  const [groupBy, setGroupBy] = useState(null);
+
+  const toggleSort  = key => {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(key); setSortDir('asc'); }
+  };
+  const toggleGroup = key => setGroupBy(g => g === key ? null : key);
+
+  const sortIcon  = k => sortKey !== k
+    ? <ArrowUpDown className="w-3 h-3 shrink-0 opacity-30" />
+    : sortDir === 'asc' ? <ArrowUp className="w-3 h-3 shrink-0 text-orange" /> : <ArrowDown className="w-3 h-3 shrink-0 text-orange" />;
+  const groupIcon = k => <Layers2 className={`w-3 h-3 shrink-0 ${groupBy === k ? 'text-orange' : 'opacity-30'}`} />;
+
+  const srtHdr = (label, field) => (
+    <button onClick={() => toggleSort(field)}
+      className="inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full">
+      {label} {sortIcon(field)}
+    </button>
+  );
+  const grpHdr = (label, field) => (
+    <button onClick={() => toggleGroup(field)}
+      className={`inline-flex items-center justify-center gap-1 cursor-pointer hover:text-text-1 transition-colors w-full ${groupBy === field ? 'text-orange' : ''}`}>
+      {label} {groupIcon(field)}
+    </button>
+  );
+
+  const contratanteKey = proveedor ? 'proveedor' : 'contrato';
+  const cols = [
+    { label: 'Nº Factura',                                 sort:  'id'           },
+    { label: proveedor ? 'Proveedor' : 'Contratante',       group: contratanteKey },
+    { label: 'Emp. Contratada',                             group: 'pyme'         },
+    { label: 'Estado',                                      group: 'estado'       },
+    { label: 'Monto',                                       sort:  'monto'        },
+    { label: 'Fecha',                                       sort:  'fecha'        },
+    { label: 'Detalle'                                                             },
+  ];
+
+  const sorted = (() => {
+    let arr = sortKey ? [...invs].sort((a, b) => {
+      const va = sortKey === 'monto' ? Number(a[sortKey]) : (a[sortKey] ?? '').toString().toLowerCase();
+      const vb = sortKey === 'monto' ? Number(b[sortKey]) : (b[sortKey] ?? '').toString().toLowerCase();
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    }) : [...invs];
+    if (groupBy) arr.sort((a, b) => {
+      const ga = (a[groupBy] ?? '').toString().toLowerCase();
+      const gb = (b[groupBy] ?? '').toString().toLowerCase();
+      return ga < gb ? -1 : ga > gb ? 1 : 0;
+    });
+    return arr;
+  })();
+
+  return (
+    <>
+      {/* Tabs + Search en la misma fila */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="overflow-x-auto min-w-0 flex-1">
+          <div className="flex bg-white rounded-[10px] gap-1 p-1 w-max border border-border">
+            {FILTROS_ESTADO.map(e => {
+              const Icon = ESTADO_ICON[e];
+              return (
+                <button key={e} onClick={() => setFiltro(e)}
+                  className={`bona-btn font-medium rounded-[8px] text-[12px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-1.5 px-3 py-1.5 ${
+                    filtro === e ? 'bg-[#EF7A2C] shadow-sm text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                  }`}>
+                  {Icon && <Icon className="w-3 h-3 shrink-0" />}
+                  {e}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="relative shrink-0">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-text-4" />
+          <input
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            placeholder={proveedor ? 'Buscar por Nº, proveedor…' : 'Buscar por Nº, contratante…'}
+            className="pl-8 pr-3 py-1.5 text-[12px] rounded-[8px] border-2 border-orange bg-white placeholder-text-4 focus:outline-none w-48"
+          />
+        </div>
       </div>
-    </div>
-    <SearchBar
-      value={busqueda}
-      onChange={setBusqueda}
-      placeholder={proveedor ? 'Buscar por Nº, proveedor, Emp. Contratada o concepto…' : 'Buscar por Nº, contratante, Emp. Contratada o concepto…'}
-      compact
-    />
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[820px]">
-        <thead className="bg-page-bg">
-          <tr className="border-b border-border">
-            {[
-              'Nº Factura',
-              proveedor ? 'Proveedor' : 'Contratante',
-              'Emp. Contratada', 'Estado', 'Monto', 'Fecha', 'Detalle',
-            ].map((h, i) => (
-              <th key={h} className={`text-xs font-semibold text-text-4 uppercase tracking-wide px-4 py-3
-                ${i === 0 ? 'text-left' : i === 4 ? 'text-right' : 'text-center'}
-              `}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {invs.map(inv => (
-            <tr key={inv.id} onClick={() => onDetalle(inv)}
-              className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-orange-tint/40">
-              <td className="px-4 py-3 whitespace-nowrap">
-                <span className="text-[12px] font-bold text-text-1">{inv.id}</span>
-                <div className="text-[10px] text-text-5 max-w-[220px] truncate">{inv.concepto}</div>
-              </td>
-              <td className="px-4 py-3 text-[12px] font-semibold text-text-1 whitespace-nowrap">
-                {proveedor ? inv.proveedor : contratos[inv.contrato]}
-              </td>
-              <td className="px-4 py-3 text-[12px] text-text-4 whitespace-nowrap">{inv.pyme}</td>
-              <td className="px-4 py-3 text-center"><Badge variant={estadoVariant(inv.estado)}>{inv.estado}</Badge></td>
-              <td className="px-4 py-3 text-right text-[12px] font-bold text-text-1 whitespace-nowrap">{formatXaf(inv.monto)}</td>
-              <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{inv.fecha}</td>
-              <td className="px-4 py-3 text-center">
-                <div onClick={e => e.stopPropagation()}>
-                  <button onClick={() => onDetalle(inv)} title="Ver detalle"
-                    className="p-1.5 rounded-[8px] hover:bg-orange-tint transition text-text-4 hover:text-orange cursor-pointer">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
+      <div className="bg-white rounded-[14px] border border-border overflow-x-auto">
+        <table className="w-full min-w-[820px]">
+          <thead className="bg-page-bg">
+            <tr className="border-b border-border">
+              {cols.map(({ label, sort, group }) => (
+                <th key={label} className="text-[11px] font-semibold text-text-4 tracking-wide px-4 py-3 text-center">
+                  {sort ? srtHdr(label, sort) : group ? grpHdr(label, group) : label}
+                </th>
+              ))}
             </tr>
-          ))}
-          {invs.length === 0 && (
-            <tr>
-              <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
-                No hay {proveedor ? 'facturas de proveedores' : 'facturas al contratante'} que coincidan.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  </>
-);
+          </thead>
+          <tbody>
+            {sorted.flatMap((inv, i, arr) => {
+              const rows = [];
+              if (groupBy) {
+                const cur = String(inv[groupBy] ?? '—');
+                const prev = i > 0 ? String(arr[i - 1][groupBy] ?? '—') : null;
+                if (i === 0 || cur !== prev) {
+                  const display = groupBy === 'contrato' ? (contratos[cur] || cur) : cur;
+                  rows.push(
+                    <tr key={`gh-${cur}-${i}`} className="bg-orange-tint/10 border-b border-border">
+                      <td colSpan={7} className="px-4 py-1.5 text-[11px] font-semibold text-orange-dark">{display}</td>
+                    </tr>
+                  );
+                }
+              }
+              rows.push(
+                <tr key={inv.id} onClick={() => onDetalle(inv)}
+                  className="border-b border-border last:border-0 cursor-pointer transition-all duration-150 hover:bg-orange-tint/40 hover:scale-[1.01] hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                    <span className="text-[12px] font-bold text-text-1">{inv.id}</span>
+                    <div className="text-[10px] text-text-5 max-w-[220px] truncate">{inv.concepto}</div>
+                  </td>
+                  <td className="px-4 py-3 text-center text-[12px] font-semibold text-text-1 whitespace-nowrap">
+                    {proveedor ? (inv.proveedor || '—') : (contratos[inv.contrato] || '—')}
+                  </td>
+                  <td className="px-4 py-3 text-center text-[12px] text-text-4 whitespace-nowrap">{inv.pyme || '—'}</td>
+                  <td className="px-4 py-3 text-center"><Badge variant={estadoVariant(inv.estado)}>{inv.estado}</Badge></td>
+                  <td className="px-4 py-3 text-center text-[12px] font-bold text-text-1 whitespace-nowrap">{formatXaf(inv.monto)}</td>
+                  <td className="px-4 py-3 text-center text-[11px] text-text-5 whitespace-nowrap">{inv.fecha || '—'}</td>
+                  <td className="px-4 py-3 text-center">
+                    <div onClick={e => e.stopPropagation()}>
+                      <button onClick={() => onDetalle(inv)} title="Ver detalle"
+                        className="p-1.5 rounded-[8px] transition text-text-4 hover:text-orange cursor-pointer">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+              return rows;
+            })}
+            {invs.length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-[12px] text-text-4">
+                  No hay {proveedor ? 'facturas de proveedores' : 'facturas al contratante'} que coincidan.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+};
 
 export default function AdminRisk() {
   const [tab, setTab]                 = useState('ct');
@@ -204,20 +258,22 @@ export default function AdminRisk() {
         </div>
 
         {/* Selector superior entre las dos tablas */}
-        <div className="flex gap-1 bg-page-bg p-1 rounded-xl w-full sm:w-fit">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`flex-1 py-2 px-4 rounded-[8px] text-[12px] font-semibold transition-all cursor-pointer whitespace-nowrap text-center ${
-                tab === t.id ? 'bg-white shadow-sm text-text-1' : 'text-text-4 hover:text-text-2'
-              }`}>
-              {t.lbl}
-            </button>
-          ))}
+        <div className="flex justify-center">
+          <div className="flex gap-1.5 bg-white p-1.5 rounded-[14px] border border-border shadow-sm">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`bona-btn font-medium rounded-[10px] text-[13px] transition-all whitespace-nowrap inline-flex items-center justify-center gap-2 px-5 py-2.5 ${
+                  tab === t.id ? 'bg-[#EF7A2C] shadow text-white font-semibold' : 'text-text-3 hover:text-text-1 cursor-pointer'
+                }`}>
+                {t.lbl}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Tab: Pagadas por el contratante ── */}
         {tab === 'ct' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             {header(
               'Pagadas por el contratante',
               'Ingresos cobrados por la plataforma — dinero que entra al banco.',
@@ -232,12 +288,12 @@ export default function AdminRisk() {
               onDetalle={setDetalle}
               proveedor={false}
             />
-          </div>
+          </>
         )}
 
         {/* ── Tab: Fondos liberados a proveedores ── */}
         {tab === 'prov' && (
-          <div className="bg-white rounded-[14px] border border-border p-5">
+          <>
             {header(
               'Fondos liberados a proveedores',
               'Pagos realizados a proveedores desde el crédito de cada Empresa Contratada.',
@@ -252,7 +308,7 @@ export default function AdminRisk() {
               onDetalle={setDetalle}
               proveedor
             />
-          </div>
+          </>
         )}
 
       </div>

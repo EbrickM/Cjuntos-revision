@@ -135,7 +135,7 @@ export default function ProvESG() {
   return (
     <AppShell active="provESG" role="proveedor" title="Impacto" sub="Impacto Ambiental y Social de tu empresa" back
       headerRight={
-        <div className="flex bg-white rounded-[10px] gap-1 shrink-0">
+        <div className="flex bg-white rounded-[10px] gap-1 p-1 border border-border shrink-0">
           {[
             { id: 'ambiental', lbl: 'Ambiental', Icon: Leaf  },
             { id: 'social',    lbl: 'Social',    Icon: Users },
